@@ -1,7 +1,8 @@
-package com.orange.security;
+package com.orange.security.auth;
 
 import com.orange.entity.LoginAttempt;
 import com.orange.repository.system.LoginAttemptRepository;
+import com.orange.security.config.AuthProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,8 @@ class LoginAttemptServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new LoginAttemptService(repository, 2, 3, 15);
+        service = new LoginAttemptService(repository,
+                new AuthProperties(false, "Lax", "", 2, 3, 15));
     }
 
     @Test

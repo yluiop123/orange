@@ -1,5 +1,6 @@
-package com.orange.security;
+package com.orange.security.jwt;
 
+import com.orange.security.config.JwtProperties;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,8 @@ class JwtUtilTest {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         keyPair = generator.generateKeyPair();
-        jwtUtil = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(), 300, 600);
+        jwtUtil = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(),
+                new JwtProperties(300, 600, null, null));
         user = new AuthUser(
                 "user-id",
                 "alice",
@@ -88,7 +90,8 @@ class JwtUtilTest {
 
     @Test
     void expiredTokenIsRejectedWhenParsed() {
-        JwtUtil shortLived = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(), -60, 600);
+        JwtUtil shortLived = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(),
+                new JwtProperties(-60, 600, null, null));
         String token = shortLived.generateJwtToken(user);
 
         assertThrows(JwtException.class, () -> shortLived.parseAccessToken(token));

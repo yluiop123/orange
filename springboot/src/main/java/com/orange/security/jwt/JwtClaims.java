@@ -1,4 +1,4 @@
-package com.orange.security;
+package com.orange.security.jwt;
 
 import java.time.Instant;
 

@@ -1,8 +1,8 @@
-package com.orange.security;
+package com.orange.security.jwt;
 
+import com.orange.security.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -28,12 +28,11 @@ public class JwtUtil {
 
     public JwtUtil(PrivateKey privateKey,
                    PublicKey publicKey,
-                   @Value("${jwt.access-expire}") long accessExpire,
-                   @Value("${jwt.refresh-expire}") long refreshExpire) {
+                   JwtProperties properties) {
         this.privateKey = privateKey;
         this.publicKey = publicKey;
-        this.accessExpire = accessExpire;
-        this.refreshExpire = refreshExpire;
+        this.accessExpire = properties.accessExpire();
+        this.refreshExpire = properties.refreshExpire();
     }
 
     public String generateJwtToken(UserDetails userDetails) {

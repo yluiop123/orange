@@ -1,6 +1,7 @@
-package com.orange.security;
+package com.orange.security.auth;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.orange.security.config.AuthProperties;
+import com.orange.security.config.JwtProperties;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -20,14 +21,11 @@ public class RefreshTokenCookie {
     private final String domain;
     private final long refreshExpire;
 
-    public RefreshTokenCookie(@Value("${app.auth.cookie-secure:false}") boolean secure,
-                              @Value("${app.auth.cookie-same-site:Lax}") String sameSite,
-                              @Value("${app.auth.cookie-domain:}") String domain,
-                              @Value("${jwt.refresh-expire}") long refreshExpire) {
-        this.secure = secure;
-        this.sameSite = sameSite;
-        this.domain = domain;
-        this.refreshExpire = refreshExpire;
+    public RefreshTokenCookie(AuthProperties authProperties, JwtProperties jwtProperties) {
+        this.secure = authProperties.cookieSecure();
+        this.sameSite = authProperties.cookieSameSite();
+        this.domain = authProperties.cookieDomain();
+        this.refreshExpire = jwtProperties.refreshExpire();
     }
 
     public ResponseCookie create(String token) {

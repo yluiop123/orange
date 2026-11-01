@@ -1,6 +1,7 @@
-package com.orange.security;
+package com.orange.security.jwt;
 
 import com.orange.domain.common.ErrorCode;
+import com.orange.security.SecurityResponseWriter;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

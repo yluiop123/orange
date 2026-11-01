@@ -1,5 +1,7 @@
 package com.orange.security;
 
+import com.orange.security.jwt.JwtAuthenticationEntryPoint;
+import com.orange.security.jwt.JwtRequestFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

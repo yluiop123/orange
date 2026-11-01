@@ -1,6 +1,6 @@
-package com.orange.security;
+package com.orange.security.jwt;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.orange.security.config.JwtProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -23,25 +23,22 @@ public class JwtKeyConfig {
     private static final String PRIVATE_KEY_TYPE = "PRIVATE KEY";
     private static final String PUBLIC_KEY_TYPE = "PUBLIC KEY";
 
-    private final Resource privateKeyResource;
-    private final Resource publicKeyResource;
+    private final JwtProperties properties;
 
-    public JwtKeyConfig(@Value("${jwt.private-key}") Resource privateKeyResource,
-                        @Value("${jwt.public-key}") Resource publicKeyResource) {
-        this.privateKeyResource = privateKeyResource;
-        this.publicKeyResource = publicKeyResource;
+    public JwtKeyConfig(JwtProperties properties) {
+        this.properties = properties;
     }
 
     @Bean
     public PrivateKey privateKey() throws GeneralSecurityException, IOException {
-        byte[] decoded = decodeKey(privateKeyResource, PRIVATE_KEY_TYPE);
+        byte[] decoded = decodeKey(properties.privateKey(), PRIVATE_KEY_TYPE);
         return KeyFactory.getInstance(RSA_ALGORITHM)
                 .generatePrivate(new PKCS8EncodedKeySpec(decoded));
     }
 
     @Bean
     public PublicKey publicKey() throws GeneralSecurityException, IOException {
-        byte[] decoded = decodeKey(publicKeyResource, PUBLIC_KEY_TYPE);
+        byte[] decoded = decodeKey(properties.publicKey(), PUBLIC_KEY_TYPE);
         return KeyFactory.getInstance(RSA_ALGORITHM)
                 .generatePublic(new X509EncodedKeySpec(decoded));
     }

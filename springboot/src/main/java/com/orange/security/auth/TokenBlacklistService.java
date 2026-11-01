@@ -1,4 +1,4 @@
-package com.orange.security;
+package com.orange.security.auth;
 
 import com.orange.entity.RevokedToken;
 import com.orange.repository.system.RevokedTokenRepository;

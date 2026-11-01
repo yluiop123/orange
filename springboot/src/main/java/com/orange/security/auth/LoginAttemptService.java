@@ -1,8 +1,8 @@
-package com.orange.security;
+package com.orange.security.auth;
 
 import com.orange.entity.LoginAttempt;
 import com.orange.repository.system.LoginAttemptRepository;
-import org.springframework.beans.factory.annotation.Value;
+import com.orange.security.config.AuthProperties;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,13 +28,11 @@ public class LoginAttemptService {
     private final long lockMinutes;
 
     public LoginAttemptService(LoginAttemptRepository repository,
-                               @Value("${app.auth.login-max-attempts:5}") int userMaxAttempts,
-                               @Value("${app.auth.login-ip-max-attempts:20}") int ipMaxAttempts,
-                               @Value("${app.auth.login-lock-minutes:15}") long lockMinutes) {
+                               AuthProperties properties) {
         this.repository = repository;
-        this.userMaxAttempts = userMaxAttempts;
-        this.ipMaxAttempts = ipMaxAttempts;
-        this.lockMinutes = lockMinutes;
+        this.userMaxAttempts = properties.loginMaxAttempts();
+        this.ipMaxAttempts = properties.loginIpMaxAttempts();
+        this.lockMinutes = properties.loginLockMinutes();
     }
 
     public boolean isBlocked(String ip, String username) {

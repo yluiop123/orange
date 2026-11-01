@@ -1,7 +1,8 @@
-package com.orange.security;
+package com.orange.security.auth;
 
 import com.orange.entity.User;
 import com.orange.repository.system.UserRepository;
+import com.orange.security.jwt.AuthUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
