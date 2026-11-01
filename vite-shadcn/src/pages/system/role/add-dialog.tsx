@@ -36,14 +36,7 @@ export default function Index(props: { open: boolean, setOpen: (open: boolean) =
             type: "permissions"
         },
     ]
-    const schemaShape = fields.reduce((acc, field) => {
-        acc[field.name] = field.validate || z.string().optional();
-        return acc;
-    }, {} as Record<string, z.ZodTypeAny>);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const formSchema = z.object(schemaShape);
-
-    function onSubmit(values: z.infer<typeof formSchema>) {
+function onSubmit(values: Record<string, unknown>) {
         createRole({
             id: values.id as string,
             name: values.name as string,

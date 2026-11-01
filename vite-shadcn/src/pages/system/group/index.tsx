@@ -1,6 +1,8 @@
 import { deleteGroups, listGroups, moveGroup, updateGroupStatus } from "@/api/system/group";
+import type { GroupQuery } from "@/api/system/group";
 import ActionAuth from "@/components/action-auth";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -41,13 +43,7 @@ type Group = {
   subRows?: Group[]
 }
 
-type TableParams = {
-  page: number
-  size: number
-  id?: string
-  name?: string
-  status?: string
-}
+type TableParams = ListParams<GroupQuery>;
 
 export default function Group() {
   const { formatMessage } = useIntl();

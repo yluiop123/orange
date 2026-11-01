@@ -1,7 +1,8 @@
 import * as roleApi from "@/api/system/role";
-import type { Role } from "@/api/system/role";
+import type { Role, RoleQuery } from "@/api/system/role";
 import ActionAuth from "@/components/action-auth";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -30,15 +31,7 @@ import { toast } from "sonner";
 import AddDialog from "./add-dialog";
 import EditDialog from "./edit-dialog";
 
-type TableParams = {
-    page: number
-    size: number
-    id?: string
-    name?: string
-    status?: string
-    orderField?: string
-    orderValue?: "asc" | "desc"
-}
+type TableParams = ListParams<RoleQuery>;
 
 export default function Role() {
     const intl = useIntl();

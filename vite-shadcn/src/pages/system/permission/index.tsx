@@ -1,6 +1,8 @@
 import { deletePermissions, listPermissions, movePermission, updatePermission } from "@/api/system/permission";
+import type { PermissionQuery } from "@/api/system/permission";
 import ActionAuth from "@/components/action-auth";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -43,14 +45,7 @@ type Permission = {
   subRows?: Permission[]
 }
 
-type TableParams = {
-  page: number
-  size: number
-  id?: string
-  name?: string
-  status?: string
-  path?: string
-}
+type TableParams = ListParams<PermissionQuery>;
 
 export default function Permission() {
   const { formatMessage } = useIntl();

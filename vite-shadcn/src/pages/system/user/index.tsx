@@ -1,9 +1,10 @@
 import * as userApi from "@/api/system/user";
-import type { User } from "@/api/system/user";
+import type { User, UserQuery } from "@/api/system/user";
 import ActionAuth from "@/components/action-auth";
 import GroupTreeSelect from "@/components/group-tree-select";
 import { PasswordDialog } from "@/components/password-dialog";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -30,15 +31,7 @@ import { toast } from "sonner";
 import AddDialog from "./add-dialog";
 import EditDialog from "./edit-dialog";
 
-type TableParams = {
-    page: number
-    size: number
-    filterField: string
-    filterValue: string
-    groupId: string
-    orderField?: string
-    orderValue?: "asc" | "desc"
-}
+type TableParams = ListParams<UserQuery>;
 
 const FILTER_FIELDS = [
     { value: "name", label: "page.system.user.header.name" },

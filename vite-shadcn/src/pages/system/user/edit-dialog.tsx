@@ -94,15 +94,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
             cancelled = true;
         };
     }, [id])
-
-    const schemaShape = fields.reduce((acc, field) => {
-        acc[field.name] = field.validate || z.string().optional();
-        return acc;
-    }, {} as Record<string, z.ZodTypeAny>);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const formSchema = z.object(schemaShape);
-
-    function onSubmit(values: z.infer<typeof formSchema>) {
+function onSubmit(values: Record<string, unknown>) {
         const payload: UserPayload = {
             name: values.name as string,
             username: values.username as string,

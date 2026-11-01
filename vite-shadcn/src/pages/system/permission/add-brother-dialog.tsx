@@ -59,15 +59,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
     useEffect(() => {
         setValues({ brotherId: id });
     }, [id])
-
-    const schemaShape = fields.reduce((acc, field) => {
-        acc[field.name] = field.validate || z.string().optional();
-        return acc;
-    }, {} as Record<string, z.ZodTypeAny>);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const formSchema = z.object(schemaShape);
-
-    function onSubmit(fieldValues: z.infer<typeof formSchema>) {
+function onSubmit(fieldValues: Record<string, unknown>) {
         addPermissionSibling({
             id: fieldValues.id as string,
             name: fieldValues.name as string,

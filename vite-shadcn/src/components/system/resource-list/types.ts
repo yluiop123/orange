@@ -6,6 +6,11 @@ export type ResourceFetcher<TParams, T> = (
   signal: AbortSignal,
 ) => Promise<PageResult<T> | T[]>;
 
+export type ListParams<TQuery> = TQuery & {
+  page: number;
+  size: number;
+};
+
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
