@@ -7,14 +7,14 @@ import {
   SidebarGroupLabel,
   SidebarMenu
 } from "@/components/ui/sidebar";
-import { NavItem } from "@/routes";
-export function NavMain({items}: {items: NavItem[]}) {
+import type { MenuNode } from "@/types/menu";
+export function NavMain({items}: {items: MenuNode[]}) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Menu</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item, index) => (          
-           <SidebarMenuTree item={item} key={index}></SidebarMenuTree>
+        {items.map((item) => (
+           <SidebarMenuTree item={item} key={item.id}></SidebarMenuTree>
         ))}
       </SidebarMenu>
     </SidebarGroup>

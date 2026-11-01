@@ -17,8 +17,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
-import { menuMap } from "@/routes";
-import { useLocaleStore, useThemeStore } from '@/store/index';
+import { findMenuChain } from "@/lib/menu";
+import { useLocaleStore, useMenuStore, useThemeStore } from '@/store/index';
 import React from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation } from 'react-router';
@@ -26,8 +26,9 @@ export function SiteHeader() {
   const location = useLocation();
   const intl = useIntl()
   const {mode,setMode} = useThemeStore();
+  const menus = useMenuStore((state) => state.menus);
   const pathname: string = location.pathname;
-  const titles:string[] = menuMap.get(pathname)??[];
+  const titles: string[] = findMenuChain(menus, pathname).map((node) => node.name);
   const {locale,setLocale} = useLocaleStore();
   function setLanguage(language:string) {
     setLocale(language as "zh" | "en" );
@@ -46,7 +47,7 @@ export function SiteHeader() {
               <React.Fragment key={index}>
                 <BreadcrumbItem>
                   <BreadcrumbLink >
-                    {intl.formatMessage({id:title})}
+                    {title}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {index !== titles.length - 1 && (

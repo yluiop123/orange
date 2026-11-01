@@ -25,7 +25,7 @@
 | 前端类型检查 | `pnpm exec tsc -b` | 通过，无输出 |
 | 前端构建 | `pnpm build` | 成功，耗时约 1 分 03 秒 |
 | 前端 lint | `pnpm lint` | 通过：0 errors / 20 warnings |
-| 前端测试 | `pnpm test` | 22 个用例全部通过 |
+| 前端测试 | `pnpm test` | 25 个用例全部通过 |
 | 后端编译 | `mvn -DskipTests clean compile`（JDK 25） | `BUILD SUCCESS`，67 个源文件 |
 | 登录限流 | 本地单元验证 + 后端联调 | 5 次失败后锁定，第 6 次返回 429 |
 | token 版本 | 本地单元验证 + 后端联调 | 登出后旧 access/refresh 均返回 401 |
@@ -59,6 +59,13 @@
 | Cesium 按需加载 | 开发/生产检查 | `/login` 不请求 Cesium，`/map/cesium` 才加载 |
 | shadcn 组件 | 浏览器实测 | 系统管理页新增/列表/弹窗正常，无嵌套按钮告警 |
 | 系统列表模块 | 浏览器实测 | 用户/角色/组织/权限列表、选择、树展开、分页、删除正常 |
+| 菜单树接口 | 后端联调 | `GET /api/user/menus` 返回 6 个根节点；action 不出现；`/system` 子节点顺序正确 |
+| 菜单父级提升 | 后端联调 | 禁用父菜单后，启用的子菜单提升为根节点并记录 warning |
+| 强制改密菜单 | 后端联调 | `mustChangePassword=true` 的用户仍可访问 `/api/user/menus` |
+| 菜单 Mock | 浏览器实测 | mock 模式的侧边栏与真实后端一致 |
+| 前端菜单树 | 浏览器实测 | 侧边栏/面包屑使用数据库名称；`/`、`/dashboard`、`/system` 跳转正确 |
+| 角色视角菜单 | 浏览器实测 | 角色切换后菜单按 `currentPermission` 重新过滤 |
+| 直接访问 403 | 浏览器实测 | `user` 角色访问 `/system/user` 跳转 `/forbidden` |
 
 ### 0.3 构建体积
 
@@ -286,7 +293,7 @@
 - 拖拽排序手柄（需要直接绑定 dnd-kit 的 `listeners` / `attributes`）；
 - 自定义输入框内部实现（如 `InputNumber`、`Mentions` 的底层输入，外层已统一为 shadcn 组件）。
 
-### 3.6 菜单/权限配置重复
+### 3.6 菜单与权限配置
 
 已统一：
 
@@ -294,13 +301,21 @@
 - `scripts/sync-permission-seed.mjs` 从该 JSON 生成 `dml.sql` 的权限和角色授权块；
 - Mock 的角色、权限和登录权限数据全部从同一目录读取；
 - 删除重复的 `mock/components/permission.ts`、`mock/components/group.ts`；
-- 新增测试校验：路由叶子路径必须存在于权限目录，权限目录不能有失效路径，locale 必须覆盖所有菜单标题，`dml.sql` 必须与目录同步；
-- CI 增加 `pnpm db:seed:check`，防止手工改 SQL 后忘记同步。
+- 新增测试校验：`dml.sql` 必须与目录同步，每个叶子菜单权限必须有对应页面文件，每个页面必须有对应菜单权限，目录权限不能对应页面；
+- CI 增加 `pnpm db:seed:check`，防止手工改 SQL 后忘记同步；
+- 后端新增 `GET /api/user/menus`，返回启用的 `menu` / `directory` 树，节点包含 `id/path/type/name/order/children`；
+- 前端删除 `src/routes.ts`，页面路由由 `src/lib/page-routes.ts` 从 `src/pages/**/index.tsx` 自动生成；
+- 前端只保留 `src/config/menu-icons.ts` 的 `path → 图标` 映射，未知路径按类型回退；
+- 菜单标题使用数据库 `name`，不再依赖 locale 的 `menu.*`；
+- 菜单父级路径和 `/` 由 `MenuRedirect` 跳到当前角色下第一个可见叶子；
+- 菜单接口失败时侧边栏和默认跳转显示重试，页面路由不受影响。
 
 仍存在：
 
-- 菜单标题、图标和层级仍由 `src/routes.ts` 维护，权限目录只保证 `path/id/type/action` 一致；
-- 如果要做成真正的后端动态菜单，还需要把标题/图标/排序也移到后端。
+- 英文界面菜单显示数据库中文名（已确认的取舍）；
+- 新增菜单仍需同时新增页面文件和权限数据；
+- 角色切换仍是前端视角过滤，后端 authority 始终是角色并集；
+- 菜单增删改在前端下次刷新后生效，不实时推送。
 
 ---
 

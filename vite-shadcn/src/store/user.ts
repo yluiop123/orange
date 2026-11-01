@@ -2,6 +2,7 @@ import { sessionHint } from "@/auth/session";
 import { authToken } from "@/auth/token";
 import axios from "@/lib/axios";
 import { ALL_ROLES, computePermissions, type Permission } from "@/store/permission";
+import useMenuStore from "@/store/menu";
 import { create } from "zustand";
 
 type UserInfo = {
@@ -93,6 +94,7 @@ const useUserStore = create<GlobalInfo>()((set, get) => ({
     authToken.clear();
     sessionHint.clear();
     set({ userInfo: null });
+    useMenuStore.getState().clearMenus();
     // 通知后端递增 token 版本并清 refresh Cookie；失败也不影响本地登出
     axios
       .post("/user/logout", undefined, {
@@ -106,6 +108,7 @@ const useUserStore = create<GlobalInfo>()((set, get) => ({
     authToken.clear();
     sessionHint.clear();
     set({ userInfo: null });
+    useMenuStore.getState().clearMenus();
   },
   updateUserInfo: (userInfoState) => {
     const userInfo = get().userInfo;

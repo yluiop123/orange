@@ -40,6 +40,22 @@ _Avoid_: Role inheritance, role override
 A UI-only view filter that changes which role's menus and buttons are shown. It does not reduce backend authority.
 _Avoid_: Role login, permission switch
 
+**Menu Tree**:
+The enabled `menu` and `directory` permissions arranged by their parent relationship. The backend owns its structure, order and names.
+_Avoid_: Route tree, navigation config
+
+**Container Node**:
+A menu tree node that has visible children. It only groups them and grants no access of its own.
+_Avoid_: Parent permission, folder
+
+**Menu Visibility**:
+Whether a menu node is shown to the current user. A leaf is visible when a menu permission matches its path or a directory permission covers it; a container is visible when at least one child is visible. Visibility never grants API access.
+_Avoid_: Menu permission (when referring to the derived view state), access
+
+**Default Menu**:
+The first visible leaf of the menu tree, used when the user opens `/`.
+_Avoid_: Home page, landing route
+
 **Disabled Permission**:
 A permission whose `status` is `0`. It must not grant authority or appear in menus/actions.
 _Avoid_: Inactive permission

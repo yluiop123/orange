@@ -7,6 +7,7 @@ import {
   AvatarFallback,
   AvatarImage
 } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -14,12 +15,29 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { filterVisibleMenus } from "@/lib/menu"
 import { cn } from "@/lib/utils"
-import { routeSetting } from "@/routes"
+import { useMenuStore, useUserStore } from "@/store"
 import orangeLogo from "@/assets/orange.png"
 import * as React from "react"
+import { useIntl } from "react-intl"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const intl = useIntl()
+  const menus = useMenuStore((state) => state.menus)
+  const loading = useMenuStore((state) => state.loading)
+  const error = useMenuStore((state) => state.error)
+  const fetchMenus = useMenuStore((state) => state.fetchMenus)
+  const menuPaths = useUserStore((state) => state.userInfo?.currentMenuPermission)
+  const directoryPaths = useUserStore(
+    (state) => state.userInfo?.currentDirectoryPermission,
+  )
+
+  const visibleMenus = React.useMemo(
+    () => filterVisibleMenus(menus, menuPaths ?? [], directoryPaths ?? []),
+    [menus, menuPaths, directoryPaths],
+  )
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -28,8 +46,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <AvatarFallback className="rounded-lg">Orange</AvatarFallback>
           </Avatar>
       </SidebarHeader>
-      
-      <SidebarContent 
+
+      <SidebarContent
         className={cn(
           "flex-1 overflow-y-auto",
           // 1. 基础样式：定义滚动条宽度和轨道颜色
@@ -41,7 +59,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           "scrollbar-thumb-rounded-full"
         )}
       >
-        <NavMain items={routeSetting} />
+        {visibleMenus.length > 0 ? (
+          <NavMain items={visibleMenus} />
+        ) : loading ? (
+          <div className="px-4 py-3 text-sm text-muted-foreground">
+            {intl.formatMessage({ id: "sidebar.menu.loading" })}
+          </div>
+        ) : error ? (
+          <div className="px-4 py-3 text-sm text-muted-foreground">
+            <p>{intl.formatMessage({ id: "sidebar.menu.error" })}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => fetchMenus()}
+            >
+              {intl.formatMessage({ id: "sidebar.menu.retry" })}
+            </Button>
+          </div>
+        ) : null}
       </SidebarContent>
 
       <SidebarFooter>

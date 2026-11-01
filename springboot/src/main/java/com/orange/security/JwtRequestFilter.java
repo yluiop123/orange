@@ -63,6 +63,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 boolean allowedBeforePasswordChange =
                         path.equals("/api/user/change-password")
                                 || path.equals("/api/user/userInfo")
+                                || path.equals("/api/user/menus")
                                 || path.equals("/api/user/logout");
                 if (userDetails instanceof AuthUser authUser
                         && authUser.isMustChangePassword()

@@ -3,14 +3,16 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { ChangePasswordDialog } from "@/components/change-password-dialog";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { containerPaths } from "@/lib/page-routes";
 import { isPathWithin, isSamePath } from "@/lib/path";
-import { useUserStore } from '@/store';
+import { useMenuStore, useUserStore } from '@/store';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from "react-router";
 //根据用户登录信息进行权限控制
 export default function Index() {
     const token = useAccessToken();
     const { userInfo, fetchUser } = useUserStore();
+    const { loaded: menusLoaded, fetchMenus } = useMenuStore();
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     const hasFetchedRef = useRef(false);
@@ -29,6 +31,11 @@ export default function Index() {
         };
         check();
     }, [userInfo, token, fetchUser]);
+    useEffect(() => {
+        if (token && !menusLoaded) {
+            fetchMenus();
+        }
+    }, [token, menusLoaded, fetchMenus]);
     if (loading) return <div>Loading...</div>;
 
     // 没有登录或没有权限
@@ -40,12 +47,15 @@ export default function Index() {
     const hasDirectoryPermission = userInfo?.currentDirectoryPermission?.some(dir =>
         isPathWithin(currentPath, dir)
     );
+    // 根路径和菜单父级路径由 MenuRedirect 处理，不直接判定 403
+    const isHome = currentPath === "/";
+    const isMenuContainer = containerPaths.some(path => isSamePath(path, currentPath));
 
     // 3. 组合判断
     if (!token) {
         return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
     }
-    if (!hasMenuPermission && !hasDirectoryPermission && !userInfo?.mustChangePassword) {
+    if (!isHome && !isMenuContainer && !hasMenuPermission && !hasDirectoryPermission && !userInfo?.mustChangePassword) {
         return <Navigate to="/forbidden" replace state={{ from: location.pathname + location.search }} />;
     }
     return (

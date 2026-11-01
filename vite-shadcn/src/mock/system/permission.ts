@@ -57,7 +57,7 @@ function nowText() {
   return new Date().toISOString().slice(0, 19).replace("T", " ");
 }
 
-function getPermissionList(locale: string): Permission[] {
+export function getPermissionList(locale: string): Permission[] {
   const lang: Locale = locale === "en" ? "en" : "zh";
   const store = readStore();
   const base: Permission[] = catalog.permissions

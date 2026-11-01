@@ -2,28 +2,29 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import catalog from "./permissions.json";
-import { routeSetting, type NavItem } from "@/routes";
-import zh from "@/locale/zh-CN";
-import en from "@/locale/en-US";
+import { containerPaths, pageRoutes } from "@/lib/page-routes";
 
-function flatten(nodes: NavItem[], parents: string[] = []) {
-  const result: { path: string; title: string; leaf: boolean }[] = [];
-  for (const node of nodes) {
-    const keys = [...parents, node.key];
-    const fullPath = "/" + keys.join("/");
-    result.push({ path: fullPath, title: node.title, leaf: !node.children?.length });
-    if (node.children?.length) {
-      result.push(...flatten(node.children, keys));
-    }
-  }
-  return result;
-}
+const menuPermissions = catalog.permissions.filter(
+  (permission) => permission.type === "menu",
+);
+const directoryPermissions = catalog.permissions.filter(
+  (permission) => permission.type === "directory",
+);
+const menuPaths = new Set(menuPermissions.map((permission) => permission.path));
+const pagePaths = new Set(pageRoutes.map((route) => route.path));
 
-const routeNodes = flatten(routeSetting);
-const routePaths = new Set(routeNodes.map((node) => node.path));
-const catalogPaths = new Set(
-  catalog.permissions
-    .filter((permission) => permission.type !== "action")
+// 菜单/目录节点如果有菜单或目录子节点，就只作为容器，不再对应页面
+const nonActionPermissions = catalog.permissions.filter(
+  (permission) => permission.type !== "action",
+);
+const containerIds = new Set(
+  nonActionPermissions
+    .map((permission) => permission.parentId)
+    .filter((parentId): parentId is string => Boolean(parentId)),
+);
+const menuContainerPaths = new Set(
+  nonActionPermissions
+    .filter((permission) => containerIds.has(permission.id))
     .map((permission) => permission.path),
 );
 
@@ -41,22 +42,50 @@ describe("permission catalog", () => {
     }
   });
 
-  it("covers every route leaf with a menu permission", () => {
-    for (const node of routeNodes.filter((item) => item.leaf)) {
-      expect(catalogPaths.has(node.path), `missing permission for ${node.path}`).toBe(true);
+  it("keeps menu permission paths unique", () => {
+    expect(menuPaths.size).toBe(menuPermissions.length);
+  });
+
+  it("has a page component for every leaf menu permission", () => {
+    for (const permission of menuPermissions) {
+      if (menuContainerPaths.has(permission.path)) {
+        expect(
+          pagePaths.has(permission.path),
+          `container ${permission.path} must not be a page`,
+        ).toBe(false);
+        continue;
+      }
+      expect(
+        pagePaths.has(permission.path),
+        `missing page src/pages${permission.path}/index.tsx`,
+      ).toBe(true);
     }
   });
 
-  it("does not keep permission paths that no longer exist in routes", () => {
-    for (const permissionPath of catalogPaths) {
-      expect(routePaths.has(permissionPath), `stale permission path ${permissionPath}`).toBe(true);
+  it("has a menu permission for every page", () => {
+    for (const route of pageRoutes) {
+      expect(menuPaths.has(route.path), `missing menu permission for ${route.path}`).toBe(true);
     }
   });
 
-  it("has locale messages for every menu title", () => {
-    for (const node of routeNodes) {
-      expect(zh[node.title as keyof typeof zh], `missing zh title ${node.title}`).toBeTruthy();
-      expect(en[node.title as keyof typeof en], `missing en title ${node.title}`).toBeTruthy();
+  it("does not attach pages to directory permissions", () => {
+    for (const permission of directoryPermissions) {
+      expect(
+        pagePaths.has(permission.path),
+        `directory ${permission.path} must not be a page`,
+      ).toBe(false);
+    }
+  });
+
+  it("does not register a page and a container on the same path", () => {
+    for (const path of containerPaths) {
+      expect(pagePaths.has(path), `container ${path} must not be a page`).toBe(false);
+    }
+  });
+
+  it("has a display name for every menu and directory", () => {
+    for (const permission of [...menuPermissions, ...directoryPermissions]) {
+      expect(permission.name.zh, `missing zh name for ${permission.id}`).toBeTruthy();
     }
   });
 
