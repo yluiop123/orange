@@ -13,7 +13,6 @@ import java.util.List;
 @Data
 public class EditUserReq {
     @Schema(description = "用户ID",example = "1")
-    @NotBlank(message = "用户ID不能为空")
     private String id;
 
     @Schema(description = "用户姓名",example = "张三")

@@ -46,6 +46,9 @@
 | 操作日志 | 数据库检查 | POST/DELETE 写操作记录 username/path/status/耗时 |
 | 时间类型 | 数据库/接口检查 | DDL 为 timestamptz，接口返回带时区偏移 |
 | 按钮级 403 | 代码检查 | axios 403 统一弹“操作被拒绝”对话框 |
+| 重复权限 | 后端联调 | 相同 type/path/action 创建返回 409 |
+| 禁用权限 | 后端联调 | 权限 status=0 后 userInfo 不再返回该权限 |
+| 禁用角色 | 后端联调 | 角色 status=0 后 userInfo 不再返回该角色及其权限 |
 | 权限目录 | `pnpm db:seed:check` + Vitest | JSON 与 dml.sql 同步，路由/权限/locale 一致性测试通过 |
 | 403 页面 | 浏览器实测 | 无权限角色访问 `/system/user` 跳转 `/forbidden` 并显示原路径 |
 | Mock 持久化 | 浏览器实测 | 角色/组织/权限新增后刷新仍存在，删除后不恢复 |
@@ -111,19 +114,25 @@
 
 ### 1.3 权限模型设计
 
-- 权限以 `path` 作为身份，路由改名就会导致权限失效；
-- authority 字符串使用 `type#path:action` 拼接，容易拼错；
-- 目录权限在前端会放开所有子路径，后端只认显式权限，语义不一致；
-- 前端“切换角色”只影响显示，后端始终使用所有角色的权限并集；
-- 菜单配置在 `routes.ts`、locale、mock、DML、授权表中重复维护。
+已确认的设计（见 `CONTEXT.md`、`docs/adr/0001-path-as-permission-identity.md`）：
 
-建议：
+- 权限身份是 `type + path + action`，不新增独立 code 列；
+- `menu` 精确对应一个页面，`directory` 覆盖其路径前缀下的所有菜单；
+- `directory` 只控制可见范围，后端鉴权仍需 `menu` / `action` authority；
+- 同一资源的不同动作分别建 `action` 权限；
+- 角色融合决定可见范围，前端切换角色只是视角筛选；
+- `path` 是稳定契约，路由改名视为权限数据变更。
 
-- `sys_permission` 增加唯一 `code` 字段，例如 `system:user:add`；
-- Controller 使用 `@PreAuthorize("hasAuthority('system:user:add')")`；
-- 明确目录权限是否自动包含子权限，前后端实现保持一致；
-- 角色切换如果只是“视角筛选”，在 UI 中说明；如果要作为安全边界，必须由后端按当前角色裁剪权限；
-- 菜单由后端返回 `path/nameKey/icon/order/children`，前端只维护图标映射。
+已修复：
+
+- `status=0` 的权限和角色不再下发 authority，也不再出现在 userInfo；
+- 新增/编辑权限时应用层检查 `(type, path, action)` 重复，返回 409；
+- 前端动作权限匹配复用 `isSamePath`。
+
+仍存在：
+
+- 数据库层没有 `(type, path, action)` 唯一约束（按决策不加）；
+- 动态路由/数据级权限不在当前模型内。
 
 ### 1.4 认证接口剩余缺口
 
@@ -347,7 +356,9 @@
 | 前端认证 | `vite-shadcn/src/auth/` |
 | 前端用户状态 | `vite-shadcn/src/store/user.ts` |
 | 系统列表模块 | `vite-shadcn/src/components/system/resource-list/` |
-| 状态开关 | `vite-shadcn/src/components/system/status-switch.tsx` |
+| 状态开关 | `vite-shadcn/src/components/system/resource-list/status-switch.tsx` |
+| 领域词汇 | `CONTEXT.md` |
+| 权限身份 ADR | `docs/adr/0001-path-as-permission-identity.md` |
 | 前端国际化 | `vite-shadcn/src/store/locale.ts` |
 | 前端路由 | `vite-shadcn/src/App.tsx`、`src/routes.ts` |
 | 前端布局/权限 | `vite-shadcn/src/layout.tsx`、`src/components/sidebar-menutree.tsx` |

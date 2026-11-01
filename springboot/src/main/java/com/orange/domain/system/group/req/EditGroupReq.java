@@ -10,7 +10,6 @@ import lombok.Data;
 public class EditGroupReq {
 
     @Schema(description = "组织ID",example = "1")
-    @NotBlank(message = "组织ID不能为空")
     @Pattern(
             regexp = "^[A-Za-z0-9]{2,}$",
             message = "只能包含数字和大小写字母"

@@ -11,7 +11,6 @@ import lombok.Data;
 @Data
 public class EditPermissionReq {
     @Schema(description = "权限编码",example = "1")
-    @NotBlank(message = "权限编码不能为空")
     private String id;
 
     @Schema(description = "权限名称",example = "用户管理")
@@ -24,6 +23,10 @@ public class EditPermissionReq {
 
     @Schema(description = "权限操作",example = "list")
     private String action;
+
+    @Schema(description = "权限状态",example = "1")
+    @Pattern(regexp = "0|1", message = "状态只能是 0 或 1")
+    private String status;
 
     @Schema(description = "权限类型",example = "menu")
     @Pattern(regexp = "menu|action|directory", message = "权限类型只能是 menu、action 或 directory")

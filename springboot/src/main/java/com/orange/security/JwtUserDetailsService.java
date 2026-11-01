@@ -37,16 +37,28 @@ public class JwtUserDetailsService implements UserDetailsService {
             Set<Role> roles = user.getRoles();
             Set<String> permissions = new HashSet<>();
             for (Role role : roles) {
+                if (STATUS_DISABLE.equals(role.getStatus())) {
+                    continue;
+                }
                 for (Permission permission : role.getPermissions()) {
+                    if (STATUS_DISABLE.equals(permission.getStatus())) {
+                        continue;
+                    }
                     permissions.addAll(getPermissionStrs(permission));
                 }
             }
             for (Permission permission : user.getPermissions()) {
+                if (STATUS_DISABLE.equals(permission.getStatus())) {
+                    continue;
+                }
                 permissions.addAll(getPermissionStrs(permission));
             }
 
             List<GrantedAuthority> authorities = new ArrayList<>();
             for (Role role : roles) {
+                if (STATUS_DISABLE.equals(role.getStatus())) {
+                    continue;
+                }
                 authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getId()));
             }
             for (String permission : permissions) {

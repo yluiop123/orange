@@ -315,13 +315,22 @@ public class UserServiceImpl implements UserService {
         userInfo.setUpdateTime(user.getUpdateTime());
         Set<Role> roles = user.getRoles();
         for (Role role : roles) {
+            if (STATUS_DISABLE.equals(role.getStatus())) {
+                continue;
+            }
             RoleInfo roleInfo = new RoleInfo();
             roleInfo.setId(role.getId());
             roleInfo.setName(role.getName());
             userInfo.getRoles().add(roleInfo);
         }
         for (Role role : roles) {
+            if (STATUS_DISABLE.equals(role.getStatus())) {
+                continue;
+            }
             for (Permission permission : role.getPermissions()) {
+                if (STATUS_DISABLE.equals(permission.getStatus())) {
+                    continue;
+                }
                 PermissionInfo permissionInfo = new PermissionInfo();
                 permissionInfo.setRole(role.getId());
                 permissionInfo.setType(permission.getType());
@@ -331,6 +340,9 @@ public class UserServiceImpl implements UserService {
             }
         }
         for (Permission permission : user.getPermissions()) {
+            if (STATUS_DISABLE.equals(permission.getStatus())) {
+                continue;
+            }
             PermissionInfo permissionInfo = new PermissionInfo();
             permissionInfo.setType(permission.getType());
             permissionInfo.setPath(permission.getPath());

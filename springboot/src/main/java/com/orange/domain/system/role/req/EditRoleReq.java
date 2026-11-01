@@ -12,7 +12,6 @@ import java.util.List;
 @Data
 public class EditRoleReq {
     @Schema(description = "角色ID",example = "1")
-    @NotBlank(message = "角色ID不能为空")
     private String id;
 
     @Schema(description = "角色名称",example = "管理员")

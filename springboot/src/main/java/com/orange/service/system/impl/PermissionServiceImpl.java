@@ -137,6 +137,7 @@ public class PermissionServiceImpl implements PermissionService {
         if(exists){
             throw  new BusinessException( "权限编码已存在");
         }
+        assertUniquePermission(req.getType(), req.getPath(), req.getAction(), null);
         if(StringUtils.isEmpty(req.getParentId())){
             if(req.getId().length()!=4){
                 throw  new BusinessException( "权限编码长度必须为4");
@@ -177,6 +178,7 @@ public class PermissionServiceImpl implements PermissionService {
         if(exists){
             throw  new BusinessException("权限编码已存在");
         }
+        assertUniquePermission(req.getType(), req.getPath(), req.getAction(), null);
 
         Optional<Permission> brotherGroupOptional = permissionRepository.findById(req.getBrotherId());
         Permission brotherPermission = brotherGroupOptional.orElse(null);
@@ -229,6 +231,10 @@ public class PermissionServiceImpl implements PermissionService {
             return null;
         }
         Permission permission = optionalPermission.get();
+        String effectiveType = req.getType() != null ? req.getType() : permission.getType();
+        String effectivePath = req.getPath() != null ? req.getPath() : permission.getPath();
+        String effectiveAction = req.getAction() != null ? req.getAction() : permission.getAction();
+        assertUniquePermission(effectiveType, effectivePath, effectiveAction, req.getId());
         if(req.getName()!=null){
             permission.setName(req.getName());
         }
@@ -240,6 +246,9 @@ public class PermissionServiceImpl implements PermissionService {
         }
         if(req.getType()!=null){
             permission.setType(req.getType());
+        }
+        if(req.getStatus()!=null){
+            permission.setStatus(req.getStatus());
         }
         return permission;
     }
@@ -256,5 +265,28 @@ public class PermissionServiceImpl implements PermissionService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         return permissionRepository.findAll(spec);
+    }
+
+    private void assertUniquePermission(String type, String path, String action, String excludeId) {
+        Specification<Permission> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("type"), type));
+            predicates.add(cb.equal(root.get("path"), path));
+            if (StringUtils.isBlank(action)) {
+                predicates.add(cb.or(
+                        cb.isNull(root.get("action")),
+                        cb.equal(root.get("action"), "")
+                ));
+            } else {
+                predicates.add(cb.equal(root.get("action"), action));
+            }
+            if (excludeId != null) {
+                predicates.add(cb.notEqual(root.get("id"), excludeId));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        if (permissionRepository.count(spec) > 0) {
+            throw new BusinessException("权限已存在");
+        }
     }
 }
