@@ -38,10 +38,11 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
     open: boolean
     setOpen: (open:boolean)=>void
     title:string
+    description?: string
     fields: Field[]
     values?: Record<string, unknown>
     onSubmit: (values: Record<string, unknown>) => void
-}>(({open,setOpen,title,fields,values,onSubmit}, ref) => {
+}>(({open,setOpen,title,description,fields,values,onSubmit}, ref) => {
     const schemaShape = fields.reduce((acc, field) => {
         acc[field.name] = field.validate || z.string().optional();
         return acc;
@@ -69,10 +70,12 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                     <DialogHeader>
                         <DialogTitle>{title}</DialogTitle>
-                        <DialogDescription></DialogDescription>
+                        <DialogDescription className={description ? undefined : "sr-only"}>
+                            {description ?? title}
+                        </DialogDescription>
                     </DialogHeader>
                     {fields.map((f) => (
-                        <FieldGroup >
+                        <FieldGroup key={f.name}>
                             <Controller
                             name={f.name}
                             control={form.control}
@@ -83,23 +86,23 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
                                 </FieldLabel>
 {
                                         f?.type === "permissions"?
-                                        <PermissionTreeSelect disabled={f.disabled} {...field} className="p-3"/>
+                                        <PermissionTreeSelect disabled={f.disabled} {...field} value={field.value as string[]} className="p-3"/>
                                         :
                                         f?.type === "permission"?
-                                        <PermissionTreeSingleSelect disabled={f.disabled} {...field} className="p-3"/>
+                                        <PermissionTreeSingleSelect disabled={f.disabled} {...field} value={field.value as string} className="p-3"/>
                                         :
                                         f?.type === "roles"?
                                         <RoleSelect disabled={f.disabled} {...field} className="p-3"/>
                                         :
                                         f?.type === "group"?
                                         <GroupTreeSelect disabled={f.disabled}
-                                            {...field} className="p-3"
+                                            {...field} value={field.value as string | undefined} className="p-3"
                                         />
                                         :
                                         f?.type === "permissionType"?
-                                        <PermissionType {...field} className="p-3"/>
+                                        <PermissionType {...field} value={field.value as string | undefined} className="p-3"/>
                                         :
-                                        <Input disabled={f.disabled} placeholder="" {...field} className="p-3"/>
+                                        <Input disabled={f.disabled} placeholder="" {...field} value={field.value as string | undefined} className="p-3"/>
                                     }
                                 {fieldState.invalid && (
                                     <FieldError errors={[fieldState.error]} />

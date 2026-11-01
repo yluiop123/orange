@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -67,12 +68,14 @@ function FacetFilter<TData>({ column }: { column: Column<TData, unknown> }) {
   return (
     <div className="flex flex-wrap gap-1">
       {facetValues.map((val) => (
-        <button
+        <Button
           key={String(val)}
+          variant="outline"
+          size="xs"
           className={cn(
             "text-xs px-2 py-0.5 rounded-md border transition-all",
             selected?.includes(val as string)
-              ? "bg-primary text-white border-primary"
+              ? "bg-primary text-white border-primary hover:bg-primary/90 hover:text-white"
               : "bg-muted text-muted-foreground border-border"
           )}
           onClick={() => {
@@ -83,7 +86,7 @@ function FacetFilter<TData>({ column }: { column: Column<TData, unknown> }) {
           }}
         >
           {val} ({column.getFacetedUniqueValues().get(val)})
-        </button>
+        </Button>
       ))}
     </div>
   );

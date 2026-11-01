@@ -45,6 +45,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         working-directory: vite-shadcn
+      - name: Lint
+        run: pnpm run lint
+        working-directory: vite-shadcn
+      - name: Type check
+        run: pnpm run typecheck
+        working-directory: vite-shadcn
+      - name: Test
+        run: pnpm run test
+        working-directory: vite-shadcn
+      - name: Check permission seed
+        run: pnpm run db:seed:check
+        working-directory: vite-shadcn
       - name: Build
         run: pnpm run build:github
         working-directory: vite-shadcn

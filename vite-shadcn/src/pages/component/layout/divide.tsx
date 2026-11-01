@@ -1,5 +1,6 @@
 import { Divider } from "@/components/ext/divider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 export default function DividerPage() {
@@ -220,34 +221,30 @@ export default function DividerPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">用户名 / Username</label>
-                  <input 
+                  <Input 
                     type="text" 
-                    className="w-full p-2 border rounded" 
                     placeholder="输入用户名 / Enter username"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">邮箱 / Email</label>
-                  <input 
+                  <Input 
                     type="email" 
-                    className="w-full p-2 border rounded" 
                     placeholder="输入邮箱 / Enter email"
                   />
                 </div>
                 <Divider>账户信息 / Account Information</Divider>
                 <div>
                   <label className="block text-sm font-medium mb-1">密码 / Password</label>
-                  <input 
+                  <Input 
                     type="password" 
-                    className="w-full p-2 border rounded" 
                     placeholder="输入密码 / Enter password"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">确认密码 / Confirm Password</label>
-                  <input 
+                  <Input 
                     type="password" 
-                    className="w-full p-2 border rounded" 
                     placeholder="确认密码 / Confirm password"
                   />
                 </div>

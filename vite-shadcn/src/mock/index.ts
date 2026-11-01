@@ -1,6 +1,4 @@
 import { setupWorker } from "msw/browser";
-import groupHandlers from "./components/group";
-import permissionHandlers from "./components/permission";
 import loginUserHandlers from "./login/user";
 import systemGroupHandlers from "./system/group";
 import systemPermissionHandlers from "./system/permission";
@@ -8,8 +6,6 @@ import systemRoleHandlers from "./system/role";
 import systemUserHandlers from "./system/user";
 const mockHandlers = [
   ...loginUserHandlers,
-  ...groupHandlers,
-  ...permissionHandlers,
   ...systemUserHandlers,
   ...systemRoleHandlers,
   ...systemGroupHandlers,
@@ -27,15 +23,17 @@ export default async function initMSW() {
 
   // 启动 MSW
   await worker.start({
-    
     serviceWorker: {
       url: `${import.meta.env.BASE_URL}mockServiceWorker.js`,
       options: { type: 'module', updateViaCache: 'none' },
     },
-    onUnhandledRequest: (req) => {
-      if (!req.url.startsWith('/api')) {
-        return // 直接跳过，不拦截
-      }
+    onUnhandledFrame({ frame, defaults }) {
+      // 只对未匹配的 API 请求给出警告；页面、模块、静态资源交给 Vite/后端处理。
+      const request = (frame as { data?: { request?: Request } }).data?.request;
+      if (!request) return;
+      const pathname = new URL(request.url).pathname;
+      if (!pathname.startsWith("/api/")) return;
+      defaults.warn();
     },
   });
   console.log('MSW worker started')

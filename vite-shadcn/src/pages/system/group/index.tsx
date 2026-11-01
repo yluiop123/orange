@@ -1,9 +1,9 @@
+import { deleteGroups, listGroups, moveGroup, updateGroupStatus } from "@/api/system/group";
 import ActionAuth from "@/components/action-auth";
+import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -20,299 +20,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import axios from "@/lib/axios";
 import { statusEnum } from "@/lib/dict";
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  ExpandedState,
-  flexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  Row,
-  SortingState,
-  Table as TanstackTable,
-  useReactTable,
-  VisibilityState,
-} from "@tanstack/react-table";
-import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
-import React, { useEffect, useState } from 'react';
+import type { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
 import AddBrotherDialog from "./add-brother-dialog";
 import AddChildDialog from "./add-child-dialog";
 import EditDialog from "./edit-dialog";
-function StatusSwitch({ initial, onChange }: { initial: string; onChange: (val: string) => void }) {
-  const [checked, setChecked] = useState(initial === "1")
-  return (
-    <Switch
-      checked={checked}
-      onCheckedChange={(value) => {
-        setChecked(value)
-        onChange(value ? "1" : "0")
-      }}
-    />
-  )
-}
-function buildTree(data: Group[]): Group[] {
-  const map = new Map<string, Group>();
-  const roots: Group[] = [];
-
-  // 初始化 map
-  for (const item of data) {
-    map.set(item.id, { ...item, subRows: [] });
-  }
-
-  // 构建树结构
-  for (const item of data) {
-    const node = map.get(item.id)!;
-    if (item.parentId && map.has(item.parentId)) {
-      const parent = map.get(item.parentId)!;
-      parent.subRows!.push(node);
-    } else {
-      roots.push(node);
-    }
-  }
-
-  // 递归排序函数
-  function sortByOrder(nodes: Group[]) {
-    nodes.sort((a, b) => a.order - b.order);
-    nodes.forEach((node) => {
-      if (node.subRows && node.subRows.length > 0) {
-        sortByOrder(node.subRows);
-      }
-    });
-  }
-
-  // 排序根节点
-  sortByOrder(roots);
-  return roots;
-}
 
 type Group = {
   name: string
   id: string
-  status: "0" | "1"
-  remark: string
-  createTime: string,
-  parentId?: string
-  order: number
+  status?: "0" | "1"
+  remark?: string
+  createTime?: string,
+  parentId?: string | null
+  order?: number
   subRows?: Group[]
 }
 
+type TableParams = {
+  page: number
+  size: number
+  id?: string
+  name?: string
+  status?: string
+}
 
 export default function Group() {
   const { formatMessage } = useIntl();
-    const collectRowIds = (row: Group) => {
-      let ids = [row.id]
-  
-      if (row.subRows?.length) {
-        row.subRows.forEach((sub) => {
-          ids = ids.concat(collectRowIds(sub))
-        })
-      }
-  
-      return ids
-    }
-  
-    const updateParentSelection = (row: Row<Group>, next: Record<string, boolean>) => {
-      const parent = row.getParentRow()
-      if (!parent) return
-      // ✅ 全部用 next 判断（关键）
-      const allSelected = parent.subRows.every((r) => next[r.id] === true)
-      next[parent.id] = allSelected
-      updateParentSelection(parent, next)
-    }
-  
-    const toggleRowWithChildrenAndParent = (row: Row<Group>, checked: boolean, table: TanstackTable<Group>) => {
-      table.setRowSelection((prev) => {
-        const next = { ...prev }
-  
-        // 处理当前节点和所有子节点
-        const ids = collectRowIds(row.original)
-        ids.forEach((id) => {
-          next[id] = checked
-        })
-  
-        // 更新父节点状态
-        updateParentSelection(row, next)
-  
-        return next
-      })
-    }
-  const columns: ColumnDef<Group>[] = [
-    {
-      accessorKey: 'name',
-      header: ({ table }) => (
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            className="cursor-pointer"
-            checked={table.getIsAllRowsSelected()} 
-            indeterminate={table.getIsSomeRowsSelected()}
-            onCheckedChange={(checked) => {
-              table.toggleAllRowsSelected(checked)
-            }}
-          />
-          {' '}
-          <button
-            {...{
-              onClick: table.getToggleAllRowsExpandedHandler(),
-            }}
-            className="inline-flex items-center justify-center w-6 h-6 cursor-pointer"
-          >
-            {table.getIsAllRowsExpanded() ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>{' '}
-          {formatMessage({ id: "page.system.group.header.name" })}
-        </div>
-      ),
-      cell: ({ row, getValue }) => (
-        <div className="flex items-center space-x-2"
-          style={{
-            paddingLeft: `${row.depth * 2}rem`,
-          }}
-        >
-            <Checkbox
-              className="cursor-pointer"
-              checked={row.getIsSelected()}
-              indeterminate={row.getIsSomeSelected()}
-              onCheckedChange={(checked) => {
-                toggleRowWithChildrenAndParent(row, checked, table)
-              }}
-            />
-            {' '}
-            {row.getCanExpand() ? (
-              <button
-                {...{
-                  onClick: row.getToggleExpandedHandler(),
-                }}
-                className="inline-flex items-center justify-center w-6 h-6 cursor-pointer"
-              >
-                {row.getIsExpanded() ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </button>
-            ) : (
-              ''
-            )}{' '}
-            {getValue<boolean>()}
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "status",
-      header: formatMessage({ id: "page.system.group.header.status" }),
-      cell: ({ row }) => (
-        <StatusSwitch
-          initial={row.getValue("status") as string}
-          onChange={(val) => {
-            handleStatusChange({id: row.original.id,status:val } as Group);
-          }} />
-      ),
-    },
-    {
-      accessorKey: "order",
-      header: formatMessage({ id: "page.system.group.header.Order" }),
-      cell: ({ row }) => <div className="lowercase">{row.getValue("order")}</div>,
-    },
-    {
-      accessorKey: "createTime",
-      header: formatMessage({ id: "page.system.group.header.createTime" }),
-      cell: ({ row }) => (
-        <div className="capitalize">{row.getValue("createTime")}</div>
-      ),
-    },
-    {
-        id: "actions",
-        enableHiding: false,
-        cell: ({ row }) => {
-            const role = row.original as Group;
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuGroup> 
-                        <DropdownMenuLabel>{formatMessage({ id: 'table.actions' })}</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <ActionAuth action="add">
-                        <DropdownMenuItem onClick={() => handleAddChild(role)}>{formatMessage({ id: 'button.addChild' })}</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAddBrother(role)}>{formatMessage({ id: 'button.addBrother' })}</DropdownMenuItem>
-                        </ActionAuth>
-                        <ActionAuth action="edit">
-                        <DropdownMenuItem onClick={() => handleMove(role, 'top')}>{formatMessage({ id: 'button.moveTop' })}</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMove(role, 'up')}>{formatMessage({ id: 'button.moveUp' })}</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMove(role, 'down')}>{formatMessage({ id: 'button.moveDown' })}</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(role)}>{formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
-                        </ActionAuth>
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )
-        },
-    }
-  ]
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [expanded, setExpanded] = React.useState<ExpandedState>({})
-  type TableParams = {
-      page: number
-      size: number
-      id?: string
-      name?: string
-      status?: string
-  }
-  const [params, setParams] = useState({
-      page: 1,
-      size: 10,
-      id: '',
-      name: '',
-      status: 'all'
-  } as TableParams);
-  const [data, setData] = useState<{
-    list: Group[]
-    total: number
-  }>({
-    list: [],
-    total: 0,
+  const [params, setParams] = useState<TableParams>({
+    page: 1,
+    size: 10,
+    id: '',
+    name: '',
+    status: 'all'
   });
 
-  useEffect(() => {
-    function fetchData(params: TableParams) {
-    axios.post("/system/groups",params).then(res => {
-      const treeData = buildTree(res.data.data);
-      setData({ list: treeData, total: res.data.data.length });
-    }
-  )}
-    fetchData(params);
-  }, [params])
+  const { data, loading, error } = useResourceList<TableParams, Group>({
+    params,
+    errorMessage: formatMessage({ id: 'table.loadError' }),
+    fetcher: (query, signal) =>
+      listGroups(
+        { id: query.id, name: query.name, status: query.status },
+        signal,
+      ),
+    tree: {
+      id: (row) => row.id,
+      parentId: (row) => row.parentId,
+      order: (row) => row.order ?? 0,
+    },
+  });
+
+  const [selectedRows, setSelectedRows] = useState<Group[]>([]);
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddBrotherDialogOpen, setIsAddBrotherDialogOpen] = useState(false);
   const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false);
+
   function handleEdit(row: Group) {
-      setId(row.id);
-      setIsEditDialogOpen(true);
+    setId(row.id);
+    setIsEditDialogOpen(true);
   }
   function handleAddBrother(row: Group) {
     setId(row.id);
@@ -322,208 +92,163 @@ export default function Group() {
     setId(row?.id || '');
     setIsAddChildDialogOpen(true);
   }
-  function handleDelete(rows: string[]) {
-      if (rows.length === 0) {
-          return;
-      }
-      axios.delete("/system/groups", {
-          data: { ids: rows }
-      }).then(res => {
-          setParams({ ...params, page: 1 });
-          toast.success(res.data.message);
-      })
-  }
-  function handleMove(row: Group, direction: 'up' | 'down'|'top') {
-      axios.post("/system/groups/move", {
-            id: row.id,
-            action: direction,
-      }).then(res => {
-          setParams({ ...params});
-          toast.success(res.data.message);
-      })
-  }
-  function handleStatusChange(row: Group) {
-    axios.post("/system/groups/edit",
-        {...row}).then(res => {
-        toast.success(res.data.message);
+  function handleDelete(rows: Group[]) {
+    if (rows.length === 0) {
+      return;
+    }
+    deleteGroups(rows.map((row) => row.id)).then(() => {
+      setParams({ ...params, page: 1 });
+      setSelectedRows([]);
+      toast.success(formatMessage({ id: 'message.success' }));
     })
   }
-  const table = useReactTable<Group>({
-    getRowId: row => row.id,
-    onExpandedChange: setExpanded,
-    getSubRows: row => row.subRows,
-    data: data.list,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    getExpandedRowModel: getExpandedRowModel(),
-    enableRowSelection: true,
-    enableSubRowSelection: true,
-    state: {
-      expanded,
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
+  function handleMove(row: Group, direction: 'up' | 'down' | 'top') {
+    moveGroup(row.id, direction).then(() => {
+      setParams({ ...params });
+    })
+  }
+  function handleStatusChange(row: Group, status: "0" | "1") {
+    return updateGroupStatus(row.id, status).then(() => {
+      setParams({ ...params });
+    })
+  }
+
+  const columns: ColumnDef<Group>[] = [
+    {
+      accessorKey: 'name',
+      meta: { title: formatMessage({ id: "page.system.group.header.name" }) },
+      enableSorting: false,
+      enableHiding: false,
+      header: formatMessage({ id: "page.system.group.header.name" }),
+      cell: ({ row, getValue }) => (
+        <div className="flex items-center" style={{ paddingLeft: `${row.depth * 2}rem` }}>
+          {getValue<boolean>()}
+        </div>
+      ),
     },
-  })
+    {
+      accessorKey: "status",
+      meta: { title: formatMessage({ id: "page.system.group.header.status" }) },
+      header: formatMessage({ id: "page.system.group.header.status" }),
+      cell: ({ row }) => (
+        <StatusSwitch
+          initial={row.getValue("status") as string}
+          onChange={(val) => {
+            handleStatusChange(row.original, val);
+          }} />
+      ),
+    },
+    {
+      accessorKey: "order",
+      meta: { title: formatMessage({ id: "page.system.group.header.Order" }) },
+      header: formatMessage({ id: "page.system.group.header.Order" }),
+      cell: ({ row }) => <div className="lowercase">{row.getValue("order")}</div>,
+    },
+    {
+      accessorKey: "createTime",
+      meta: { title: formatMessage({ id: "page.system.group.header.createTime" }) },
+      header: formatMessage({ id: "page.system.group.header.createTime" }),
+      cell: ({ row }) => <div className="capitalize">{row.getValue("createTime")}</div>,
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const group = row.original;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="ghost" className="h-8 w-8 p-0" />}>
+              <span className="sr-only">{formatMessage({ id: 'table.openMenu' })}</span>
+              <MoreHorizontal />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>{formatMessage({ id: 'table.actions' })}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <ActionAuth action="add">
+                  <DropdownMenuItem onClick={() => handleAddChild(group)}>{formatMessage({ id: 'button.addChild' })}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAddBrother(group)}>{formatMessage({ id: 'button.addBrother' })}</DropdownMenuItem>
+                </ActionAuth>
+                <ActionAuth action="edit">
+                  <DropdownMenuItem onClick={() => handleMove(group, 'top')}>{formatMessage({ id: 'button.moveTop' })}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleMove(group, 'up')}>{formatMessage({ id: 'button.moveUp' })}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleMove(group, 'down')}>{formatMessage({ id: 'button.moveDown' })}</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEdit(group)}>{formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
+                </ActionAuth>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    }
+  ]
+
   return (
     <div className="w-full p-3">
-      <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen} 
-      onSave={() => setParams({ ...params, page: 1 })} />
-      <AddBrotherDialog id={id} setOpen={setIsAddBrotherDialogOpen} open={isAddBrotherDialogOpen} 
-      onSave={() => setParams({ ...params, page: 1 })} />
-      <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen} 
-      onSave={() => setParams({ ...params, page: 1 })} />
-      <div className="flex items-center py-3 gap-4">
-          <div className="flex items-center gap-4">
-              <Label className="whitespace-nowrap" htmlFor="groupName">{formatMessage({ id: 'page.system.group.header.name' })}</Label>
-              <Input id="groupName" type="text" placeholder="" value={params.name} onChange={(e) => setParams({ ...params, name: e.target.value })} />
-          </div>
-          <div className="flex items-center gap-4">
-              <Label className="whitespace-nowrap" htmlFor="roleId">{formatMessage({ id: 'page.system.group.header.id' })}</Label>
-              <Input id="groupId" type="text" placeholder="" value={params.id} onChange={(e) => setParams({ ...params, id: e.target.value })} />
-          </div>
-          
-          <div className="flex items-center gap-2">
-              <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.group.header.status' })}</Label>
-              <Select
-                value={params.status} // 受控组件
-                onValueChange={(value) => setParams({ ...params, status: value || '' })}
-              >
-                <SelectTrigger className="flex items-center">
-                  <SelectValue>
-                    {params.status
-                      ? formatMessage({ id: `dict.status.${statusEnum.get(params.status)}` })
-                      : 'Status'}
-                  </SelectValue>
-                </SelectTrigger>
+      <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
+        onSave={() => setParams({ ...params, page: 1 })} />
+      <AddBrotherDialog id={id} setOpen={setIsAddBrotherDialogOpen} open={isAddBrotherDialogOpen}
+        onSave={() => setParams({ ...params, page: 1 })} />
+      <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
+        onSave={() => setParams({ ...params, page: 1 })} />
 
-                <SelectContent>
-                  {Array.from(statusEnum).map(([key, value]) => (
-                    <SelectItem key={key} value={key}>
-                      {formatMessage({ id: `dict.status.${value}` })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-              <ActionAuth action="add">
-              <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
-              </ActionAuth>
-              <ActionAuth action="delete">
-              <Button onClick={() => handleDelete(table.getSelectedRowModel().flatRows.filter(row => row.getIsSelected()).map((row) => row.original.id))}>{formatMessage({ id: 'button.delete' })}</Button>
-              </ActionAuth>
-              <DropdownMenu>
-                  <DropdownMenuTrigger>
-                      <Button variant="outline" className="ml-auto">
-                          {formatMessage({ id: 'table.columns' })} <ChevronDown />
-                      </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                      {table
-                          .getAllColumns()
-                          .filter((column) => column.getCanHide())
-                          .map((column) => {
-                              const header = column.columnDef.header;
-                              return (
-                                  <DropdownMenuCheckboxItem
-                                      key={column.id}
-                                      className="capitalize"
-                                      checked={column.getIsVisible()}
-                                      onCheckedChange={(value) =>
-                                          column.toggleVisibility(!!value)
-                                      }
-                                  >
-                                      {typeof header === 'string' || typeof header === 'number' ? header : column.id}
-                                  </DropdownMenuCheckboxItem>
-                              )
-                          })}
-                  </DropdownMenuContent>
-              </DropdownMenu>
-          </div>
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+      <div className="flex items-center py-3 gap-4">
+        <div className="flex items-center gap-4">
+          <Label className="whitespace-nowrap" htmlFor="groupName">{formatMessage({ id: 'page.system.group.header.name' })}</Label>
+          <Input id="groupName" type="text" placeholder="" value={params.name} onChange={(e) => setParams({ ...params, name: e.target.value })} />
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+        <div className="flex items-center gap-4">
+          <Label className="whitespace-nowrap" htmlFor="groupId">{formatMessage({ id: 'page.system.group.header.id' })}</Label>
+          <Input id="groupId" type="text" placeholder="" value={params.id} onChange={(e) => setParams({ ...params, id: e.target.value })} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.group.header.status' })}</Label>
+          <Select
+            value={params.status}
+            onValueChange={(value) => setParams({ ...params, status: value || '' })}
           >
-             {formatMessage({ id: 'table.previous' })}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-             {formatMessage({ id: 'table.next' })}
-          </Button>
+            <SelectTrigger className="flex items-center">
+              <SelectValue>
+                {params.status
+                  ? formatMessage({ id: `dict.status.${statusEnum.get(params.status)}` })
+                  : 'Status'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from(statusEnum).map(([key, value]) => (
+                <SelectItem key={key} value={key}>
+                  {formatMessage({ id: `dict.status.${value}` })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <ActionAuth action="add">
+            <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
+          </ActionAuth>
+          <ActionAuth action="delete">
+            <Button onClick={() => handleDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
+          </ActionAuth>
         </div>
       </div>
+
+      <ResourceTable
+        data={data.list}
+        columns={columns}
+        total={data.total}
+        page={params.page}
+        size={params.size}
+        onPageChange={(page) => setParams({ ...params, page })}
+        getRowId={(row) => row.id}
+        getSubRows={(row) => row.subRows}
+        selectionMode="tree"
+        paginationMode="client"
+        onSelectionChange={setSelectedRows}
+        loading={loading}
+        error={error}
+      />
     </div>
   )
 }

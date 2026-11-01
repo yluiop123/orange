@@ -1,5 +1,7 @@
 import Affix from "@/components/ext/affix"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
 import { useState } from "react"
 
 export default function AffixPage() {
@@ -31,16 +33,16 @@ export default function AffixPage() {
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
             <div className="col-span-2 flex items-center gap-2">
               <label className="text-sm">Offset Top</label>
-              <input type="range" min={0} max={200} value={offsetTop} onChange={e => setOffsetTop(Number(e.target.value))} />
+              <Slider min={0} max={200} value={[offsetTop]} onValueChange={(value) => setOffsetTop(Array.isArray(value) ? value[0] : value)} className="w-32" />
               <span className="text-sm text-muted-foreground">{offsetTop}px</span>
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm">Left</label>
-              <input type="number" value={offsetLeft ?? ""} onChange={e => setOffsetLeft(e.target.value === "" ? undefined : Number(e.target.value))} className="input w-20" />
+              <Input type="number" value={offsetLeft ?? ""} onChange={e => setOffsetLeft(e.target.value === "" ? undefined : Number(e.target.value))} className="w-20" />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm">Right</label>
-              <input type="number" value={offsetRight ?? ""} onChange={e => setOffsetRight(e.target.value === "" ? undefined : Number(e.target.value))} className="input w-20" />
+              <Input type="number" value={offsetRight ?? ""} onChange={e => setOffsetRight(e.target.value === "" ? undefined : Number(e.target.value))} className="w-20" />
             </div>
           </div>
         </section>
@@ -69,16 +71,16 @@ export default function AffixPage() {
           <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center">
             <div className="flex items-center gap-2">
               <label className="text-sm">Offset Bottom</label>
-              <input type="range" min={0} max={120} value={offsetBottom} onChange={e => setOffsetBottom(Number(e.target.value))} />
+              <Slider min={0} max={120} value={[offsetBottom]} onValueChange={(value) => setOffsetBottom(Array.isArray(value) ? value[0] : value)} className="w-32" />
               <span className="text-sm text-muted-foreground">{offsetBottom}px</span>
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm">Left (px)</label>
-              <input type="number" value={offsetLeft ?? ""} onChange={e => setOffsetLeft(e.target.value === "" ? undefined : Number(e.target.value))} className="input w-24" />
+              <Input type="number" value={offsetLeft ?? ""} onChange={e => setOffsetLeft(e.target.value === "" ? undefined : Number(e.target.value))} className="w-24" />
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm">Right (px)</label>
-              <input type="number" value={offsetRight ?? ""} onChange={e => setOffsetRight(e.target.value === "" ? undefined : Number(e.target.value))} className="input w-24" />
+              <Input type="number" value={offsetRight ?? ""} onChange={e => setOffsetRight(e.target.value === "" ? undefined : Number(e.target.value))} className="w-24" />
             </div>
           </div>
         </section>

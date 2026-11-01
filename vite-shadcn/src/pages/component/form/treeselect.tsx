@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import * as z from "zod"
 
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Field,
   FieldDescription,
@@ -324,13 +325,13 @@ export default function TreeSelectExample() {
             </Button>
             <label className="flex items-center gap-2 text-sm">
               <span>最大标签数 / maxTagCount:</span>
-              <input
+              <Input
                 type="number"
                 min={1}
                 max={10}
                 value={maxTagCount}
                 onChange={(e) => setMaxTagCount(Number(e.target.value))}
-                className="w-16 rounded border px-2 py-1"
+                className="h-8 w-16"
               />
             </label>
           </div>

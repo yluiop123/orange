@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import orangeLogo from "@/assets/orange.png";
 
 export default function AvatarDemo() {
   return (
@@ -7,11 +8,11 @@ export default function AvatarDemo() {
       <h2 className="text-xl font-bold">Basic Usage 基本用法</h2>
       <div className="flex gap-4">
         <Avatar>
-          <AvatarImage src="orange.png" />
+          <AvatarImage src={orangeLogo} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         <Avatar>
-          <AvatarImage src="orange.png" />
+          <AvatarImage src={orangeLogo} />
           <AvatarFallback>RU</AvatarFallback>
         </Avatar>
         <Avatar>
@@ -23,19 +24,19 @@ export default function AvatarDemo() {
       <h2 className="text-xl font-bold">Sizes 大小</h2>
       <div className="flex items-center gap-4">
         <Avatar className="h-8 w-8">
-          <AvatarImage src="orange.png" />
+          <AvatarImage src={orangeLogo} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         <Avatar className="h-12 w-12">
-          <AvatarImage src="orange.png" />
+          <AvatarImage src={orangeLogo} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         <Avatar className="h-16 w-16">
-          <AvatarImage src="orange.png" />
+          <AvatarImage src={orangeLogo} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
         <Avatar className="h-24 w-24">
-          <AvatarImage src="orange.png" />
+          <AvatarImage src={orangeLogo} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
       </div>
@@ -44,7 +45,7 @@ export default function AvatarDemo() {
       <div className="flex gap-4">
         <div className="relative">
           <Avatar>
-            <AvatarImage src="orange.png" />
+            <AvatarImage src={orangeLogo} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <Badge className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500">

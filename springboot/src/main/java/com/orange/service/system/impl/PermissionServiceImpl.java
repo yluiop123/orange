@@ -37,12 +37,16 @@ public class PermissionServiceImpl implements PermissionService {
             List<Predicate> predicates = new ArrayList<>();
             String id = req.getId();
             String name = req.getName();
+            String path = req.getPath();
             String status = req.getStatus();
             if (id!=null&&!id.isEmpty()) {
-                predicates.add( cb.like(root.get("id"), id + "%"));
+                predicates.add( cb.like(cb.lower(root.get("id")), id.toLowerCase() + "%"));
             }
             if (name!=null&&!name.isEmpty()) {
-                predicates.add(cb.like(root.get("name"), name + "%"));
+                predicates.add(cb.like(cb.lower(root.get("name")), name.toLowerCase() + "%"));
+            }
+            if (path!=null&&!path.isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("path")), path.toLowerCase() + "%"));
             }
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));
@@ -71,8 +75,14 @@ public class PermissionServiceImpl implements PermissionService {
         Set<String> parentIds = list.stream()
                 .map(Permission::getParentId)
                 .collect(Collectors.toSet());
-        // 2 删除节点
-        permissionRepository.deleteAll(list);
+        // 2 删除节点：先删深层节点，避免父子同时选中时父节点级联删除导致重复删除
+        list.sort((a, b) -> Integer.compare(b.getId().length(), a.getId().length()));
+        for (Permission node : list) {
+            if (permissionRepository.existsById(node.getId())) {
+                permissionRepository.delete(node);
+                permissionRepository.flush();
+            }
+        }
         // 3 重新排序
         for (String parentId : parentIds) {
             List<Permission> children;
@@ -96,18 +106,24 @@ public class PermissionServiceImpl implements PermissionService {
             return;
         }
         if ("top".equals(req.getAction())) {
-            List<Permission> list = permissionRepository.queryByParentIdAndOrderNotOrderByOrder(permission.getParentId(), permission.getOrder());
+            List<Permission> list = permission.getParentId() == null
+                    ? permissionRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(permission.getOrder())
+                    : permissionRepository.queryByParentIdAndOrderNotOrderByOrder(permission.getParentId(), permission.getOrder());
             for(int i=0;i<list.size();i++){
                 Permission permissionI = list.get(i);
                 permissionI.setOrder(i+1);
             }
             permission.setOrder(0);
         } else if ("up".equals(req.getAction())) {
-            Permission swapPermission = permissionRepository.queryByParentIdAndOrder(permission.getParentId(), permission.getOrder()-1);
+            Permission swapPermission = permission.getParentId() == null
+                    ? permissionRepository.queryByParentIdIsNullAndOrder(permission.getOrder()-1)
+                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), permission.getOrder()-1);
             swapPermission.setOrder(permission.getOrder());
             permission.setOrder(permission.getOrder() - 1);
         } else if ("down".equals(req.getAction())) {
-            Permission swapPermission = permissionRepository.queryByParentIdAndOrder(permission.getParentId(), permission.getOrder()+1);
+            Permission swapPermission = permission.getParentId() == null
+                    ? permissionRepository.queryByParentIdIsNullAndOrder(permission.getOrder()+1)
+                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), permission.getOrder()+1);
             swapPermission.setOrder(permission.getOrder());
             permission.setOrder(permission.getOrder() + 1);
         }
@@ -134,7 +150,10 @@ public class PermissionServiceImpl implements PermissionService {
                 throw  new BusinessException("权限编码必须以"+req.getParentId()+"开头");
             }
         }
-        Optional<Permission> lastPermissionOptional = permissionRepository.findFirstByParentIdOrderByOrderDesc(req.getParentId());
+        String parentId = StringUtils.isEmpty(req.getParentId()) ? null : req.getParentId();
+        Optional<Permission> lastPermissionOptional = parentId == null
+                ? permissionRepository.findFirstByParentIdIsNullOrderByOrderDesc()
+                : permissionRepository.findFirstByParentIdOrderByOrderDesc(parentId);
         Permission lastPermission = lastPermissionOptional.orElse(null);
         Permission permission = new Permission();
         permission.setId(req.getId());
@@ -142,7 +161,7 @@ public class PermissionServiceImpl implements PermissionService {
         permission.setPath(req.getPath());
         permission.setType(req.getType());
         permission.setAction(req.getAction());
-        permission.setParentId(req.getParentId());
+        permission.setParentId(parentId);
         if (lastPermission != null) {
             permission.setOrder(lastPermission.getOrder() + 1);
         } else {
@@ -180,6 +199,8 @@ public class PermissionServiceImpl implements PermissionService {
             List<Predicate> predicates = new ArrayList<>();
             if (parentId!=null&&!parentId.isEmpty()) {
                 predicates.add(cb.equal(root.get("parentId"), parentId));
+            } else {
+                predicates.add(cb.isNull(root.get("parentId")));
             }
             if (order!=null) {
                 predicates.add(cb.greaterThan(root.get("order"), order));

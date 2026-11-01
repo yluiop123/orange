@@ -31,8 +31,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.orange.config.Constanst.STATUS_DISABLE;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -49,9 +52,16 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private GroupService groupService;
+
+    private static final Set<String> USER_SORT_FIELDS =
+            Set.of("id", "name", "username", "email", "status", "createTime", "updateTime");
+    private static final Set<String> USER_FILTER_FIELDS =
+            Set.of("name", "username", "email", "phone", "status");
+
     @Override
     public PageData<UserBean> queryUsers(QueryUserReq req) {
-        String sortBy = req.getOrderField() == null ? "id" : req.getOrderField();
+        String sortBy = req.getOrderField() != null && USER_SORT_FIELDS.contains(req.getOrderField())
+                ? req.getOrderField() : "id";
         String sortDir = req.getOrderValue() == null ? "asc" : req.getOrderValue();
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())?
                 Sort.by(sortBy).ascending(): Sort.by(sortBy).descending();
@@ -62,14 +72,18 @@ public class UserServiceImpl implements UserService {
             String filterField = req.getFilterField();
             String filterValue = req.getFilterValue();
 
-            if (filterField!=null && filterValue!=null) {
+            if (filterField != null && !filterField.isBlank()) {
+                if (!USER_FILTER_FIELDS.contains(filterField)) {
+                    throw new BusinessException("不支持的过滤字段");
+                }
+                String keyword = filterValue == null ? "" : filterValue.toLowerCase();
                 predicates.add(
-                        cb.like(root.get(filterField), filterValue + "%")
+                        cb.like(cb.lower(root.get(filterField)), keyword + "%")
                 );
             }
             if(req.getGroupId()!=null&&!req.getGroupId().isEmpty()){
                 predicates.add(
-                        cb.like(root.get("groupId"), req.getGroupId()+"%")
+                        cb.like(cb.lower(root.get("groupId")), req.getGroupId().toLowerCase()+"%")
                 );
             }
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -77,6 +91,13 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(req.getPage()-1, req.getSize(), sort);
         Page<User>  pageUser = userRepository.findAll(spec, pageable);
         List<User> pageUserList = pageUser.getContent();
+        // 一次加载组织名称，避免逐行查询造成 N+1
+        Map<String, String> groupNameMap = groupService.queryGroups().stream()
+                .collect(Collectors.toMap(
+                        Group::getId,
+                        group -> group.getName() == null ? "" : group.getName(),
+                        (existing, replacement) -> existing
+                ));
         List<UserBean> userBeanList = pageUserList.stream().map(user -> {
             UserBean userBean = new UserBean();
             userBean.setId(user.getId());
@@ -84,7 +105,7 @@ public class UserServiceImpl implements UserService {
             userBean.setUsername(user.getUsername());
             userBean.setEmail(user.getEmail());
             userBean.setGroupId(user.getGroupId());
-            String groupName = groupService.queryGroup(user.getGroupId()).getName();
+            String groupName = groupNameMap.getOrDefault(user.getGroupId(), "");
             userBean.setGroupName(groupName);
             userBean.setPhone(user.getPhone());
             userBean.setStatus(user.getStatus());
@@ -92,24 +113,28 @@ public class UserServiceImpl implements UserService {
             userBean.setUpdateTime(user.getUpdateTime());
             return userBean;
         }).collect(Collectors.toList());
-        return new PageData<>(pageUser.getTotalElements(), userBeanList);
+        return new PageData<>(pageUser.getTotalElements(), userBeanList,
+                req.getPage(), req.getSize(), pageUser.getTotalPages());
     }
 
     @Override
     @Transactional
-    public User addUser(AddUserReq req) {
+    public String addUser(AddUserReq req) {
         User user = new User();
         user.setName(req.getName());
         user.setUsername(req.getUsername());
         user.setEmail(req.getEmail());
         user.setGroupId(req.getGroupId());
         user.setPhone(req.getPhone());
-        user.setPassword(passwordEncoder.encode(req.getUsername()));
-        List<Role> roles = roleRepository.findAllById(req.getRoles());
+        String tempPassword = generateTempPassword();
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        user.setMustChangePassword(true);
+        List<Role> roles = req.getRoles() == null ? List.of() : roleRepository.findAllById(req.getRoles());
         user.getRoles().addAll(roles);
-        List<Permission> permissions = permissionRepository.findAllById(req.getPermissions());
+        List<Permission> permissions = req.getPermissions() == null ? List.of() : permissionRepository.findAllById(req.getPermissions());
         user.getPermissions().addAll(permissions);
-        return userRepository.save(user);
+        userRepository.save(user);
+        return tempPassword;
     }
     @Override
     @Transactional
@@ -138,7 +163,12 @@ public class UserServiceImpl implements UserService {
             }
 
             if (req.getStatus() != null) {
+                boolean disabling = !STATUS_DISABLE.equals(user.getStatus())
+                        && STATUS_DISABLE.equals(req.getStatus());
                 user.setStatus(req.getStatus());
+                if (disabling) {
+                    user.setTokenVersion(nextTokenVersion(user.getTokenVersion()));
+                }
             }
 
             if (req.getRoles()!=null) {
@@ -159,29 +189,77 @@ public class UserServiceImpl implements UserService {
         return null;
     }
     @Override
+    @Transactional
     public void deleteUsers(List<String> ids) {
         List<User> list = userRepository.findAllById(ids);
         if(CollectionUtils.isEmpty(list)){
             throw new BusinessException("用户不存在");
         }
+        // 删除用户前先清理角色/权限关联，避免“有角色就永远删不掉”
         for (User user : list) {
-            if(!CollectionUtils.isEmpty(user.getRoles())){
-                throw new BusinessException("用户"+user.getUsername()+"已被角色引用，不能删除");
-            }
-            if(!CollectionUtils.isEmpty(user.getPermissions())){
-                throw new BusinessException("用户"+user.getId()+"已被权限引用，不能删除");
-            }
+            user.getRoles().clear();
+            user.getPermissions().clear();
         }
-        userRepository.deleteAllById(ids);
+        userRepository.deleteAll(list);
     }
 
     @Override
-    public void resetUser(String id) {
-        Optional<User> user = userRepository.findById(id);
-        user.ifPresent(user1 -> {
-            user1.setPassword(passwordEncoder.encode(user1.getUsername()));
-            userRepository.save(user1);
-        });
+    @Transactional
+    public String resetUser(String id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("用户不存在"));
+        String tempPassword = generateTempPassword();
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        user.setMustChangePassword(true);
+        // 密码被重置后，旧 token 必须立即失效
+        user.setTokenVersion(nextTokenVersion(user.getTokenVersion()));
+        userRepository.save(user);
+        return tempPassword;
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException("原密码错误");
+        }
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new BusinessException("新密码不能与原密码相同");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setMustChangePassword(false);
+        // 修改密码后让旧 token 失效，要求重新登录
+        user.setTokenVersion(nextTokenVersion(user.getTokenVersion()));
+        userRepository.save(user);
+    }
+
+    private static final String PASSWORD_CHARS =
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+
+    private String generateTempPassword() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder builder = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) {
+            builder.append(PASSWORD_CHARS.charAt(random.nextInt(PASSWORD_CHARS.length())));
+        }
+        return builder.toString();
+    }
+
+    @Override
+    @Transactional
+    public void revokeTokens(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            user.setTokenVersion(nextTokenVersion(user.getTokenVersion()));
+        }
+    }
+
+    private int nextTokenVersion(Integer current) {
+        return (current == null ? 0 : current) + 1;
     }
 
     @Override
@@ -232,6 +310,7 @@ public class UserServiceImpl implements UserService {
         userInfo.setGroupName(group.getName());
         userInfo.setPhone(user.getPhone());
         userInfo.setStatus(user.getStatus());
+        userInfo.setMustChangePassword(Boolean.TRUE.equals(user.getMustChangePassword()));
         userInfo.setCreateTime(user.getCreateTime());
         userInfo.setUpdateTime(user.getUpdateTime());
         Set<Role> roles = user.getRoles();

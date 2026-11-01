@@ -1,0 +1,688 @@
+{
+  "permissions": [
+    {
+      "id": "0000",
+      "name": {
+        "zh": "仪表盘",
+        "en": "Dashboard"
+      },
+      "path": "/dashboard",
+      "action": null,
+      "type": "directory",
+      "status": "1",
+      "parentId": null,
+      "order": 0
+    },
+    {
+      "id": "000000",
+      "parentId": "0000",
+      "path": "/dashboard/normal",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "order": 0,
+      "name": {
+        "zh": "普通仪表盘",
+        "en": "Normal Dashboard"
+      }
+    },
+    {
+      "id": "000001",
+      "parentId": "0000",
+      "path": "/dashboard/network-security",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "order": 1,
+      "name": {
+        "zh": "网络安全仪表盘",
+        "en": "Network Security"
+      }
+    },
+    {
+      "id": "000002",
+      "parentId": "0000",
+      "path": "/dashboard/military-situational-awareness",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "order": 2,
+      "name": {
+        "zh": "军事态势感知",
+        "en": "Military Situational Awareness"
+      }
+    },
+    {
+      "id": "000003",
+      "parentId": "0000",
+      "path": "/dashboard/disaster-command",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "order": 3,
+      "name": {
+        "zh": "灾情指挥",
+        "en": "Disaster Command"
+      }
+    },
+    {
+      "id": "000004",
+      "parentId": "0000",
+      "path": "/dashboard/agriculture-forestry",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "order": 4,
+      "name": {
+        "zh": "农业与林业管理",
+        "en": "Agriculture & Forestry"
+      }
+    },
+    {
+      "id": "000005",
+      "parentId": "0000",
+      "path": "/dashboard/industrial",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "order": 5,
+      "name": {
+        "zh": "工业管理",
+        "en": "Industrial"
+      }
+    },
+    {
+      "id": "0001",
+      "name": {
+        "zh": "组件",
+        "en": "Components"
+      },
+      "path": "/component",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": null,
+      "order": 1
+    },
+    {
+      "id": "000100",
+      "name": {
+        "zh": "通用组件",
+        "en": "General"
+      },
+      "path": "/component/general",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 0
+    },
+    {
+      "id": "000101",
+      "name": {
+        "zh": "布局组件",
+        "en": "Layout"
+      },
+      "path": "/component/layout",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 1
+    },
+    {
+      "id": "000102",
+      "name": {
+        "zh": "导航组件",
+        "en": "Navigation"
+      },
+      "path": "/component/navigation",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 2
+    },
+    {
+      "id": "000103",
+      "name": {
+        "zh": "显示组件",
+        "en": "Display"
+      },
+      "path": "/component/display",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 3
+    },
+    {
+      "id": "000104",
+      "name": {
+        "zh": "反馈组件",
+        "en": "Feedback"
+      },
+      "path": "/component/feedback",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 4
+    },
+    {
+      "id": "000105",
+      "name": {
+        "zh": "表单组件",
+        "en": "Form"
+      },
+      "path": "/component/form",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 5
+    },
+    {
+      "id": "000106",
+      "name": {
+        "zh": "表格组件",
+        "en": "Table"
+      },
+      "path": "/component/table",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 6
+    },
+    {
+      "id": "000107",
+      "name": {
+        "zh": "自定义组件",
+        "en": "Custom"
+      },
+      "path": "/component/custom",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0001",
+      "order": 7
+    },
+    {
+      "id": "0002",
+      "name": {
+        "zh": "图表",
+        "en": "Charts"
+      },
+      "path": "/chart",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": null,
+      "order": 2
+    },
+    {
+      "id": "000200",
+      "name": {
+        "zh": "Antv图表",
+        "en": "AntV"
+      },
+      "path": "/chart/antv",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0002",
+      "order": 0
+    },
+    {
+      "id": "000201",
+      "name": {
+        "zh": "D3图表",
+        "en": "D3"
+      },
+      "path": "/chart/d3",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0002",
+      "order": 1
+    },
+    {
+      "id": "000202",
+      "name": {
+        "zh": "Echart图表",
+        "en": "ECharts"
+      },
+      "path": "/chart/echart",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0002",
+      "order": 2
+    },
+    {
+      "id": "000203",
+      "name": {
+        "zh": "Rechart图表",
+        "en": "Recharts"
+      },
+      "path": "/chart/rechart",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0002",
+      "order": 3
+    },
+    {
+      "id": "0003",
+      "name": {
+        "zh": "三维",
+        "en": "3D"
+      },
+      "path": "/three",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": null,
+      "order": 3
+    },
+    {
+      "id": "000300",
+      "name": {
+        "zh": "Babylon图表",
+        "en": "Babylon"
+      },
+      "path": "/three/babylon",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0003",
+      "order": 0
+    },
+    {
+      "id": "000301",
+      "name": {
+        "zh": "Three图表",
+        "en": "Three.js"
+      },
+      "path": "/three/three",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0003",
+      "order": 1
+    },
+    {
+      "id": "0004",
+      "name": {
+        "zh": "地图",
+        "en": "Maps"
+      },
+      "path": "/map",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": null,
+      "order": 4
+    },
+    {
+      "id": "000400",
+      "name": {
+        "zh": "Cesium地图",
+        "en": "Cesium"
+      },
+      "path": "/map/cesium",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0004",
+      "order": 0
+    },
+    {
+      "id": "000401",
+      "name": {
+        "zh": "Deckgl地图",
+        "en": "Deck.gl"
+      },
+      "path": "/map/deckgl",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0004",
+      "order": 1
+    },
+    {
+      "id": "000402",
+      "name": {
+        "zh": "L7地图",
+        "en": "L7"
+      },
+      "path": "/map/l7",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0004",
+      "order": 2
+    },
+    {
+      "id": "000403",
+      "name": {
+        "zh": "Leaflet地图",
+        "en": "Leaflet"
+      },
+      "path": "/map/leaflet",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0004",
+      "order": 3
+    },
+    {
+      "id": "000404",
+      "name": {
+        "zh": "Openlayers地图",
+        "en": "OpenLayers"
+      },
+      "path": "/map/openlayers",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0004",
+      "order": 4
+    },
+    {
+      "id": "0005",
+      "name": {
+        "zh": "系统管理",
+        "en": "System"
+      },
+      "path": "/system",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": null,
+      "order": 5
+    },
+    {
+      "id": "000500",
+      "name": {
+        "zh": "用户管理",
+        "en": "Users"
+      },
+      "path": "/system/user",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0005",
+      "order": 0
+    },
+    {
+      "id": "00050000",
+      "name": {
+        "zh": "新增",
+        "en": "Add"
+      },
+      "path": "/system/user",
+      "action": "add",
+      "type": "action",
+      "status": "1",
+      "parentId": "000500",
+      "order": 0
+    },
+    {
+      "id": "00050001",
+      "name": {
+        "zh": "删除",
+        "en": "Delete"
+      },
+      "path": "/system/user",
+      "action": "delete",
+      "type": "action",
+      "status": "1",
+      "parentId": "000500",
+      "order": 1
+    },
+    {
+      "id": "00050002",
+      "name": {
+        "zh": "编辑",
+        "en": "Edit"
+      },
+      "path": "/system/user",
+      "action": "edit",
+      "type": "action",
+      "status": "1",
+      "parentId": "000500",
+      "order": 2
+    },
+    {
+      "id": "000501",
+      "name": {
+        "zh": "角色管理",
+        "en": "Roles"
+      },
+      "path": "/system/role",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0005",
+      "order": 1
+    },
+    {
+      "id": "00050100",
+      "name": {
+        "zh": "新增",
+        "en": "Add"
+      },
+      "path": "/system/role",
+      "action": "add",
+      "type": "action",
+      "status": "1",
+      "parentId": "000501",
+      "order": 0
+    },
+    {
+      "id": "00050101",
+      "name": {
+        "zh": "删除",
+        "en": "Delete"
+      },
+      "path": "/system/role",
+      "action": "delete",
+      "type": "action",
+      "status": "1",
+      "parentId": "000501",
+      "order": 1
+    },
+    {
+      "id": "00050102",
+      "name": {
+        "zh": "编辑",
+        "en": "Edit"
+      },
+      "path": "/system/role",
+      "action": "edit",
+      "type": "action",
+      "status": "1",
+      "parentId": "000501",
+      "order": 2
+    },
+    {
+      "id": "000502",
+      "name": {
+        "zh": "权限管理",
+        "en": "Permissions"
+      },
+      "path": "/system/permission",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0005",
+      "order": 2
+    },
+    {
+      "id": "00050200",
+      "name": {
+        "zh": "新增",
+        "en": "Add"
+      },
+      "path": "/system/permission",
+      "action": "add",
+      "type": "action",
+      "status": "1",
+      "parentId": "000502",
+      "order": 0
+    },
+    {
+      "id": "00050201",
+      "name": {
+        "zh": "删除",
+        "en": "Delete"
+      },
+      "path": "/system/permission",
+      "action": "delete",
+      "type": "action",
+      "status": "1",
+      "parentId": "000502",
+      "order": 1
+    },
+    {
+      "id": "00050202",
+      "name": {
+        "zh": "编辑",
+        "en": "Edit"
+      },
+      "path": "/system/permission",
+      "action": "edit",
+      "type": "action",
+      "status": "1",
+      "parentId": "000502",
+      "order": 2
+    },
+    {
+      "id": "000503",
+      "name": {
+        "zh": "组织管理",
+        "en": "Groups"
+      },
+      "path": "/system/group",
+      "action": null,
+      "type": "menu",
+      "status": "1",
+      "parentId": "0005",
+      "order": 3
+    },
+    {
+      "id": "00050300",
+      "name": {
+        "zh": "新增",
+        "en": "Add"
+      },
+      "path": "/system/group",
+      "action": "add",
+      "type": "action",
+      "status": "1",
+      "parentId": "000503",
+      "order": 0
+    },
+    {
+      "id": "00050301",
+      "name": {
+        "zh": "删除",
+        "en": "Delete"
+      },
+      "path": "/system/group",
+      "action": "delete",
+      "type": "action",
+      "status": "1",
+      "parentId": "000503",
+      "order": 1
+    },
+    {
+      "id": "00050302",
+      "name": {
+        "zh": "编辑",
+        "en": "Edit"
+      },
+      "path": "/system/group",
+      "action": "edit",
+      "type": "action",
+      "status": "1",
+      "parentId": "000503",
+      "order": 2
+    }
+  ],
+  "rolePermissions": {
+    "super": [
+      "0000",
+      "0001",
+      "000100",
+      "000101",
+      "000102",
+      "000103",
+      "000104",
+      "000105",
+      "000106",
+      "000107",
+      "0002",
+      "000200",
+      "000201",
+      "000202",
+      "000203",
+      "0003",
+      "000300",
+      "000301",
+      "0004",
+      "000400",
+      "000401",
+      "000402",
+      "000403",
+      "000404",
+      "0005",
+      "000500",
+      "000501",
+      "000502",
+      "000503",
+      "00050000",
+      "00050001",
+      "00050002",
+      "00050100",
+      "00050101",
+      "00050102",
+      "00050200",
+      "00050201",
+      "00050202",
+      "00050300",
+      "00050301",
+      "00050302",
+      "000000",
+      "000001",
+      "000002",
+      "000003",
+      "000004",
+      "000005"
+    ],
+    "admin": [
+      "0005",
+      "000500",
+      "000501",
+      "000502",
+      "000503",
+      "00050000",
+      "00050001",
+      "00050002",
+      "00050100",
+      "00050101",
+      "00050102",
+      "00050200",
+      "00050201",
+      "00050202",
+      "00050300",
+      "00050301",
+      "00050302"
+    ],
+    "user": [
+      "0000"
+    ]
+  }
+}

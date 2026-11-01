@@ -27,7 +27,7 @@ import { toast } from "sonner";
  */
 const eventSchema = z.object({
   birthday: z.date({
-    required_error: "Please select a date / 请选择日期",
+    error: "Please select a date / 请选择日期",
   }),
   eventTime: z.string().min(1, "Please set a time / 请设置时间"),
   duration: z.object({
@@ -101,7 +101,7 @@ export default function GlobalDateForm() {
                     selected={field.value}
                     onSelect={field.onChange}
                     locale={locale === "zh" ? zhCN : enUS}
-                    initialFocus
+                    autoFocus
                   />
                 </PopoverContent>
               </Popover>

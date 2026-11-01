@@ -1,4 +1,5 @@
 // src/components/ui/tag.tsx
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import * as React from "react";
@@ -55,9 +56,11 @@ const Tag = React.forwardRef<HTMLDivElement, TagProps>(
       >
         <span>{children}</span>
         {closable && !disabled && (
-          <button
+          <Button
             type="button"
-            className="ml-1.5 inline-flex items-center justify-center rounded-full hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            variant="ghost"
+            size="icon"
+            className="ml-1.5 size-4 min-h-0 rounded-full p-0 hover:bg-transparent hover:opacity-75"
             onClick={(e) => {
               e.stopPropagation();
               onClose?.();
@@ -65,7 +68,7 @@ const Tag = React.forwardRef<HTMLDivElement, TagProps>(
             aria-label="Remove tag"
           >
             <X className={size === 'sm' ? "h-3 w-3" : size === 'md' ? "h-3.5 w-3.5" : "h-4 w-4"} />
-          </button>
+          </Button>
         )}
       </div>
     );

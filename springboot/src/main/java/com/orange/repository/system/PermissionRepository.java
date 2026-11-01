@@ -11,10 +11,13 @@ import java.util.Optional;
 @Repository
 public interface PermissionRepository extends JpaRepository<Permission,String>, JpaSpecificationExecutor<Permission> {
     Optional<Permission> findFirstByParentIdOrderByOrderDesc(String parentId);
+    Optional<Permission> findFirstByParentIdIsNullOrderByOrderDesc();
 
     Permission queryByParentIdAndOrder(String parentId, Integer order);
+    Permission queryByParentIdIsNullAndOrder(Integer order);
 
     List<Permission> queryByParentIdAndOrderNotOrderByOrder(String parentId, Integer order);
+    List<Permission> queryByParentIdIsNullAndOrderNotOrderByOrder(Integer order);
 
     List<Permission> findAllByIdLike(String id);
 

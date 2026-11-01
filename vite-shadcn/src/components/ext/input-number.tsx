@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react"
 import * as React from "react"
@@ -181,7 +182,7 @@ const InputNumber = React.forwardRef<HTMLInputElement, InputNumberProps>(
 
         {/* Main Input with Spinner */}
         <div className={cn("relative w-full min-w-0", showSpinner && "group", showLeftButtons && "[&_input]:rounded-l-none")}>
-          <input
+          <Input
             ref={ref}
             type="text"
             inputMode="decimal"
@@ -201,22 +202,24 @@ const InputNumber = React.forwardRef<HTMLInputElement, InputNumberProps>(
           {/* Right Spinner Buttons */}
           {showSpinner && (
             <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={handleIncrement}
                 disabled={disabled || (max !== undefined && parseFloat(inputValue) >= max)}
-                className="flex items-center justify-center w-5 h-2.5 rounded-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center w-5 h-2.5 min-h-0 rounded-sm p-0"
               >
                 <ChevronUp className="h-3 w-3" />
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={handleDecrement}
                 disabled={disabled || (min !== undefined && parseFloat(inputValue) <= min)}
-                className="flex items-center justify-center w-5 h-2.5 rounded-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center w-5 h-2.5 min-h-0 rounded-sm p-0"
               >
                 <ChevronDown className="h-3 w-3" />
-              </button>
+              </Button>
             </div>
           )}
         </div>

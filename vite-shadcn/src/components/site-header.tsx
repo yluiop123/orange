@@ -58,10 +58,16 @@ export function SiteHeader() {
         </Breadcrumb>
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <div className="w-15 h-6 border border-foreground/10 bg-foreground/10 rounded-md flex items-center justify-center">
-                {intl.formatMessage({id:'header.language'})}
-              </div>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-15 border border-foreground/10 bg-foreground/10 px-1 text-xs"
+                />
+              }
+            >
+              {intl.formatMessage({id:'header.language'})}
             </DropdownMenuTrigger>
             <DropdownMenuContent >
               <DropdownMenuRadioGroup value={locale} onValueChange={setLanguage}>

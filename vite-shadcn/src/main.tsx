@@ -1,10 +1,8 @@
 import App from '@/App';
-import initMSW from '@/mock';
+import { bootstrapAuth } from '@/auth/service';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import 'leaflet/dist/leaflet.css'
-import './lib/fixLeafletIcon'
 
 /**
  * 配置 Cesium 资源路径
@@ -18,13 +16,24 @@ function createRootElement() {
     </StrictMode>,
   );
 }
-const mockEnable = (import.meta.env.VITE_MOCK_ENABLE||'true')=='true';
-if(mockEnable){
-  initMSW().then(()=>{
-    createRootElement();
-  })
-}else{
+const mockEnable = import.meta.env.VITE_MOCK_ENABLE === 'true';
+console.info(`[mock] ${mockEnable ? 'enabled' : 'disabled'}`);
+
+async function start() {
+  try {
+    // 演示环境先启动 MSW，再恢复会话；MSW 只在需要时加载
+    if (mockEnable) {
+      const { default: initMSW } = await import('@/mock');
+      await initMSW();
+    }
+    // 生产环境通过 refresh Cookie 恢复 access token
+    await bootstrapAuth();
+  } catch (error) {
+    console.error(error);
+  }
   createRootElement();
 }
+
+start();
 
 

@@ -12,6 +12,7 @@ import {
   FieldLabel
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { isSafeInternalPath } from "@/lib/path"
 import axios from "@/lib/axios"
 import { cn } from "@/lib/utils"
 import { useUserStore } from '@/store'
@@ -20,7 +21,8 @@ import { Loader2Icon } from "lucide-react"
 import React, { useState } from 'react'
 import { Controller, useForm } from "react-hook-form"
 import { useIntl } from "react-intl"
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
+import { toast } from "sonner"
 import { z } from "zod"
 
 
@@ -46,22 +48,38 @@ export default function Login({
   })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useUserStore();
+
+  // 登录后回到用户原本访问的页面；from 优先取路由 state，其次取 redirect 查询参数
+  const stateFrom = (location.state as { from?: string } | null)?.from;
+  const queryFrom = new URLSearchParams(location.search).get("redirect");
+  const redirectTo = [stateFrom, queryFrom].find(isSafeInternalPath) ?? "/";
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     axios
-      .post('user/login', values)
+      .post('/user/login', values)
       .then((res) => {
-        const { status, msg, field, token } = res.data.data;
-        if (status === 'ok') {
-          login(token);
-          navigate('/');
-        } else if (['password', 'username'].includes(field)) {
-          form.setError(field, {
-            message: msg
-          })
+        const data = res.data?.data;
+        if (data?.status === 'ok' && data.token) {
+          login(data.token, data.expiresIn);
+          navigate(redirectTo, { replace: true });
+        } else if (data?.msg) {
+          // 兼容旧后端仍返回 200 + status=error 的情况
+          toast.error(data.msg);
         }
+      })
+      .catch((error) => {
+        const message =
+          error?.response?.data?.message ||
+          error?.data?.message ||
+          error?.message ||
+          intl.formatMessage({
+            id: 'page.login.failed',
+            defaultMessage: '登录失败',
+          });
+        toast.error(message);
       })
       .finally(() => {
         setLoading(false);
@@ -102,7 +120,7 @@ export default function Login({
                       </Field>
                     )}
                   />
-                  <Button type="submit" >
+                  <Button type="submit" disabled={loading}>
                     {loading && <Loader2Icon className='animate-spin' />}
                     {intl.formatMessage({ id: 'page.login.login' })}
                   </Button>

@@ -3,7 +3,7 @@ package com.orange.domain.system.user.resp;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Schema(description = "权限响应参数")
 @Data
@@ -30,7 +30,7 @@ public class PermissionBean {
     private Integer order;
 
     @Schema(description = "创建时间",example = "2023-08-01 10:00:00")
-    private LocalDateTime createTime;
+    private OffsetDateTime createTime;
 
     @Schema(description = "父权限ID",example = "00")
     private String parentId;

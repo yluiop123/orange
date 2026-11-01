@@ -1,5 +1,6 @@
 // src/pages/component/feedback/alert.tsx
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, Info, XCircle } from "lucide-react";
 
 const AlertDemo = () => {
@@ -98,9 +99,13 @@ const AlertDemo = () => {
                 <AlertDescription>
                   This alert can be closed by clicking the close button. / 此警报可通过单击关闭按钮关闭。
                 </AlertDescription>
-                <button className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+                >
                   <XCircle className="h-4 w-4" />
-                </button>
+                </Button>
               </Alert>
             </div>
             
@@ -111,9 +116,13 @@ const AlertDemo = () => {
                 <AlertDescription>
                   Critical system warning. Please take immediate action. / 系统严重警告，请立即采取行动。
                 </AlertDescription>
-                <button className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+                >
                   <XCircle className="h-4 w-4" />
-                </button>
+                </Button>
               </Alert>
             </div>
           </div>

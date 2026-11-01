@@ -1,4 +1,5 @@
 // src/components/ext/timeline.tsx
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 
@@ -56,15 +57,17 @@ const Timeline = ({
             !isH && "min-h-[120px] w-full" 
           )}>
             {/* 点击圆点 */}
-            <button
+            <Button
+              type="button"
+              variant="ghost"
               onClick={() => onChange(item.id)}
               className={cn(
-                "group relative flex items-center justify-center rounded-full border-2 transition-all duration-300 bg-white z-20",
+                "group relative flex items-center justify-center rounded-full border-2 p-0 transition-all duration-300 bg-white hover:bg-white z-20",
                 isActive ? "w-10 h-10 border-blue-600 ring-4 ring-blue-50" : "w-6 h-6 border-slate-300 hover:border-blue-400"
               )}
             >
               {Icon ? <Icon className={cn(isActive ? "w-5 h-5 text-blue-600" : "w-3 h-3 text-slate-400")} /> : <div className="w-2 h-2 rounded-full bg-current" />}
-            </button>
+            </Button>
 
             {/* 文字内容区域 */}
             <div className={cn(

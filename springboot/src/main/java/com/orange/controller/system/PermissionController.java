@@ -1,90 +1,151 @@
 package com.orange.controller.system;
 
 import com.orange.domain.common.Response;
+import com.orange.domain.common.req.MoveActionReq;
 import com.orange.domain.system.permission.req.*;
 import com.orange.entity.Permission;
 import com.orange.service.system.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Tag(name = "权限管理", description = "权限管理相关接口")
 @RestController
 @RequestMapping("/api/system/permissions")
-@CrossOrigin
 public class PermissionController {
     @Autowired
     private PermissionService permissionService;
 
-    @Operation(summary = "查询权限列表", description = "根据查询条件分页返回权限列表")
-    @PostMapping
+    @Operation(summary = "查询权限列表", description = "支持按 ID、名称、状态过滤")
+    @GetMapping
     @PreAuthorize("hasAuthority('menu#/system/permission')")
-    public Response<List<Permission>> queryPermissions(@RequestBody QueryPermissionReq req) {
-        List<Permission> pageData = permissionService.queryPermissions(req);
-        return Response.ok(pageData);
+    public Response<List<Permission>> queryPermissions(@Valid @ModelAttribute QueryPermissionReq req) {
+        return Response.ok(permissionService.queryPermissions(req));
     }
 
-    @Operation(summary = "删除权限", description = "根据权限ID删除权限")
-    @DeleteMapping
-    @PreAuthorize("hasAuthority('menu#/system/permission:delete')")
-    public Response<String> deletePermissions(@RequestBody DeletePermissionReq req) {
-        permissionService.deletePermissions(req.getIds());
-        return Response.ok("操作成功");
+    @Operation(summary = "查询权限详情", description = "根据权限ID查询权限详情")
+    @GetMapping("/{permissionId}")
+    @PreAuthorize("hasAuthority('menu#/system/permission')")
+    public Response<Permission> queryPermission(
+            @Schema(description = "权限ID", example = "1")
+            @PathVariable("permissionId") String permissionId) {
+        return Response.ok(permissionService.queryPermission(permissionId));
     }
 
-    @Operation(summary = "移动权限", description = "根据移动ID移动权限")
-    @PostMapping("/move")
-    @PreAuthorize("hasAuthority('menu#/system/permission:edit')")
-    public Response<String> movePermission(@RequestBody MovePermissionReq req) {
-        permissionService.movePermission(req);
-        return Response.ok("操作成功");
-    }
-
-    @Operation(summary = "编辑权限", description = "根据编辑ID编辑权限")
-    @PostMapping("/edit")
-    @PreAuthorize("hasAuthority('menu#/system/permission:edit')")
-    public Response<String> editPermission(@RequestBody EditPermissionReq req) {
+    @Operation(summary = "编辑权限", description = "根据权限ID更新权限信息")
+    @PatchMapping("/{permissionId}")
+    @PreAuthorize("hasAuthority('action#/system/permission:edit')")
+    public Response<String> editPermission(@PathVariable("permissionId") String permissionId,
+                                           @Valid @RequestBody EditPermissionReq req) {
+        req.setId(permissionId);
         permissionService.editPermission(req);
         return Response.ok("操作成功");
     }
 
-    @Operation(summary = "查询权限详情", description = "根据权限ID查询权限详情")
-    @GetMapping("/detail/{groupId}")
-    @PreAuthorize("hasAuthority('menu#/system/permission')")
-    public Response<Permission> queryGroup(
-            @Schema(description = "权限ID",example = "1")
-            @PathVariable("groupId") String groupId) {
-        Permission group = permissionService.queryPermission(groupId);
-        return Response.ok(group);
+    @Operation(summary = "删除权限", description = "根据权限ID列表删除权限，多个 ID 用逗号分隔")
+    @DeleteMapping
+    @PreAuthorize("hasAuthority('action#/system/permission:delete')")
+    public Response<String> deletePermissions(@RequestParam("ids") String ids) {
+        permissionService.deletePermissions(splitIds(ids));
+        return Response.ok("操作成功");
     }
 
-    @Operation(summary = "添加子权限", description = "根据添加子权限ID添加子权限")
+    @Operation(summary = "删除权限", description = "根据权限ID删除权限")
+    @DeleteMapping("/{permissionId}")
+    @PreAuthorize("hasAuthority('action#/system/permission:delete')")
+    public Response<String> deletePermission(@PathVariable("permissionId") String permissionId) {
+        permissionService.deletePermissions(List.of(permissionId));
+        return Response.ok("操作成功");
+    }
+
+    @Operation(summary = "添加子权限", description = "在指定父权限下添加子权限")
+    @PostMapping("/children")
+    @PreAuthorize("hasAuthority('action#/system/permission:add')")
+    public Response<Permission> addChild(@Valid @RequestBody AddChildPermissionReq req) {
+        return Response.ok(permissionService.addChild(req));
+    }
+
+    @Operation(summary = "添加兄弟权限", description = "在指定权限后添加兄弟权限")
+    @PostMapping("/siblings")
+    @PreAuthorize("hasAuthority('action#/system/permission:add')")
+    public Response<Permission> addBrother(@Valid @RequestBody AddBrotherPermissionReq req) {
+        return Response.ok(permissionService.addBrother(req));
+    }
+
+    @Operation(summary = "移动权限", description = "上移、下移或置顶权限")
+    @PostMapping("/{permissionId}/move")
+    @PreAuthorize("hasAuthority('action#/system/permission:edit')")
+    public Response<String> movePermission(@PathVariable("permissionId") String permissionId,
+                                           @Valid @RequestBody MoveActionReq req) {
+        MovePermissionReq moveReq = new MovePermissionReq();
+        moveReq.setId(permissionId);
+        moveReq.setAction(req.getAction());
+        permissionService.movePermission(moveReq);
+        return Response.ok("操作成功");
+    }
+
+    // ===== 兼容旧接口（已废弃，后续版本移除） =====
+    @Deprecated
+    @Operation(summary = "查询权限列表（旧）", deprecated = true)
+    @PostMapping
+    @PreAuthorize("hasAuthority('menu#/system/permission')")
+    public Response<List<Permission>> queryPermissionsLegacy(@Valid @RequestBody QueryPermissionReq req) {
+        return Response.ok(permissionService.queryPermissions(req));
+    }
+
+    @Deprecated
+    @Operation(summary = "查询权限详情（旧）", deprecated = true)
+    @GetMapping("/detail/{permissionId}")
+    @PreAuthorize("hasAuthority('menu#/system/permission')")
+    public Response<Permission> queryPermissionLegacy(@PathVariable("permissionId") String permissionId) {
+        return Response.ok(permissionService.queryPermission(permissionId));
+    }
+
+    @Deprecated
+    @Operation(summary = "添加子权限（旧）", deprecated = true)
     @PostMapping("/addChild")
-    @PreAuthorize("hasAuthority('menu#/system/permission:add')")
-    public Response<Permission> addChild(@RequestBody AddChildPermissionReq req) {
-        Permission group = permissionService.addChild(req);
-        return Response.ok(group);
+    @PreAuthorize("hasAuthority('action#/system/permission:add')")
+    public Response<Permission> addChildLegacy(@Valid @RequestBody AddChildPermissionReq req) {
+        return Response.ok(permissionService.addChild(req));
     }
 
-    @Operation(summary = "添加兄弟权限", description = "根据添加兄弟权限ID添加兄弟权限")
+    @Deprecated
+    @Operation(summary = "添加兄弟权限（旧）", deprecated = true)
     @PostMapping("/addBrother")
-    @PreAuthorize("hasAuthority('menu#/system/permission:add')")
-    public Response<Permission> addBrother(@RequestBody AddBrotherPermissionReq req) {
-        Permission group = permissionService.addBrother(req);
-        return Response.ok(group);
+    @PreAuthorize("hasAuthority('action#/system/permission:add')")
+    public Response<Permission> addBrotherLegacy(@Valid @RequestBody AddBrotherPermissionReq req) {
+        return Response.ok(permissionService.addBrother(req));
     }
 
-    @Operation(summary = "查询所有权限", description = "查询所有权限")
-    @GetMapping
-    @PreAuthorize("hasAuthority('menu#/system/permission')")
-    public Response<List<Permission>> queryPermissions() {
-        List<Permission> permissions = permissionService.queryPermissions();
-        return Response.ok(permissions);
+    @Deprecated
+    @Operation(summary = "编辑权限（旧）", deprecated = true)
+    @PostMapping("/edit")
+    @PreAuthorize("hasAuthority('action#/system/permission:edit')")
+    public Response<String> editPermissionLegacy(@Valid @RequestBody EditPermissionReq req) {
+        permissionService.editPermission(req);
+        return Response.ok("操作成功");
     }
 
+    @Deprecated
+    @Operation(summary = "移动权限（旧）", deprecated = true)
+    @PostMapping("/move")
+    @PreAuthorize("hasAuthority('action#/system/permission:edit')")
+    public Response<String> movePermissionLegacy(@Valid @RequestBody MovePermissionReq req) {
+        permissionService.movePermission(req);
+        return Response.ok("操作成功");
+    }
+
+    private static List<String> splitIds(String ids) {
+        return Arrays.stream(ids.split(","))
+                .map(String::trim)
+                .filter(id -> !id.isEmpty())
+                .toList();
+    }
 }

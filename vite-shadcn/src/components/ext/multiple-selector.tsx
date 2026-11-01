@@ -4,6 +4,7 @@ import * as React from 'react';
 import { forwardRef, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 
@@ -463,10 +464,12 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                   data-disabled={disabled || undefined}
                 >
                   {option.label}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     className={cn(
-                      'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                      'ml-1 size-4 min-h-0 rounded-full p-0 hover:bg-transparent',
                       (disabled || option.fixed) && 'hidden',
                     )}
                     onKeyDown={(e) => {
@@ -481,7 +484,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
                     onClick={() => handleUnselect(option)}
                   >
                     <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                  </button>
+                  </Button>
                 </Badge>
               );
             })}
@@ -516,14 +519,16 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
               )}
             />
           </div>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => {
               setSelected(selected.filter((s) => s.fixed));
               onChange?.(selected.filter((s) => s.fixed));
             }}
             className={cn(
-              'size-5',
+              'size-5 min-h-0 rounded-sm p-0',
               (hideClearAllButton ||
                 disabled ||
                 selected.length < 1 ||
@@ -532,7 +537,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
             )}
           >
             <X />
-          </button>
+          </Button>
           <ChevronDownIcon
             className={cn(
               'size-5 text-muted-foreground/50',

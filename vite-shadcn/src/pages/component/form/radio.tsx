@@ -19,16 +19,16 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 // Validation Schema / 验证规则
 const radioSchema = z.object({
   gender: z.enum(["male", "female", "other"], {
-    errorMap: () => ({ message: "请选择性别 / Please select gender" }),
+    error: "请选择性别 / Please select gender",
   }),
   plan: z.enum(["basic", "pro", "enterprise"], {
-    errorMap: () => ({ message: "请选择套餐 / Please select plan" }),
+    error: "请选择套餐 / Please select plan",
   }),
   agreement: z.enum(["agree"], {
-    errorMap: () => ({ message: "必须同意协议 / Must agree to terms" }),
+    error: "必须同意协议 / Must agree to terms",
   }),
   notification: z.enum(["all", "important", "none"], {
-    errorMap: () => ({ message: "请选择通知方式 / Please select notification" }),
+    error: "请选择通知方式 / Please select notification",
   }),
 })
 

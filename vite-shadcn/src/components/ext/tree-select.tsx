@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +23,7 @@ export type TreeNode = {
   value: string;
   title: string;
   children?: TreeNode[];
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export type FieldNames = {
@@ -188,12 +189,14 @@ function Tree({
               {/* 展开箭头 */}
               <div className="w-4 h-4 flex items-center justify-center shrink-0">
                 {hasChildren && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={(e) =>
                       toggleExpand(node.value, e)
                     }
-                    className="hover:bg-accent rounded p-0.5 transition-colors"
+                    className="size-4 min-h-0 rounded p-0.5 hover:bg-accent"
                   >
                     <ChevronRight
                       className={cn(
@@ -201,7 +204,7 @@ function Tree({
                         isExpanded && "rotate-90"
                       )}
                     />
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -362,15 +365,20 @@ export default function TreeSelect(props: TreeSelectProps) {
   }, [treeData, mergedSelected, multiple]);
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger disabled={disabled}>
-        <div
-          className={cn(
-            "group relative flex min-h-10 w-full cursor-pointer flex-wrap items-center gap-1.5 rounded-md border border-input bg-background py-1.5 pl-2 pr-15 text-sm transition-all duration-200",
-            "hover:border-primary/50",
-            "focus-within:ring-1 focus-within:ring-ring focus-within:border-primary",
-            className
-          )}
-        >
+      <PopoverTrigger
+        disabled={disabled}
+        nativeButton={false}
+        render={
+          <div
+            className={cn(
+              "group relative flex min-h-10 w-full cursor-pointer flex-wrap items-center gap-1.5 rounded-md border border-input bg-background py-1.5 pl-2 pr-15 text-sm transition-all duration-200",
+              "hover:border-primary/50",
+              "focus-within:ring-1 focus-within:ring-ring focus-within:border-primary",
+              className
+            )}
+          />
+        }
+      >
           {displayNodes.length === 0 && (
             <span className="text-muted-foreground select-none">
               {placeholder}
@@ -440,7 +448,6 @@ export default function TreeSelect(props: TreeSelectProps) {
               )}
             />
           </div>
-        </div>
       </PopoverTrigger>
 
       <PopoverContent

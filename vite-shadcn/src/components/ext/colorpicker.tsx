@@ -33,21 +33,23 @@ export function ColorPicker({ color, onChange }: { color: string, onChange: (c: 
 
   return (
     <Popover>
-      <PopoverTrigger>
-        <Button 
-          variant="outline" 
-          className="w-70 justify-between shadow-sm hover:bg-accent hover:text-accent-foreground transition-all border-input bg-background"
-        >
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded-full border shadow-inner transition-transform group-hover:scale-110" style={{ backgroundColor: color }} />
-            <span className="font-mono text-xs font-bold uppercase">{color}</span>
-          </div>
-          <div className="flex gap-1 opacity-50">
-            <div className="h-2 w-2 rounded-full bg-red-400" />
-            <div className="h-2 w-2 rounded-full bg-green-400" />
-            <div className="h-2 w-2 rounded-full bg-blue-400" />
-          </div>
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            className="w-70 justify-between shadow-sm hover:bg-accent hover:text-accent-foreground transition-all border-input bg-background"
+          />
+        }
+      >
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 rounded-full border shadow-inner transition-transform group-hover:scale-110" style={{ backgroundColor: color }} />
+          <span className="font-mono text-xs font-bold uppercase">{color}</span>
+        </div>
+        <div className="flex gap-1 opacity-50">
+          <div className="h-2 w-2 rounded-full bg-red-400" />
+          <div className="h-2 w-2 rounded-full bg-green-400" />
+          <div className="h-2 w-2 rounded-full bg-blue-400" />
+        </div>
       </PopoverTrigger>
 
       <PopoverContent className="w-72 p-4 space-y-4 shadow-2xl border-border bg-popover text-popover-foreground">
@@ -98,10 +100,13 @@ export function ColorPicker({ color, onChange }: { color: string, onChange: (c: 
               {PRESET_COLORS.map((group) => (
                 <div key={group.group} className="flex flex-wrap gap-2">
                   {group.colors.map((c) => (
-                    <button
+                    <Button
                       key={c}
+                      type="button"
+                      variant="outline"
+                      size="icon"
                       className={cn(
-                        "h-6 w-6 rounded-md border border-border transition-all hover:scale-125 active:scale-90 shadow-sm relative overflow-hidden",
+                        "size-6 min-h-0 rounded-md border-border p-0 transition-all hover:scale-125 active:scale-90 shadow-sm relative overflow-hidden",
                         color.toLowerCase() === c.toLowerCase() && "ring-2 ring-primary ring-offset-2 ring-offset-popover"
                       )}
                       style={{ backgroundColor: c }}
@@ -110,7 +115,7 @@ export function ColorPicker({ color, onChange }: { color: string, onChange: (c: 
                     >
                       {/* 如果是白色，加一个细微的内阴影防止看不见 */}
                       {c === "#ffffff" && <div className="absolute inset-0 border border-black/5 rounded-md" />}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               ))}

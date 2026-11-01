@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
     ContactShadows,
     Float,
@@ -191,9 +192,9 @@ const IndustrialDashboard = () => {
           </div>
 
           {/* 3. 底部操作按钮 */}
-          <button className="shrink-0 w-full py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold text-[11px] tracking-[0.2em] uppercase transition-all shadow-md active:scale-[0.98]">
+          <Button className="shrink-0 w-full py-4 h-auto bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold text-[11px] tracking-[0.2em] uppercase transition-all shadow-md active:scale-[0.98]">
             紧急指令覆盖系统
-          </button>
+          </Button>
         </div>
       </div>
 

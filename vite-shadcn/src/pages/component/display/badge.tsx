@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { AlertTriangle, Check, Info, X } from "lucide-react";
 
 export default function BadgeDemo() {
@@ -40,12 +41,12 @@ export default function BadgeDemo() {
             <span>New</span>
           </Badge>
         </a>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+        <Button className="inline-flex items-center gap-2 bg-blue-500 text-white hover:bg-blue-600">
           <span>Button</span>
           <Badge>
             <span>5</span>
           </Badge>
-        </button>
+        </Button>
       </div>
 
       <h2 className="text-xl font-bold">Custom Styles 自定义样式</h2>

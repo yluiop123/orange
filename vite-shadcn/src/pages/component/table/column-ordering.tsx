@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker'
 import React from 'react'
 
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
     Table,
     TableBody,
@@ -148,13 +150,10 @@ export default function ColumnOrderingTable() {
     <div className="p-2">
       <div className="inline-block border border-black shadow rounded">
         <div className="px-1 border-b border-black">
-          <label>
-            <input
-              {...{
-                type: 'checkbox',
-                checked: table.getIsAllColumnsVisible(),
-                onChange: table.getToggleAllColumnsVisibilityHandler(),
-              }}
+          <label className="flex items-center gap-1">
+            <Checkbox
+              checked={table.getIsAllColumnsVisible()}
+              onCheckedChange={() => table.toggleAllColumnsVisible()}
             />{' '}
             Toggle All
           </label>
@@ -162,13 +161,10 @@ export default function ColumnOrderingTable() {
         {table.getAllLeafColumns().map((column) => {
           return (
             <div key={column.id} className="px-1">
-              <label>
-                <input
-                  {...{
-                    type: 'checkbox',
-                    checked: column.getIsVisible(),
-                    onChange: column.getToggleVisibilityHandler(),
-                  }}
+              <label className="flex items-center gap-1">
+                <Checkbox
+                  checked={column.getIsVisible()}
+                  onCheckedChange={() => column.toggleVisibility()}
                 />{' '}
                 {column.id}
               </label>
@@ -178,12 +174,12 @@ export default function ColumnOrderingTable() {
       </div>
       <div className="h-4" />
       <div className="flex flex-wrap gap-2">
-        <button onClick={() => rerender()} className="border p-1">
+        <Button variant="outline" size="sm" onClick={() => rerender()}>
           Regenerate
-        </button>
-        <button onClick={() => randomizeColumns()} className="border p-1">
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => randomizeColumns()}>
           Shuffle Columns
-        </button>
+        </Button>
       </div>
       <div className="h-4" />
       <Table>

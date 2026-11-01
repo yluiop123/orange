@@ -74,6 +74,7 @@ VITE_BASE=/              # Base path for deployment
 VITE_ROUTE=browserRouter # Routing strategy
 VITE_MOCK_ENABLE=true    # Enable mock services
 VITE_BASE_API=/api/      # API base prefix
+VITE_PROXY_TARGET=http://localhost:8080  # Dev-only proxy target (pnpm dev)
 VITE_CESIUM_TOKEN=###    # Cesium service access token
 
 ```

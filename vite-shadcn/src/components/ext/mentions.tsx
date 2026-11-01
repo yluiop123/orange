@@ -2,6 +2,7 @@
 
 import { Command, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import * as React from "react"
@@ -152,7 +153,7 @@ const Mentions = React.forwardRef<HTMLTextAreaElement, MentionsProps>(
           } = triggerProps;
           const mergedAttributes = {...restProps,disabled,placeholder,...props}
           return (
-            <textarea
+            <Textarea
               {...restProps} 
               ref={(node) => {
                 // 1. 赋值给你本地的 ref

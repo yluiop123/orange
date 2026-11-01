@@ -211,13 +211,15 @@ export default function Upload({
                 )}
                 {item.status === "done" && <CheckCircle2 className="h-4 w-4 text-green-500" />}
                 {item.status === "error" && <AlertCircle className="h-4 w-4 text-destructive" />}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={() => handleRemove(item.uid)}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   <X className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
           ))}

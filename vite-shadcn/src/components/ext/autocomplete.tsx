@@ -123,33 +123,31 @@ export function AutoCompletePro({
       open={open && filteredOptions.length > 0}
       onOpenChange={setOpen}
     >
-      <PopoverTrigger>
-        <div className="relative w-full">
-          <Input
-            disabled={disabled}
-            value={inputValue}
-            placeholder={placeholder}
-            onChange={(e) => handleChange(e.target.value)}
-            // onFocus={() => setOpen(true)}
-            className={cn(
-              inputSize(size),
-              inputStatus(status),
-              showClear && "pr-8"
-            )}
-          />
+      <PopoverTrigger nativeButton={false} render={<div className="relative w-full" />}>
+        <Input
+          disabled={disabled}
+          value={inputValue}
+          placeholder={placeholder}
+          onChange={(e) => handleChange(e.target.value)}
+          // onFocus={() => setOpen(true)}
+          className={cn(
+            inputSize(size),
+            inputStatus(status),
+            showClear && "pr-8"
+          )}
+        />
 
-          {/* suffix icons */}
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            {loading && (
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            )}
-            {showClear && (
-              <X
-                className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground"
-                onClick={() => handleChange("")}
-              />
-            )}
-          </div>
+        {/* suffix icons */}
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          {loading && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+          {showClear && (
+            <X
+              className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground"
+              onClick={() => handleChange("")}
+            />
+          )}
         </div>
       </PopoverTrigger>
 

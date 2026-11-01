@@ -40,10 +40,10 @@ public class GroupServiceImpl implements GroupService {
             String name = req.getName();
             String status = req.getStatus();
             if (id!=null&&!id.isEmpty()) {
-                predicates.add( cb.like(root.get("id"), id + "%"));
+                predicates.add( cb.like(cb.lower(root.get("id")), id.toLowerCase() + "%"));
             }
             if (name!=null&&!name.isEmpty()) {
-                predicates.add(cb.like(root.get("name"), name + "%"));
+                predicates.add(cb.like(cb.lower(root.get("name")), name.toLowerCase() + "%"));
             }
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));
@@ -69,8 +69,14 @@ public class GroupServiceImpl implements GroupService {
         Set<String> parentIds = list.stream()
                 .map(Group::getParentId)
                 .collect(Collectors.toSet());
-        // 2 删除节点
-        groupRepository.deleteAll(list);
+        // 2 删除节点：先删深层节点，避免父子同时选中时父节点级联删除导致重复删除
+        list.sort((a, b) -> Integer.compare(b.getId().length(), a.getId().length()));
+        for (Group node : list) {
+            if (groupRepository.existsById(node.getId())) {
+                groupRepository.delete(node);
+                groupRepository.flush();
+            }
+        }
         // 3 重新排序
         for (String parentId : parentIds) {
             List<Group> children;
@@ -97,18 +103,24 @@ public class GroupServiceImpl implements GroupService {
             return;
         }
         if ("top".equals(req.getAction())) {
-            List<Group> list = groupRepository.queryByParentIdAndOrderNotOrderByOrder(group.getParentId(), group.getOrder());
+            List<Group> list = group.getParentId() == null
+                    ? groupRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(group.getOrder())
+                    : groupRepository.queryByParentIdAndOrderNotOrderByOrder(group.getParentId(), group.getOrder());
             for(int i=0;i<list.size();i++){
                 Group groupI = list.get(i);
                 groupI.setOrder(i+1);
             }
             group.setOrder(0);
         } else if ("up".equals(req.getAction())) {
-            Group swapGroup = groupRepository.queryByParentIdAndOrder(group.getParentId(), group.getOrder()-1);
+            Group swapGroup = group.getParentId() == null
+                    ? groupRepository.queryByParentIdIsNullAndOrder(group.getOrder()-1)
+                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), group.getOrder()-1);
             swapGroup.setOrder(group.getOrder());
             group.setOrder(group.getOrder() - 1);
         } else if ("down".equals(req.getAction())) {
-            Group swapGroup = groupRepository.queryByParentIdAndOrder(group.getParentId(), group.getOrder()+1);
+            Group swapGroup = group.getParentId() == null
+                    ? groupRepository.queryByParentIdIsNullAndOrder(group.getOrder()+1)
+                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), group.getOrder()+1);
             swapGroup.setOrder(group.getOrder());
             group.setOrder(group.getOrder() + 1);
         }
@@ -136,12 +148,15 @@ public class GroupServiceImpl implements GroupService {
                 throw  new BusinessException("组织编码必须以"+user.getParentId()+"开头");
             }
         }
-        Optional<Group> lastGroupOptional = groupRepository.findFirstByParentIdOrderByOrderDesc(user.getParentId());
+        String parentId = StringUtils.isEmpty(user.getParentId()) ? null : user.getParentId();
+        Optional<Group> lastGroupOptional = parentId == null
+                ? groupRepository.findFirstByParentIdIsNullOrderByOrderDesc()
+                : groupRepository.findFirstByParentIdOrderByOrderDesc(parentId);
         Group lastGroup = lastGroupOptional.orElse(null);
         Group group = new Group();
         group.setId(user.getId());
         group.setName(user.getName());
-        group.setParentId(user.getParentId());
+        group.setParentId(parentId);
         if (lastGroup != null) {
             group.setOrder(lastGroup.getOrder() + 1);
         } else {
@@ -179,6 +194,8 @@ public class GroupServiceImpl implements GroupService {
             List<Predicate> predicates = new ArrayList<>();
             if (parentId!=null&&!parentId.isEmpty()) {
                 predicates.add(cb.equal(root.get("parentId"), parentId));
+            } else {
+                predicates.add(cb.isNull(root.get("parentId")));
             }
             if (order!=null) {
                 predicates.add(cb.greaterThan(root.get("order"), order));

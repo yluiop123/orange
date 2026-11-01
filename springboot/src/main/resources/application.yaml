@@ -50,4 +50,21 @@ springdoc:
     path: /api-docs
   # 只扫描特定的包
   packages-to-scan: com.orange.controller
+app:
+  cors:
+    # 允许跨域访问的来源，逗号分隔。
+    # 本地开发默认 http://localhost:3000；生产通过环境变量覆盖，例如：
+    # CORS_ALLOWED_ORIGINS=https://orange.example.com
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  auth:
+    # refresh token Cookie 是否只允许 HTTPS。生产必须设为 true。
+    cookie-secure: ${COOKIE_SECURE:false}
+    # 同站部署用 Lax；跨站部署需要 None + Secure，并注意浏览器对第三方 Cookie 的限制。
+    cookie-same-site: ${COOKIE_SAME_SITE:Lax}
+    # 可选：跨子域共享 refresh Cookie 时设置，例如 .example.com
+    cookie-domain: ${COOKIE_DOMAIN:}
+    # 登录失败限流：单账号阈值、单 IP 阈值、锁定时长（分钟）
+    login-max-attempts: ${LOGIN_MAX_ATTEMPTS:5}
+    login-ip-max-attempts: ${LOGIN_IP_MAX_ATTEMPTS:20}
+    login-lock-minutes: ${LOGIN_LOCK_MINUTES:15}
 

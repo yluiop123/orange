@@ -50,87 +50,233 @@ type User = {
   roles: Record<string,string>[];
   permissions: string[];
 };
-function getUserList(locale: string) {
-  const user = localeMap[locale]["user"];
-  const dataArray = [
+
+// 内存/本地存储中的用户数据，Mock 的新增、编辑、删除都会真正修改它
+type UserRecord = {
+  id: string;
+  name?: string;
+  username: string;
+  email: string;
+  groupId: string;
+  status: "0" | "1";
+  createTime: string;
+  updateTime: string;
+  phone: string;
+  roleIds: string[];
+  permissionIds: string[];
+  password: string;
+  mustChangePassword: boolean;
+};
+
+type UserBody = {
+  name?: string;
+  username?: string;
+  email?: string;
+  groupId?: string;
+  status?: "0" | "1";
+  phone?: string;
+  roles?: string[];
+  permissions?: string[];
+  id?: string;
+};
+
+const STORAGE_KEY = "orange.mock.users";
+const GROUPS = ["0001", "0002", "0003", "000301", "000302", "000303"];
+const ROLES = ["super", "admin", "user"];
+const SEED_COUNT = 23;
+const SEED_TIME = "2025-01-01 23:59:59";
+
+function createSeedUsers(): UserRecord[] {
+  const accounts: UserRecord[] = [
     {
-      id: "0001",
-      name: localeMap[locale]["0001"],
-      parentId: "00",
-      order: 0,
+      id: "super",
+      name: "YL",
+      username: "super",
+      email: "yluiop123@qq.com",
+      groupId: "0003",
+      status: "1",
+      phone: "13800000000",
+      createTime: SEED_TIME,
+      updateTime: SEED_TIME,
+      roleIds: ["super"],
+      permissionIds: [],
+      password: "super",
+      mustChangePassword: false,
     },
     {
-      id: "0002",
-      name: localeMap[locale]["0002"],
-      parentId: "00",
-      order: 1,
+      id: "admin",
+      name: "Admin",
+      username: "admin",
+      email: "admin@example.com",
+      groupId: "0003",
+      status: "1",
+      phone: "13800000001",
+      createTime: SEED_TIME,
+      updateTime: SEED_TIME,
+      roleIds: ["admin"],
+      permissionIds: [],
+      password: "admin",
+      mustChangePassword: false,
     },
     {
-      id: "0003",
-      name: localeMap[locale]["0003"],
-      parentId: "00",
-      order: 2,
-    },
-    {
-      id: "000301",
-      name: localeMap[locale]["000301"],
-      parentId: "0003",
-      order: 0,
-    },
-    {
-      id: "000302",
-      name: localeMap[locale]["000302"],
-      parentId: "0003",
-      order: 1,
-    },
-    {
-      id: "000303",
-      name: localeMap[locale]["000303"],
-      parentId: "0003",
-      order: 2,
+      id: "user",
+      name: "User",
+      username: "user",
+      email: "user@example.com",
+      groupId: "0001",
+      status: "1",
+      phone: "13800000002",
+      createTime: SEED_TIME,
+      updateTime: SEED_TIME,
+      roleIds: ["user"],
+      permissionIds: [],
+      password: "user",
+      mustChangePassword: false,
     },
   ];
-  const roles = localeMap[locale]["roles"] as Record<string,string>;
-  const list = Array.from({ length: 23 }, (_, i) => {
-    const userId = i.toString().padStart(3, "0");
-    return {
-      id: `${i + 100000000}`,
-      name: `${user}${userId}`,
-      username: `user${userId}`,
-      email: `user${userId}@example.com`,
-      groupId: dataArray[i % 6].id,
-      groupName: dataArray[i % 6].name,
-      status: "1",
-      phone: `${13800000000 + i}`,
-      createTime: "2025-01-01 23:59:59",
-      updateTime: "2025-01-01 23:59:59",
-      roles: [{id:'super',name:roles['super']},
-      {id:'admin',name:roles['admin']},
-      {id:'user',name:roles['user']}].slice(0, (i % 3) + 1),
-      permissions: ['0000','0001'],
-    };
-  }) as User[];
-  return list;
+  return [
+    ...accounts,
+    ...Array.from({ length: SEED_COUNT }, (_, i): UserRecord => {
+      const userId = i.toString().padStart(3, "0");
+      return {
+        id: `${i + 100000000}`,
+        username: `user${userId}`,
+        email: `user${userId}@example.com`,
+        groupId: GROUPS[i % GROUPS.length],
+        status: "1",
+        phone: `${13800000000 + i}`,
+        createTime: SEED_TIME,
+        updateTime: SEED_TIME,
+        roleIds: ROLES.slice(0, (i % 3) + 1),
+        permissionIds: ["0000", "0001"],
+        password: `user${userId}`,
+        mustChangePassword: false,
+      };
+    }),
+  ];
 }
+
+function loadUsers(): UserRecord[] {
+  if (typeof window === "undefined") {
+    return createSeedUsers();
+  }
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as UserRecord[];
+      if (Array.isArray(parsed)) {
+        const normalized = parsed.map((item) => ({
+          ...item,
+          password: item.password ?? item.username,
+          mustChangePassword: item.mustChangePassword ?? false,
+        }));
+        const accounts = createSeedUsers().slice(0, 3);
+        const missing = accounts.filter(
+          (account) =>
+            !normalized.some((item) => item.username === account.username),
+        );
+        const result = [...missing, ...normalized];
+        if (missing.length > 0) saveUsers(result);
+        return result;
+      }
+    }
+  } catch {
+    // 存储损坏时回退到种子数据
+  }
+  const seed = createSeedUsers();
+  saveUsers(seed);
+  return seed;
+}
+
+function saveUsers(list: UserRecord[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+let users = loadUsers();
+
+export function findMockUser(username: string) {
+  return users.find((item) => item.username === username);
+}
+
+export function getMockUser(username: string) {
+  return findMockUser(username);
+}
+
+export function updateMockUserPassword(
+  username: string,
+  password: string,
+  mustChangePassword: boolean,
+) {
+  users = users.map((item) =>
+    item.username === username
+      ? { ...item, password, mustChangePassword, updateTime: nowText() }
+      : item,
+  );
+  saveUsers(users);
+}
+
+export function verifyMockPassword(username: string, password: string) {
+  const user = findMockUser(username);
+  return Boolean(user && user.status === "1" && user.password === password);
+}
+
+function groupName(groupId: string, locale: string) {
+  return String(localeMap[locale][groupId] ?? groupId);
+}
+
+function toUser(record: UserRecord, locale: string): User {
+  const roles = localeMap[locale]["roles"] as Record<string,string>;
+  const userLabel = String(localeMap[locale]["user"]);
+  return {
+    id: record.id,
+    name: record.name ?? `${userLabel}${record.username.slice(4)}`,
+    username: record.username,
+    email: record.email,
+    groupId: record.groupId,
+    groupName: groupName(record.groupId, locale),
+    status: record.status,
+    createTime: record.createTime,
+    updateTime: record.updateTime,
+    phone: record.phone,
+    roles: record.roleIds
+      .filter((id) => roles[id])
+      .map((id) => ({ id, name: roles[id] })),
+    permissions: record.permissionIds,
+  };
+}
+
+function nowText() {
+  return new Date().toISOString().slice(0, 19).replace("T", " ");
+}
+
+const PASSWORD_CHARS =
+  "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+
+function randomPassword() {
+  return Array.from({ length: 12 }, () =>
+    PASSWORD_CHARS.charAt(Math.floor(Math.random() * PASSWORD_CHARS.length)),
+  ).join("");
+}
+
 const handlers = [
-  http.post<never, never>("/api/system/users", async ({ request }) => {
+  http.get("/api/system/users", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
-    const body = await request.clone().json();
-    const {
-      filterField,
-      filterValue,
-      groupId,
-      page,
-      size,
-      orderField,
-      orderValue,
-    } = body;
-    const list = getUserList(locale);
-    const filterList = list.filter(
-      (item) =>
-        item[filterField as keyof User].toString().startsWith(filterValue) &&
-        item.groupId.startsWith(groupId)
-    );
+    const url = new URL(request.url);
+    const filterField = url.searchParams.get("filterField") || "name";
+    const filterValue = url.searchParams.get("filterValue") || "";
+    const groupId = url.searchParams.get("groupId") || "";
+    const page = Number(url.searchParams.get("page") || 1);
+    const size = Number(url.searchParams.get("size") || 10);
+    const orderField = url.searchParams.get("orderField");
+    const orderValue = url.searchParams.get("orderValue");
+    const filterList = users
+      .map((item) => toUser(item, locale))
+      .filter(
+        (item) =>
+          item[filterField as keyof User].toString().startsWith(filterValue) &&
+          item.groupId.startsWith(groupId)
+      );
     if (orderField) {
       filterList.sort((a, b) => {
         if (orderValue === "asc") {
@@ -153,55 +299,105 @@ const handlers = [
       },
     });
   }),
-  http.delete<{ id: string }, never>(
-    "/api/system/users",
-    async ({ request }) => {
-      const locale = request.headers.get("locale") || "zh";
-      const ids = await request.clone().json();
-      console.log(ids);
-      return HttpResponse.json({
-        code: 200,
-        message: localeMap[locale]["success"],
-      });
-    }
-  ),
-  http.post<never, never>("/api/system/users/add", async ({ request }) => {
+  http.delete("/api/system/users", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
+    const url = new URL(request.url);
+    const ids = (url.searchParams.get("ids") || "").split(",").filter(Boolean);
+    users = users.filter((item) => !ids.includes(item.id));
+    saveUsers(users);
     return HttpResponse.json({
       code: 200,
       message: localeMap[locale]["success"],
     });
   }),
-  http.post<never, never>("/api/system/users/edit", async ({ request }) => {
+  http.post("/api/system/users", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as UserBody;
+    const password = randomPassword();
+    const record: UserRecord = {
+      id: crypto.randomUUID(),
+      name: body.name,
+      username: body.username ?? "",
+      email: body.email ?? "",
+      groupId: body.groupId ?? "",
+      status: body.status ?? "1",
+      phone: body.phone ?? "",
+      createTime: nowText(),
+      updateTime: nowText(),
+      roleIds: body.roles ?? [],
+      permissionIds: body.permissions ?? [],
+      password,
+      mustChangePassword: true,
+    };
+    users = [record, ...users];
+    saveUsers(users);
+    return HttpResponse.json({
+      code: 200,
+      message: localeMap[locale]["success"],
+      data: password,
+    });
+  }),
+  http.patch<{ id: string }>("/api/system/users/:id", async ({ request, params }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as UserBody;
+    users = users.map((item) => {
+      if (item.id !== params.id) return item;
+      return {
+        ...item,
+        name: body.name ?? item.name,
+        username: body.username ?? item.username,
+        email: body.email ?? item.email,
+        groupId: body.groupId ?? item.groupId,
+        phone: body.phone ?? item.phone,
+        status: body.status ?? item.status,
+        roleIds: body.roles ?? item.roleIds,
+        permissionIds: body.permissions ?? item.permissionIds,
+        updateTime: nowText(),
+      };
+    });
+    saveUsers(users);
     return HttpResponse.json({
       code: 200,
       message: localeMap[locale]["success"],
     });
   }),
-  http.post<never, never>(
-    "/api/system/users/reset/:id",
-    async ({ request }) => {
-      const locale = request.headers.get("locale") || "zh";
-      return HttpResponse.json({
-        code: 200,
-        message: localeMap[locale]["success"],
-      });
-    }
-  ),
-  http.get<{ id: string }>(
-    "/api/system/users/detail/:id",
-    async ({ request, params }) => {
-      const locale = request.headers.get("locale") || "zh";
-      const id = params.id;
-      const list = getUserList(locale);
-      const user = list.find((item) => item.id === id);
-      return HttpResponse.json({
-        code: 200,
-        data: user,
-      });
-    }
-  ),
+  http.patch<{ id: string }>("/api/system/users/:id/status", async ({ request, params }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as UserBody;
+    users = users.map((item) =>
+      item.id === params.id
+        ? { ...item, status: body.status ?? item.status, updateTime: nowText() }
+        : item
+    );
+    saveUsers(users);
+    return HttpResponse.json({
+      code: 200,
+      message: localeMap[locale]["success"],
+    });
+  }),
+  http.post<{ id: string }>("/api/system/users/:id/reset-password", async ({ request, params }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const password = randomPassword();
+    users = users.map((item) =>
+      item.id === params.id
+        ? { ...item, password, mustChangePassword: true, updateTime: nowText() }
+        : item,
+    );
+    saveUsers(users);
+    return HttpResponse.json({
+      code: 200,
+      message: localeMap[locale]["success"],
+      data: password,
+    });
+  }),
+  http.get<{ id: string }>("/api/system/users/:id", async ({ request, params }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const user = users.find((item) => item.id === params.id);
+    return HttpResponse.json({
+      code: 200,
+      data: user ? toUser(user, locale) : null,
+    });
+  }),
 ];
 
 export default handlers;

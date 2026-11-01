@@ -1,6 +1,8 @@
 package com.orange.controller.system;
 
 import com.orange.domain.common.Response;
+import com.orange.domain.common.req.MoveActionReq;
+import com.orange.domain.common.req.StatusReq;
 import com.orange.domain.system.group.req.*;
 import com.orange.entity.Group;
 import com.orange.service.system.GroupService;
@@ -12,80 +14,151 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Tag(name = "组织管理", description = "组织管理相关接口")
 @RestController
 @RequestMapping("/api/system/groups")
-@CrossOrigin
 public class GroupController {
     @Autowired
     private GroupService groupService;
 
-    @Operation(summary = "查询组织列表", description = "根据查询条件分页返回组织列表")
-    @PostMapping
+    @Operation(summary = "查询组织列表", description = "支持按 ID、名称、状态过滤")
+    @GetMapping
     @PreAuthorize("hasAuthority('menu#/system/group')")
-    public Response<List<Group>> queryGroups(@RequestBody QueryGroupReq req) {
-        List<Group> pageData = groupService.queryGroups(req);
-        return Response.ok(pageData);
+    public Response<List<Group>> queryGroups(@Valid @ModelAttribute QueryGroupReq req) {
+        return Response.ok(groupService.queryGroups(req));
     }
 
-    @Operation(summary = "删除组织", description = "根据组织ID删除组织")
-    @DeleteMapping
-    @PreAuthorize("hasAuthority('menu#/system/group:delete')")
-    public Response<String> deleteGroups(@RequestBody DeleteGroupReq req) {
-        groupService.deleteGroups(req.getIds());
-        return Response.ok("操作成功");
+    @Operation(summary = "查询组织详情", description = "根据组织ID查询组织详情")
+    @GetMapping("/{groupId}")
+    @PreAuthorize("hasAuthority('menu#/system/group')")
+    public Response<Group> queryGroup(
+            @Parameter(description = "组织ID", example = "1")
+            @PathVariable("groupId") String groupId) {
+        return Response.ok(groupService.queryGroup(groupId));
     }
 
-    @Operation(summary = "移动组织", description = "根据移动参数移动组织")
-    @PostMapping("/move")
-    @PreAuthorize("hasAuthority('menu#/system/group:edit')")
-    public Response<String> moveGroup(@RequestBody MoveGroupReq req) {
-        groupService.moveGroup(req);
-        return Response.ok("操作成功");
-    }
-
-    @Operation(summary = "编辑组织", description = "根据编辑参数编辑组织")
-    @PostMapping("/edit")
-    @PreAuthorize("hasAuthority('menu#/system/group:edit')")
-    public Response<String> editGroup(@RequestBody EditGroupReq req) {
+    @Operation(summary = "编辑组织", description = "根据组织ID更新组织信息")
+    @PatchMapping("/{groupId}")
+    @PreAuthorize("hasAuthority('action#/system/group:edit')")
+    public Response<String> editGroup(@PathVariable("groupId") String groupId,
+                                      @Valid @RequestBody EditGroupReq req) {
+        req.setId(groupId);
         groupService.editGroup(req);
         return Response.ok("操作成功");
     }
 
-    @Operation(summary = "查询组织详情", description = "根据组织ID查询组织详情")
+    @Operation(summary = "更新组织状态", description = "启用或禁用组织")
+    @PatchMapping("/{groupId}/status")
+    @PreAuthorize("hasAuthority('action#/system/group:edit')")
+    public Response<String> updateStatus(@PathVariable("groupId") String groupId,
+                                         @Valid @RequestBody StatusReq req) {
+        EditGroupReq editReq = new EditGroupReq();
+        editReq.setId(groupId);
+        editReq.setStatus(req.getStatus());
+        groupService.editGroup(editReq);
+        return Response.ok("操作成功");
+    }
+
+    @Operation(summary = "删除组织", description = "根据组织ID列表删除组织，多个 ID 用逗号分隔")
+    @DeleteMapping
+    @PreAuthorize("hasAuthority('action#/system/group:delete')")
+    public Response<String> deleteGroups(@RequestParam("ids") String ids) {
+        groupService.deleteGroups(splitIds(ids));
+        return Response.ok("操作成功");
+    }
+
+    @Operation(summary = "删除组织", description = "根据组织ID删除组织")
+    @DeleteMapping("/{groupId}")
+    @PreAuthorize("hasAuthority('action#/system/group:delete')")
+    public Response<String> deleteGroup(@PathVariable("groupId") String groupId) {
+        groupService.deleteGroups(List.of(groupId));
+        return Response.ok("操作成功");
+    }
+
+    @Operation(summary = "添加子组织", description = "在指定父组织下添加子组织")
+    @PostMapping("/children")
+    @PreAuthorize("hasAuthority('action#/system/group:add')")
+    public Response<Group> addChild(@Valid @RequestBody AddChildGroupReq req) {
+        return Response.ok(groupService.addChild(req));
+    }
+
+    @Operation(summary = "添加兄弟组织", description = "在指定组织后添加兄弟组织")
+    @PostMapping("/siblings")
+    @PreAuthorize("hasAuthority('action#/system/group:add')")
+    public Response<Group> addBrother(@Valid @RequestBody AddBrotherGroupReq req) {
+        return Response.ok(groupService.addBrother(req));
+    }
+
+    @Operation(summary = "移动组织", description = "上移、下移或置顶组织")
+    @PostMapping("/{groupId}/move")
+    @PreAuthorize("hasAuthority('action#/system/group:edit')")
+    public Response<String> moveGroup(@PathVariable("groupId") String groupId,
+                                      @Valid @RequestBody MoveActionReq req) {
+        MoveGroupReq moveReq = new MoveGroupReq();
+        moveReq.setId(groupId);
+        moveReq.setAction(req.getAction());
+        groupService.moveGroup(moveReq);
+        return Response.ok("操作成功");
+    }
+
+    // ===== 兼容旧接口（已废弃，后续版本移除） =====
+    @Deprecated
+    @Operation(summary = "查询组织列表（旧）", deprecated = true)
+    @PostMapping
+    @PreAuthorize("hasAuthority('menu#/system/group')")
+    public Response<List<Group>> queryGroupsLegacy(@Valid @RequestBody QueryGroupReq req) {
+        return Response.ok(groupService.queryGroups(req));
+    }
+
+    @Deprecated
+    @Operation(summary = "查询组织详情（旧）", deprecated = true)
     @GetMapping("/detail/{groupId}")
     @PreAuthorize("hasAuthority('menu#/system/group')")
-    public Response<Group> queryGroup(
-            @Parameter(description = "组织ID",example = "1")
-            @PathVariable("groupId") String groupId) {
-        Group group = groupService.queryGroup(groupId);
-        return Response.ok(group);
+    public Response<Group> queryGroupLegacy(@PathVariable("groupId") String groupId) {
+        return Response.ok(groupService.queryGroup(groupId));
     }
 
-    @Operation(summary = "添加子组织", description = "添加子组织")
+    @Deprecated
+    @Operation(summary = "编辑组织（旧）", deprecated = true)
+    @PostMapping("/edit")
+    @PreAuthorize("hasAuthority('action#/system/group:edit')")
+    public Response<String> editGroupLegacy(@Valid @RequestBody EditGroupReq req) {
+        groupService.editGroup(req);
+        return Response.ok("操作成功");
+    }
+
+    @Deprecated
+    @Operation(summary = "移动组织（旧）", deprecated = true)
+    @PostMapping("/move")
+    @PreAuthorize("hasAuthority('action#/system/group:edit')")
+    public Response<String> moveGroupLegacy(@Valid @RequestBody MoveGroupReq req) {
+        groupService.moveGroup(req);
+        return Response.ok("操作成功");
+    }
+
+    @Deprecated
+    @Operation(summary = "添加子组织（旧）", deprecated = true)
     @PostMapping("/addChild")
-    @PreAuthorize("hasAuthority('menu#/system/group:add')")
-    public Response<Group> addChild(@RequestBody @Valid AddChildGroupReq req) {
-        Group group = groupService.addChild(req);
-        return Response.ok(group);
+    @PreAuthorize("hasAuthority('action#/system/group:add')")
+    public Response<Group> addChildLegacy(@Valid @RequestBody AddChildGroupReq req) {
+        return Response.ok(groupService.addChild(req));
     }
 
-    @Operation(summary = "添加兄弟组织", description = "添加兄弟组织")
+    @Deprecated
+    @Operation(summary = "添加兄弟组织（旧）", deprecated = true)
     @PostMapping("/addBrother")
-    @PreAuthorize("hasAuthority('menu#/system/group:add')")
-    public Response<Group> addBrother(@RequestBody @Valid AddBrotherGroupReq req) {
-        Group group = groupService.addBrother(req);
-        return Response.ok(group);
+    @PreAuthorize("hasAuthority('action#/system/group:add')")
+    public Response<Group> addBrotherLegacy(@Valid @RequestBody AddBrotherGroupReq req) {
+        return Response.ok(groupService.addBrother(req));
     }
 
-    @Operation(summary = "查询所有组织", description = "查询所有组织")
-    @GetMapping
-    @PreAuthorize("hasAuthority('menu#/system/group')")
-    public Response<List<Group>> queryGroups() {
-        List<Group> groups = groupService.queryGroups();
-        return Response.ok(groups);
+    private static List<String> splitIds(String ids) {
+        return Arrays.stream(ids.split(","))
+                .map(String::trim)
+                .filter(id -> !id.isEmpty())
+                .toList();
     }
-
 }

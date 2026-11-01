@@ -1,4 +1,22 @@
 import { http, HttpResponse } from "msw";
+import catalog from "@/config/permissions.json";
+
+type Role = {
+  id: string;
+  name: string;
+  status: "0" | "1";
+  createTime: string;
+  updateTime: string;
+  permissions: string[];
+};
+
+type RoleStore = {
+  created: Role[];
+  updated: Record<string, Partial<Role>>;
+  deleted: string[];
+};
+
+const STORAGE_KEY = "orange.mock.system.roles";
 
 const zh = {
   super: "超级管理员",
@@ -12,193 +30,179 @@ const en = {
   user: "User",
   success: "Success",
 };
-const localeMap: Record<string, Record<string, string>> = {
-  zh,
-  en,
-};
-type Role = {
-  id: string;
-  name: string;
-  status: "0" | "1";
-  createTime: string;
-  updateTime: string;
-  permissions: string[];
-};
-function getRoleList(locale: string) {
-  const role = localeMap[locale];
-  const list = [
-    {
-      id: `super`,
-      name: `${role.super}`,
-      status: "1",
-      createTime: "2025-01-01 23:59:59",
-      updateTime: "2025-01-01 23:59:59",
-      permissions: [
-        "0000",
-        "0001",
-        "000100",
-        "000101",
-        "000102",
-        "000103",
-        "0002",
-        "000200",
-        "000201",
-        "0003",
-        "000300",
-        "000301",
-        "000302",
-        "000303",
-        "000304",
-        "0004",
-        "000400",
-        "000401",
-        "000403",
-        "000404",
-        "00040000",
-        "00040001",
-        "00040002",
-        "00040101",
-        "00040102",
-        "00040103",
-        "00040300",
-        "00040301",
-        "00040302",
-        "00040400",
-        "00040401",
-        "00040402",
-      ],
-    },
-    {
-      id: `admin`,
-      name: `${role.admin}`,
-      status: "1",
-      createTime: "2025-01-01 23:59:59",
-      updateTime: "2025-01-01 23:59:59",
-      permissions: [
-        "0000",
-        "0004",
-        "000400",
-        "000401",
-        "000403",
-        "000404",
-        "00040000",
-        "00040001",
-        "00040002",
-        "00040101",
-        "00040102",
-        "00040103",
-        "00040300",
-        "00040301",
-        "00040302",
-        "00040400",
-        "00040401",
-        "00040402",
-      ],
-    },
-    {
-      id: `user`,
-      name: `${role.user}`,
-      status: "1",
-      createTime: "2025-01-01 23:59:59",
-      updateTime: "2025-01-01 23:59:59",
-      permissions: [
-        "0000",
-        "0001",
-        "000100",
-        "000101",
-        "000102",
-        "000103",
-        "0002",
-        "000200",
-        "000201",
-        "0003",
-        "000300",
-        "000301",
-        "000302",
-        "000303",
-        "000304",
-      ],
-    },
-  ] as Role[];
-  return list;
+const localeMap: Record<string, Record<string, string>> = { zh, en };
+
+function emptyStore(): RoleStore {
+  return { created: [], updated: {}, deleted: [] };
 }
+
+function readStore(): RoleStore {
+  if (typeof localStorage === "undefined") return emptyStore();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return emptyStore();
+    const parsed = JSON.parse(raw) as Partial<RoleStore>;
+    return {
+      created: Array.isArray(parsed.created) ? parsed.created : [],
+      updated: parsed.updated ?? {},
+      deleted: Array.isArray(parsed.deleted) ? parsed.deleted : [],
+    };
+  } catch {
+    return emptyStore();
+  }
+}
+
+function writeStore(store: RoleStore) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+}
+
+function nowText() {
+  return new Date().toISOString().slice(0, 19).replace("T", " ");
+}
+
+function getRoleList(locale: string): Role[] {
+  const dict = localeMap[locale] ?? zh;
+  const store = readStore();
+  const seedIds = ["super", "admin", "user"];
+  const base = seedIds
+    .filter((id) => !store.deleted.includes(id))
+    .map((id) => {
+      const createTime = "2025-01-01 23:59:59";
+      const role: Role = {
+        id,
+        name: dict[id] ?? id,
+        status: "1",
+        createTime,
+        updateTime: createTime,
+        permissions: catalog.rolePermissions[id as keyof typeof catalog.rolePermissions] ?? [],
+      };
+      return { ...role, ...store.updated[id] };
+    });
+
+  const created = store.created
+    .filter((role) => !store.deleted.includes(role.id))
+    .map((role) => ({ ...role, ...store.updated[role.id] }));
+
+  return [...base, ...created];
+}
+
+function persistRole(role: Role) {
+  const store = readStore();
+  const index = store.created.findIndex((item) => item.id === role.id);
+  if (index >= 0) {
+    store.created[index] = role;
+  } else {
+    store.created.push(role);
+  }
+  writeStore(store);
+}
+
+function updateRole(id: string, patch: Partial<Role>) {
+  const store = readStore();
+  const created = store.created.find((item) => item.id === id);
+  if (created) {
+    Object.assign(created, patch, { updateTime: nowText() });
+  } else {
+    store.updated[id] = { ...store.updated[id], ...patch, updateTime: nowText() };
+  }
+  writeStore(store);
+}
+
 const handlers = [
-  http.post<never, never>("/api/system/roles", async ({ request }) => {
+  http.get("/api/system/roles", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
-    const body = await request.clone().json();
-    const { id, name, status, page, size, orderField, orderValue } = body;
-    const list = getRoleList(locale);
-    let filterList = list;
-    if (id) {
-      filterList = filterList.filter((item) => item.id.startsWith(id));
-    }
-    if (name) {
-      filterList = filterList.filter((item) => item.name.startsWith(name));
-    }
-    if (status && status !== "all") {
-      filterList = filterList.filter((item) => item.status === status);
-    }
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id") || "";
+    const name = url.searchParams.get("name") || "";
+    const status = url.searchParams.get("status") || "";
+    const page = Number(url.searchParams.get("page") || 1);
+    const size = Number(url.searchParams.get("size") || 10);
+    const orderField = url.searchParams.get("orderField");
+    const orderValue = url.searchParams.get("orderValue");
+    let list = getRoleList(locale);
+    if (id) list = list.filter((item) => item.id.startsWith(id));
+    if (name) list = list.filter((item) => item.name.toLowerCase().startsWith(name.toLowerCase()));
+    if (status && status !== "all") list = list.filter((item) => item.status === status);
     if (orderField) {
-      list.sort((a, b) => {
-        if (orderValue === "asc") {
-          return a[orderField as keyof Role] > b[orderField as keyof Role]
-            ? 1
-            : -1;
-        }
-        return a[orderField as keyof Role] < b[orderField as keyof Role]
-          ? 1
-          : -1;
+      list = [...list].sort((a, b) => {
+        const av = a[orderField as keyof Role];
+        const bv = b[orderField as keyof Role];
+        if (av === bv) return 0;
+        const result = av > bv ? 1 : -1;
+        return orderValue === "desc" ? -result : result;
       });
     }
     const start = (page - 1) * size;
-    const result = filterList.slice(start, start + size);
     return HttpResponse.json({
       code: 200,
       data: {
-        list: result,
-        total: filterList.length,
+        list: list.slice(start, start + size),
+        total: list.length,
+        page,
+        size,
+        totalPages: Math.max(1, Math.ceil(list.length / size)),
       },
     });
   }),
-  http.delete<{ id: string }, never>(
-    "/api/system/roles",
-    async ({ request }) => {
-      const locale = request.headers.get("locale") || "zh";
-      const ids = await request.clone().json();
-      console.log(ids);
-      return HttpResponse.json({
-        code: 200,
-        message: localeMap[locale]["success"],
-      });
-    }
-  ),
-  http.post<never, never>("/api/system/roles/add", async ({ request }) => {
+
+  http.get<{ id: string }>("/api/system/roles/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
+    const role = getRoleList(locale).find((item) => item.id === params.id);
+    if (!role) {
+      return HttpResponse.json({ code: 40401, message: "角色不存在" }, { status: 404 });
+    }
+    return HttpResponse.json({ code: 200, data: role });
+  }),
+
+  http.post("/api/system/roles", async ({ request }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as Partial<Role>;
+    const list = getRoleList(locale);
+    const id = body.id || crypto.randomUUID();
+    if (list.some((item) => item.id === id)) {
+      return HttpResponse.json({ code: 40901, message: "角色ID已存在" }, { status: 409 });
+    }
+    const now = nowText();
+    const role: Role = {
+      id,
+      name: body.name || id,
+      status: "1",
+      createTime: now,
+      updateTime: now,
+      permissions: body.permissions ?? [],
+    };
+    persistRole(role);
     return HttpResponse.json({
       code: 200,
-      message: localeMap[locale]["success"],
+      message: localeMap[locale]?.["success"] ?? zh.success,
+      data: role.id,
     });
   }),
-  http.post<never, never>("/api/system/roles/edit", async ({ request }) => {
+
+  http.patch<{ id: string }>("/api/system/roles/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as Partial<Role>;
+    updateRole(params.id, body);
     return HttpResponse.json({
       code: 200,
-      message: localeMap[locale]["success"],
+      message: localeMap[locale]?.["success"] ?? zh.success,
     });
   }),
-  http.get<{ id: string }>(
-    "/api/system/roles/detail/:id",
-    async ({ request, params }) => {
-      const locale = request.headers.get("locale") || "zh";
-      const id = params.id;
-      const list = getRoleList(locale);
-      const role = list.find((item) => item.id === id);
-      return HttpResponse.json({
-        code: 200,
-        data: role,
-      });
-    }
-  ),
+
+  http.delete("/api/system/roles", async ({ request }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const url = new URL(request.url);
+    const ids = (url.searchParams.get("ids") || "").split(",").filter(Boolean);
+    const store = readStore();
+    store.deleted = [...new Set([...store.deleted, ...ids])];
+    store.created = store.created.filter((item) => !ids.includes(item.id));
+    writeStore(store);
+    return HttpResponse.json({
+      code: 200,
+      message: localeMap[locale]?.["success"] ?? zh.success,
+    });
+  }),
 ];
 
 export default handlers;

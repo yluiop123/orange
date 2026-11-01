@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, ChevronRight, Search, X } from "lucide-react";
@@ -133,18 +134,22 @@ export function Cascader({
       if (val && triggerRef.current) setTriggerWidth(triggerRef.current.getBoundingClientRect().width);
     }}>
       {/* 核心修复：PopoverTrigger 现在包裹了整个带边框的容器 */}
-      <PopoverTrigger>
-        <div
-          ref={triggerRef}
-          {...props}
-          className={cn(
-            "group relative flex items-center justify-between w-full min-h-40px px-3 py-1 rounded-md border border-input bg-background transition-all shadow-sm cursor-pointer",
-            !disabled && "hover:border-primary/50",
-            open && "ring-2 ring-primary/20 border-primary",
-            disabled && "opacity-50 cursor-not-allowed bg-muted",
-            className // 你的 border-2 purple 将作用于此，箭头会因为 flex-between 靠到最右侧
-          )}
-        >
+      <PopoverTrigger
+        nativeButton={false}
+        render={
+          <div
+            ref={triggerRef}
+            {...props}
+            className={cn(
+              "group relative flex items-center justify-between w-full min-h-40px px-3 py-1 rounded-md border border-input bg-background transition-all shadow-sm cursor-pointer",
+              !disabled && "hover:border-primary/50",
+              open && "ring-2 ring-primary/20 border-primary",
+              disabled && "opacity-50 cursor-not-allowed bg-muted",
+              className
+            )}
+          />
+        }
+      >
           {/* 内容区域 */}
           <div className="flex flex-wrap gap-1.5 flex-1 min-w-0 mr-2">
             {multiple ? (
@@ -170,7 +175,6 @@ export function Cascader({
             )}
             <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", open && "rotate-180")} />
           </div>
-        </div>
       </PopoverTrigger>
 
       <PopoverContent
@@ -181,9 +185,9 @@ export function Cascader({
       >
         <div className="p-2 border-b bg-muted/30 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
+          <Input
             autoFocus
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-input rounded-md outline-none bg-background focus:ring-1 focus:ring-primary"
+            className="w-full pl-8 pr-3"
             placeholder={searchPlaceholder}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}

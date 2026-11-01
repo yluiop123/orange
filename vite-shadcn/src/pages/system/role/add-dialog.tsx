@@ -1,12 +1,17 @@
+import { createRole } from "@/api/system/role";
 import DialogForm, { Field } from "@/components/dialog-form";
-import axios from "@/lib/axios";
+import { applyServerFieldErrors } from "@/lib/form-errors";
+import { useRef } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
 import { z } from "zod";
-export default function Index(props: {open: boolean,setOpen:(open:boolean)=>void,onSave: () => void }) {
-    const {open,setOpen,onSave}=props;
+
+export default function Index(props: { open: boolean, setOpen: (open: boolean) => void, onSave: () => void }) {
+    const { open, setOpen, onSave } = props;
     const intl = useIntl();
-    const fields:Field[] = [
+    const formRef = useRef<UseFormReturn<Record<string, unknown>>>(null);
+    const fields: Field[] = [
         {
             name: "id",
             label: "page.system.role.header.role",
@@ -35,23 +40,25 @@ export default function Index(props: {open: boolean,setOpen:(open:boolean)=>void
         acc[field.name] = field.validate || z.string().optional();
         return acc;
     }, {} as Record<string, z.ZodTypeAny>);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const formSchema = z.object(schemaShape);
-    // 2. Define a submit handler. 
+
     function onSubmit(values: z.infer<typeof formSchema>) {
-        axios.post("/system/roles/add", {
-            ...values
-        }).then(res => {
-            if(res.data.code === 200) {
-                setOpen(false);
-                toast.success(res.data.message);
-                onSave();
-            }else {
-                toast.error(res.data.message);
-            }
+        createRole({
+            id: values.id as string,
+            name: values.name as string,
+            permissions: values.permissions as string[],
+        }).then(() => {
+            setOpen(false);
+            toast.success(intl.formatMessage({ id: 'message.success' }));
+            onSave();
+        }).catch((error) => {
+            applyServerFieldErrors(formRef, error);
         })
     }
     return (
         <DialogForm
+            ref={formRef}
             open={open}
             setOpen={setOpen}
             title={intl.formatMessage({ id: 'button.add' })}

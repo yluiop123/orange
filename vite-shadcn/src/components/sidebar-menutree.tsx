@@ -6,6 +6,7 @@ import {
   SidebarMenuSub
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
+import { isPathWithin, isSamePath } from "@/lib/path"
 import { NavItem } from "@/routes"
 import { useUserStore } from "@/store"
 import { ChevronRight } from "lucide-react"
@@ -19,17 +20,15 @@ export function SidebarMenuTree({ item }: { item: NavItem }) {
   const intl = useIntl()
 
   function checkIsActive(href: string) {
-    return location.pathname.startsWith("/" + href)
+    if (!href) return false
+    return isPathWithin(location.pathname, href)
   }
 
   const itemPath = "/" + item.keys?.join("/")
 
   const hasPermission =
-    (userInfo?.currentMenuPermission || []).includes(itemPath) ||
-    (userInfo?.currentDirectionPermission || []).some(dir => {
-      const normalizedDir = dir.endsWith("/") ? dir : `${dir}/`
-      return itemPath.startsWith(normalizedDir) || itemPath === dir
-    })
+    (userInfo?.currentMenuPermission || []).some((path) => isSamePath(path, itemPath)) ||
+    (userInfo?.currentDirectoryPermission || []).some((dir) => isPathWithin(itemPath, dir))
 
   // 是否默认展开（命中当前路由）
   const defaultOpen = checkIsActive(item.keys?.join("/") ?? "")
@@ -50,7 +49,6 @@ export function SidebarMenuTree({ item }: { item: NavItem }) {
       {hasChildren ? (
         <SidebarMenuButton
           onClick={() => setOpen(v => !v)}
-          tooltip={intl.formatMessage({ id: item.title })}
           className={cn(
             "px-4 py-2 flex items-center",
             "hover:bg-sidebar hover:text-sidebar-active-foreground",
@@ -68,14 +66,15 @@ export function SidebarMenuTree({ item }: { item: NavItem }) {
           />
         </SidebarMenuButton>
       ) : (
-        <Link
-          to={{
-            pathname: "/" + item.keys?.join("/"),
-          }}
-        >
         <SidebarMenuButton
+          render={
+            <Link
+              to={{
+                pathname: "/" + item.keys?.join("/"),
+              }}
+            />
+          }
           onClick={() => setOpen(v => !v)}
-          tooltip={intl.formatMessage({ id: item.title })}
           className={cn(
             "px-4 py-2 flex items-center",
             defaultOpen
@@ -86,7 +85,6 @@ export function SidebarMenuTree({ item }: { item: NavItem }) {
             {item.icon && <item.icon />}
             <span>{intl.formatMessage({ id: item.title })}</span>
           </SidebarMenuButton>
-        </Link>
       )}
 
       {/* ===== Children ===== */}

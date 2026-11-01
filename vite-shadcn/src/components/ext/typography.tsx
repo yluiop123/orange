@@ -1,4 +1,6 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Check, Copy, Edit } from "lucide-react"
 import * as React from "react"
@@ -156,10 +158,18 @@ export function Text({
       <div className="mt-1">
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger>
-              <button onClick={handleExpand} className="hover:underline">
-                {content}
-              </button>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 hover:underline"
+                  onClick={handleExpand}
+                />
+              }
+            >
+              {content}
             </TooltipTrigger>
             <TooltipContent>{isExpanded ? "收起" : "展开"}</TooltipContent>
           </Tooltip>
@@ -179,13 +189,13 @@ export function Text({
     <div className={cn("flex flex-col gap-1", className)} {...props}>
       {/* 文本 + 功能按钮同一行 */}
       {editing ? (
-        <input
+        <Input
           autoFocus
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={() => setEditing(false)}
           aria-label="编辑文本"
-          className={cn(base, "border px-1 py-0.5 rounded text-sm")}
+          className={cn("h-7 rounded px-1 py-0.5", base)}
         />
       ) : (
         <span className={base}>
@@ -205,10 +215,18 @@ export function Text({
           {copyable && (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
-                  <button onClick={handleCopy} className="text-muted-foreground hover:text-primary">
-                    {copied ? copiedIcon ?? <Check size={14} className="text-green-500" /> : copyIcon ?? <Copy size={14} />}
-                  </button>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      className="text-muted-foreground hover:text-primary"
+                      onClick={handleCopy}
+                    />
+                  }
+                >
+                  {copied ? copiedIcon ?? <Check size={14} className="text-green-500" /> : copyIcon ?? <Copy size={14} />}
                 </TooltipTrigger>
                 <TooltipContent>{copied ? copiedTip ?? "已复制" : copyTip ?? "复制"}</TooltipContent>
               </Tooltip>
@@ -218,10 +236,19 @@ export function Text({
           {editable && !editing && (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
-                  <button title="edit" onClick={() => setEditing(true)} className="text-muted-foreground hover:text-primary">
-                    <Edit size={14} />
-                  </button>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      className="text-muted-foreground hover:text-primary"
+                      title="edit"
+                      onClick={() => setEditing(true)}
+                    />
+                  }
+                >
+                  <Edit size={14} />
                 </TooltipTrigger>
                 <TooltipContent>{editTip ?? "编辑"}</TooltipContent>
               </Tooltip>

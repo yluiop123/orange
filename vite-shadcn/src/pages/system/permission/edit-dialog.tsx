@@ -1,15 +1,19 @@
+import { getPermission, updatePermission } from "@/api/system/permission";
 import DialogForm, { Field } from "@/components/dialog-form";
-import axios from "@/lib/axios";
+import { applyServerFieldErrors } from "@/lib/form-errors";
 import { useEffect, useRef, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export default function Index(props: {setOpen: (open: boolean) => void, open: boolean, onSave: () => void, id: string }) {
-    const {setOpen, onSave, open, id} = props;
+type PermissionType = "menu" | "action" | "directory";
+
+export default function Index(props: { setOpen: (open: boolean) => void, open: boolean, onSave: () => void, id: string }) {
+    const { setOpen, onSave, open, id } = props;
     const intl = useIntl();
-    const fields:Field[] = [
+    const formRef = useRef<UseFormReturn<Record<string, unknown>>>(null);
+    const fields: Field[] = [
         {
             name: "id",
             label: "page.system.permission.header.id",
@@ -53,47 +57,44 @@ export default function Index(props: {setOpen: (open: boolean) => void, open: bo
     const [values, setValues] = useState<Record<string, unknown>>({});
 
     useEffect(() => {
-        if(id === '') {
+        if (id === '') {
             return;
         }
-        axios.get("/system/permissions/detail/" + id).then(res => {
-            if (res.data.code === 200) {
-                const permission = res.data.data;
-                setValues (permission);
-            } 
-        })
+        let cancelled = false;
+        getPermission(id).then((permission) => {
+            if (!cancelled) setValues(permission);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [id])
 
     const schemaShape = fields.reduce((acc, field) => {
         acc[field.name] = field.validate || z.string().optional();
         return acc;
     }, {} as Record<string, z.ZodTypeAny>);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const formSchema = z.object(schemaShape);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formRef = useRef<UseFormReturn<any>>(null);
+
     function onSubmit(fieldValues: z.infer<typeof formSchema>) {
-        axios.post("/system/permissions/edit", {
-            ...fieldValues,
-            id:id
-        }).then(res => {
-            if(res.data.code === 200) {
-                setOpen(false);
-                toast.success(res.data.message);
-                onSave();
-            }else {
-                const data = res.data.data || {};
-                Object.keys(data).forEach((field) => {
-                    formRef.current?.setError(field, {
-                        type: "server", // 标注这是服务器返回的错误
-                        message: data[field]
-                    });
-                });
-                // toast.error(res.data.message);
-            }
+        updatePermission(id, {
+            id,
+            name: fieldValues.name as string,
+            path: fieldValues.path as string,
+            type: fieldValues.type as PermissionType,
+            action: fieldValues.action as string,
+            parentId: fieldValues.parentId as string,
+        }).then(() => {
+            setOpen(false);
+            toast.success(intl.formatMessage({ id: 'message.success' }));
+            onSave();
+        }).catch((error) => {
+            applyServerFieldErrors(formRef, error);
+            // 错误提示由 axios 拦截器统一处理
         })
     }
     return (
-        open && Object.keys(values).length > 0 &&<DialogForm
+        open && Object.keys(values).length > 0 && <DialogForm
             ref={formRef}
             setOpen={setOpen}
             open={open}

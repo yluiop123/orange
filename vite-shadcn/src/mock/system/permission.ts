@@ -1,318 +1,296 @@
 import { http, HttpResponse } from "msw";
+import catalog from "@/config/permissions.json";
 
-const zh = {
-    'menu.dashboard': '仪表盘',
-    'menu.component': '组件',
-    'menu.component.general': '通用组件',
-    'menu.component.layout': '布局组件',
-    'menu.component.navigation': '导航组件',
-    'menu.component.display': '显示组件',
-    'menu.component.feedback': '反馈组件',
-    'menu.component.form': '表单组件',
-    'menu.component.table': '表格组件',
-    'menu.component.custom': '自定义组件',
-    'menu.chart': '图表',
-    'menu.chart.antv': 'Antv图表',
-    'menu.chart.d3': 'D3图表',
-    'menu.chart.echart': 'Echart图表',
-    'menu.chart.rechart': 'Rechart图表',
-    'menu.three': '三维',
-    'menu.three.babylon': 'Babylon图表',
-    'menu.three.three': 'Three图表',
-    'menu.map': '地图',
-    'menu.map.cesium': 'Cesium地图',
-    'menu.map.deckgl': 'Deckgl地图',
-    'menu.map.l7': 'L7地图',
-    'menu.map.leaflet': 'Leaflet地图',
-    'menu.map.openlayers': 'Openlayers地图',
-    'menu.system': '系统管理',
-    'menu.system.user': '用户管理',
-    'menu.system.role': '角色管理',
-    'menu.system.menu': '菜单管理',
-    'menu.system.permission': '权限管理',
-    'menu.system.group': '组织管理',
-    'button.add':'新增',
-    'button.edit':'编辑',
-    'button.delete':'删除',
-    success: "成功",
-};
-const en = {
-    'menu.dashboard': 'Dashboard',
-    'menu.component': 'Component',
-    'menu.component.general': 'General',
-    'menu.component.layout': 'Layout',
-    'menu.component.navigation': 'Navigation',
-    'menu.component.display': 'Display',
-    'menu.component.feedback': 'Feedback',
-    'menu.component.form': 'Form',
-    'menu.component.table': 'Table',
-    'menu.component.custom': 'Custom',
-    'menu.chart': 'Chart',
-    'menu.chart.antv': 'Antv',
-    'menu.chart.d3': 'D3',
-    'menu.chart.echart': 'Echart',
-    'menu.chart.rechart': 'Rechart',
-    'menu.three': 'Three',
-    'menu.three.babylon': 'Babylon',
-    'menu.three.three': 'Three',
-    'menu.map': 'Map',
-    'menu.map.cesium': 'Cesium',
-    'menu.map.deckgl': 'Deckgl',
-    'menu.map.l7': 'L7',
-    'menu.map.leaflet': 'Leaflet',
-    'menu.map.openlayers': 'Openlayers',
-    'menu.system': 'System',
-    'menu.system.user': 'User',
-    'menu.system.role': 'Role',
-    'menu.system.menu': 'Menu',
-    'menu.system.permission': 'Permission',
-    'menu.system.group': 'Group',
-    'button.add':'Add',
-    'button.edit':'Edit',
-    'button.delete':'Delete',
-    success: "Success",
-};
-const localeMap: Record<string, Record<string, string>> = {
-  zh,
-  en,
-};
+type Locale = "zh" | "en";
+
 type Permission = {
-  name: string
-  id: string
-  path: string
-  type: string
-  action?: string
-  status?: "0" | "1"
-  createTime?: string,
-  parentId?: string
-  order: number
+  name: string;
+  id: string;
+  path?: string;
+  type: "menu" | "directory" | "action";
+  action?: string;
+  status: "0" | "1";
+  createTime: string;
+  parentId?: string | null;
+  order: number;
+};
+
+type PermissionStore = {
+  created: Permission[];
+  updated: Record<string, Partial<Permission>>;
+  deleted: string[];
+};
+
+const STORAGE_KEY = "orange.mock.system.permissions";
+
+const successMessage: Record<string, string> = {
+  zh: "操作成功",
+  en: "Success",
+};
+
+function emptyStore(): PermissionStore {
+  return { created: [], updated: {}, deleted: [] };
 }
-function getPermissionList(locale: string) {
-    const dataArray: Permission[] = [
-            //supper menu permissions
-            {id: '0000', parentId:'',order: 0, path: "/dashboard",type: "directory",name:localeMap[locale]['menu.dashboard'] },
-            {id: '0001', parentId:'',order: 1, path: "/component", type: "menu",name:localeMap[locale]['menu.component'] },
-            {id: '000100', parentId:'0001',order: 0, path: "/component/general", type: "menu",name:localeMap[locale]['menu.component.general'] },
-            {id: '000101', parentId:'0001',order: 1, path: "/component/layout", type: "menu",name:localeMap[locale]['menu.component.layout'] },
-            {id: '000102', parentId:'0001',order: 2, path: "/component/navigation", type: "menu",name:localeMap[locale]['menu.component.navigation'] },
-            {id: '000103', parentId:'0001',order: 3, path: "/component/display", type: "menu",name:localeMap[locale]['menu.component.display'] },
-            {id: '000104', parentId:'0001',order: 4, path: "/component/feedback", type: "menu",name:localeMap[locale]['menu.component.feedback'] },
-            {id: '000105', parentId:'0001',order: 5, path: "/component/form", type: "menu",name:localeMap[locale]['menu.component.form'] },
-            {id: '000106', parentId:'0001',order: 6, path: "/component/table", type: "menu",name:localeMap[locale]['menu.component.table'] },
-            {id: '000107', parentId:'0001',order: 7, path: "/component/custom", type: "menu",name:localeMap[locale]['menu.component.custom'] },
-            {id: '0002', parentId:'',order: 2, path: "/chart",type: "menu",name:localeMap[locale]['menu.chart'] },
-            {id: '000200', parentId:'0002',order: 0, path: "/chart/antv", type: "menu",name:localeMap[locale]['menu.chart.antv'] },
-            {id: '000201', parentId:'0002',order: 1, path: "/chart/d3", type: "menu",name:localeMap[locale]['menu.chart.d3'] },
-            {id: '000202', parentId:'0002',order: 2, path: "/chart/echart", type: "menu",name:localeMap[locale]['menu.chart.echart'] },
-            {id: '000203', parentId:'0002',order: 3, path: "/chart/rechart", type: "menu",name:localeMap[locale]['menu.chart.rechart'] },
-            {id: '0003', parentId:'',order: 3, path: "/three", type: "menu",name:localeMap[locale]['menu.three'] },
-            {id: '000300', parentId:'0003',order: 0, path: "/three/babylon", type: "menu",name:localeMap[locale]['menu.three.babylon'] },
-            {id: '000301', parentId:'0003',order: 1, path: "/three/three", type: "menu",name:localeMap[locale]['menu.three.three'] },
-            {id: '0004', parentId:'',order: 4, path: "/map", type: "menu",name:localeMap[locale]['menu.map'] },
-            {id: '000400', parentId:'0004',order: 0, path: "/map/cesium", type: "menu",name:localeMap[locale]['menu.map.cesium'] },
-            {id: '000401', parentId:'0004',order: 1, path: "/map/deckgl", type: "menu",name:localeMap[locale]['menu.map.deckgl'] },
-            {id: '000402', parentId:'0004',order: 2, path: "/map/l7", type: "menu",name:localeMap[locale]['menu.map.l7'] },
-            {id: '000403', parentId:'0004',order: 3, path: "/map/leaflet", type: "menu",name:localeMap[locale]['menu.map.leaflet'] },
-            {id: '000404', parentId:'0004',order: 4, path: "/map/openlayers", type: "menu",name:localeMap[locale]['menu.map.openlayers'] },
-            {id: '0005', parentId:'',order: 5, path: "/system", type: "menu",name:localeMap[locale]['menu.system'] },
-            {id: '000500', parentId:'0005',order: 0, path: "/system/user", type: "menu",name:localeMap[locale]['menu.system.user'] },
-            {id: '000501', parentId:'0005',order: 1, path: "/system/role", type: "menu",name:localeMap[locale]['menu.system.role'] },
-            {id: '000503', parentId:'0005',order: 3, path: "/system/permission", type: "menu",name:localeMap[locale]['menu.system.permission'] },
-            {id: '000504', parentId:'0005',order: 4, path: "/system/group", type: "menu",name:localeMap[locale]['menu.system.group'] },
-            //supper action permissions
-            {
-              id: '00050000',
-              parentId: '000500',
-              order: 0,
-              path: "/system/user",
-              action: "add",
-              type: "action",
-              name:localeMap[locale]['button.add'],
-            },
-            {
-              id: '00050002',
-              parentId: '000500',
-              order: 1,
-              path: "/system/user",
-              action: "delete",
-              type: "action",
-              name:localeMap[locale]['button.delete'],
-            },
-            {
-              id: '00050003',
-              parentId: '000500',
-              order: 2,
-              path: "/system/user",
-              action: "edit",
-              type: "action",
-              name:localeMap[locale]['button.edit'],
-            },
-            {
-              id: '00050101',
-              parentId: '000501',
-              order: 0,
-              path: "/system/role",
-              action: "add",
-              type: "action",
-              name:localeMap[locale]['button.add'],
-            },
-            {
-              id: '00050102',
-              parentId: '000501',
-              order: 1,
-              path: "/system/role",
-              action: "delete",
-              type: "action",
-              name:localeMap[locale]['button.delete'],
-            },
-            {
-              id: '00050103',
-              parentId: '000501',
-              order: 2,
-              path: "/system/role",
-              action: "edit",
-              type: "action",
-              name:localeMap[locale]['button.edit'],
-            },
-            {
-              id: '00050300',
-              parentId: '000503',
-              order: 0,
-              path: "/system/group",
-              action: "add",
-              type: "action",
-              name:localeMap[locale]['button.add'],
-            },
-            {
-              id: '00050301',
-              parentId: '000503',
-              order: 1,
-              path: "/system/group",
-              action: "delete",
-              type: "action",
-              name:localeMap[locale]['button.delete'],
-            },
-            {
-              id: '00050302',
-              parentId: '000503',
-              order: 2,
-              path: "/system/group",
-              action: "edit",
-              type: "action",
-              name:localeMap[locale]['button.edit'],
-            },
-            {
-              id: '00050400',
-              parentId: '000504',
-              order: 0,
-              path: "/system/permission",
-              action: "add",
-              type: "action",
-              name:localeMap[locale]['button.add'],
-            },
-            {
-              id: '00050401',
-              parentId: '000504',
-              order: 1,
-              path: "/system/permission",
-              action: "delete",
-              type: "action",
-              name:localeMap[locale]['button.delete'],
-            },
-            {
-              id: '00050402',
-              parentId: '000504',
-              order: 2,
-              path: "/system/permission",
-              action: "edit",
-              type: "action",
-              name:localeMap[locale]['button.edit'],
-            }
-      ];
-      dataArray.forEach((item) => {
-        item.status = '1';
-        item.createTime = '2023-01-01 00:00:00';
-      });
-  return dataArray;
+
+function readStore(): PermissionStore {
+  if (typeof localStorage === "undefined") return emptyStore();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return emptyStore();
+    const parsed = JSON.parse(raw) as Partial<PermissionStore>;
+    return {
+      created: Array.isArray(parsed.created) ? parsed.created : [],
+      updated: parsed.updated ?? {},
+      deleted: Array.isArray(parsed.deleted) ? parsed.deleted : [],
+    };
+  } catch {
+    return emptyStore();
+  }
 }
+
+function writeStore(store: PermissionStore) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+}
+
+function nowText() {
+  return new Date().toISOString().slice(0, 19).replace("T", " ");
+}
+
+function getPermissionList(locale: string): Permission[] {
+  const lang: Locale = locale === "en" ? "en" : "zh";
+  const store = readStore();
+  const base: Permission[] = catalog.permissions
+    .filter((permission) => !store.deleted.includes(permission.id))
+    .map((permission) => ({
+      id: permission.id,
+      name: permission.name[lang] ?? permission.name.zh,
+      path: permission.path,
+      type: permission.type as Permission["type"],
+      action: permission.action ?? undefined,
+      status: (permission.status as "0" | "1") ?? "1",
+      parentId: permission.parentId,
+      order: permission.order ?? 0,
+      createTime: "2023-01-01 00:00:00",
+      ...store.updated[permission.id],
+    }));
+
+  const created = store.created
+    .filter((permission) => !store.deleted.includes(permission.id))
+    .map((permission) => ({
+      ...permission,
+      ...store.updated[permission.id],
+    }));
+
+  return [...base, ...created];
+}
+
+function reindexSiblings(list: Permission[], parentId: string | null | undefined) {
+  const siblings = list
+    .filter((item) => (item.parentId ?? null) === (parentId ?? null))
+    .sort((a, b) => a.order - b.order);
+  const store = readStore();
+  siblings.forEach((item, index) => {
+    if (item.order !== index) {
+      store.updated[item.id] = { ...store.updated[item.id], order: index };
+    }
+  });
+  writeStore(store);
+  return siblings.map((item, index) => ({ ...item, order: index }));
+}
+
+function persistPermission(permission: Permission) {
+  const store = readStore();
+  const existing = store.created.findIndex((item) => item.id === permission.id);
+  if (existing >= 0) {
+    store.created[existing] = permission;
+  } else {
+    store.created.push(permission);
+  }
+  writeStore(store);
+}
+
+function updatePermission(id: string, patch: Partial<Permission>) {
+  const store = readStore();
+  const created = store.created.find((item) => item.id === id);
+  if (created) {
+    Object.assign(created, patch);
+  } else {
+    store.updated[id] = { ...store.updated[id], ...patch };
+  }
+  writeStore(store);
+}
+
 const handlers = [
-  http.post<never, never>("/api/system/permissions", async ({ request }) => {
+  http.get("/api/system/permissions", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
-     const body = await request.clone().json();
-    const {
-      id,
-      name,
-      status
-    } = body;
-    const dataArray = getPermissionList(locale);
-    const filterList = dataArray.filter((item) => {
-      if (id && !item.name.startsWith(name)) {
-        return false;
-      }
-      if (name && !item.name.startsWith(name)) {
-        return false;
-      }
-      if (status!=='all' && item.status !== status) {
-        return false;
-      }
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id") || "";
+    const name = url.searchParams.get("name") || "";
+    const path = url.searchParams.get("path") || "";
+    const status = url.searchParams.get("status") || "all";
+    const list = getPermissionList(locale).filter((item) => {
+      if (id && !item.id.startsWith(id)) return false;
+      if (name && !item.name.toLowerCase().startsWith(name.toLowerCase())) return false;
+      if (path && !(item.path ?? "").toLowerCase().startsWith(path.toLowerCase())) return false;
+      if (status !== "all" && item.status !== status) return false;
       return true;
     });
-    return HttpResponse.json({
-      code: 200,
-      data: filterList,
-    });
+    return HttpResponse.json({ code: 200, data: list });
   }),
-  http.delete<{ id: string }, never>(
-    "/api/system/permissions",
-    async ({ request }) => {
-      const locale = request.headers.get("locale") || "zh";
-      const ids = await request.clone().json();
-      console.log(ids);
-      return HttpResponse.json({
-        code: 200,
-        message: localeMap[locale]["success"],
-      });
+
+  http.get<{ id: string }>("/api/system/permissions/:id", async ({ request, params }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const permission = getPermissionList(locale).find((item) => item.id === params.id);
+    if (!permission) {
+      return HttpResponse.json(
+        { code: 40401, message: "权限不存在" },
+        { status: 404 },
+      );
     }
-  ),
-  http.get<{ id: string }>(
-    "/api/system/permissions/detail/:id",
-    async ({ request, params }) => {
-      const locale = request.headers.get("locale") || "zh";
-      const id = params.id;
-      const list = getPermissionList(locale);
-      const role = list.find((item) => item.id === id);
-      return HttpResponse.json({
-        code: 200,
-        data: role,
-      });
+    return HttpResponse.json({ code: 200, data: permission });
+  }),
+
+  http.post("/api/system/permissions/children", async ({ request }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as Partial<Permission>;
+    if (!body.id || getPermissionList(locale).some((item) => item.id === body.id)) {
+      return HttpResponse.json(
+        { code: 40901, message: "权限编码已存在" },
+        { status: 409 },
+      );
     }
-  ),  
-  http.post<never, never>("/api/system/permissions/addChild", async ({ request }) => {
-    const locale = request.headers.get("locale") || "zh";
+    const parentId = body.parentId || null;
+    const siblings = getPermissionList(locale).filter(
+      (item) => (item.parentId ?? null) === parentId,
+    );
+    const permission: Permission = {
+      id: body.id,
+      name: body.name || body.id,
+      path: body.path,
+      type: (body.type as Permission["type"]) || "menu",
+      action: body.action,
+      status: "1",
+      parentId,
+      order: siblings.length,
+      createTime: nowText(),
+    };
+    persistPermission(permission);
     return HttpResponse.json({
       code: 200,
-      message: localeMap[locale]["success"],
+      message: successMessage[locale] ?? successMessage.zh,
+      data: permission.id,
     });
   }),
-  http.post<never, never>("/api/system/permissions/addBrother", async ({ request }) => {
+
+  http.post("/api/system/permissions/siblings", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as Partial<Permission> & {
+      brotherId?: string;
+    };
+    const list = getPermissionList(locale);
+    if (!body.id || list.some((item) => item.id === body.id)) {
+      return HttpResponse.json(
+        { code: 40901, message: "权限编码已存在" },
+        { status: 409 },
+      );
+    }
+    const brother = list.find((item) => item.id === body.brotherId);
+    if (!brother) {
+      return HttpResponse.json(
+        { code: 40401, message: "同级权限不存在" },
+        { status: 404 },
+      );
+    }
+    const permission: Permission = {
+      id: body.id,
+      name: body.name || body.id,
+      path: body.path,
+      type: (body.type as Permission["type"]) || "menu",
+      action: body.action,
+      status: "1",
+      parentId: brother.parentId ?? null,
+      order: brother.order,
+      createTime: nowText(),
+    };
+    persistPermission(permission);
+    const after = reindexSiblings(getPermissionList(locale), permission.parentId);
+    const created = after.find((item) => item.id === permission.id);
+    if (created) updatePermission(created.id, { order: created.order });
     return HttpResponse.json({
       code: 200,
-      message: localeMap[locale]["success"],
-    });
-  }),  
-  http.post<never, never>("/api/system/permissions/edit", async ({ request }) => {
-    const locale = request.headers.get("locale") || "zh";
-    return HttpResponse.json({
-      code: 200,
-      message: localeMap[locale]["success"],
+      message: successMessage[locale] ?? successMessage.zh,
+      data: permission.id,
     });
   }),
-  http.post<never, never>("/api/system/permissions/move", async ({ request }) => {
+
+  http.patch<{ id: string }>("/api/system/permissions/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as Partial<Permission>;
+    updatePermission(params.id, body);
     return HttpResponse.json({
       code: 200,
-      message: localeMap[locale]["success"],
+      message: successMessage[locale] ?? successMessage.zh,
+    });
+  }),
+
+  http.post<{ id: string }>("/api/system/permissions/:id/move", async ({ request, params }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const body = (await request.clone().json()) as { action?: "up" | "down" | "top" };
+    const list = getPermissionList(locale);
+    const target = list.find((item) => item.id === params.id);
+    if (!target) {
+      return HttpResponse.json(
+        { code: 40401, message: "权限不存在" },
+        { status: 404 },
+      );
+    }
+    const siblings = list
+      .filter((item) => (item.parentId ?? null) === (target.parentId ?? null))
+      .sort((a, b) => a.order - b.order);
+    const index = siblings.findIndex((item) => item.id === target.id);
+    if (body.action === "top") {
+      siblings.splice(index, 1);
+      siblings.unshift(target);
+    } else if (body.action === "up" && index > 0) {
+      [siblings[index - 1], siblings[index]] = [siblings[index], siblings[index - 1]];
+    } else if (body.action === "down" && index < siblings.length - 1) {
+      [siblings[index + 1], siblings[index]] = [siblings[index], siblings[index + 1]];
+    }
+    const store = readStore();
+    siblings.forEach((item, order) => {
+      store.updated[item.id] = { ...store.updated[item.id], order };
+    });
+    writeStore(store);
+    return HttpResponse.json({
+      code: 200,
+      message: successMessage[locale] ?? successMessage.zh,
+    });
+  }),
+
+  http.delete("/api/system/permissions", async ({ request }) => {
+    const locale = request.headers.get("locale") || "zh";
+    const url = new URL(request.url);
+    const ids = (url.searchParams.get("ids") || "").split(",").filter(Boolean);
+    const store = readStore();
+    const all = getPermissionList(locale);
+    const toDelete = new Set(ids);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const item of all) {
+        if (item.parentId && toDelete.has(item.parentId) && !toDelete.has(item.id)) {
+          toDelete.add(item.id);
+          changed = true;
+        }
+      }
+    }
+    store.deleted = [...new Set([...store.deleted, ...toDelete])];
+    store.created = store.created.filter((item) => !toDelete.has(item.id));
+    writeStore(store);
+    return HttpResponse.json({
+      code: 200,
+      message: successMessage[locale] ?? successMessage.zh,
     });
   }),
 ];

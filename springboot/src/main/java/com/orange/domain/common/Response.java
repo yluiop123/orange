@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 import static com.orange.domain.common.ErrorCode.SUCCESS;
 
 @Schema(description = "通用响应体")
@@ -20,17 +22,18 @@ public class Response<T> {
     private T data;
     @Schema(description = "时间戳", example = "1694502400000")
     private long timestamp;
+    @Schema(description = "链路追踪 ID", example = "9f8c1b2d3e4f5a6b")
+    private String traceId;
 
     public static <T> Response<T> ok(T data) {
         if (data instanceof String) {
-            return new Response<>(SUCCESS.getCode(), (String) data, data, System.currentTimeMillis());
+            return new Response<>(SUCCESS.getCode(), (String) data, data, System.currentTimeMillis(), null);
         }
-        return new Response<>(SUCCESS.getCode(), "", data, System.currentTimeMillis());
+        return new Response<>(SUCCESS.getCode(), "", data, System.currentTimeMillis(), null);
     }
 
     public static <T> Response<T> ok(String message, T data) {
-
-        return new Response<>(SUCCESS.getCode(), message, data, System.currentTimeMillis());
+        return new Response<>(SUCCESS.getCode(), message, data, System.currentTimeMillis(), null);
     }
 
     public static <T> Response<T> error(int code, String message) {
@@ -38,14 +41,11 @@ public class Response<T> {
         r.code = code;
         r.message = message;
         r.timestamp = System.currentTimeMillis();
+        r.traceId = newTraceId();
         return r;
     }
     public static <T> Response<T> error(ErrorCode errorCode) {
-        Response<T> r = new Response<>();
-        r.code = errorCode.getCode();
-        r.message = errorCode.getMessage();
-        r.timestamp = System.currentTimeMillis();
-        return r;
+        return error(errorCode.getCode(), errorCode.getMessage());
     }
     public static <T> Response<T> error(int code, String message, T data) {
         Response<T> r = new Response<>();
@@ -53,6 +53,11 @@ public class Response<T> {
         r.message = message;
         r.data = data;
         r.timestamp = System.currentTimeMillis();
+        r.traceId = newTraceId();
         return r;
+    }
+
+    public static String newTraceId() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 }

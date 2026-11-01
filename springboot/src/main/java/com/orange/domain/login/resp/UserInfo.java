@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,13 +35,16 @@ public class UserInfo {
     @Schema(description = "用户状态",example = "active")
     private String status;
 
+    @Schema(description = "是否需要强制修改密码",example = "false")
+    private Boolean mustChangePassword;
+
     @Schema(description = "创建时间",example = "2023-01-01 00:00:00")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
+    private OffsetDateTime createTime;
 
     @Schema(description = "更新时间",example = "2023-01-01 00:00:00")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ssXXX")
+    private OffsetDateTime updateTime;
 
     @Schema(description = "用户角色列表")
     private Set<RoleInfo> roles = new HashSet<>();

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Float, Html, OrbitControls, Stars } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Bloom, EffectComposer } from '@react-three/postprocessing';
@@ -176,7 +177,14 @@ const DisasterCommandCenter = () => {
                   {activePanel === 'rescue' ? '现场救援资源矩阵' : '战略物资储备同步'}
                 </h2>
               </div>
-              <button onClick={() => setActivePanel(null)} className="text-slate-400 hover:text-red-500 transition-colors"><X size={20}/></button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setActivePanel(null)}
+                className="size-8 text-slate-400 hover:bg-transparent hover:text-red-500"
+              >
+                <X size={20} />
+              </Button>
             </div>
 
             <div className="p-6 space-y-6">
@@ -213,9 +221,9 @@ const DisasterCommandCenter = () => {
                 </div>
               </div>
 
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-xs tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg">
+              <Button className="w-full h-auto bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-xs tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-lg">
                 <Crosshair size={16} /> 下达全域同步指令
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -237,24 +245,26 @@ const DisasterCommandCenter = () => {
         </div>
 
         <div className="pointer-events-auto flex flex-col gap-4">
-          <button 
+          <Button
+            variant="outline"
             onClick={() => setActivePanel(activePanel === 'rescue' ? null : 'rescue')}
-            className={`p-6 rounded-full transition-all shadow-2xl border ${activePanel === 'rescue' ? 'bg-blue-600 border-white text-white' : (isDark ? 'bg-slate-900 border-white/10 text-blue-400' : 'bg-white border-slate-200 text-blue-600')}`}
+            className={`p-6 h-auto rounded-full transition-all shadow-2xl border ${activePanel === 'rescue' ? 'bg-blue-600 border-white text-white hover:bg-blue-600 hover:text-white' : (isDark ? 'bg-slate-900 border-white/10 text-blue-400 hover:bg-slate-900 hover:text-blue-400' : 'bg-white border-slate-200 text-blue-600 hover:bg-white hover:text-blue-600')}`}
           >
             <Users size={32} />
-          </button>
-          <button 
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => setActivePanel(activePanel === 'supplies' ? null : 'supplies')}
-            className={`p-6 rounded-full transition-all shadow-2xl border ${activePanel === 'supplies' ? 'bg-emerald-600 border-white text-white' : (isDark ? 'bg-slate-900 border-white/10 text-emerald-400' : 'bg-white border-slate-200 text-emerald-600')}`}
+            className={`p-6 h-auto rounded-full transition-all shadow-2xl border ${activePanel === 'supplies' ? 'bg-emerald-600 border-white text-white hover:bg-emerald-600 hover:text-white' : (isDark ? 'bg-slate-900 border-white/10 text-emerald-400 hover:bg-slate-900 hover:text-emerald-400' : 'bg-white border-slate-200 text-emerald-600 hover:bg-white hover:text-emerald-600')}`}
           >
             <Package size={32} />
-          </button>
-          <button 
+          </Button>
+          <Button
             onClick={() => setIsCalling(true)}
-            className="p-6 bg-red-600 text-white rounded-full animate-pulse shadow-xl border border-white/20"
+            className="p-6 h-auto bg-red-600 text-white rounded-full animate-pulse shadow-xl border border-white/20 hover:bg-red-600"
           >
             <PhoneCall size={32} />
-          </button>
+          </Button>
         </div>
       </footer>
 
@@ -265,7 +275,7 @@ const DisasterCommandCenter = () => {
             <SignalLow className="text-red-500 w-16 h-16 mx-auto mb-6 animate-bounce" />
             <h2 className="text-3xl font-black mb-2 italic">优先级：最高</h2>
             <p className="text-slate-500 font-mono text-xs mb-10 uppercase tracking-widest">正在建立卫星加密连接...</p>
-            <button onClick={() => setIsCalling(false)} className="w-full py-6 bg-red-600 text-white font-black rounded-2xl">强制中断</button>
+            <Button onClick={() => setIsCalling(false)} className="w-full h-auto py-6 bg-red-600 text-white font-black rounded-2xl hover:bg-red-600">强制中断</Button>
           </div>
         </div>
       )}

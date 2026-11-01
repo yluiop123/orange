@@ -138,12 +138,15 @@ export const TourProvider = ({ children, steps }: { children: React.ReactNode; s
               </p>
 
               <div className="flex justify-between items-center pt-2">
-                <button 
-                  onClick={stop} 
-                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={stop}
+                  className="h-auto px-0 text-xs text-slate-400 hover:bg-transparent hover:text-slate-600"
                 >
                   Skip (跳过)
-                </button>
+                </Button>
                 <div className="flex gap-2">
                   {currentStep > 0 && (
                     <Button variant="outline" size="sm" onClick={prev} className="h-9 px-3 text-xs">

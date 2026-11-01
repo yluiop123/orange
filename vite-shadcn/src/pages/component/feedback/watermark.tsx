@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
 
 export default function WatermarkDemo() {
@@ -33,19 +35,38 @@ export default function WatermarkDemo() {
           </div>
         </div>
         <div className="pt-4 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
-          <input value={text} onChange={e => setText(e.target.value)} className="input col-span-2" />
+          <Input value={text} onChange={e => setText(e.target.value)} className="col-span-2" />
           <Button onClick={() => setText('Demo Watermark / 水印示例')}>Reset</Button>
           <div className="flex items-center gap-2">
             <label className="text-sm">Rotation</label>
-            <input type="range" min={-90} max={90} value={rotation} onChange={e => setRotation(Number(e.target.value))} />
+            <Slider
+              min={-90}
+              max={90}
+              value={[rotation]}
+              onValueChange={(value) => setRotation(Array.isArray(value) ? value[0] : value)}
+              className="w-32"
+            />
           </div>
           <div className="flex items-center gap-2">
             <label className="text-sm">Font Size</label>
-            <input type="range" min={24} max={200} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} />
+            <Slider
+              min={24}
+              max={200}
+              value={[fontSize]}
+              onValueChange={(value) => setFontSize(Array.isArray(value) ? value[0] : value)}
+              className="w-32"
+            />
           </div>
           <div className="flex items-center gap-2">
             <label className="text-sm">Opacity</label>
-            <input type="range" min={0} max={1} step={0.01} value={opacity} onChange={e => setOpacity(Number(e.target.value))} />
+            <Slider
+              min={0}
+              max={1}
+              step={0.01}
+              value={[opacity]}
+              onValueChange={(value) => setOpacity(Array.isArray(value) ? value[0] : value)}
+              className="w-32"
+            />
           </div>
         </div>
       </section>

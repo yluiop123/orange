@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 export default function SkeletonDemo() {
@@ -60,9 +61,9 @@ export default function SkeletonDemo() {
         </div>
 
         <div className="pt-4">
-          <button className="btn" onClick={() => setLoading(l => !l)}>
+          <Button variant="outline" onClick={() => setLoading(l => !l)}>
             Toggle Loading
-          </button>
+          </Button>
         </div>
       </section>
     </div>

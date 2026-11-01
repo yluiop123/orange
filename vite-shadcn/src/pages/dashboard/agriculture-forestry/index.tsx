@@ -1,7 +1,9 @@
 import { useThemeStore } from '@/store/index';
+import { Button } from "@/components/ui/button";
 import { Feature, FeatureCollection, Geometry, Polygon } from 'geojson';
 import L, { PathOptions } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import '@/lib/fixLeafletIcon';
 import {
   Activity,
   CloudRain,
@@ -244,9 +246,9 @@ export default function EcoManagement() {
                   <div className="text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase">易燃物载荷</div>
                   <div className="text-sm font-black text-rose-600">低</div>
                </div>
-               <button className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-black shadow-lg transition-transform active:scale-95">
+               <Button className="w-full py-3 h-auto bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-black shadow-lg transition-transform active:scale-95">
                  一键调度无人机
-               </button>
+               </Button>
             </div>
           </EcoPanel>
 

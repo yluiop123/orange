@@ -1,7 +1,7 @@
-import axios from "@/lib/axios";
+import { listGroups } from "@/api/system/group";
 import { useEffect, useState } from "react";
 import TreeSelect, { TreeNode, TreeSelectProps } from "./ext/tree-select";
-type OmittedTreeSelectProps  = Omit<TreeSelectProps, 'value' | 'onChange'|'data'>;
+type OmittedTreeSelectProps = Omit<TreeSelectProps, 'value' | 'onChange' | 'data'>;
 
 // 2. 重新定义 value 和 onChange 的类型
 type GroupTreeSelectProps = OmittedTreeSelectProps & {
@@ -9,10 +9,10 @@ type GroupTreeSelectProps = OmittedTreeSelectProps & {
   onChange?: (value: string) => void;
   disabled?: boolean;
 };
-export type GroupNode =TreeNode & {
+export type GroupNode = TreeNode & {
   children?: GroupNode[]
-  parentId?: string
-  order: number
+  parentId?: string | null
+  order?: number
 }
 function buildTree(data: GroupNode[]): GroupNode[] {
   const map = new Map<string, GroupNode>();
@@ -34,7 +34,7 @@ function buildTree(data: GroupNode[]): GroupNode[] {
 
   // 递归排序函数
   function sortByOrder(nodes: GroupNode[]) {
-    nodes.sort((a, b) => a.order - b.order);
+    nodes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     nodes.forEach((node) => {
       if (node.children && node.children.length > 0) {
         sortByOrder(node.children);
@@ -46,38 +46,44 @@ function buildTree(data: GroupNode[]): GroupNode[] {
   sortByOrder(roots);
   return roots;
 }
-export default function GroupTreeSelect({ onChange: onChangeHandle, value, ...props }: GroupTreeSelectProps) {
+export default function GroupTreeSelect({ onChange: onChangeHandle, value, placeholder, ...props }: GroupTreeSelectProps) {
   const [data, setData] = useState<GroupNode[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    axios.get('/system/groups').then(res => {
-      setData(buildTree(res.data.data))
-      setLoading(true)
-    })
+    const controller = new AbortController()
+    listGroups(undefined, controller.signal)
+      .then((groups) => setData(buildTree(groups.map((group) => ({
+        ...group,
+        value: group.id,
+        title: group.name,
+      })))))
+      .catch(() => {
+        // 错误提示由 axios 拦截器统一处理
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
+      })
+    return () => controller.abort()
   }, [])
 
   return (
-    loading && (
-      <TreeSelect
-        data={data}
-        multiple={false}
-        value={value}
-        // ✅ 适配 TreeSelect 的 onChange
-        onChange={(value) => {
-          if (typeof value === "string") {
-            onChangeHandle?.(value)
-          }
-        }}
-        fieldNames={{
-          title: 'name',
-          value: 'id',
-          children: 'children',
-        }}
-        {...props}
-        
-      />
-    )
+    <TreeSelect
+      data={data}
+      multiple={false}
+      value={value}
+      placeholder={loading ? "加载中..." : placeholder}
+      onChange={(nextValue) => {
+        if (typeof nextValue === "string") {
+          onChangeHandle?.(nextValue)
+        }
+      }}
+      fieldNames={{
+        title: 'name',
+        value: 'id',
+        children: 'children',
+      }}
+      {...props}
+    />
   )
 }
-

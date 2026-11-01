@@ -1,5 +1,6 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import * as React from "react"
@@ -95,11 +96,12 @@ export const Segmented = React.forwardRef<HTMLDivElement, SegmentedProps>(
 
 
           return (
-            <button
+            <Button
               key={opt.value}
               type="button"
               role="radio"
-              aria-checked="true"
+              aria-checked={active}
+              variant="ghost"
               name={name}
               onClick={() => !opt.disabled && handleSelect(opt.value)}
               disabled={opt.disabled}
@@ -111,7 +113,7 @@ export const Segmented = React.forwardRef<HTMLDivElement, SegmentedProps>(
                   <Loader2 className="h-4 w-4 animate-spin opacity-80" />
                 )}
               </span>
-            </button>
+            </Button>
           )
         })}
       </div>

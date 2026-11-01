@@ -12,10 +12,12 @@ import java.util.List;
 
 public interface UserService {
     PageData<UserBean> queryUsers(QueryUserReq req);
-    User addUser(AddUserReq user);
+    String addUser(AddUserReq user);
     User editUser(EditUserReq user);
     void deleteUsers(List<String> id);
-    void resetUser(String id);
+    String resetUser(String id);
+    void changePassword(String username, String oldPassword, String newPassword);
+    void revokeTokens(String username);
     UserBean queryUser(String id);
 
     UserInfo queryUserInfo(String username);

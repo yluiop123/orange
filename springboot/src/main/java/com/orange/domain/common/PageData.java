@@ -14,4 +14,14 @@ public class PageData<T> {
     private Long total;
     @Schema(description = "分页数据列表")
     private List<T> list;
+    @Schema(description = "当前页码", example = "1")
+    private Integer page;
+    @Schema(description = "每页数量", example = "10")
+    private Integer size;
+    @Schema(description = "总页数", example = "10")
+    private Integer totalPages;
+
+    public PageData(Long total, List<T> list) {
+        this(total, list, null, null, null);
+    }
 }

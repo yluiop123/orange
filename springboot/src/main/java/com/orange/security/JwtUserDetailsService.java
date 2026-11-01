@@ -1,6 +1,8 @@
 package com.orange.security;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.orange.entity.Permission;
@@ -8,7 +10,8 @@ import com.orange.entity.Role;
 import com.orange.repository.system.UserRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,7 +35,6 @@ public class JwtUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with username: " + username);
         } else {
             Set<Role> roles = user.getRoles();
-            String[] roleIds = roles.stream().map(Role::getId).toArray(String[]::new);
             Set<String> permissions = new HashSet<>();
             for (Role role : roles) {
                 for (Permission permission : role.getPermissions()) {
@@ -42,12 +44,23 @@ public class JwtUserDetailsService implements UserDetailsService {
             for (Permission permission : user.getPermissions()) {
                 permissions.addAll(getPermissionStrs(permission));
             }
-            return User.builder().username(username)
-                    .password(user.getPassword())
-                    .disabled(STATUS_DISABLE.equals(user.getStatus()))
-                    .roles(roleIds)
-                    .authorities(permissions.toArray(String[]::new))
-                    .build();
+
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            for (Role role : roles) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getId()));
+            }
+            for (String permission : permissions) {
+                authorities.add(new SimpleGrantedAuthority(permission));
+            }
+            int tokenVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
+            return new AuthUser(
+                    user.getId(),
+                    username,
+                    user.getPassword(),
+                    !STATUS_DISABLE.equals(user.getStatus()),
+                    authorities,
+                    tokenVersion,
+                    Boolean.TRUE.equals(user.getMustChangePassword()));
         }
     }
 

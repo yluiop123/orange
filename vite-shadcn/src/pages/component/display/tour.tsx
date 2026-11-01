@@ -2,6 +2,7 @@
 
 import { TourProvider, useTour } from "@/components/ext/tour";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const steps = [
   {
@@ -32,7 +33,7 @@ function DemoContent() {
           主操作按钮 (Main Action)
         </button>
 
-        <input id="step-2" placeholder="搜索框 (Search Box)" className="border p-2 rounded" />
+        <Input id="step-2" placeholder="搜索框 (Search Box)" className="max-w-xs" />
       </div>
     </div>
   );

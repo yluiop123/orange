@@ -25,6 +25,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.orange.config.Constanst.STATUS_ALL;
@@ -37,9 +39,13 @@ public class RoleServiceImpl implements RoleService {
     @Autowired
     private PermissionRepository permissionRepository;
 
+    private static final Set<String> ROLE_SORT_FIELDS =
+            Set.of("id", "name", "status", "createTime", "updateTime");
+
     @Override
     public PageData<Role> queryRoles(QueryRoleReq req) {
-        String sortBy = req.getOrderField() == null ? "id" : req.getOrderField();
+        String sortBy = req.getOrderField() != null && ROLE_SORT_FIELDS.contains(req.getOrderField())
+                ? req.getOrderField() : "id";
         String sortDir = req.getOrderValue() == null ? "asc" : req.getOrderValue();
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())?
                 Sort.by(sortBy).ascending(): Sort.by(sortBy).descending();
@@ -51,10 +57,10 @@ public class RoleServiceImpl implements RoleService {
             String name = req.getName();
             String status = req.getStatus();
             if (id!=null&&!id.isEmpty()) {
-                predicates.add( cb.like(root.get("id"), id + "%"));
+                predicates.add( cb.like(cb.lower(root.get("id")), id.toLowerCase() + "%"));
             }
             if (name!=null&&!name.isEmpty()) {
-                predicates.add(cb.like(root.get("name"), name + "%"));
+                predicates.add(cb.like(cb.lower(root.get("name")), name.toLowerCase() + "%"));
             }
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));
@@ -62,17 +68,26 @@ public class RoleServiceImpl implements RoleService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         Pageable pageable = PageRequest.of(req.getPage()-1, req.getSize(), sort);
-        Page<Role> pageUser = roleRepository.findAll(spec, pageable);
-        return new PageData<>(pageUser.getTotalElements(), pageUser.getContent());
+        Page<Role> pageRole = roleRepository.findAll(spec, pageable);
+        return new PageData<>(pageRole.getTotalElements(), pageRole.getContent(),
+                req.getPage(), req.getSize(), pageRole.getTotalPages());
     }
 
     @Override
     @Transactional
     public Role addRole(AddRoleReq req) {
+        String roleId = req.getId();
+        if (roleId == null || roleId.isBlank()) {
+            roleId = UUID.randomUUID().toString();
+        } else if (roleRepository.existsById(roleId)) {
+            throw new BusinessException("角色ID已存在");
+        }
         Role role = new Role();
-        role.setId(req.getId());
+        role.setId(roleId);
         role.setName(req.getName());
-        List<Permission> permissions = permissionRepository.findAllById(req.getPermissions());
+        List<Permission> permissions = req.getPermissions() == null
+                ? List.of()
+                : permissionRepository.findAllById(req.getPermissions());
         role.getPermissions().clear(); // 先清掉原来的权限
         role.getPermissions().addAll(permissions);
         return roleRepository.save(role);

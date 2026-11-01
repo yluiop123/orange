@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button"
 import {
     Table,
     TableBody,
@@ -230,9 +231,9 @@ export default function ColumnDndTable() {
       <div className="p-2">
         <div className="h-4" />
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => rerender()} className="border p-1">
+          <Button variant="outline" size="sm" onClick={() => rerender()}>
             Regenerate
-          </button>
+          </Button>
         </div>
         <div className="h-4" />
         <Table>

@@ -1,5 +1,7 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import * as React from "react"
 
@@ -78,11 +80,11 @@ export function Transfer({
           <div className="text-sm text-muted-foreground">{filteredLeft.length}/{leftData.length}</div>
         </div>
         {showSearch && (
-          <input
+          <Input
             placeholder="Search"
             value={leftFilter}
             onChange={(e) => setLeftFilter(e.target.value)}
-            className="mb-2 w-full rounded border px-2 py-1 text-sm"
+            className="mb-2 h-8"
             disabled={disabled}
           />
         )}
@@ -109,22 +111,26 @@ export function Transfer({
 
       {/* Actions */}
       <div className="flex flex-col items-center justify-center gap-2">
-        <button
-          className="inline-flex h-10 w-10 items-center justify-center rounded border bg-background disabled:opacity-50"
+        <Button
+          variant="outline"
+          size="icon"
+          className="size-10"
           onClick={moveToRight}
           disabled={disabled}
           aria-label="move to right"
         >
           &gt;
-        </button>
-        <button
-          className="inline-flex h-10 w-10 items-center justify-center rounded border bg-background disabled:opacity-50"
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="size-10"
           onClick={moveToLeft}
           disabled={disabled}
           aria-label="move to left"
         >
           &lt;
-        </button>
+        </Button>
       </div>
 
       {/* Right */}
@@ -134,11 +140,11 @@ export function Transfer({
           <div className="text-sm text-muted-foreground">{filteredRight.length}/{rightData.length}</div>
         </div>
         {showSearch && (
-          <input
+          <Input
             placeholder="搜索 / Search"
             value={rightFilter}
             onChange={(e) => setRightFilter(e.target.value)}
-            className="mb-2 w-full rounded border px-2 py-1 text-sm"
+            className="mb-2 h-8"
             disabled={disabled}
           />
         )}

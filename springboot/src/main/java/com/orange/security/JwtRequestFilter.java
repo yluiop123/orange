@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * JwtRequestFilter 是用于JWT身份验证的过滤器。
@@ -58,6 +59,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (null != username && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             if (jwtUtil.validateJwtToken(token, userDetails)) {
+                String path = request.getRequestURI();
+                boolean allowedBeforePasswordChange =
+                        path.equals("/api/user/change-password")
+                                || path.equals("/api/user/userInfo")
+                                || path.equals("/api/user/logout");
+                if (userDetails instanceof AuthUser authUser
+                        && authUser.isMustChangePassword()
+                        && !allowedBeforePasswordChange) {
+                    writeMustChangePassword(response);
+                    return;
+                }
                 UsernamePasswordAuthenticationToken
                         authenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
@@ -67,5 +79,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void writeMustChangePassword(HttpServletResponse response) throws IOException {
+        String body = "{\"code\":40302,\"message\":\"请先修改初始密码\",\"data\":null,"
+                + "\"timestamp\":" + System.currentTimeMillis()
+                + ",\"traceId\":\"" + UUID.randomUUID().toString().replace("-", "") + "\"}";
+        byte[] bytes = body.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+        response.setContentLength(bytes.length);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
     }
 }

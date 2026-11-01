@@ -1,3 +1,5 @@
+import 'leaflet/dist/leaflet.css'
+import '@/lib/fixLeafletIcon'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 
 const center: [number, number] = [39.9042, 116.4074] // 北京

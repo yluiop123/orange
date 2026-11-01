@@ -1,14 +1,17 @@
+import { getRole, updateRole } from "@/api/system/role";
 import DialogForm, { Field } from "@/components/dialog-form";
-import axios from "@/lib/axios";
-import { useEffect, useState } from "react";
+import { applyServerFieldErrors } from "@/lib/form-errors";
+import { useEffect, useRef, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export default function Index(props: {setOpen: (open: boolean) => void, open: boolean, onSave: () => void, id: string }) {
-    const {setOpen, onSave, open, id} = props;
+export default function Index(props: { setOpen: (open: boolean) => void, open: boolean, onSave: () => void, id: string }) {
+    const { setOpen, onSave, open, id } = props;
     const intl = useIntl();
-    const fields:Field[] = [
+    const formRef = useRef<UseFormReturn<Record<string, unknown>>>(null);
+    const fields: Field[] = [
         {
             name: "id",
             label: "page.system.role.header.role",
@@ -37,39 +40,37 @@ export default function Index(props: {setOpen: (open: boolean) => void, open: bo
     const [values, setValues] = useState<Record<string, unknown>>({});
 
     useEffect(() => {
-        if(id === '') {
+        if (id === '') {
             return;
         }
-        axios.get("/system/roles/detail/" + id).then(res => {
-            if (res.data.code === 200) {
-                const user = res.data.data;
-                setValues (user);
-            } 
-        })
+        let cancelled = false;
+        getRole(id).then((role) => {
+            if (!cancelled) setValues(role);
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [id])
 
     const schemaShape = fields.reduce((acc, field) => {
         acc[field.name] = field.validate || z.string().optional();
         return acc;
     }, {} as Record<string, z.ZodTypeAny>);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const formSchema = z.object(schemaShape);
-    // 2. Define a submit handler. 
+
     function onSubmit(fieldValues: z.infer<typeof formSchema>) {
-        axios.post("/system/roles/edit", {
-            ...fieldValues,
-            id:id
-        }).then(res => {
-            if(res.data.code === 200) {
-                setOpen(false);
-                toast.success(res.data.message);
-                onSave();
-            }else {
-                toast.error(res.data.message);
-            }
+        updateRole(id, fieldValues).then(() => {
+            setOpen(false);
+            toast.success(intl.formatMessage({ id: 'message.success' }));
+            onSave();
+        }).catch((error) => {
+            applyServerFieldErrors(formRef, error);
         })
     }
     return (
-        open && Object.keys(values).length > 0 &&<DialogForm
+        open && Object.keys(values).length > 0 && <DialogForm
+            ref={formRef}
             setOpen={setOpen}
             open={open}
             title={intl.formatMessage({ id: 'button.edit' })}

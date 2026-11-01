@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { routeSetting } from "@/routes"
+import orangeLogo from "@/assets/orange.png"
 import * as React from "react"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -23,7 +24,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
           <Avatar className="h-15 w-15 rounded-lg ml-15 group-data-[state=collapsed]:hidden">
-            <AvatarImage src="orange.png" />
+            <AvatarImage src={orangeLogo} />
             <AvatarFallback className="rounded-lg">Orange</AvatarFallback>
           </Avatar>
       </SidebarHeader>

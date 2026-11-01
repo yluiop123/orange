@@ -1,13 +1,16 @@
+import { useAccessToken } from "@/auth/token";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ChangePasswordDialog } from "@/components/change-password-dialog";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { isPathWithin, isSamePath } from "@/lib/path";
 import { useUserStore } from '@/store';
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 //根据用户登录信息进行权限控制
 export default function Index() {
-    const { token, userInfo, fetchUser } = useUserStore();
-    const navigate = useNavigate();
+    const token = useAccessToken();
+    const { userInfo, fetchUser } = useUserStore();
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     const hasFetchedRef = useRef(false);
@@ -33,15 +36,17 @@ export default function Index() {
     const currentPath = location.pathname;
 
     // 2. 判定逻辑
-    const hasMenuPermission = userInfo?.currentMenuPermission?.includes(currentPath);
-    const hasDirectionPermission = userInfo?.currentDirectionPermission?.some(dir => 
-        // 确保 dir 以 / 开头或结尾逻辑一致，判定当前路径是否在目录下
-        currentPath.startsWith(dir)
+    const hasMenuPermission = userInfo?.currentMenuPermission?.some(path => isSamePath(path, currentPath));
+    const hasDirectoryPermission = userInfo?.currentDirectoryPermission?.some(dir =>
+        isPathWithin(currentPath, dir)
     );
 
     // 3. 组合判断
-    if (!token || (!hasMenuPermission && !hasDirectionPermission)) {
-        navigate('/login');
+    if (!token) {
+        return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+    }
+    if (!hasMenuPermission && !hasDirectoryPermission && !userInfo?.mustChangePassword) {
+        return <Navigate to="/forbidden" replace state={{ from: location.pathname + location.search }} />;
     }
     return (
         <SidebarProvider>
@@ -58,6 +63,9 @@ export default function Index() {
                 </div>
                 </div>
             </SidebarInset>
+            {userInfo?.mustChangePassword && (
+                <ChangePasswordDialog open onOpenChange={() => {}} forced />
+            )}
         </SidebarProvider>
     )
 }

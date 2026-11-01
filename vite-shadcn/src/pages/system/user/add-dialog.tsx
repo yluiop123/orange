@@ -1,17 +1,23 @@
+import { createUser } from "@/api/system/user";
+import type { UserPayload } from "@/api/system/user";
 import DialogForm, { Field } from "@/components/dialog-form";
-import axios from "@/lib/axios";
+import { applyServerFieldErrors } from "@/lib/form-errors";
+import { useRef } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
 import { z } from "zod";
-export default function Index(props: {open: boolean,setOpen:(open:boolean)=>void,onSave: () => void }) {
-    const {open,setOpen,onSave}=props;
+
+export default function Index(props: { open: boolean, setOpen: (open: boolean) => void, onSave: () => void, onCreated?: (password: string, username: string) => void }) {
+    const { open, setOpen, onSave, onCreated } = props;
     const intl = useIntl();
+    const formRef = useRef<UseFormReturn<Record<string, unknown>>>(null);
     const rolesSchema = z.object({
         label: z.string(),
         value: z.string(),
         disable: z.boolean().optional(),
     });
-    const fields:Field[] = [
+    const fields: Field[] = [
         {
             name: "username",
             label: "page.system.user.header.userName",
@@ -72,24 +78,30 @@ export default function Index(props: {open: boolean,setOpen:(open:boolean)=>void
     }, {} as Record<string, z.ZodTypeAny>);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const formSchema = z.object(schemaShape);
-    // 2. Define a submit handler. 
+
     function onSubmit(values: z.infer<typeof formSchema>) {
-        values.roles = values.roles.map((item: { label: string; value: string;}) => (item.value));
-        values.groupId = values.groupId?values.groupId:'';
-        axios.post("/system/users/add", {
-            ...values
-        }).then(res => {
-            if(res.data.code === 200) {
-                setOpen(false);
-                toast.success(res.data.message);
-                onSave();
-            }else {
-                toast.error(res.data.message);
-            }
+        const payload: UserPayload = {
+            username: values.username as string,
+            name: values.name as string,
+            email: values.email as string,
+            phone: values.phone as string,
+            groupId: (values.groupId as string) || '',
+            roles: (values.roles as { value: string }[] | undefined)?.map((item) => item.value) ?? [],
+            permissions: (values.permissions as string[] | undefined) ?? [],
+        };
+        createUser(payload).then((password) => {
+            setOpen(false);
+            toast.success(intl.formatMessage({ id: 'message.success' }));
+            onCreated?.(password, values.username as string);
+            onSave();
+        }).catch((error) => {
+            applyServerFieldErrors(formRef, error);
+            // 错误提示由 axios 拦截器统一处理
         })
     }
     return (
         <DialogForm
+            ref={formRef}
             open={open}
             setOpen={setOpen}
             title={intl.formatMessage({ id: 'button.add' })}

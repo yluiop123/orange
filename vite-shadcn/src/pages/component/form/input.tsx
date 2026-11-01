@@ -9,6 +9,7 @@ import * as z from "zod"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { InputGroupButton } from "@/components/ui/input-group"
 // New Imports
 import {
   Field,
@@ -105,13 +106,14 @@ export default function InputExample() {
                   placeholder="至少8个字符"
                   className="focus-visible:ring-0 shadow-none"
                 />
-                <button
+                <InputGroupButton
                   type="button"
+                  size="icon-xs"
                   onClick={() => setShowPassword(!showPassword)}
                   className="mr-3 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                </InputGroupButton>
               </FieldGroup>
               {errors.password && <FieldError>{errors.password.message}</FieldError>}
             </Field>

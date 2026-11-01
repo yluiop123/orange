@@ -2,6 +2,7 @@
 "use client"
 
 import { Segmented, SegmentedOption } from "@/components/ext/segmented"
+import { Button } from "@/components/ui/button"
 import * as React from "react"
 
 export default function SegmentedDemo() {
@@ -58,15 +59,16 @@ export default function SegmentedDemo() {
           }}
           loading={showLoading}
         />
-        <button
-          className="rounded-md border px-3 py-1 text-sm"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             setLoadingSel("month")
             setShowLoading(true)
           }}
         >
           Set Month（触发加载）
-        </button>
+        </Button>
       </div>
 
       <h2 className="text-xl font-bold">Error & Disabled 状态（错误和禁用）</h2>
