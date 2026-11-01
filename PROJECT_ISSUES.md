@@ -41,6 +41,10 @@
 | expiresIn / 主动刷新 | 后端联调 + 代码检查 | 登录/刷新返回 expiresIn；前端在过期前 30 秒主动刷新 |
 | refresh 轮换 | 后端联调 | 旧 refresh cookie 重放返回 401，新 cookie 正常换取 token |
 | token subject | 后端联调 | JWT subject 为不可变用户 ID，username 作为独立 claim |
+| JWT 单次解析 | 代码检查 | 过滤器先解析为 `JwtClaims`，再校验类型/版本/主体，不再重复 parse |
+| 401 契约 | 后端联调 | 未登录/无效 token 返回 401 + 40101 + traceId |
+| 强制改密 403 | 后端联调 | 其他接口返回 403 + 40302 + traceId；userInfo/menus 仍可访问 |
+| 安全单测 | `mvn -Dtest=... test` | 11 个用例全部通过 |
 | 登录限流 | 后端联调 | 失败计数写入数据库，第 6 次返回 429 |
 | 审计字段 | 数据库检查 | 新建角色 created_by/updated_by 自动写入当前用户 |
 | 操作日志 | 数据库检查 | POST/DELETE 写操作记录 username/path/status/耗时 |
@@ -149,7 +153,13 @@
 - token subject 改为不可变用户 ID，username 放入单独 claim，兼容旧 token；
 - refresh token 轮换并记录旧 `jti`，重放旧 refresh token 返回 401；
 - 登录失败计数改为数据库存储，多实例共享；
-- refresh Cookie 支持 `Secure`、`SameSite`、`Domain` 配置。
+- refresh Cookie 支持 `Secure`、`SameSite`、`Domain` 配置；
+- 每个请求只解析一次 access token，解析结果使用 `JwtClaims`；
+- 401 统一返回 `Response` 契约（`40101` + traceId），不再使用 `sendError`；
+- 强制改密 `40302` 与 401 共用 `SecurityResponseWriter`；
+- `PermissionAuthorityBuilder` 集中处理角色/权限 authority 与禁用过滤；
+- 安全包统一构造器注入，删除死代码和重复校验；
+- 新增 `JwtUtil`、`LoginAttemptService`、`PermissionAuthorityBuilder` 单元测试。
 
 仍存在：
 
@@ -375,12 +385,17 @@
 | 领域词汇 | `CONTEXT.md` |
 | 权限身份 ADR | `docs/adr/0001-path-as-permission-identity.md` |
 | 前端国际化 | `vite-shadcn/src/store/locale.ts` |
-| 前端路由 | `vite-shadcn/src/App.tsx`、`src/routes.ts` |
+| 前端路由 | `vite-shadcn/src/App.tsx`、`src/lib/page-routes.ts` |
+| 前端菜单 | `vite-shadcn/src/store/menu.ts`、`src/components/menu-redirect.tsx`、`src/config/menu-icons.ts` |
 | 前端布局/权限 | `vite-shadcn/src/layout.tsx`、`src/components/sidebar-menutree.tsx` |
 | 后端安全配置 | `springboot/src/main/java/com/orange/security/SecurityConfig.java` |
+| 后端 JWT | `springboot/src/main/java/com/orange/security/JwtUtil.java`、`JwtClaims.java` |
+| 后端 401/403 输出 | `springboot/src/main/java/com/orange/security/SecurityResponseWriter.java` |
 | 后端权限加载 | `springboot/src/main/java/com/orange/security/JwtUserDetailsService.java` |
+| 后端 authority 组装 | `springboot/src/main/java/com/orange/security/PermissionAuthorityBuilder.java` |
 | 后端 token 版本 | `springboot/src/main/java/com/orange/security/AuthUser.java` |
 | 后端登录限流 | `springboot/src/main/java/com/orange/security/LoginAttemptService.java` |
+| 后端安全单测 | `springboot/src/test/java/com/orange/security/` |
 | 后端登录 | `springboot/src/main/java/com/orange/controller/login/LoginController.java` |
 | 后端全局异常 | `springboot/src/main/java/com/orange/controller/GlobalExceptionHandler.java` |
 | 后端用户服务 | `springboot/src/main/java/com/orange/service/system/impl/UserServiceImpl.java` |

@@ -13,39 +13,38 @@ import java.time.Duration;
 public class RefreshTokenCookie {
 
     public static final String NAME = "refresh_token";
+    private static final String COOKIE_PATH = "/api/user";
 
-    @Value("${app.auth.cookie-secure:false}")
-    private boolean secure;
+    private final boolean secure;
+    private final String sameSite;
+    private final String domain;
+    private final long refreshExpire;
 
-    @Value("${app.auth.cookie-same-site:Lax}")
-    private String sameSite;
-
-    @Value("${app.auth.cookie-domain:}")
-    private String domain;
-
-    @Value("${jwt.refresh-expire}")
-    private long refreshExpire;
+    public RefreshTokenCookie(@Value("${app.auth.cookie-secure:false}") boolean secure,
+                              @Value("${app.auth.cookie-same-site:Lax}") String sameSite,
+                              @Value("${app.auth.cookie-domain:}") String domain,
+                              @Value("${jwt.refresh-expire}") long refreshExpire) {
+        this.secure = secure;
+        this.sameSite = sameSite;
+        this.domain = domain;
+        this.refreshExpire = refreshExpire;
+    }
 
     public ResponseCookie create(String token) {
+        return build(token, Duration.ofSeconds(refreshExpire));
+    }
+
+    public ResponseCookie clear() {
+        return build("", Duration.ZERO);
+    }
+
+    private ResponseCookie build(String token, Duration maxAge) {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(NAME, token)
                 .httpOnly(true)
                 .secure(secure)
                 .sameSite(sameSite)
-                .path("/api/user")
-                .maxAge(Duration.ofSeconds(refreshExpire));
-        if (domain != null && !domain.isBlank()) {
-            builder.domain(domain);
-        }
-        return builder.build();
-    }
-
-    public ResponseCookie clear() {
-        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(NAME, "")
-                .httpOnly(true)
-                .secure(secure)
-                .sameSite(sameSite)
-                .path("/api/user")
-                .maxAge(Duration.ZERO);
+                .path(COOKIE_PATH)
+                .maxAge(maxAge);
         if (domain != null && !domain.isBlank()) {
             builder.domain(domain);
         }

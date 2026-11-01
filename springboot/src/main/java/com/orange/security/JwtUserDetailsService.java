@@ -1,17 +1,8 @@
 package com.orange.security;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.orange.entity.Permission;
-import com.orange.entity.Role;
+import com.orange.entity.User;
 import com.orange.repository.system.UserRepository;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,74 +12,27 @@ import org.springframework.transaction.annotation.Transactional;
 import static com.orange.config.Constanst.STATUS_DISABLE;
 
 @Service
+@RequiredArgsConstructor
 public class JwtUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PermissionAuthorityBuilder authorityBuilder;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // create a user for "randomuser123"/"password".
-        com.orange.entity.User user = userRepository.findByUsername(username);
-        if (user==null) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);
-        } else {
-            Set<Role> roles = user.getRoles();
-            Set<String> permissions = new HashSet<>();
-            for (Role role : roles) {
-                if (STATUS_DISABLE.equals(role.getStatus())) {
-                    continue;
-                }
-                for (Permission permission : role.getPermissions()) {
-                    if (STATUS_DISABLE.equals(permission.getStatus())) {
-                        continue;
-                    }
-                    permissions.addAll(getPermissionStrs(permission));
-                }
-            }
-            for (Permission permission : user.getPermissions()) {
-                if (STATUS_DISABLE.equals(permission.getStatus())) {
-                    continue;
-                }
-                permissions.addAll(getPermissionStrs(permission));
-            }
-
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            for (Role role : roles) {
-                if (STATUS_DISABLE.equals(role.getStatus())) {
-                    continue;
-                }
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getId()));
-            }
-            for (String permission : permissions) {
-                authorities.add(new SimpleGrantedAuthority(permission));
-            }
-            int tokenVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
-            return new AuthUser(
-                    user.getId(),
-                    username,
-                    user.getPassword(),
-                    !STATUS_DISABLE.equals(user.getStatus()),
-                    authorities,
-                    tokenVersion,
-                    Boolean.TRUE.equals(user.getMustChangePassword()));
         }
-    }
-
-    private Set<String> getPermissionStrs(Permission permission) {
-        Set<String> permissions = new HashSet<>();
-        String id = permission.getId();
-        permissions.add(id);
-
-        String type = permission.getType();
-        String path = permission.getPath();
-        String action = permission.getAction();
-        String permissionStr = type+"#"+path;
-        if (StringUtils.isNotBlank(action)) {
-            permissionStr+=":"+action;
-        }
-        permissions.add(permissionStr);
-        return permissions;
+        int tokenVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
+        return new AuthUser(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                !STATUS_DISABLE.equals(user.getStatus()),
+                authorityBuilder.build(user),
+                tokenVersion,
+                Boolean.TRUE.equals(user.getMustChangePassword()));
     }
 }

@@ -5,9 +5,9 @@ import com.orange.repository.system.RevokedTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 
 /**
  * refresh token 单 token 吊销：记录已轮换/登出的 jti，直到原过期时间。
@@ -22,14 +22,18 @@ public class TokenBlacklistService {
     }
 
     @Transactional
-    public void revoke(String jti, String tokenType, Date expiresAt) {
-        if (jti == null || jti.isBlank()) return;
+    public void revoke(String jti, String tokenType, Instant expiresAt) {
+        if (jti == null || jti.isBlank() || expiresAt == null) {
+            return;
+        }
         repository.deleteByExpiresAtBefore(OffsetDateTime.now());
-        if (repository.existsById(jti)) return;
+        if (repository.existsById(jti)) {
+            return;
+        }
         RevokedToken token = new RevokedToken();
         token.setJti(jti);
         token.setTokenType(tokenType);
-        token.setExpiresAt(expiresAt.toInstant().atOffset(ZoneOffset.UTC));
+        token.setExpiresAt(expiresAt.atOffset(ZoneOffset.UTC));
         token.setCreateTime(OffsetDateTime.now());
         repository.save(token);
     }

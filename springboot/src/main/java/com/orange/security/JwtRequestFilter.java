@@ -1,96 +1,86 @@
 package com.orange.security;
 
+import com.orange.domain.common.ErrorCode;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.util.UUID;
+import java.util.Set;
 
 /**
- * JwtRequestFilter 是用于JWT身份验证的过滤器。
- * 它继承了 OncePerRequestFilter 类，确保过滤器每个请求只应用一次。
+ * 每个请求只解析一次 access token，再加载用户并校验版本、主体和过期时间。
  */
-
-@Component
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final Set<String> ALLOWED_BEFORE_PASSWORD_CHANGE = Set.of(
+            "/api/user/change-password",
+            "/api/user/userInfo",
+            "/api/user/menus",
+            "/api/user/logout");
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
+    private final SecurityResponseWriter responseWriter;
 
-    /**
-     * 对每个传入的请求调用此方法，执行JWT身份验证过程。
-     *
-     * @param request       表示传入请求的 HttpServletRequest 对象。
-     * @param response      表示要发送的 HttpServletResponse 对象。
-     * @param filterChain   用于调用链中的下一个过滤器的 FilterChain 对象。
-     * @throws ServletException     处理请求时发生异常。
-     * @throws IOException          发生I/O异常。
-     */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,FilterChain filterChain) throws ServletException, IOException {
-        String tokenHeader = request.getHeader("Authorization");
-        String username = null;
-        String token = null;
-        // if bearer token is provided, get the username
-        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-            token = tokenHeader.substring(7);
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String token = resolveToken(request);
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                username = jwtUtil.getUsernameFromToken(token);
-            } catch (Exception e) {
-                logger.warn("JWT Token validation failed: " + e.getMessage());
-                // 不要在这里 throw 异常，否则 permitAll 的接口也进不去
-            }
-        }
-        // validate the JWT Token and create a new authentication token and set in security context
-        if (null != username && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateJwtToken(token, userDetails)) {
-                String path = request.getRequestURI();
-                boolean allowedBeforePasswordChange =
-                        path.equals("/api/user/change-password")
-                                || path.equals("/api/user/userInfo")
-                                || path.equals("/api/user/menus")
-                                || path.equals("/api/user/logout");
-                if (userDetails instanceof AuthUser authUser
-                        && authUser.isMustChangePassword()
-                        && !allowedBeforePasswordChange) {
-                    writeMustChangePassword(response);
-                    return;
+                JwtClaims claims = jwtUtil.parseAccessToken(token);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(claims.effectiveUsername());
+                if (jwtUtil.isAccessTokenValid(claims, userDetails)) {
+                    if (mustChangePassword(userDetails, request)) {
+                        responseWriter.write(response, ErrorCode.PASSWORD_CHANGE_REQUIRED);
+                        return;
+                    }
+                    authenticate(request, userDetails);
                 }
-                UsernamePasswordAuthenticationToken
-                        authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authenticationToken.setDetails(new
-                        WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
+                log.warn("JWT authentication failed: {}", e.getMessage());
             }
         }
         filterChain.doFilter(request, response);
     }
 
-    private void writeMustChangePassword(HttpServletResponse response) throws IOException {
-        String body = "{\"code\":40302,\"message\":\"请先修改初始密码\",\"data\":null,"
-                + "\"timestamp\":" + System.currentTimeMillis()
-                + ",\"traceId\":\"" + UUID.randomUUID().toString().replace("-", "") + "\"}";
-        byte[] bytes = body.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.setContentType("application/json;charset=UTF-8");
-        response.setContentLength(bytes.length);
-        response.getOutputStream().write(bytes);
-        response.flushBuffer();
+    private String resolveToken(HttpServletRequest request) {
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header == null || !header.startsWith(BEARER_PREFIX)) {
+            return null;
+        }
+        return header.substring(BEARER_PREFIX.length());
+    }
+
+    private boolean mustChangePassword(UserDetails userDetails, HttpServletRequest request) {
+        return userDetails instanceof AuthUser authUser
+                && authUser.isMustChangePassword()
+                && !ALLOWED_BEFORE_PASSWORD_CHANGE.contains(request.getRequestURI());
+    }
+
+    private void authenticate(HttpServletRequest request, UserDetails userDetails) {
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

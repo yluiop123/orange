@@ -6,6 +6,7 @@ import com.orange.domain.login.req.LoginReq;
 import com.orange.domain.login.req.ChangePasswordReq;
 import com.orange.domain.login.resp.LoginResp;
 import com.orange.domain.login.resp.UserInfo;
+import com.orange.security.JwtClaims;
 import com.orange.security.JwtUtil;
 import com.orange.security.LoginAttemptService;
 import com.orange.security.TokenBlacklistService;
@@ -95,17 +96,17 @@ public class LoginController {
             return unauthorized(response, "未登录");
         }
         try {
-            String username = jwtUtil.getUsernameFromRefreshToken(refreshToken);
-            String jti = jwtUtil.getJtiFromRefreshToken(refreshToken);
+            JwtClaims claims = jwtUtil.parseRefreshToken(refreshToken);
+            String jti = claims.tokenId();
             if (tokenBlacklistService.isRevoked(jti)) {
                 return unauthorized(response, "登录已过期");
             }
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (!jwtUtil.validateRefreshToken(refreshToken, userDetails)) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(claims.effectiveUsername());
+            if (!jwtUtil.isRefreshTokenValid(claims, userDetails)) {
                 return unauthorized(response, "登录已过期");
             }
             // 轮换 refresh token：旧 jti 立即吊销，避免重放
-            tokenBlacklistService.revoke(jti, "refresh", jwtUtil.getExpirationFromRefreshToken(refreshToken));
+            tokenBlacklistService.revoke(jti, "refresh", claims.expiresAt());
             String accessToken = jwtUtil.generateJwtToken(userDetails);
             String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.create(newRefreshToken).toString());
@@ -124,11 +125,9 @@ public class LoginController {
         String username = null;
         if (refreshToken != null && !refreshToken.isBlank()) {
             try {
-                username = jwtUtil.getUsernameFromRefreshToken(refreshToken);
-                tokenBlacklistService.revoke(
-                        jwtUtil.getJtiFromRefreshToken(refreshToken),
-                        "refresh",
-                        jwtUtil.getExpirationFromRefreshToken(refreshToken));
+                JwtClaims claims = jwtUtil.parseRefreshToken(refreshToken);
+                username = claims.effectiveUsername();
+                tokenBlacklistService.revoke(claims.tokenId(), "refresh", claims.expiresAt());
             } catch (Exception e) {
                 log.debug("logout with invalid refresh token: {}", e.getMessage());
             }

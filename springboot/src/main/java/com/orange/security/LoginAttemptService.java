@@ -19,19 +19,21 @@ import java.util.Locale;
 @Service
 public class LoginAttemptService {
 
+    private static final String IP_PREFIX = "ip:";
+    private static final String USER_PREFIX = "user:";
+
     private final LoginAttemptRepository repository;
-
-    @Value("${app.auth.login-max-attempts:5}")
-    private int userMaxAttempts = 5;
-
-    @Value("${app.auth.login-ip-max-attempts:20}")
-    private int ipMaxAttempts = 20;
-
+    private final int userMaxAttempts;
+    private final int ipMaxAttempts;
     private final long lockMinutes;
 
     public LoginAttemptService(LoginAttemptRepository repository,
+                               @Value("${app.auth.login-max-attempts:5}") int userMaxAttempts,
+                               @Value("${app.auth.login-ip-max-attempts:20}") int ipMaxAttempts,
                                @Value("${app.auth.login-lock-minutes:15}") long lockMinutes) {
         this.repository = repository;
+        this.userMaxAttempts = userMaxAttempts;
+        this.ipMaxAttempts = ipMaxAttempts;
         this.lockMinutes = lockMinutes;
     }
 
@@ -55,12 +57,7 @@ public class LoginAttemptService {
         LoginAttempt attempt = repository.findForUpdate(key).orElse(null);
         OffsetDateTime now = OffsetDateTime.now();
         if (attempt == null) {
-            attempt = new LoginAttempt();
-            attempt.setKey(key);
-            attempt.setFailures(1);
-            attempt.setWindowStart(now);
-            attempt.setUpdateTime(now);
-            if (maxAttempts <= 1) attempt.setLockedUntil(now.plusMinutes(lockMinutes));
+            attempt = newAttempt(key, now, maxAttempts);
             try {
                 repository.saveAndFlush(attempt);
                 return;
@@ -70,6 +67,23 @@ public class LoginAttemptService {
                 if (attempt == null) throw e;
             }
         }
+        increment(attempt, now, maxAttempts);
+        repository.save(attempt);
+    }
+
+    private LoginAttempt newAttempt(String key, OffsetDateTime now, int maxAttempts) {
+        LoginAttempt attempt = new LoginAttempt();
+        attempt.setKey(key);
+        attempt.setFailures(1);
+        attempt.setWindowStart(now);
+        attempt.setUpdateTime(now);
+        if (maxAttempts <= 1) {
+            attempt.setLockedUntil(now.plusMinutes(lockMinutes));
+        }
+        return attempt;
+    }
+
+    private void increment(LoginAttempt attempt, OffsetDateTime now, int maxAttempts) {
         if (attempt.getWindowStart() == null
                 || attempt.getWindowStart().plusMinutes(lockMinutes).isBefore(now)) {
             attempt.setFailures(1);
@@ -82,14 +96,13 @@ public class LoginAttemptService {
             attempt.setLockedUntil(now.plusMinutes(lockMinutes));
         }
         attempt.setUpdateTime(now);
-        repository.save(attempt);
     }
 
     private static String ipKey(String ip) {
-        return "ip:" + (ip == null ? "" : ip.trim());
+        return IP_PREFIX + (ip == null ? "" : ip.trim());
     }
 
     private static String userKey(String username) {
-        return "user:" + (username == null ? "" : username.trim().toLowerCase(Locale.ROOT));
+        return USER_PREFIX + (username == null ? "" : username.trim().toLowerCase(Locale.ROOT));
     }
 }

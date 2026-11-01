@@ -11,6 +11,8 @@ import java.util.Collection;
  */
 public class AuthUser extends User {
 
+    private static final long serialVersionUID = 1L;
+
     private final String userId;
     private final int tokenVersion;
     private final boolean mustChangePassword;
