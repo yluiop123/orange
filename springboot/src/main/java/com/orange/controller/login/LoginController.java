@@ -6,17 +6,17 @@ import com.orange.domain.login.req.LoginReq;
 import com.orange.domain.login.req.ChangePasswordReq;
 import com.orange.domain.login.resp.LoginResp;
 import com.orange.domain.login.resp.UserInfo;
+import com.orange.security.auth.LoginAttemptService;
+import com.orange.security.auth.RefreshTokenCookie;
+import com.orange.security.auth.TokenBlacklistService;
 import com.orange.security.jwt.JwtClaims;
 import com.orange.security.jwt.JwtUtil;
-import com.orange.security.auth.LoginAttemptService;
-import com.orange.security.auth.TokenBlacklistService;
-import com.orange.security.auth.RefreshTokenCookie;
 import com.orange.service.system.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,21 +32,15 @@ import java.security.Principal;
 @Slf4j
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class LoginController {
-    @Autowired
-    private UserDetailsService userDetailsService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private JwtUtil jwtUtil;
-    @Autowired
-    private RefreshTokenCookie refreshTokenCookie;
-    @Autowired
-    private LoginAttemptService loginAttemptService;
-    @Autowired
-    private TokenBlacklistService tokenBlacklistService;
+    private final UserDetailsService userDetailsService;
+    private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final RefreshTokenCookie refreshTokenCookie;
+    private final LoginAttemptService loginAttemptService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @PostMapping("/login")
     public ResponseEntity<Response<LoginResp>> login(@Valid @RequestBody LoginReq req,

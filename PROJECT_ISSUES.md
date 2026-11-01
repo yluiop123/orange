@@ -45,6 +45,7 @@
 | 401 契约 | 后端联调 | 未登录/无效 token 返回 401 + 40101 + traceId |
 | 强制改密 403 | 后端联调 | 其他接口返回 403 + 40302 + traceId；userInfo/menus 仍可访问 |
 | 安全单测 | `mvn -Dtest=... test` | 11 个用例全部通过 |
+| 安全集成测试 | Testcontainers + 真实 HTTP | 6 个用例通过：401 契约、登录、菜单树、refresh 重放、登出吊销、403/40302 |
 | 配置属性绑定 | 后端联调 | `expiresIn=900`、refresh Cookie `Max-Age=604800`、`SameSite=Lax` 均来自 properties |
 | 登录限流 | 后端联调 | 失败计数写入数据库，第 6 次返回 429 |
 | 审计字段 | 数据库检查 | 新建角色 created_by/updated_by 自动写入当前用户 |
@@ -160,7 +161,10 @@
 - 强制改密 `40302` 与 401 共用 `SecurityResponseWriter`；
 - `PermissionAuthorityBuilder` 集中处理角色/权限 authority 与禁用过滤；
 - `jwt.*` 和 `app.auth.*` 收进 `JwtProperties` / `AuthProperties`，通过 `@ConfigurationPropertiesScan` 注册；
+- `app.cors.allowed-origins` 收进 `CorsProperties`；
 - `security` 按职责拆分为 `jwt`、`auth`、`config` 子包；
+- `LoginController` 改为构造器注入；
+- 新增 Testcontainers + 真实 PostgreSQL 的安全集成测试，覆盖登录、菜单树、refresh 重放、登出吊销、403 和 40302；
 - 安全包统一构造器注入，删除死代码和重复校验；
 - 新增 `JwtUtil`、`LoginAttemptService`、`PermissionAuthorityBuilder` 单元测试。
 
@@ -400,6 +404,7 @@
 | 后端 token 版本 | `springboot/src/main/java/com/orange/security/jwt/AuthUser.java` |
 | 后端登录限流 | `springboot/src/main/java/com/orange/security/auth/LoginAttemptService.java` |
 | 后端安全单测 | `springboot/src/test/java/com/orange/security/jwt/`、`auth/`、`SecurityResponseWriterTest.java` |
+| 后端安全集成测试 | `springboot/src/test/java/com/orange/security/SecurityIntegrationTest.java` |
 | 后端登录 | `springboot/src/main/java/com/orange/controller/login/LoginController.java` |
 | 后端全局异常 | `springboot/src/main/java/com/orange/controller/GlobalExceptionHandler.java` |
 | 后端用户服务 | `springboot/src/main/java/com/orange/service/system/impl/UserServiceImpl.java` |

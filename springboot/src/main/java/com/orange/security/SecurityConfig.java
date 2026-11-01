@@ -1,8 +1,8 @@
 package com.orange.security;
 
+import com.orange.security.config.CorsProperties;
 import com.orange.security.jwt.JwtAuthenticationEntryPoint;
 import com.orange.security.jwt.JwtRequestFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -38,14 +38,14 @@ public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtRequestFilter jwtRequestFilter;
-    private final String[] allowedOrigins;
+    private final CorsProperties corsProperties;
 
     public SecurityConfig(JwtAuthenticationEntryPoint authenticationEntryPoint,
                           JwtRequestFilter jwtRequestFilter,
-                          @Value("${app.cors.allowed-origins:http://localhost:3000}") String[] allowedOrigins) {
+                          CorsProperties corsProperties) {
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.jwtRequestFilter = jwtRequestFilter;
-        this.allowedOrigins = allowedOrigins;
+        this.corsProperties = corsProperties;
     }
 
     @Bean
@@ -79,7 +79,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // 只允许明确列出的来源，不要使用 "*"
-        configuration.setAllowedOrigins(List.of(allowedOrigins));
+        configuration.setAllowedOrigins(corsProperties.allowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Locale"));
         // refresh token 使用 HttpOnly Cookie，跨域部署时必须允许凭证。
