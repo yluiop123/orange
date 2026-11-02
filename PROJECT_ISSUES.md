@@ -19,7 +19,7 @@
 - **菜单**：`GET /api/v1/auth/menus` 返回启用菜单树；前端删除 `routes.ts`，页面路由由文件系统自动生成；前端只保留 `path → 图标` 映射；面包屑和 `/` 默认跳转使用后端菜单树。
 - **数据库**：主键、外键、索引、`sys_user.username` 唯一约束齐备；审计字段、操作日志、`timestamptz` + `OffsetDateTime` 已落地。
 - **前端**：`src/api/` 服务层；`useResourceList` + `ResourceTable` 深模块；系统页优先 shadcn；403 页面和按钮级 403 对话框；请求取消/竞态处理。
-- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；11 个安全单测 + 14 个 Testcontainers 集成测试；lint 0 warning。
+- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；14 个后端单测 + 16 个 Testcontainers 集成测试；lint 0 warning。
 
 ### 0.3 最新验证结果
 
@@ -27,12 +27,12 @@
 |---|---|---|
 | 前端类型检查 | `pnpm exec tsc -b` | 通过 |
 | 前端 lint | `pnpm lint` | 0 errors / 0 warnings |
-| 前端测试 | `pnpm test` | 25 passed |
+| 前端测试 | `pnpm test` | 31 passed |
 | 权限种子一致性 | `pnpm db:seed:check` | 通过 |
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
-| 安全单测 | `mvn -Dtest=JwtUtilTest,... test` | 11 passed |
-| 安全集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 14 passed |
+| 后端单测 | `mvn -Dtest=JwtUtilTest,... test` | 14 passed |
+| 后端集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 16 passed |
 | OpenAPI 快照 | `/api-docs` + `openapi-typescript` | 生成并用于前端 DTO |
 | 操作日志 | 集成测试 | 记录 traceId、请求体、路径和操作人；请求体脱敏并截断 |
 | 日志保留 | 配置检查 | 默认保留 90 天，每天凌晨清理 |
@@ -146,6 +146,7 @@ pnpm gen:api
 - 不存在资源统一 404；补充 405/409 异常映射；LIKE 通配符转义；查询 `readOnly`；
 - 权限类型/action 组合校验、状态/类型正则锚点、旧 `POST .../edit` 缺 id 保护；
 - 排序改造：移除 `order_num`、上移/下移/置顶和 `addBrother`；同级顺序由编码决定，删除不再重排；父级/长度/前缀由数据库 CHECK 约束（ADR 0003）；重置/修改密码清理登录锁定；
+- Business Code 规则收敛为后端 `TreeCodePolicy` + `PermissionShapePolicy`；前端和 Mock 共用 `tree-code-policy.ts` 与同一份 fixture；数据库增加 `ck_sys_permission_action_shape`，拒绝 menu/directory 带 action、action 类型缺 action 的非法权限；
 - 新增树节点校验父节点存在；
 - 种子无密码用户改为禁用；`status` 列 `NOT NULL DEFAULT '1'`；
 - `application.yaml` 默认关闭 Swagger/OpenAPI，本地通过 `SPRINGDOC_ENABLED=true` 开启；`application-prod.yaml` 继续关闭；
@@ -293,6 +294,22 @@ ALTER TABLE public.sys_operation_log ADD COLUMN IF NOT EXISTS trace_id varchar(6
 ALTER TABLE public.sys_operation_log ADD COLUMN IF NOT EXISTS request_body text;
 CREATE INDEX IF NOT EXISTS idx_sys_operation_log_trace ON public.sys_operation_log(trace_id);
 CREATE INDEX IF NOT EXISTS idx_sys_operation_log_username ON public.sys_operation_log(username);
+```
+
+- 已有数据库在增加权限 type/action 约束前，先检查并修正非法数据：
+
+```sql
+SELECT id, type, action
+FROM public.sys_permission
+WHERE (type = 'action' AND (action IS NULL OR btrim(action) = ''))
+   OR (type IN ('menu', 'directory') AND action IS NOT NULL AND btrim(action) <> '');
+
+ALTER TABLE public.sys_permission
+  ADD CONSTRAINT ck_sys_permission_action_shape CHECK (
+    type IS NULL
+    OR (type = 'action' AND action IS NOT NULL AND btrim(action) <> '')
+    OR (type IN ('menu', 'directory') AND (action IS NULL OR btrim(action) = ''))
+  );
 ```
 
 - `README.zh-CN.md` 的未提交修改属于用户原有工作，未做改动。

@@ -60,6 +60,11 @@ CREATE TABLE public.sys_permission (
 	CONSTRAINT sys_permission_pkey PRIMARY KEY (id),
 	CONSTRAINT ck_sys_permission_status CHECK (status IS NULL OR status IN ('0', '1')),
 	CONSTRAINT ck_sys_permission_type CHECK (type IS NULL OR type IN ('menu', 'action', 'directory')),
+	CONSTRAINT ck_sys_permission_action_shape CHECK (
+		type IS NULL
+		OR (type = 'action' AND action IS NOT NULL AND btrim(action) <> '')
+		OR (type IN ('menu', 'directory') AND (action IS NULL OR btrim(action) = ''))
+	),
 	CONSTRAINT ck_sys_permission_code CHECK (
 		id ~ '^[0-9]+$'
 		AND (

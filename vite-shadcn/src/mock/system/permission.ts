@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw";
 import catalog from "@/config/permissions.json";
 import { STATUS_ENABLED, type Status } from "@/lib/status";
+import { checkTreeCode, treeCodeIssueZh } from "@/lib/tree-code-policy";
 
 type Locale = "zh" | "en";
 
@@ -112,15 +113,8 @@ function updatePermission(id: string, patch: Partial<Permission>) {
 }
 
 function validateCode(id: string, parentId: string | null): string | null {
-  if (!/^\d+$/.test(id)) return "权限编码只能包含数字";
-  if (parentId === null) {
-    return id.length === 4 ? null : "根权限编码长度必须为4";
-  }
-  if (id.length !== parentId.length + 2) {
-    return `权限编码长度必须为${parentId.length + 2}`;
-  }
-  if (!id.startsWith(parentId)) return `权限编码必须以${parentId}开头`;
-  return null;
+  const issue = checkTreeCode("permission", id, parentId);
+  return issue ? treeCodeIssueZh("permission", issue) : null;
 }
 
 const handlers = [

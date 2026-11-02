@@ -1,0 +1,53 @@
+{
+  "policy": {
+    "group": {
+      "rootLength": 2,
+      "segmentLength": 2
+    },
+    "permission": {
+      "rootLength": 4,
+      "segmentLength": 2
+    }
+  },
+  "group": {
+    "valid": [
+      { "id": "00", "parentId": null },
+      { "id": "0001", "parentId": "00" },
+      { "id": "000101", "parentId": "0001" }
+    ],
+    "invalid": [
+      { "id": "", "parentId": null, "reason": "blank" },
+      { "id": "0a", "parentId": null, "reason": "digits" },
+      { "id": "0", "parentId": null, "reason": "root-length" },
+      { "id": "001", "parentId": "00", "reason": "length" },
+      { "id": "0100", "parentId": "00", "reason": "prefix" }
+    ]
+  },
+  "permission": {
+    "valid": [
+      { "id": "0005", "parentId": null },
+      { "id": "000501", "parentId": "0005" },
+      { "id": "00050101", "parentId": "000501" }
+    ],
+    "invalid": [
+      { "id": "", "parentId": null, "reason": "blank" },
+      { "id": "00a5", "parentId": null, "reason": "digits" },
+      { "id": "005", "parentId": null, "reason": "root-length" },
+      { "id": "000502", "parentId": "000501", "reason": "length" },
+      { "id": "00050102", "parentId": "000502", "reason": "prefix" }
+    ]
+  },
+  "permissionShape": {
+    "valid": [
+      { "type": "action", "action": "add" },
+      { "type": "menu", "action": null },
+      { "type": "directory", "action": "" }
+    ],
+    "invalid": [
+      { "type": "action", "action": null, "reason": "action-required" },
+      { "type": "action", "action": "", "reason": "action-required" },
+      { "type": "menu", "action": "add", "reason": "action-forbidden" },
+      { "type": "directory", "action": "edit", "reason": "action-forbidden" }
+    ]
+  }
+}

@@ -2,6 +2,7 @@ package com.orange.service.system.impl;
 
 import com.orange.domain.common.BusinessException;
 import com.orange.domain.system.group.req.*;
+import com.orange.domain.system.tree.TreeCodePolicy;
 import com.orange.entity.Group;
 import com.orange.repository.system.GroupRepository;
 import com.orange.repository.system.UserRepository;
@@ -35,11 +36,6 @@ import static com.orange.config.Constanst.STATUS_ENABLE;
 
 @Service
 public class GroupServiceImpl implements GroupService {
-
-    /** 根组织编码长度 */
-    private static final int ROOT_CODE_LENGTH = 2;
-    /** 每层子编码比父编码多出的位数 */
-    private static final int CODE_SEGMENT_LENGTH = 2;
 
     @Autowired
     private GroupRepository groupRepository;
@@ -124,7 +120,7 @@ public class GroupServiceImpl implements GroupService {
     public Group addChild(AddChildGroupReq req) {
         String id = req.getId();
         String parentId = StringUtils.trimToNull(req.getParentId());
-        validateCode(id, parentId);
+        TreeCodePolicy.GROUP.validate(id, parentId);
         if (groupRepository.existsById(id)) {
             throw new BusinessException("组织编码已存在");
         }
@@ -234,29 +230,4 @@ public class GroupServiceImpl implements GroupService {
                 .toList();
     }
 
-    /**
-     * 组织编码即层级顺序：根编码 2 位，子编码 = 父编码 + 2 位数字。
-     * 编码一旦创建不可修改，所以这里只做校验，不生成。
-     */
-    private void validateCode(String id, String parentId) {
-        if (StringUtils.isBlank(id)) {
-            throw new BusinessException("组织编码不能为空");
-        }
-        if (!id.matches("^[0-9]+$")) {
-            throw new BusinessException("组织编码只能包含数字");
-        }
-        if (parentId == null) {
-            if (id.length() != ROOT_CODE_LENGTH) {
-                throw new BusinessException("根组织编码长度必须为" + ROOT_CODE_LENGTH);
-            }
-            return;
-        }
-        int expectedLength = parentId.length() + CODE_SEGMENT_LENGTH;
-        if (id.length() != expectedLength) {
-            throw new BusinessException("组织编码长度必须为" + expectedLength);
-        }
-        if (!id.startsWith(parentId)) {
-            throw new BusinessException("组织编码必须以" + parentId + "开头");
-        }
-    }
 }

@@ -2,6 +2,8 @@ package com.orange.service.system.impl;
 
 import com.orange.domain.common.BusinessException;
 import com.orange.domain.system.permission.req.*;
+import com.orange.domain.system.permission.policy.PermissionShapePolicy;
+import com.orange.domain.system.tree.TreeCodePolicy;
 import com.orange.entity.Permission;
 import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
@@ -34,11 +36,6 @@ import static com.orange.config.Constanst.STATUS_ENABLE;
 
 @Service
 public class PermissionServiceImpl implements PermissionService {
-
-    /** 根权限编码长度 */
-    private static final int ROOT_CODE_LENGTH = 4;
-    /** 每层子编码比父编码多出的位数 */
-    private static final int CODE_SEGMENT_LENGTH = 2;
 
     @Autowired
     private PermissionRepository permissionRepository;
@@ -138,7 +135,7 @@ public class PermissionServiceImpl implements PermissionService {
     public Permission addChild(AddChildPermissionReq req) {
         String id = req.getId();
         String parentId = StringUtils.trimToNull(req.getParentId());
-        validateCode(id, parentId);
+        TreeCodePolicy.PERMISSION.validate(id, parentId);
         if (permissionRepository.existsById(id)) {
             throw new BusinessException("权限编码已存在");
         }
@@ -264,48 +261,8 @@ public class PermissionServiceImpl implements PermissionService {
                 .toList();
     }
 
-    /**
-     * 权限编码即层级顺序：根编码 4 位，子编码 = 父编码 + 2 位数字。
-     * 编码一旦创建不可修改，所以这里只做校验，不生成。
-     */
-    private void validateCode(String id, String parentId) {
-        if (StringUtils.isBlank(id)) {
-            throw new BusinessException("权限编码不能为空");
-        }
-        if (!id.matches("^[0-9]+$")) {
-            throw new BusinessException("权限编码只能包含数字");
-        }
-        if (parentId == null) {
-            if (id.length() != ROOT_CODE_LENGTH) {
-                throw new BusinessException("根权限编码长度必须为" + ROOT_CODE_LENGTH);
-            }
-            return;
-        }
-        int expectedLength = parentId.length() + CODE_SEGMENT_LENGTH;
-        if (id.length() != expectedLength) {
-            throw new BusinessException("权限编码长度必须为" + expectedLength);
-        }
-        if (!id.startsWith(parentId)) {
-            throw new BusinessException("权限编码必须以" + parentId + "开头");
-        }
-    }
-
-    private void validatePermissionShape(String type, String action) {
-        if ("action".equals(type)) {
-            if (StringUtils.isBlank(action)) {
-                throw new BusinessException("action 类型的权限必须填写 action");
-            }
-            return;
-        }
-        if ("menu".equals(type) || "directory".equals(type)) {
-            if (StringUtils.isNotBlank(action)) {
-                throw new BusinessException("menu/directory 类型的权限不能填写 action");
-            }
-        }
-    }
-
     private void assertUniquePermission(String type, String path, String action, String excludeId) {
-        validatePermissionShape(type, action);
+        PermissionShapePolicy.validate(type, action);
         Specification<Permission> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("type"), type));

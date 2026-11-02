@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { STATUS_ENABLED, type Status } from "@/lib/status";
+import { checkTreeCode, treeCodeIssueZh } from "@/lib/tree-code-policy";
 
 type Group = {
   id: string;
@@ -120,15 +121,8 @@ function updateGroup(id: string, patch: Partial<Group>) {
 }
 
 function validateCode(id: string, parentId: string | null): string | null {
-  if (!/^\d+$/.test(id)) return "组织编码只能包含数字";
-  if (parentId === null) {
-    return id.length === 2 ? null : "根组织编码长度必须为2";
-  }
-  if (id.length !== parentId.length + 2) {
-    return `组织编码长度必须为${parentId.length + 2}`;
-  }
-  if (!id.startsWith(parentId)) return `组织编码必须以${parentId}开头`;
-  return null;
+  const issue = checkTreeCode("group", id, parentId);
+  return issue ? treeCodeIssueZh("group", issue) : null;
 }
 
 const handlers = [

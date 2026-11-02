@@ -334,6 +334,30 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void databaseRejectsMenuPermissionWithAction() {
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String rootId = String.format("7%03d", Math.floorMod(suffix.hashCode(), 1000));
+        Permission permission = permission(rootId, null, "/it/shape/" + suffix);
+        permission.setType("menu");
+        permission.setAction("add");
+
+        assertThatThrownBy(() -> permissionRepository.saveAndFlush(permission))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void databaseRejectsActionPermissionWithoutAction() {
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String rootId = String.format("6%03d", Math.floorMod(suffix.hashCode(), 1000));
+        Permission permission = permission(rootId, null, "/it/shape/" + suffix);
+        permission.setType("action");
+        permission.setAction(null);
+
+        assertThatThrownBy(() -> permissionRepository.saveAndFlush(permission))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+    }
+
+    @Test
     void openApiSpecIsAvailable() throws Exception {
         ResponseEntity<String> response = rest.getForEntity("/api-docs", String.class);
 

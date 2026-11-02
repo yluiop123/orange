@@ -1,6 +1,7 @@
 import { addPermissionChild } from "@/api/system/permission";
 import DialogForm, { Field } from "@/components/dialog-form";
 import { applyServerFieldErrors } from "@/lib/form-errors";
+import { buildTreeCodeSchema } from "@/lib/tree-code-policy";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
@@ -9,29 +10,12 @@ import { z } from "zod";
 
 type PermissionType = "menu" | "action" | "directory";
 
-const ROOT_CODE_LENGTH = 4;
-const CODE_SEGMENT_LENGTH = 2;
-
 export default function Index(props: { setOpen: (open: boolean) => void, open: boolean, onSave: () => void, id: string }) {
     const { setOpen, onSave, open, id } = props;
     const intl = useIntl();
     const formRef = useRef<UseFormReturn<Record<string, unknown>>>(null);
     const parentId = id;
-    const expectedLength = parentId ? parentId.length + CODE_SEGMENT_LENGTH : ROOT_CODE_LENGTH;
-    const codeSchema = z.string()
-        .regex(/^\d+$/, { message: intl.formatMessage({ id: 'validate.permissionCode.digits' }) })
-        .length(expectedLength, {
-            message: intl.formatMessage(
-                { id: 'validate.permissionCode.length' },
-                { length: expectedLength },
-            ),
-        })
-        .refine((value) => !parentId || value.startsWith(parentId), {
-            message: intl.formatMessage(
-                { id: 'validate.permissionCode.prefix' },
-                { parentId },
-            ),
-        });
+    const codeSchema = buildTreeCodeSchema(intl, "permission", parentId);
 
     const fields: Field[] = [
         {

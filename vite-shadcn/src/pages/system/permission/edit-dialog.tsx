@@ -18,7 +18,6 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
             name: "id",
             label: "page.system.permission.header.id",
             defaultValue: "",
-            validate: z.string().regex(/^[a-zA-Z0-9]{2,}$/),
             disabled: true,
         },
         {

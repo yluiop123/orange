@@ -1,35 +1,19 @@
 import { addGroupChild } from "@/api/system/group";
 import DialogForm, { Field } from "@/components/dialog-form";
 import { applyServerFieldErrors } from "@/lib/form-errors";
+import { buildTreeCodeSchema } from "@/lib/tree-code-policy";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const ROOT_CODE_LENGTH = 2;
-const CODE_SEGMENT_LENGTH = 2;
-
 export default function Index(props: { setOpen: (open: boolean) => void, open: boolean, onSave: () => void, id: string }) {
     const { setOpen, onSave, open, id } = props;
     const intl = useIntl();
     const formRef = useRef<UseFormReturn<Record<string, unknown>>>(null);
     const parentId = id;
-    const expectedLength = parentId ? parentId.length + CODE_SEGMENT_LENGTH : ROOT_CODE_LENGTH;
-    const codeSchema = z.string()
-        .regex(/^\d+$/, { message: intl.formatMessage({ id: 'validate.groupCode.digits' }) })
-        .length(expectedLength, {
-            message: intl.formatMessage(
-                { id: 'validate.groupCode.length' },
-                { length: expectedLength },
-            ),
-        })
-        .refine((value) => !parentId || value.startsWith(parentId), {
-            message: intl.formatMessage(
-                { id: 'validate.groupCode.prefix' },
-                { parentId },
-            ),
-        });
+    const codeSchema = buildTreeCodeSchema(intl, "group", parentId);
 
     const fields: Field[] = [
         {
