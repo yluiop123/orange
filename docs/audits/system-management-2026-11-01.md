@@ -18,7 +18,7 @@
 - S2：refresh 轮换改为 `INSERT ... ON CONFLICT DO NOTHING` 原子吊销。
 - S2：用户名校验统一、groupId 存在性校验、`AddUserReq.status` 生效。
 - S2/S3：不存在资源统一 404；补 405/409 映射；LIKE 通配符转义；查询 `readOnly`。
-- S3：权限类型/action 组合校验、状态/类型正则锚点、旧接口缺 id 保护、排序边界保护。
+- S3：权限类型/action 组合校验、状态/类型正则锚点、旧接口缺 id 保护、排序改造为编码顺序（移除 `order` 与上移/下移）。
 - S3：重置/修改密码清理登录锁定；Swagger 生产 profile 默认关闭。
 - S3：新增树节点校验父节点存在。
 - S3：种子无密码用户改为禁用；`status` 列 `NOT NULL DEFAULT '1'`。
@@ -255,14 +255,14 @@
 - 文件：`GroupServiceImpl.java:114-126`；`PermissionServiceImpl.java:117-129`
 - 触发：第一个子节点 `up`；最后一个 `down`；`order_num` 为 NULL。
 - 影响：NPE → 500。
-- 修复：空值判断返回 400/409 或静默；`order` 列 `NOT NULL DEFAULT 0`。
+- 修复：**2026-11-02 已移除 `order_num` 和上移/下移，改为编码排序，见 `docs/adr/0003-code-as-tree-order.md`。此问题不再存在。**
 
 ### B12. 排序无唯一约束/无并发控制
 
 - 文件：`ddl.sql:10,50`；`GroupServiceImpl.java:193-212`；`PermissionServiceImpl.java:200-223`
 - 触发：两个管理员同时添加兄弟；历史重复 order。
 - 影响：`queryByParentIdAndOrder` 命中多条 → 500；乐观锁冲突 → 500。
-- 修复：`UNIQUE(parent_id, order_num)`；移动/插入加锁；乐观锁冲突映射 409。
+- 修复：**2026-11-02 已移除 `order_num`；编码唯一约束由主键保证，父级/长度/前缀由 `ck_sys_group_code` / `ck_sys_permission_code` 约束。此问题不再存在。**
 
 ### B13. 不存在资源返回 200/500 而不是 404
 

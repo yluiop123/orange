@@ -194,9 +194,9 @@ class SecurityIntegrationTest {
     @Test
     void deletingPermissionSubtreeChecksReferencesAndRemovesDescendants() {
         String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-        String rootId = "p" + suffix;
-        String childId = rootId + "c";
-        String grandChildId = childId + "g";
+        String rootId = String.format("9%03d", Math.floorMod(suffix.hashCode(), 1000));
+        String childId = rootId + "01";
+        String grandChildId = childId + "01";
         Permission root = permission(rootId, null, "/it/permission/" + suffix);
         Permission child = permission(childId, rootId, "/it/permission/" + suffix + "/child");
         Permission grandChild = permission(grandChildId, childId, "/it/permission/" + suffix + "/grand");
@@ -237,8 +237,8 @@ class SecurityIntegrationTest {
     @Test
     void deletingGroupSubtreeChecksDescendantUsers() {
         String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-        String rootId = "g" + suffix;
-        String childId = rootId + "c";
+        String rootId = String.format("9%d", Math.floorMod(suffix.hashCode(), 10));
+        String childId = rootId + "01";
         groupRepository.saveAll(List.of(
                 group(rootId, null, "Integration Group " + suffix),
                 group(childId, rootId, "Integration Child " + suffix)));
@@ -336,7 +336,6 @@ class SecurityIntegrationTest {
         permission.setType("menu");
         permission.setStatus("1");
         permission.setParentId(parentId);
-        permission.setOrder(0);
         return permission;
     }
 
@@ -345,7 +344,6 @@ class SecurityIntegrationTest {
         group.setId(id);
         group.setName(name);
         group.setParentId(parentId);
-        group.setOrder(0);
         group.setStatus("1");
         return group;
     }

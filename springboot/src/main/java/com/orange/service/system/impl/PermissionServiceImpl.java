@@ -11,6 +11,7 @@ import com.orange.util.QueryUtils;
 import jakarta.persistence.criteria.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,12 @@ import static com.orange.config.Constanst.STATUS_ENABLE;
 
 @Service
 public class PermissionServiceImpl implements PermissionService {
+
+    /** 根权限编码长度 */
+    private static final int ROOT_CODE_LENGTH = 4;
+    /** 每层子编码比父编码多出的位数 */
+    private static final int CODE_SEGMENT_LENGTH = 2;
+
     @Autowired
     private PermissionRepository permissionRepository;
 
@@ -64,8 +71,10 @@ public class PermissionServiceImpl implements PermissionService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        return permissionRepository.findAll(spec);
+        // 同级顺序由编码决定，删除无需重排
+        return permissionRepository.findAll(spec, Sort.by("id"));
     }
+
     @Override
     @Transactional
     public void deletePermissions(List<String> ids) {
@@ -101,11 +110,6 @@ public class PermissionServiceImpl implements PermissionService {
             throw new BusinessException("权限已被用户引用，不能删除");
         }
 
-        // 只重排“被删除节点所在层”的兄弟节点
-        Set<String> parentIds = selected.stream()
-                .map(Permission::getParentId)
-                .collect(Collectors.toSet());
-
         // 先删深层节点，避免父子同时选中时父节点先删导致子节点找不到
         List<Permission> toDelete = all.stream()
                 .filter(permission -> subtreeIds.contains(permission.getId()))
@@ -117,152 +121,33 @@ public class PermissionServiceImpl implements PermissionService {
                 permissionRepository.flush();
             }
         }
-
-        for (String parentId : parentIds) {
-            List<Permission> children = parentId == null
-                    ? permissionRepository.findByParentIdIsNullOrderByOrder()
-                    : permissionRepository.findByParentIdOrderByOrder(parentId);
-            int index = 0;
-            for (Permission child : children) {
-                child.setOrder(index++);
-            }
-        }
-    }
-    @Override
-    @Transactional
-    public void movePermission(MovePermissionReq req) {
-        Optional<Permission> permissionOptional = permissionRepository.findById(req.getId());
-        Permission permission = permissionOptional.orElseThrow(
-                () -> new BusinessException("权限不存在"));
-        Integer order = permission.getOrder();
-        if (order == null) {
-            throw new BusinessException("权限排序数据异常");
-        }
-        if ("top".equals(req.getAction())) {
-            List<Permission> list = permission.getParentId() == null
-                    ? permissionRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(order)
-                    : permissionRepository.queryByParentIdAndOrderNotOrderByOrder(permission.getParentId(), order);
-            for(int i=0;i<list.size();i++){
-                Permission permissionI = list.get(i);
-                permissionI.setOrder(i+1);
-            }
-            permission.setOrder(0);
-        } else if ("up".equals(req.getAction())) {
-            if (order <= 0) {
-                return;
-            }
-            Permission swapPermission = permission.getParentId() == null
-                    ? permissionRepository.queryByParentIdIsNullAndOrder(order-1)
-                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), order-1);
-            if (swapPermission == null) {
-                return;
-            }
-            swapPermission.setOrder(order);
-            permission.setOrder(order - 1);
-        } else if ("down".equals(req.getAction())) {
-            Permission swapPermission = permission.getParentId() == null
-                    ? permissionRepository.queryByParentIdIsNullAndOrder(order+1)
-                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), order+1);
-            if (swapPermission == null) {
-                return;
-            }
-            swapPermission.setOrder(order);
-            permission.setOrder(order + 1);
-        }
-
     }
 
     @Override
     @Transactional
     public Permission addChild(AddChildPermissionReq req) {
-        boolean exists = permissionRepository.existsById(req.getId());
-        if(exists){
-            throw  new BusinessException( "权限编码已存在");
-        }
-        assertUniquePermission(req.getType(), req.getPath(), req.getAction(), null);
-        if(StringUtils.isEmpty(req.getParentId())){
-            if(req.getId().length()!=4){
-                throw  new BusinessException( "权限编码长度必须为4");
-            }
-        }else{
-            String parentId = StringUtils.left(req.getId(), req.getId().length() - 2);
-            if(req.getParentId().length()+2!=req.getId().length()){
-                throw  new BusinessException( "权限编码长度必须为"+(req.getParentId().length()+2));
-            }
-            if(!StringUtils.equals(parentId, req.getParentId())){
-                throw  new BusinessException("权限编码必须以"+req.getParentId()+"开头");
-            }
-        }
-        String parentId = StringUtils.isEmpty(req.getParentId()) ? null : req.getParentId();
-        if (parentId != null && !permissionRepository.existsById(parentId)) {
-            throw new BusinessException("父权限不存在");
-        }
-        Optional<Permission> lastPermissionOptional = parentId == null
-                ? permissionRepository.findFirstByParentIdIsNullOrderByOrderDesc()
-                : permissionRepository.findFirstByParentIdOrderByOrderDesc(parentId);
-        Permission lastPermission = lastPermissionOptional.orElse(null);
-        Permission permission = new Permission();
-        permission.setId(req.getId());
-        permission.setName(req.getName());
-        permission.setPath(req.getPath());
-        permission.setType(req.getType());
-        permission.setAction(req.getAction());
-        permission.setParentId(parentId);
-        if (lastPermission != null) {
-            permission.setOrder(lastPermission.getOrder() + 1);
-        } else {
-            permission.setOrder(0);
-        }
-        return permissionRepository.save(permission);
-    }
-
-    @Override
-    @Transactional
-    public Permission addBrother(AddBrotherPermissionReq req) {
-        boolean exists = permissionRepository.existsById(req.getId());
-        if(exists){
-            throw  new BusinessException("权限编码已存在");
-        }
-        assertUniquePermission(req.getType(), req.getPath(), req.getAction(), null);
-
-        Optional<Permission> brotherGroupOptional = permissionRepository.findById(req.getBrotherId());
-        Permission brotherPermission = brotherGroupOptional.orElseThrow(
-                () -> new BusinessException("同级权限不存在"));
-        Integer order = brotherPermission.getOrder();
-        String parentId = brotherPermission.getParentId();
-
         String id = req.getId();
-        String idParentId = StringUtils.left(id, id.length() - 2);
-        String parentIdDefault = StringUtils.defaultString(parentId);
-        if(id.length()!=parentIdDefault.length()+2){
-            throw  new BusinessException("权限编码长度必须为"+(parentIdDefault.length()+2));
+        String parentId = StringUtils.trimToNull(req.getParentId());
+        validateCode(id, parentId);
+        if (permissionRepository.existsById(id)) {
+            throw new BusinessException("权限编码已存在");
         }
-        if(!parentIdDefault.equals(idParentId)){
-            throw  new BusinessException("权限编码必须以"+parentId+"开头");
+        Permission parent = null;
+        if (parentId != null) {
+            parent = permissionRepository.findById(parentId)
+                    .orElseThrow(() -> new BusinessException("父权限不存在"));
+            if ("action".equals(parent.getType())) {
+                throw new BusinessException("动作权限不能添加子节点");
+            }
         }
-        Specification<Permission> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (parentId!=null&&!parentId.isEmpty()) {
-                predicates.add(cb.equal(root.get("parentId"), parentId));
-            } else {
-                predicates.add(cb.isNull(root.get("parentId")));
-            }
-            if (order!=null) {
-                predicates.add(cb.greaterThan(root.get("order"), order));
-            }
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-        List<Permission> groups = permissionRepository.findAll(spec);
-        groups.forEach(group -> group.setOrder(group.getOrder() + 1));
-
+        assertUniquePermission(req.getType(), req.getPath(), req.getAction(), null);
         Permission permission = new Permission();
-        permission.setId(req.getId());
+        permission.setId(id);
         permission.setName(req.getName());
         permission.setPath(req.getPath());
-        permission.setAction(req.getAction());
         permission.setType(req.getType());
-        permission.setOrder((order==null?0:order)+1);
-        permission.setParentId(brotherPermission.getParentId());
+        permission.setAction(req.getAction());
+        permission.setParentId(parent == null ? null : parent.getId());
         return permissionRepository.save(permission);
     }
 
@@ -313,7 +198,33 @@ public class PermissionServiceImpl implements PermissionService {
             predicates.add(cb.equal(root.get("status"), STATUS_ENABLE));
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        return permissionRepository.findAll(spec);
+        return permissionRepository.findAll(spec, Sort.by("id"));
+    }
+
+    /**
+     * 权限编码即层级顺序：根编码 4 位，子编码 = 父编码 + 2 位数字。
+     * 编码一旦创建不可修改，所以这里只做校验，不生成。
+     */
+    private void validateCode(String id, String parentId) {
+        if (StringUtils.isBlank(id)) {
+            throw new BusinessException("权限编码不能为空");
+        }
+        if (!id.matches("^[0-9]+$")) {
+            throw new BusinessException("权限编码只能包含数字");
+        }
+        if (parentId == null) {
+            if (id.length() != ROOT_CODE_LENGTH) {
+                throw new BusinessException("根权限编码长度必须为" + ROOT_CODE_LENGTH);
+            }
+            return;
+        }
+        int expectedLength = parentId.length() + CODE_SEGMENT_LENGTH;
+        if (id.length() != expectedLength) {
+            throw new BusinessException("权限编码长度必须为" + expectedLength);
+        }
+        if (!id.startsWith(parentId)) {
+            throw new BusinessException("权限编码必须以" + parentId + "开头");
+        }
     }
 
     private void validatePermissionShape(String type, String action) {

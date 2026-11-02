@@ -54,10 +54,6 @@ public class Permission {
     @Column(name = "version")
     private Integer version = 0;
 
-    @Schema(description = "权限排序")
-    @Column(name = "order_num")
-    private Integer order;
-
     @Schema(description = "创建时间")
     @Column(name = "create_time")
     @CreationTimestamp

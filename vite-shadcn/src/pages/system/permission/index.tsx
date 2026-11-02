@@ -1,4 +1,4 @@
-import { deletePermissions, listPermissions, movePermission, updatePermission } from "@/api/system/permission";
+import { deletePermissions, listPermissions, updatePermission } from "@/api/system/permission";
 import type { PermissionQuery } from "@/api/system/permission";
 import ActionAuth from "@/components/action-auth";
 import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
@@ -29,7 +29,6 @@ import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
-import AddBrotherDialog from "./add-brother-dialog";
 import AddChildDialog from "./add-child-dialog";
 import EditDialog from "./edit-dialog";
 
@@ -42,7 +41,6 @@ type Permission = {
   status?: "0" | "1"
   createTime?: string,
   parentId?: string | null
-  order?: number
   subRows?: Permission[]
 }
 
@@ -70,7 +68,6 @@ export default function Permission() {
     tree: {
       id: (row) => row.id,
       parentId: (row) => row.parentId,
-      order: (row) => row.order ?? 0,
     },
   });
 
@@ -79,7 +76,6 @@ export default function Permission() {
   const [deleting, setDeleting] = useState(false);
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddBrotherDialogOpen, setIsAddBrotherDialogOpen] = useState(false);
   const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false);
 
   function handleEdit(row: Permission) {
@@ -115,15 +111,6 @@ export default function Permission() {
   function handleAddChild(row: Permission | null) {
     setId(row?.id || '');
     setIsAddChildDialogOpen(true);
-  }
-  function handleAddBrother(row: Permission) {
-    setId(row.id);
-    setIsAddBrotherDialogOpen(true);
-  }
-  function handleMove(row: Permission, direction: 'up' | 'down' | 'top') {
-    movePermission(row.id, direction).then(() => {
-      setParams(prev => ({ ...prev }));
-    })
   }
 
   const columns: ColumnDef<Permission>[] = [
@@ -176,12 +163,6 @@ export default function Permission() {
       ),
     },
     {
-      accessorKey: "order",
-      meta: { title: formatMessage({ id: "page.system.permission.header.Order" }) },
-      header: formatMessage({ id: "page.system.permission.header.Order" }),
-      cell: ({ row }) => <div className="lowercase">{row.getValue("order")}</div>,
-    },
-    {
       accessorKey: "createTime",
       meta: { title: formatMessage({ id: "page.system.permission.header.createTime" }) },
       header: formatMessage({ id: "page.system.permission.header.createTime" }),
@@ -204,13 +185,9 @@ export default function Permission() {
                 <DropdownMenuSeparator />
                 <ActionAuth action="add">
                   <DropdownMenuItem onClick={() => handleAddChild(permission)}>{formatMessage({ id: 'button.addChild' })}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAddBrother(permission)}>{formatMessage({ id: 'button.addBrother' })}</DropdownMenuItem>
                 </ActionAuth>
                 <ActionAuth action="edit">
                   <DropdownMenuItem onClick={() => handleEdit(permission)}>{formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleMove(permission, 'top')}>{formatMessage({ id: 'button.moveTop' })}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleMove(permission, 'up')}>{formatMessage({ id: 'button.moveUp' })}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleMove(permission, 'down')}>{formatMessage({ id: 'button.moveDown' })}</DropdownMenuItem>
                 </ActionAuth>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -223,8 +200,6 @@ export default function Permission() {
   return (
     <div className="w-full p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
-      <AddBrotherDialog id={id} setOpen={setIsAddBrotherDialogOpen} open={isAddBrotherDialogOpen}
         onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
         onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />

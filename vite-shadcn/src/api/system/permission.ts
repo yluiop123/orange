@@ -8,7 +8,6 @@ export type Permission = {
   type?: "menu" | "action" | "directory";
   status?: "0" | "1";
   parentId?: string | null;
-  order?: number;
   createTime?: string;
   updateTime?: string;
 };
@@ -29,8 +28,6 @@ export type PermissionPayload = {
   status?: "0" | "1";
   parentId?: string;
 };
-
-export type MoveAction = "up" | "down" | "top";
 
 export async function listPermissions(
   params?: PermissionQuery,
@@ -66,21 +63,6 @@ export async function addPermissionChild(payload: {
   parentId?: string;
 }) {
   await axios.post("/system/permissions/children", payload);
-}
-
-export async function addPermissionSibling(payload: {
-  id: string;
-  name: string;
-  path: string;
-  type: "menu" | "action" | "directory";
-  action?: string;
-  brotherId: string;
-}) {
-  await axios.post("/system/permissions/siblings", payload);
-}
-
-export async function movePermission(id: string, action: MoveAction) {
-  await axios.post(`/system/permissions/${id}/move`, { action });
 }
 
 export async function deletePermissions(ids: string[]) {

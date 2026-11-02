@@ -10,7 +10,7 @@ import lombok.Data;
 public class AddChildPermissionReq {
     @Schema(description = "权限编码",example = "0102")
     @NotBlank(message = "权限编码不能为空")
-    @Pattern(regexp = "^[A-Za-z0-9]{2,}$", message = "权限编码只能包含数字和大小写字母")
+    @Pattern(regexp = "^[0-9]{2,}$", message = "权限编码只能包含数字")
     private String id;
 
     @Schema(description = "权限名称",example = "用户管理")

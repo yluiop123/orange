@@ -26,9 +26,6 @@ public class PermissionBean {
     @Schema(description = "权限状态",example = "1")
     private String status;
 
-    @Schema(description = "权限排序",example = "1")
-    private Integer order;
-
     @Schema(description = "创建时间",example = "2023-08-01 10:00:00")
     private OffsetDateTime createTime;
 

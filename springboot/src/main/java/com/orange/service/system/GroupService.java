@@ -8,9 +8,7 @@ import java.util.List;
 public interface GroupService {
     List<Group> queryGroups(QueryGroupReq req);
     void deleteGroups(List<String> id);
-    void moveGroup(MoveGroupReq req);
     Group addChild(AddChildGroupReq user);
-    Group addBrother(AddBrotherGroupReq user);
     Group editGroup(EditGroupReq user);
     Group queryGroup(String id);
     List<Group> queryGroups();

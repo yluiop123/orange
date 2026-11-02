@@ -59,3 +59,11 @@ _Avoid_: Home page, landing route
 **Disabled Permission**:
 A permission whose `status` is `0`. It must not grant authority or appear in menus/actions.
 _Avoid_: Inactive permission
+
+**Business Code**:
+The stable identifier of an Organization or Permission. Its value also determines the node's position among its siblings; changing it changes identity, not just display.
+_Avoid_: Number, sort key
+
+**Sibling Order**:
+The display order of nodes that share a parent. It is implied by Business Code and has no independent value.
+_Avoid_: Sort index, order field

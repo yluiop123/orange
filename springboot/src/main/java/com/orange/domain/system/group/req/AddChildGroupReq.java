@@ -11,8 +11,8 @@ public class AddChildGroupReq {
     @Schema(description = "子组织ID")
     @NotBlank(message = "分组ID不能为空")
     @Pattern(
-            regexp = "^[A-Za-z0-9]{2,}$",
-            message = "只能包含数字和大小写字母"
+            regexp = "^[0-9]{2,}$",
+            message = "组织编码只能包含数字"
     )
     private String id;
 

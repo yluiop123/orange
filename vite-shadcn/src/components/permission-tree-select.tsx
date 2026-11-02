@@ -13,7 +13,6 @@ export type PermissionNode = TreeNode & {
   children?: PermissionNode[]
   parentId?: string | null
   id: string
-  order?: number
   name: string
 }
 function buildTree(data: PermissionNode[]): PermissionNode[] {
@@ -36,18 +35,18 @@ function buildTree(data: PermissionNode[]): PermissionNode[] {
     }
   }
 
-  // 递归排序函数
-  function sortByOrder(nodes: PermissionNode[]) {
-    nodes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  // 递归排序函数：同级按编码升序
+  function sortByCode(nodes: PermissionNode[]) {
+    nodes.sort((a, b) => (a.id === b.id ? 0 : a.id < b.id ? -1 : 1))
     nodes.forEach((node) => {
       if (node.children && node.children.length > 0) {
-        sortByOrder(node.children);
+        sortByCode(node.children)
       }
-    });
+    })
   }
 
   // 排序根节点
-  sortByOrder(roots);
+  sortByCode(roots)
   return roots;
 }
 export default function PermissionTreeSelect({ onChange: onChangeHandle, placeholder, ...props }: PermissionTreeSelectProps) {

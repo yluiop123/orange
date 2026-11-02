@@ -6,7 +6,6 @@ type MenuNode = {
   path: string;
   type: "menu" | "directory";
   name: string;
-  order: number;
   children: MenuNode[];
 };
 
@@ -17,7 +16,7 @@ function buildMenuTree(): MenuNode[] {
         permission.status === "1" &&
         (permission.type === "menu" || permission.type === "directory"),
     )
-    .sort((a, b) => a.order - b.order);
+    .sort((a, b) => (a.id === b.id ? 0 : a.id < b.id ? -1 : 1));
 
   const nodes = new Map<string, MenuNode>();
   for (const permission of permissions) {
@@ -26,7 +25,6 @@ function buildMenuTree(): MenuNode[] {
       path: permission.path ?? "",
       type: permission.type as MenuNode["type"],
       name: permission.name,
-      order: permission.order,
       children: [],
     });
   }

@@ -9,16 +9,36 @@ import { z } from "zod";
 
 type PermissionType = "menu" | "action" | "directory";
 
+const ROOT_CODE_LENGTH = 4;
+const CODE_SEGMENT_LENGTH = 2;
+
 export default function Index(props: { setOpen: (open: boolean) => void, open: boolean, onSave: () => void, id: string }) {
     const { setOpen, onSave, open, id } = props;
     const intl = useIntl();
     const formRef = useRef<UseFormReturn<Record<string, unknown>>>(null);
+    const parentId = id;
+    const expectedLength = parentId ? parentId.length + CODE_SEGMENT_LENGTH : ROOT_CODE_LENGTH;
+    const codeSchema = z.string()
+        .regex(/^\d+$/, { message: intl.formatMessage({ id: 'validate.permissionCode.digits' }) })
+        .length(expectedLength, {
+            message: intl.formatMessage(
+                { id: 'validate.permissionCode.length' },
+                { length: expectedLength },
+            ),
+        })
+        .refine((value) => !parentId || value.startsWith(parentId), {
+            message: intl.formatMessage(
+                { id: 'validate.permissionCode.prefix' },
+                { parentId },
+            ),
+        });
+
     const fields: Field[] = [
         {
             name: "id",
             label: "page.system.permission.header.id",
             defaultValue: "",
-            validate: z.string().regex(/^[a-zA-Z0-9]{2,}$/)
+            validate: codeSchema,
         },
         {
             name: "name",
@@ -48,16 +68,17 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         {
             name: "parentId",
             label: "page.system.permission.header.parentPermission",
-            defaultValue: '',
+            defaultValue: parentId,
             validate: z.string().optional(),
-            type: "permission"
+            type: "permission",
+            disabled: true,
         },
     ]
     const [values, setValues] = useState<Record<string, unknown>>({});
 
     useEffect(() => {
-        setValues({ parentId: id });
-    }, [id])
+        setValues({ parentId });
+    }, [parentId])
 function onSubmit(fieldValues: Record<string, unknown>) {
         addPermissionChild({
             id: fieldValues.id as string,

@@ -1,7 +1,6 @@
 package com.orange.controller.system;
 
 import com.orange.domain.common.Response;
-import com.orange.domain.common.req.MoveActionReq;
 import com.orange.domain.common.req.StatusReq;
 import com.orange.domain.system.group.req.*;
 import com.orange.entity.Group;
@@ -85,25 +84,6 @@ public class GroupController {
         return Response.ok(groupService.addChild(req));
     }
 
-    @Operation(summary = "添加兄弟组织", description = "在指定组织后添加兄弟组织")
-    @PostMapping("/siblings")
-    @PreAuthorize("hasAuthority('action#/system/group:add')")
-    public Response<Group> addBrother(@Valid @RequestBody AddBrotherGroupReq req) {
-        return Response.ok(groupService.addBrother(req));
-    }
-
-    @Operation(summary = "移动组织", description = "上移、下移或置顶组织")
-    @PostMapping("/{groupId}/move")
-    @PreAuthorize("hasAuthority('action#/system/group:edit')")
-    public Response<String> moveGroup(@PathVariable("groupId") String groupId,
-                                      @Valid @RequestBody MoveActionReq req) {
-        MoveGroupReq moveReq = new MoveGroupReq();
-        moveReq.setId(groupId);
-        moveReq.setAction(req.getAction());
-        groupService.moveGroup(moveReq);
-        return Response.ok("操作成功");
-    }
-
     // ===== 兼容旧接口（已废弃，后续版本移除） =====
     @Deprecated
     @Operation(summary = "查询组织列表（旧）", deprecated = true)
@@ -131,28 +111,11 @@ public class GroupController {
     }
 
     @Deprecated
-    @Operation(summary = "移动组织（旧）", deprecated = true)
-    @PostMapping("/move")
-    @PreAuthorize("hasAuthority('action#/system/group:edit')")
-    public Response<String> moveGroupLegacy(@Valid @RequestBody MoveGroupReq req) {
-        groupService.moveGroup(req);
-        return Response.ok("操作成功");
-    }
-
-    @Deprecated
     @Operation(summary = "添加子组织（旧）", deprecated = true)
     @PostMapping("/addChild")
     @PreAuthorize("hasAuthority('action#/system/group:add')")
     public Response<Group> addChildLegacy(@Valid @RequestBody AddChildGroupReq req) {
         return Response.ok(groupService.addChild(req));
-    }
-
-    @Deprecated
-    @Operation(summary = "添加兄弟组织（旧）", deprecated = true)
-    @PostMapping("/addBrother")
-    @PreAuthorize("hasAuthority('action#/system/group:add')")
-    public Response<Group> addBrotherLegacy(@Valid @RequestBody AddBrotherGroupReq req) {
-        return Response.ok(groupService.addBrother(req));
     }
 
     private static List<String> splitIds(String ids) {

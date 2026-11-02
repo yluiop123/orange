@@ -27,10 +27,6 @@ public class Group {
     @Column(name = "name")
     private String name;
 
-    @Schema(description = "组织排序")
-    @Column(name = "order_num")
-    private Integer order;
-
     @Schema(description = "组织状态")
     @Column(name = "status")
     private String status = "1";

@@ -5,6 +5,5 @@ export type MenuNode = {
   path: string;
   type: MenuType;
   name: string;
-  order: number;
   children: MenuNode[];
 };

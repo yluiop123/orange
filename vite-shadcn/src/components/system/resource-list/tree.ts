@@ -5,11 +5,11 @@ export type TreeRow<T> = T & {
 export type TreeConfig<T> = {
   id: (row: T) => string;
   parentId: (row: T) => string | null | undefined;
-  order?: (row: T) => number;
 };
 
 /**
  * 把平铺数据构造成树，父节点缺失时按根节点处理。
+ * 同级顺序由编码决定（字符串升序），编码天然是父编码的前缀。
  * 返回的新对象带 subRows，原数组不会被修改。
  */
 export function buildTree<T>(rows: T[], config: TreeConfig<T>): TreeRow<T>[] {
@@ -30,15 +30,20 @@ export function buildTree<T>(rows: T[], config: TreeConfig<T>): TreeRow<T>[] {
     }
   }
 
-  const sortByOrder = (nodes: TreeRow<T>[]) => {
-    if (!config.order) return;
-    nodes.sort((a, b) => config.order!(a) - config.order!(b));
+  const sortByCode = (nodes: TreeRow<T>[]) => {
+    nodes.sort((a, b) => compareCode(config.id(a), config.id(b)));
     for (const node of nodes) {
-      if (node.subRows?.length) sortByOrder(node.subRows);
+      if (node.subRows?.length) sortByCode(node.subRows);
     }
   };
-  sortByOrder(roots);
+  sortByCode(roots);
   return roots;
+}
+
+/** 编码是有固定宽度的数字串，直接按字符串比较即可 */
+export function compareCode(a: string, b: string): number {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
 }
 
 /** 收集某个节点及其所有后代的 id */

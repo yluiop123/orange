@@ -13,7 +13,6 @@ type GroupTreeSelectProps = OmittedTreeSelectProps & {
 export type GroupNode = TreeNode & {
   children?: GroupNode[]
   parentId?: string | null
-  order?: number
 }
 function buildTree(data: GroupNode[]): GroupNode[] {
   const map = new Map<string, GroupNode>();
@@ -33,18 +32,22 @@ function buildTree(data: GroupNode[]): GroupNode[] {
     }
   }
 
-  // 递归排序函数
-  function sortByOrder(nodes: GroupNode[]) {
-    nodes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  // 递归排序函数：同级按编码升序
+  function sortByCode(nodes: GroupNode[]) {
+    nodes.sort((a, b) => {
+      const left = a.id ?? ''
+      const right = b.id ?? ''
+      return left === right ? 0 : left < right ? -1 : 1
+    })
     nodes.forEach((node) => {
       if (node.children && node.children.length > 0) {
-        sortByOrder(node.children);
+        sortByCode(node.children)
       }
-    });
+    })
   }
 
   // 排序根节点
-  sortByOrder(roots);
+  sortByCode(roots)
   return roots;
 }
 export default function GroupTreeSelect({ onChange: onChangeHandle, value, placeholder, ...props }: GroupTreeSelectProps) {

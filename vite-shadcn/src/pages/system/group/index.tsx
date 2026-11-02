@@ -1,4 +1,4 @@
-import { deleteGroups, listGroups, moveGroup, updateGroupStatus } from "@/api/system/group";
+import { deleteGroups, listGroups, updateGroupStatus } from "@/api/system/group";
 import type { GroupQuery } from "@/api/system/group";
 import ActionAuth from "@/components/action-auth";
 import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
@@ -29,7 +29,6 @@ import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useIntl } from "react-intl";
 import { toast } from "sonner";
-import AddBrotherDialog from "./add-brother-dialog";
 import AddChildDialog from "./add-child-dialog";
 import EditDialog from "./edit-dialog";
 
@@ -40,7 +39,6 @@ type Group = {
   remark?: string
   createTime?: string,
   parentId?: string | null
-  order?: number
   subRows?: Group[]
 }
 
@@ -67,7 +65,6 @@ export default function Group() {
     tree: {
       id: (row) => row.id,
       parentId: (row) => row.parentId,
-      order: (row) => row.order ?? 0,
     },
   });
 
@@ -76,16 +73,11 @@ export default function Group() {
   const [deleting, setDeleting] = useState(false);
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddBrotherDialogOpen, setIsAddBrotherDialogOpen] = useState(false);
   const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false);
 
   function handleEdit(row: Group) {
     setId(row.id);
     setIsEditDialogOpen(true);
-  }
-  function handleAddBrother(row: Group) {
-    setId(row.id);
-    setIsAddBrotherDialogOpen(true);
   }
   function handleAddChild(row: Group | null) {
     setId(row?.id || '');
@@ -112,11 +104,6 @@ export default function Group() {
       setDeleting(false);
     }
   }
-  function handleMove(row: Group, direction: 'up' | 'down' | 'top') {
-    moveGroup(row.id, direction).then(() => {
-      setParams(prev => ({ ...prev }));
-    })
-  }
   function handleStatusChange(row: Group, status: "0" | "1") {
     return updateGroupStatus(row.id, status).then(() => {
       setParams(prev => ({ ...prev }));
@@ -137,6 +124,12 @@ export default function Group() {
       ),
     },
     {
+      accessorKey: 'id',
+      meta: { title: formatMessage({ id: "page.system.group.header.id" }) },
+      header: formatMessage({ id: "page.system.group.header.id" }),
+      cell: ({ row }) => <div className="lowercase">{row.getValue("id")}</div>,
+    },
+    {
       accessorKey: "status",
       meta: { title: formatMessage({ id: "page.system.group.header.status" }) },
       header: formatMessage({ id: "page.system.group.header.status" }),
@@ -147,12 +140,6 @@ export default function Group() {
             onChange={(val) => handleStatusChange(row.original, val)} />
         </ActionAuth>
       ),
-    },
-    {
-      accessorKey: "order",
-      meta: { title: formatMessage({ id: "page.system.group.header.Order" }) },
-      header: formatMessage({ id: "page.system.group.header.Order" }),
-      cell: ({ row }) => <div className="lowercase">{row.getValue("order")}</div>,
     },
     {
       accessorKey: "createTime",
@@ -177,12 +164,8 @@ export default function Group() {
                 <DropdownMenuSeparator />
                 <ActionAuth action="add">
                   <DropdownMenuItem onClick={() => handleAddChild(group)}>{formatMessage({ id: 'button.addChild' })}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAddBrother(group)}>{formatMessage({ id: 'button.addBrother' })}</DropdownMenuItem>
                 </ActionAuth>
                 <ActionAuth action="edit">
-                  <DropdownMenuItem onClick={() => handleMove(group, 'top')}>{formatMessage({ id: 'button.moveTop' })}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleMove(group, 'up')}>{formatMessage({ id: 'button.moveUp' })}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleMove(group, 'down')}>{formatMessage({ id: 'button.moveDown' })}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleEdit(group)}>{formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
                 </ActionAuth>
               </DropdownMenuGroup>
@@ -196,8 +179,6 @@ export default function Group() {
   return (
     <div className="w-full p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
-      <AddBrotherDialog id={id} setOpen={setIsAddBrotherDialogOpen} open={isAddBrotherDialogOpen}
         onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
         onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />

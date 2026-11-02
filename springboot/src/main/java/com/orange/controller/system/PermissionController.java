@@ -1,7 +1,6 @@
 package com.orange.controller.system;
 
 import com.orange.domain.common.Response;
-import com.orange.domain.common.req.MoveActionReq;
 import com.orange.domain.system.permission.req.*;
 import com.orange.entity.Permission;
 import com.orange.service.system.PermissionService;
@@ -72,25 +71,6 @@ public class PermissionController {
         return Response.ok(permissionService.addChild(req));
     }
 
-    @Operation(summary = "添加兄弟权限", description = "在指定权限后添加兄弟权限")
-    @PostMapping("/siblings")
-    @PreAuthorize("hasAuthority('action#/system/permission:add')")
-    public Response<Permission> addBrother(@Valid @RequestBody AddBrotherPermissionReq req) {
-        return Response.ok(permissionService.addBrother(req));
-    }
-
-    @Operation(summary = "移动权限", description = "上移、下移或置顶权限")
-    @PostMapping("/{permissionId}/move")
-    @PreAuthorize("hasAuthority('action#/system/permission:edit')")
-    public Response<String> movePermission(@PathVariable("permissionId") String permissionId,
-                                           @Valid @RequestBody MoveActionReq req) {
-        MovePermissionReq moveReq = new MovePermissionReq();
-        moveReq.setId(permissionId);
-        moveReq.setAction(req.getAction());
-        permissionService.movePermission(moveReq);
-        return Response.ok("操作成功");
-    }
-
     // ===== 兼容旧接口（已废弃，后续版本移除） =====
     @Deprecated
     @Operation(summary = "查询权限列表（旧）", deprecated = true)
@@ -117,28 +97,11 @@ public class PermissionController {
     }
 
     @Deprecated
-    @Operation(summary = "添加兄弟权限（旧）", deprecated = true)
-    @PostMapping("/addBrother")
-    @PreAuthorize("hasAuthority('action#/system/permission:add')")
-    public Response<Permission> addBrotherLegacy(@Valid @RequestBody AddBrotherPermissionReq req) {
-        return Response.ok(permissionService.addBrother(req));
-    }
-
-    @Deprecated
     @Operation(summary = "编辑权限（旧）", deprecated = true)
     @PostMapping("/edit")
     @PreAuthorize("hasAuthority('action#/system/permission:edit')")
     public Response<String> editPermissionLegacy(@Valid @RequestBody EditPermissionReq req) {
         permissionService.editPermission(req);
-        return Response.ok("操作成功");
-    }
-
-    @Deprecated
-    @Operation(summary = "移动权限（旧）", deprecated = true)
-    @PostMapping("/move")
-    @PreAuthorize("hasAuthority('action#/system/permission:edit')")
-    public Response<String> movePermissionLegacy(@Valid @RequestBody MovePermissionReq req) {
-        permissionService.movePermission(req);
         return Response.ok("操作成功");
     }
 

@@ -1,6 +1,6 @@
 # Backend menu tree, filesystem routes
 
-The backend returns the full enabled menu tree at `GET /api/user/menus`. Each node carries `id`, `path`, `type`, `name`, `order` and nested `children`; the tree contains only `menu` and `directory` permissions. The frontend no longer keeps menu titles, ordering or hierarchy. It keeps one path-to-icon map and renders the tree in the sidebar and breadcrumb.
+The backend returns the full enabled menu tree at `GET /api/user/menus`. Each node carries `id`, `path`, `type`, `name` and nested `children`; the tree contains only `menu` and `directory` permissions. Sibling order is the code order (see ADR 0003). The frontend no longer keeps menu titles, ordering or hierarchy. It keeps one path-to-icon map and renders the tree in the sidebar and breadcrumb.
 
 Menu visibility stays on the frontend. The backend returns the full tree because the structure is not user-specific and because the frontend already receives the user's permissions for role switching. A leaf is visible when a menu permission matches its path or a directory permission covers it; a container is visible when at least one child is visible. This keeps role switching a view filter and keeps direct URLs returning 403 instead of disappearing from the router.
 

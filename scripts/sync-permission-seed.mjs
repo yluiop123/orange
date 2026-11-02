@@ -22,12 +22,11 @@ function renderPermissions() {
       quote(permission.type),
       quote(permission.status ?? "1"),
       quote(permission.parentId),
-      String(permission.order ?? 0),
     ];
     return `\t (${values.join(",")})`;
   });
   return [
-    "INSERT INTO public.sys_permission (id,\"name\",\"path\",\"action\",\"type\",status,parent_id,order_num) VALUES",
+    "INSERT INTO public.sys_permission (id,\"name\",\"path\",\"action\",\"type\",status,parent_id) VALUES",
     rows.join(",\n") + ";",
   ].join("\n");
 }

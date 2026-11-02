@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,12 @@ import static com.orange.config.Constanst.STATUS_ENABLE;
 
 @Service
 public class GroupServiceImpl implements GroupService {
+
+    /** 根组织编码长度 */
+    private static final int ROOT_CODE_LENGTH = 2;
+    /** 每层子编码比父编码多出的位数 */
+    private static final int CODE_SEGMENT_LENGTH = 2;
+
     @Autowired
     private GroupRepository groupRepository;
 
@@ -58,7 +65,8 @@ public class GroupServiceImpl implements GroupService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        return groupRepository.findAll(spec);
+        // 同级顺序由编码决定，删除无需重排
+        return groupRepository.findAll(spec, Sort.by("id"));
     }
 
     @CacheEvict(value = "group", allEntries = true)
@@ -94,11 +102,7 @@ public class GroupServiceImpl implements GroupService {
             throw new BusinessException("组织或其子组织下有用户，不能删除");
         }
 
-        // 只重排“被删除节点所在层”的兄弟节点
-        Set<String> parentIds = selected.stream()
-                .map(Group::getParentId)
-                .collect(Collectors.toSet());
-
+        // 先删深层节点，避免父子同时选中时父节点先删导致子节点找不到
         List<Group> toDelete = all.stream()
                 .filter(group -> subtreeIds.contains(group.getId()))
                 .sorted(Comparator.comparingInt((Group group) -> group.getId().length()).reversed())
@@ -109,145 +113,25 @@ public class GroupServiceImpl implements GroupService {
                 groupRepository.flush();
             }
         }
-
-        for (String parentId : parentIds) {
-            List<Group> children = parentId == null
-                    ? groupRepository.findByParentIdIsNullOrderByOrder()
-                    : groupRepository.findByParentIdOrderByOrder(parentId);
-            int index = 0;
-            for (Group child : children) {
-                child.setOrder(index++);
-            }
-        }
     }
 
     @CacheEvict(value = "group", allEntries = true)
     @Override
     @Transactional
-    public void moveGroup(MoveGroupReq req) {
-        Optional<Group> groupOptional = groupRepository.findById(req.getId());
-        Group group = groupOptional.orElseThrow(() -> new BusinessException("组织不存在"));
-        Integer order = group.getOrder();
-        if (order == null) {
-            throw new BusinessException("组织排序数据异常");
+    public Group addChild(AddChildGroupReq req) {
+        String id = req.getId();
+        String parentId = StringUtils.trimToNull(req.getParentId());
+        validateCode(id, parentId);
+        if (groupRepository.existsById(id)) {
+            throw new BusinessException("组织编码已存在");
         }
-        if ("top".equals(req.getAction())) {
-            List<Group> list = group.getParentId() == null
-                    ? groupRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(order)
-                    : groupRepository.queryByParentIdAndOrderNotOrderByOrder(group.getParentId(), order);
-            for(int i=0;i<list.size();i++){
-                Group groupI = list.get(i);
-                groupI.setOrder(i+1);
-            }
-            group.setOrder(0);
-        } else if ("up".equals(req.getAction())) {
-            if (order <= 0) {
-                return;
-            }
-            Group swapGroup = group.getParentId() == null
-                    ? groupRepository.queryByParentIdIsNullAndOrder(order-1)
-                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), order-1);
-            if (swapGroup == null) {
-                return;
-            }
-            swapGroup.setOrder(order);
-            group.setOrder(order - 1);
-        } else if ("down".equals(req.getAction())) {
-            Group swapGroup = group.getParentId() == null
-                    ? groupRepository.queryByParentIdIsNullAndOrder(order+1)
-                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), order+1);
-            if (swapGroup == null) {
-                return;
-            }
-            swapGroup.setOrder(order);
-            group.setOrder(order + 1);
-        }
-
-    }
-
-    @CacheEvict(value = "group", allEntries = true)
-    @Override
-    @Transactional
-    public Group addChild(AddChildGroupReq user) {
-        boolean exists = groupRepository.existsById(user.getId());
-        if(exists){
-            throw  new BusinessException("组织编码已存在");
-        }
-        if(StringUtils.isEmpty(user.getParentId())){
-            if(user.getId().length()!=2){
-                throw  new BusinessException( "组织编码长度必须为2");
-            }
-        }else{
-            String parentId = StringUtils.left(user.getId(), user.getId().length() - 2);
-            if(user.getParentId().length()+2!=user.getId().length()){
-                throw  new BusinessException("组织编码长度必须为"+(user.getParentId().length()+2));
-            }
-            if(!StringUtils.equals(parentId, user.getParentId())){
-                throw  new BusinessException("组织编码必须以"+user.getParentId()+"开头");
-            }
-        }
-        String parentId = StringUtils.isEmpty(user.getParentId()) ? null : user.getParentId();
         if (parentId != null && !groupRepository.existsById(parentId)) {
             throw new BusinessException("父组织不存在");
         }
-        Optional<Group> lastGroupOptional = parentId == null
-                ? groupRepository.findFirstByParentIdIsNullOrderByOrderDesc()
-                : groupRepository.findFirstByParentIdOrderByOrderDesc(parentId);
-        Group lastGroup = lastGroupOptional.orElse(null);
         Group group = new Group();
-        group.setId(user.getId());
-        group.setName(user.getName());
+        group.setId(id);
+        group.setName(req.getName());
         group.setParentId(parentId);
-        if (lastGroup != null) {
-            group.setOrder(lastGroup.getOrder() + 1);
-        } else {
-            group.setOrder(0);
-        }
-        return groupRepository.save(group);
-    }
-
-    @CacheEvict(value = "group", allEntries = true)
-    @Override
-    @Transactional
-    public Group addBrother(AddBrotherGroupReq user) {
-        boolean exists = groupRepository.existsById(user.getId());
-        if(exists){
-            throw  new BusinessException("组织编码已存在");
-        }
-        Optional<Group> brotherGroupOptional = groupRepository.findById(user.getBrotherId());
-        Group brotherGroup = brotherGroupOptional.orElseThrow(
-                () -> new BusinessException("同级组织不存在"));
-        String parentId = brotherGroup.getParentId();
-        Integer order = brotherGroup.getOrder();
-
-        String id = user.getId();
-        String idParentId = StringUtils.left(id, id.length() - 2);
-        String parentIdDefault = StringUtils.defaultString(parentId);
-        if(id.length()!=parentIdDefault.length()+2){
-            throw  new BusinessException("组织编码长度必须为"+(parentIdDefault.length()+2));
-        }
-        if(!parentIdDefault.equals(idParentId)){
-            throw  new BusinessException("组织编码必须以"+parentId+"开头");
-        }
-        Specification<Group> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (parentId!=null&&!parentId.isEmpty()) {
-                predicates.add(cb.equal(root.get("parentId"), parentId));
-            } else {
-                predicates.add(cb.isNull(root.get("parentId")));
-            }
-            if (order!=null) {
-                predicates.add(cb.greaterThan(root.get("order"), order));
-            }
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-        List<Group> groups = groupRepository.findAll(spec);
-        groups.forEach(group -> group.setOrder(group.getOrder() + 1));
-        Group group = new Group();
-        group.setId(user.getId());
-        group.setName(user.getName());
-        group.setParentId(brotherGroup.getParentId());
-        group.setOrder((order==null?0:order)+1);
         return groupRepository.save(group);
     }
 
@@ -291,6 +175,32 @@ public class GroupServiceImpl implements GroupService {
             predicates.add(cb.equal(root.get("status"), STATUS_ENABLE));
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        return groupRepository.findAll(spec);
+        return groupRepository.findAll(spec, Sort.by("id"));
+    }
+
+    /**
+     * 组织编码即层级顺序：根编码 2 位，子编码 = 父编码 + 2 位数字。
+     * 编码一旦创建不可修改，所以这里只做校验，不生成。
+     */
+    private void validateCode(String id, String parentId) {
+        if (StringUtils.isBlank(id)) {
+            throw new BusinessException("组织编码不能为空");
+        }
+        if (!id.matches("^[0-9]+$")) {
+            throw new BusinessException("组织编码只能包含数字");
+        }
+        if (parentId == null) {
+            if (id.length() != ROOT_CODE_LENGTH) {
+                throw new BusinessException("根组织编码长度必须为" + ROOT_CODE_LENGTH);
+            }
+            return;
+        }
+        int expectedLength = parentId.length() + CODE_SEGMENT_LENGTH;
+        if (id.length() != expectedLength) {
+            throw new BusinessException("组织编码长度必须为" + expectedLength);
+        }
+        if (!id.startsWith(parentId)) {
+            throw new BusinessException("组织编码必须以" + parentId + "开头");
+        }
     }
 }

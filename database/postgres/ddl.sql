@@ -7,7 +7,6 @@
 CREATE TABLE public.sys_group (
 	id varchar NOT NULL, -- 组织id
 	"name" varchar NULL, -- 组织名
-	order_num int4 NULL, -- 序号
 	status varchar NOT NULL DEFAULT '1', -- 状态
 	create_time timestamptz DEFAULT now() NULL, -- 创建时间
 	parent_id varchar NULL, -- 父组织id
@@ -17,16 +16,22 @@ CREATE TABLE public.sys_group (
 	version int4 DEFAULT 0 NOT NULL, -- 乐观锁版本
 	CONSTRAINT sys_group_pkey PRIMARY KEY (id),
 	CONSTRAINT ck_sys_group_status CHECK (status IS NULL OR status IN ('0', '1')),
+	CONSTRAINT ck_sys_group_code CHECK (
+		id ~ '^[0-9]+$'
+		AND (
+			(parent_id IS NULL AND length(id) = 2)
+			OR (parent_id IS NOT NULL AND length(id) = length(parent_id) + 2 AND left(id, length(parent_id)) = parent_id)
+		)
+	),
 	CONSTRAINT fk_sys_group_parent FOREIGN KEY (parent_id) REFERENCES public.sys_group(id) ON DELETE RESTRICT
 );
-CREATE INDEX idx_sys_group_parent ON public.sys_group(parent_id);
+CREATE INDEX idx_sys_group_parent ON public.sys_group(parent_id, id);
 COMMENT ON TABLE public.sys_group IS '组织机构表';
 
 -- Column comments
 
 COMMENT ON COLUMN public.sys_group.id IS '组织id';
 COMMENT ON COLUMN public.sys_group."name" IS '组织名';
-COMMENT ON COLUMN public.sys_group.order_num IS '序号';
 COMMENT ON COLUMN public.sys_group.status IS '状态';
 COMMENT ON COLUMN public.sys_group.create_time IS '创建时间';
 COMMENT ON COLUMN public.sys_group.parent_id IS '父组织id';
@@ -47,7 +52,6 @@ CREATE TABLE public.sys_permission (
 	"type" varchar NULL, -- 权限类型
 	status varchar NOT NULL DEFAULT '1', -- 权限状态
 	parent_id varchar NULL, -- 父权限id
-	order_num int4 NULL, -- 序号
 	create_time timestamptz DEFAULT now() NULL, -- 创建时间
 	update_time timestamptz DEFAULT now() NULL, -- 更新时间
 	created_by varchar NULL, -- 创建人
@@ -56,9 +60,16 @@ CREATE TABLE public.sys_permission (
 	CONSTRAINT sys_permission_pkey PRIMARY KEY (id),
 	CONSTRAINT ck_sys_permission_status CHECK (status IS NULL OR status IN ('0', '1')),
 	CONSTRAINT ck_sys_permission_type CHECK (type IS NULL OR type IN ('menu', 'action', 'directory')),
+	CONSTRAINT ck_sys_permission_code CHECK (
+		id ~ '^[0-9]+$'
+		AND (
+			(parent_id IS NULL AND length(id) = 4)
+			OR (parent_id IS NOT NULL AND length(id) = length(parent_id) + 2 AND left(id, length(parent_id)) = parent_id)
+		)
+	),
 	CONSTRAINT fk_sys_permission_parent FOREIGN KEY (parent_id) REFERENCES public.sys_permission(id) ON DELETE RESTRICT
 );
-CREATE INDEX idx_sys_permission_parent ON public.sys_permission(parent_id);
+CREATE INDEX idx_sys_permission_parent ON public.sys_permission(parent_id, id);
 COMMENT ON TABLE public.sys_permission IS '权限表';
 
 -- Column comments
@@ -70,7 +81,6 @@ COMMENT ON COLUMN public.sys_permission."action" IS '权限动作';
 COMMENT ON COLUMN public.sys_permission."type" IS '权限类型';
 COMMENT ON COLUMN public.sys_permission.status IS '权限状态';
 COMMENT ON COLUMN public.sys_permission.parent_id IS '父权限id';
-COMMENT ON COLUMN public.sys_permission.order_num IS '序号';
 COMMENT ON COLUMN public.sys_permission.create_time IS '创建时间';
 COMMENT ON COLUMN public.sys_permission.update_time IS '更新时间';
 

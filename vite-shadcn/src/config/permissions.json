@@ -10,8 +10,7 @@
       "action": null,
       "type": "directory",
       "status": "1",
-      "parentId": null,
-      "order": 0
+      "parentId": null
     },
     {
       "id": "000000",
@@ -20,7 +19,6 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "order": 0,
       "name": {
         "zh": "普通仪表盘",
         "en": "Normal Dashboard"
@@ -33,7 +31,6 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "order": 1,
       "name": {
         "zh": "网络安全仪表盘",
         "en": "Network Security"
@@ -46,7 +43,6 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "order": 2,
       "name": {
         "zh": "军事态势感知",
         "en": "Military Situational Awareness"
@@ -59,7 +55,6 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "order": 3,
       "name": {
         "zh": "灾情指挥",
         "en": "Disaster Command"
@@ -72,7 +67,6 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "order": 4,
       "name": {
         "zh": "农业与林业管理",
         "en": "Agriculture & Forestry"
@@ -85,7 +79,6 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "order": 5,
       "name": {
         "zh": "工业管理",
         "en": "Industrial"
@@ -101,8 +94,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": null,
-      "order": 1
+      "parentId": null
     },
     {
       "id": "000100",
@@ -114,8 +106,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 0
+      "parentId": "0001"
     },
     {
       "id": "000101",
@@ -127,8 +118,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 1
+      "parentId": "0001"
     },
     {
       "id": "000102",
@@ -140,8 +130,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 2
+      "parentId": "0001"
     },
     {
       "id": "000103",
@@ -153,8 +142,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 3
+      "parentId": "0001"
     },
     {
       "id": "000104",
@@ -166,8 +154,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 4
+      "parentId": "0001"
     },
     {
       "id": "000105",
@@ -179,8 +166,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 5
+      "parentId": "0001"
     },
     {
       "id": "000106",
@@ -192,8 +178,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 6
+      "parentId": "0001"
     },
     {
       "id": "000107",
@@ -205,8 +190,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0001",
-      "order": 7
+      "parentId": "0001"
     },
     {
       "id": "0002",
@@ -218,8 +202,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": null,
-      "order": 2
+      "parentId": null
     },
     {
       "id": "000200",
@@ -231,8 +214,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0002",
-      "order": 0
+      "parentId": "0002"
     },
     {
       "id": "000201",
@@ -244,8 +226,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0002",
-      "order": 1
+      "parentId": "0002"
     },
     {
       "id": "000202",
@@ -257,8 +238,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0002",
-      "order": 2
+      "parentId": "0002"
     },
     {
       "id": "000203",
@@ -270,8 +250,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0002",
-      "order": 3
+      "parentId": "0002"
     },
     {
       "id": "0003",
@@ -283,8 +262,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": null,
-      "order": 3
+      "parentId": null
     },
     {
       "id": "000300",
@@ -296,8 +274,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0003",
-      "order": 0
+      "parentId": "0003"
     },
     {
       "id": "000301",
@@ -309,8 +286,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0003",
-      "order": 1
+      "parentId": "0003"
     },
     {
       "id": "0004",
@@ -322,8 +298,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": null,
-      "order": 4
+      "parentId": null
     },
     {
       "id": "000400",
@@ -335,8 +310,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0004",
-      "order": 0
+      "parentId": "0004"
     },
     {
       "id": "000401",
@@ -348,8 +322,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0004",
-      "order": 1
+      "parentId": "0004"
     },
     {
       "id": "000402",
@@ -361,8 +334,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0004",
-      "order": 2
+      "parentId": "0004"
     },
     {
       "id": "000403",
@@ -374,8 +346,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0004",
-      "order": 3
+      "parentId": "0004"
     },
     {
       "id": "000404",
@@ -387,8 +358,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0004",
-      "order": 4
+      "parentId": "0004"
     },
     {
       "id": "0005",
@@ -400,8 +370,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": null,
-      "order": 5
+      "parentId": null
     },
     {
       "id": "000500",
@@ -413,8 +382,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0005",
-      "order": 0
+      "parentId": "0005"
     },
     {
       "id": "00050000",
@@ -426,8 +394,7 @@
       "action": "add",
       "type": "action",
       "status": "1",
-      "parentId": "000500",
-      "order": 0
+      "parentId": "000500"
     },
     {
       "id": "00050001",
@@ -439,8 +406,7 @@
       "action": "delete",
       "type": "action",
       "status": "1",
-      "parentId": "000500",
-      "order": 1
+      "parentId": "000500"
     },
     {
       "id": "00050002",
@@ -452,8 +418,7 @@
       "action": "edit",
       "type": "action",
       "status": "1",
-      "parentId": "000500",
-      "order": 2
+      "parentId": "000500"
     },
     {
       "id": "000501",
@@ -465,8 +430,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0005",
-      "order": 1
+      "parentId": "0005"
     },
     {
       "id": "00050100",
@@ -478,8 +442,7 @@
       "action": "add",
       "type": "action",
       "status": "1",
-      "parentId": "000501",
-      "order": 0
+      "parentId": "000501"
     },
     {
       "id": "00050101",
@@ -491,8 +454,7 @@
       "action": "delete",
       "type": "action",
       "status": "1",
-      "parentId": "000501",
-      "order": 1
+      "parentId": "000501"
     },
     {
       "id": "00050102",
@@ -504,8 +466,7 @@
       "action": "edit",
       "type": "action",
       "status": "1",
-      "parentId": "000501",
-      "order": 2
+      "parentId": "000501"
     },
     {
       "id": "000502",
@@ -517,8 +478,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0005",
-      "order": 2
+      "parentId": "0005"
     },
     {
       "id": "00050200",
@@ -530,8 +490,7 @@
       "action": "add",
       "type": "action",
       "status": "1",
-      "parentId": "000502",
-      "order": 0
+      "parentId": "000502"
     },
     {
       "id": "00050201",
@@ -543,8 +502,7 @@
       "action": "delete",
       "type": "action",
       "status": "1",
-      "parentId": "000502",
-      "order": 1
+      "parentId": "000502"
     },
     {
       "id": "00050202",
@@ -556,8 +514,7 @@
       "action": "edit",
       "type": "action",
       "status": "1",
-      "parentId": "000502",
-      "order": 2
+      "parentId": "000502"
     },
     {
       "id": "000503",
@@ -569,8 +526,7 @@
       "action": null,
       "type": "menu",
       "status": "1",
-      "parentId": "0005",
-      "order": 3
+      "parentId": "0005"
     },
     {
       "id": "00050300",
@@ -582,8 +538,7 @@
       "action": "add",
       "type": "action",
       "status": "1",
-      "parentId": "000503",
-      "order": 0
+      "parentId": "000503"
     },
     {
       "id": "00050301",
@@ -595,8 +550,7 @@
       "action": "delete",
       "type": "action",
       "status": "1",
-      "parentId": "000503",
-      "order": 1
+      "parentId": "000503"
     },
     {
       "id": "00050302",
@@ -608,8 +562,7 @@
       "action": "edit",
       "type": "action",
       "status": "1",
-      "parentId": "000503",
-      "order": 2
+      "parentId": "000503"
     }
   ],
   "rolePermissions": {

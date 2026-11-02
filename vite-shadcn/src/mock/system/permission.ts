@@ -12,7 +12,6 @@ type Permission = {
   status: "0" | "1";
   createTime: string;
   parentId?: string | null;
-  order: number;
 };
 
 type PermissionStore = {
@@ -57,6 +56,10 @@ function nowText() {
   return new Date().toISOString().slice(0, 19).replace("T", " ");
 }
 
+function byCode(a: { id: string }, b: { id: string }) {
+  return a.id === b.id ? 0 : a.id < b.id ? -1 : 1;
+}
+
 export function getPermissionList(locale: string): Permission[] {
   const lang: Locale = locale === "en" ? "en" : "zh";
   const store = readStore();
@@ -70,7 +73,6 @@ export function getPermissionList(locale: string): Permission[] {
       action: permission.action ?? undefined,
       status: (permission.status as "0" | "1") ?? "1",
       parentId: permission.parentId,
-      order: permission.order ?? 0,
       createTime: "2023-01-01 00:00:00",
       ...store.updated[permission.id],
     }));
@@ -82,21 +84,7 @@ export function getPermissionList(locale: string): Permission[] {
       ...store.updated[permission.id],
     }));
 
-  return [...base, ...created];
-}
-
-function reindexSiblings(list: Permission[], parentId: string | null | undefined) {
-  const siblings = list
-    .filter((item) => (item.parentId ?? null) === (parentId ?? null))
-    .sort((a, b) => a.order - b.order);
-  const store = readStore();
-  siblings.forEach((item, index) => {
-    if (item.order !== index) {
-      store.updated[item.id] = { ...store.updated[item.id], order: index };
-    }
-  });
-  writeStore(store);
-  return siblings.map((item, index) => ({ ...item, order: index }));
+  return [...base, ...created].sort(byCode);
 }
 
 function persistPermission(permission: Permission) {
@@ -120,6 +108,18 @@ function updatePermission(id: string, patch: Partial<Permission>) {
     store.updated[id] = { ...store.updated[id], ...patch };
   }
   writeStore(store);
+}
+
+function validateCode(id: string, parentId: string | null): string | null {
+  if (!/^\d+$/.test(id)) return "权限编码只能包含数字";
+  if (parentId === null) {
+    return id.length === 4 ? null : "根权限编码长度必须为4";
+  }
+  if (id.length !== parentId.length + 2) {
+    return `权限编码长度必须为${parentId.length + 2}`;
+  }
+  if (!id.startsWith(parentId)) return `权限编码必须以${parentId}开头`;
+  return null;
 }
 
 const handlers = [
@@ -155,69 +155,45 @@ const handlers = [
   http.post("/api/system/permissions/children", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as Partial<Permission>;
-    if (!body.id || getPermissionList(locale).some((item) => item.id === body.id)) {
+    const list = getPermissionList(locale);
+    const id = body.id ?? "";
+    const parentId = body.parentId || null;
+    if (!id || list.some((item) => item.id === id)) {
       return HttpResponse.json(
         { code: 40901, message: "权限编码已存在" },
         { status: 409 },
       );
     }
-    const parentId = body.parentId || null;
-    const siblings = getPermissionList(locale).filter(
-      (item) => (item.parentId ?? null) === parentId,
-    );
+    if (parentId !== null) {
+      const parent = list.find((item) => item.id === parentId);
+      if (!parent) {
+        return HttpResponse.json(
+          { code: 40401, message: "父权限不存在" },
+          { status: 404 },
+        );
+      }
+      if (parent.type === "action") {
+        return HttpResponse.json(
+          { code: 40001, message: "动作权限不能添加子节点" },
+          { status: 400 },
+        );
+      }
+    }
+    const codeError = validateCode(id, parentId);
+    if (codeError) {
+      return HttpResponse.json({ code: 40001, message: codeError }, { status: 400 });
+    }
     const permission: Permission = {
-      id: body.id,
-      name: body.name || body.id,
+      id,
+      name: body.name || id,
       path: body.path,
       type: (body.type as Permission["type"]) || "menu",
       action: body.action,
       status: "1",
       parentId,
-      order: siblings.length,
       createTime: nowText(),
     };
     persistPermission(permission);
-    return HttpResponse.json({
-      code: 200,
-      message: successMessage[locale] ?? successMessage.zh,
-      data: permission.id,
-    });
-  }),
-
-  http.post("/api/system/permissions/siblings", async ({ request }) => {
-    const locale = request.headers.get("locale") || "zh";
-    const body = (await request.clone().json()) as Partial<Permission> & {
-      brotherId?: string;
-    };
-    const list = getPermissionList(locale);
-    if (!body.id || list.some((item) => item.id === body.id)) {
-      return HttpResponse.json(
-        { code: 40901, message: "权限编码已存在" },
-        { status: 409 },
-      );
-    }
-    const brother = list.find((item) => item.id === body.brotherId);
-    if (!brother) {
-      return HttpResponse.json(
-        { code: 40401, message: "同级权限不存在" },
-        { status: 404 },
-      );
-    }
-    const permission: Permission = {
-      id: body.id,
-      name: body.name || body.id,
-      path: body.path,
-      type: (body.type as Permission["type"]) || "menu",
-      action: body.action,
-      status: "1",
-      parentId: brother.parentId ?? null,
-      order: brother.order,
-      createTime: nowText(),
-    };
-    persistPermission(permission);
-    const after = reindexSiblings(getPermissionList(locale), permission.parentId);
-    const created = after.find((item) => item.id === permission.id);
-    if (created) updatePermission(created.id, { order: created.order });
     return HttpResponse.json({
       code: 200,
       message: successMessage[locale] ?? successMessage.zh,
@@ -235,40 +211,6 @@ const handlers = [
     }
     const body = (await request.clone().json()) as Partial<Permission>;
     updatePermission(params.id, body);
-    return HttpResponse.json({
-      code: 200,
-      message: successMessage[locale] ?? successMessage.zh,
-    });
-  }),
-
-  http.post<{ id: string }>("/api/system/permissions/:id/move", async ({ request, params }) => {
-    const locale = request.headers.get("locale") || "zh";
-    const body = (await request.clone().json()) as { action?: "up" | "down" | "top" };
-    const list = getPermissionList(locale);
-    const target = list.find((item) => item.id === params.id);
-    if (!target) {
-      return HttpResponse.json(
-        { code: 40401, message: "权限不存在" },
-        { status: 404 },
-      );
-    }
-    const siblings = list
-      .filter((item) => (item.parentId ?? null) === (target.parentId ?? null))
-      .sort((a, b) => a.order - b.order);
-    const index = siblings.findIndex((item) => item.id === target.id);
-    if (body.action === "top") {
-      siblings.splice(index, 1);
-      siblings.unshift(target);
-    } else if (body.action === "up" && index > 0) {
-      [siblings[index - 1], siblings[index]] = [siblings[index], siblings[index - 1]];
-    } else if (body.action === "down" && index < siblings.length - 1) {
-      [siblings[index + 1], siblings[index]] = [siblings[index], siblings[index + 1]];
-    }
-    const store = readStore();
-    siblings.forEach((item, order) => {
-      store.updated[item.id] = { ...store.updated[item.id], order };
-    });
-    writeStore(store);
     return HttpResponse.json({
       code: 200,
       message: successMessage[locale] ?? successMessage.zh,

@@ -4,7 +4,6 @@ type Group = {
   id: string;
   name: string;
   parentId: string | null;
-  order: number;
   status: "0" | "1";
   createTime: string;
   updateTime?: string;
@@ -20,6 +19,7 @@ const STORAGE_KEY = "orange.mock.system.groups";
 
 const zh: Record<string, string> = {
   success: "操作成功",
+  "00": "总公司",
   "0001": "人事部",
   "0002": "后勤部",
   "0003": "研发部",
@@ -29,6 +29,7 @@ const zh: Record<string, string> = {
 };
 const en: Record<string, string> = {
   success: "Success",
+  "00": "Headquarters",
   "0001": "Human Resources Department",
   "0002": "Logistics Department",
   "0003": "Development Department",
@@ -67,16 +68,21 @@ function nowText() {
   return new Date().toISOString().slice(0, 19).replace("T", " ");
 }
 
-function getGroupList(locale: string): Group[] {
+function byCode(a: { id: string }, b: { id: string }) {
+  return a.id === b.id ? 0 : a.id < b.id ? -1 : 1;
+}
+
+export function getGroupList(locale: string): Group[] {
   const dict = localeMap[locale] ?? zh;
   const store = readStore();
   const seed: Group[] = [
-    { id: "0001", parentId: null, order: 0 },
-    { id: "0002", parentId: null, order: 1 },
-    { id: "0003", parentId: null, order: 2 },
-    { id: "000301", parentId: "0003", order: 0 },
-    { id: "000302", parentId: "0003", order: 1 },
-    { id: "000303", parentId: "0003", order: 2 },
+    { id: "00", parentId: null },
+    { id: "0001", parentId: "00" },
+    { id: "0002", parentId: "00" },
+    { id: "0003", parentId: "00" },
+    { id: "000301", parentId: "0003" },
+    { id: "000302", parentId: "0003" },
+    { id: "000303", parentId: "0003" },
   ].map((item) => ({
     ...item,
     name: dict[item.id] ?? item.id,
@@ -92,25 +98,7 @@ function getGroupList(locale: string): Group[] {
     .filter((item) => !store.deleted.includes(item.id))
     .map((item) => ({ ...item, ...store.updated[item.id] }));
 
-  return [...base, ...created];
-}
-
-function nextOrder(list: Group[], parentId: string | null) {
-  const siblings = list.filter((item) => (item.parentId ?? null) === parentId);
-  return siblings.length === 0 ? 0 : Math.max(...siblings.map((item) => item.order)) + 1;
-}
-
-function reindex(list: Group[], parentId: string | null) {
-  const store = readStore();
-  list
-    .filter((item) => (item.parentId ?? null) === parentId)
-    .sort((a, b) => a.order - b.order)
-    .forEach((item, index) => {
-      if (item.order !== index) {
-        store.updated[item.id] = { ...store.updated[item.id], order: index };
-      }
-    });
-  writeStore(store);
+  return [...base, ...created].sort(byCode);
 }
 
 function persistGroup(group: Group) {
@@ -128,6 +116,18 @@ function updateGroup(id: string, patch: Partial<Group>) {
   if (created) Object.assign(created, patch, { updateTime: nowText() });
   else store.updated[id] = { ...store.updated[id], ...patch, updateTime: nowText() };
   writeStore(store);
+}
+
+function validateCode(id: string, parentId: string | null): string | null {
+  if (!/^\d+$/.test(id)) return "组织编码只能包含数字";
+  if (parentId === null) {
+    return id.length === 2 ? null : "根组织编码长度必须为2";
+  }
+  if (id.length !== parentId.length + 2) {
+    return `组织编码长度必须为${parentId.length + 2}`;
+  }
+  if (!id.startsWith(parentId)) return `组织编码必须以${parentId}开头`;
+  return null;
 }
 
 const handlers = [
@@ -159,55 +159,27 @@ const handlers = [
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as Partial<Group>;
     const list = getGroupList(locale);
-    if (!body.id || list.some((item) => item.id === body.id)) {
-      return HttpResponse.json({ code: 40901, message: "组织编码已存在" }, { status: 409 });
-    }
+    const id = body.id ?? "";
     const parentId = body.parentId || null;
-    const group: Group = {
-      id: body.id,
-      name: body.name || body.id,
-      parentId,
-      order: nextOrder(list, parentId),
-      status: "1",
-      createTime: nowText(),
-      updateTime: nowText(),
-    };
-    persistGroup(group);
-    return HttpResponse.json({
-      code: 200,
-      message: localeMap[locale]?.["success"] ?? zh.success,
-      data: group.id,
-    });
-  }),
-
-  http.post("/api/system/groups/siblings", async ({ request }) => {
-    const locale = request.headers.get("locale") || "zh";
-    const body = (await request.clone().json()) as Partial<Group> & {
-      brotherId?: string;
-    };
-    const list = getGroupList(locale);
-    if (!body.id || list.some((item) => item.id === body.id)) {
+    if (!id || list.some((item) => item.id === id)) {
       return HttpResponse.json({ code: 40901, message: "组织编码已存在" }, { status: 409 });
     }
-    const brother = list.find((item) => item.id === body.brotherId);
-    if (!brother) {
-      return HttpResponse.json({ code: 40401, message: "同级组织不存在" }, { status: 404 });
+    if (parentId !== null && !list.some((item) => item.id === parentId)) {
+      return HttpResponse.json({ code: 40401, message: "父组织不存在" }, { status: 404 });
+    }
+    const codeError = validateCode(id, parentId);
+    if (codeError) {
+      return HttpResponse.json({ code: 40001, message: codeError }, { status: 400 });
     }
     const group: Group = {
-      id: body.id,
-      name: body.name || body.id,
-      parentId: brother.parentId,
-      order: brother.order,
+      id,
+      name: body.name || id,
+      parentId,
       status: "1",
       createTime: nowText(),
       updateTime: nowText(),
     };
     persistGroup(group);
-    const after = [...getGroupList(locale)].sort((a, b) => {
-      if ((a.parentId ?? null) !== (b.parentId ?? null)) return 0;
-      return a.order - b.order;
-    });
-    reindex(after, brother.parentId);
     return HttpResponse.json({
       code: 200,
       message: localeMap[locale]?.["success"] ?? zh.success,
@@ -235,37 +207,6 @@ const handlers = [
     }
     const body = (await request.clone().json()) as { status?: "0" | "1" };
     updateGroup(params.id, { status: body.status });
-    return HttpResponse.json({
-      code: 200,
-      message: localeMap[locale]?.["success"] ?? zh.success,
-    });
-  }),
-
-  http.post<{ id: string }>("/api/system/groups/:id/move", async ({ request, params }) => {
-    const locale = request.headers.get("locale") || "zh";
-    const body = (await request.clone().json()) as { action?: "up" | "down" | "top" };
-    const list = getGroupList(locale);
-    const target = list.find((item) => item.id === params.id);
-    if (!target) {
-      return HttpResponse.json({ code: 40401, message: "组织不存在" }, { status: 404 });
-    }
-    const siblings = list
-      .filter((item) => (item.parentId ?? null) === (target.parentId ?? null))
-      .sort((a, b) => a.order - b.order);
-    const index = siblings.findIndex((item) => item.id === target.id);
-    if (body.action === "top") {
-      siblings.splice(index, 1);
-      siblings.unshift(target);
-    } else if (body.action === "up" && index > 0) {
-      [siblings[index - 1], siblings[index]] = [siblings[index], siblings[index - 1]];
-    } else if (body.action === "down" && index < siblings.length - 1) {
-      [siblings[index + 1], siblings[index]] = [siblings[index], siblings[index + 1]];
-    }
-    const store = readStore();
-    siblings.forEach((item, order) => {
-      store.updated[item.id] = { ...store.updated[item.id], order };
-    });
-    writeStore(store);
     return HttpResponse.json({
       code: 200,
       message: localeMap[locale]?.["success"] ?? zh.success,

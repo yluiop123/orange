@@ -39,7 +39,7 @@ public class MenuServiceImpl implements MenuService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         List<Permission> permissions = permissionRepository.findAll(
-                spec, Sort.by(Sort.Direction.ASC, "order"));
+                spec, Sort.by(Sort.Direction.ASC, "id"));
 
         Map<String, MenuInfo> nodes = new LinkedHashMap<>();
         for (Permission permission : permissions) {
@@ -48,7 +48,6 @@ public class MenuServiceImpl implements MenuService {
             node.setPath(permission.getPath());
             node.setType(permission.getType());
             node.setName(permission.getName());
-            node.setOrder(permission.getOrder());
             nodes.put(permission.getId(), node);
         }
 

@@ -22,9 +22,6 @@ public class MenuInfo {
     @Schema(description = "菜单名称", example = "用户管理")
     private String name;
 
-    @Schema(description = "排序", example = "0")
-    private Integer order;
-
     @Schema(description = "子菜单")
     private List<MenuInfo> children = new ArrayList<>();
 }
