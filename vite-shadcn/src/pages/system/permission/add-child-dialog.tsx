@@ -80,7 +80,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         setValues({ parentId });
     }, [parentId])
 function onSubmit(fieldValues: Record<string, unknown>) {
-        addPermissionChild({
+        return addPermissionChild({
             id: fieldValues.id as string,
             name: fieldValues.name as string,
             path: fieldValues.path as string,

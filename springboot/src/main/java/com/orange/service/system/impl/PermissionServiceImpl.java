@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.orange.config.Constanst.STATUS_ALL;
+import static com.orange.config.Constanst.STATUS_DISABLE;
 import static com.orange.config.Constanst.STATUS_ENABLE;
 
 @Service
@@ -69,10 +70,19 @@ public class PermissionServiceImpl implements PermissionService {
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));
             }
+            String type = req.getType();
+            if (type!=null&&!type.isEmpty()&&!STATUS_ALL.equals(type)) {
+                predicates.add(cb.equal(root.get("type"), type));
+            }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         // 同级顺序由编码决定，删除无需重排
-        return permissionRepository.findAll(spec, Sort.by("id"));
+        boolean textFilter = StringUtils.isNotBlank(req.getId())
+                || StringUtils.isNotBlank(req.getName())
+                || StringUtils.isNotBlank(req.getPath())
+                || (StringUtils.isNotBlank(req.getType()) && !STATUS_ALL.equals(req.getType()));
+        List<Permission> matched = permissionRepository.findAll(spec, Sort.by("id"));
+        return textFilter ? includeAncestors(matched, permissionRepository.findAll()) : matched;
     }
 
     @Override
@@ -179,6 +189,11 @@ public class PermissionServiceImpl implements PermissionService {
             permission.setType(req.getType());
         }
         if(req.getStatus()!=null){
+            boolean disabling = !STATUS_DISABLE.equals(permission.getStatus())
+                    && STATUS_DISABLE.equals(req.getStatus());
+            if (disabling) {
+                assertNoEnabledDescendants(permission.getId());
+            }
             permission.setStatus(req.getStatus());
         }
         return permission;
@@ -199,6 +214,54 @@ public class PermissionServiceImpl implements PermissionService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         return permissionRepository.findAll(spec, Sort.by("id"));
+    }
+
+    /**
+     * 禁用父节点前要求先禁用子节点，避免“父节点隐藏、子节点仍然生效”的中间状态。
+     */
+    private void assertNoEnabledDescendants(String id) {
+        List<Permission> all = permissionRepository.findAll();
+        Map<String, Permission> byId = all.stream()
+                .collect(Collectors.toMap(Permission::getId, permission -> permission));
+        Map<String, List<Permission>> childrenByParent = all.stream()
+                .filter(permission -> permission.getParentId() != null)
+                .collect(Collectors.groupingBy(Permission::getParentId));
+        Deque<String> queue = new ArrayDeque<>();
+        childrenByParent.getOrDefault(id, List.of())
+                .forEach(child -> queue.add(child.getId()));
+        Set<String> seen = new LinkedHashSet<>();
+        while (!queue.isEmpty()) {
+            String childId = queue.poll();
+            if (!seen.add(childId)) {
+                continue;
+            }
+            Permission child = byId.get(childId);
+            if (child != null && STATUS_ENABLE.equals(child.getStatus())) {
+                throw new BusinessException("请先禁用子权限");
+            }
+            childrenByParent.getOrDefault(childId, List.of())
+                    .forEach(item -> queue.add(item.getId()));
+        }
+    }
+
+    /** 文本筛选时把祖先一并返回，前端才能保持树的层级。 */
+    private List<Permission> includeAncestors(List<Permission> matched, List<Permission> all) {
+        Map<String, Permission> byId = all.stream()
+                .collect(Collectors.toMap(Permission::getId, permission -> permission));
+        Set<String> ids = matched.stream()
+                .map(Permission::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        for (Permission permission : matched) {
+            String parentId = permission.getParentId();
+            while (parentId != null && ids.add(parentId)) {
+                Permission parent = byId.get(parentId);
+                parentId = parent == null ? null : parent.getParentId();
+            }
+        }
+        return all.stream()
+                .filter(permission -> ids.contains(permission.getId()))
+                .sorted(Comparator.comparing(Permission::getId))
+                .toList();
     }
 
     /**

@@ -54,7 +54,9 @@ export default function Index(props: { open: boolean, setOpen: (open: boolean) =
             name: "groupId",
             label: "page.system.user.header.groupName",
             defaultValue: "",
-            validate: z.string(),
+            validate: z.string().min(1, {
+                message: intl.formatMessage({ id: 'validate.groupRequired' }),
+            }),
             type: "group"
         },
         {
@@ -82,7 +84,7 @@ function onSubmit(values: Record<string, unknown>) {
             roles: (values.roles as { value: string }[] | undefined)?.map((item) => item.value) ?? [],
             permissions: (values.permissions as string[] | undefined) ?? [],
         };
-        createUser(payload).then((password) => {
+        return createUser(payload).then((password) => {
             setOpen(false);
             toast.success(intl.formatMessage({ id: 'message.success' }));
             onCreated?.(password, values.username as string);

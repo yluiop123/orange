@@ -12,7 +12,6 @@ import {
     Routes
 } from "react-router";
 
-const Swagger = lazy(() => import("@/pages/swagger"));
 const Login = lazy(() => import("@/pages/login"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Forbidden = lazy(() => import("@/pages/forbidden"));
@@ -42,7 +41,6 @@ export default function Index() {
             <Router>
                 <Suspense fallback={<div className="flex h-svh items-center justify-center">Loading...</div>}>
                     <Routes>
-                        <Route path="/swagger" element={<Swagger />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/forbidden" element={<Forbidden />} />
                         <Route path="/" Component={PageLayout}>

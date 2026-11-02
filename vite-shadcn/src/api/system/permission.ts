@@ -17,6 +17,7 @@ export type PermissionQuery = {
   name?: string;
   path?: string;
   status?: string;
+  type?: string;
 };
 
 export type PermissionPayload = {

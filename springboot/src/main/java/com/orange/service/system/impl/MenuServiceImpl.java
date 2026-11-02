@@ -58,12 +58,12 @@ public class MenuServiceImpl implements MenuService {
             MenuInfo parent = StringUtils.isBlank(parentId) ? null : nodes.get(parentId);
             if (parent != null) {
                 parent.getChildren().add(node);
-            } else {
-                if (StringUtils.isNotBlank(parentId)) {
-                    log.warn("菜单 {} 的父节点 {} 已禁用或不存在，已提升为根节点",
-                            permission.getId(), parentId);
-                }
+            } else if (StringUtils.isBlank(parentId)) {
                 roots.add(node);
+            } else {
+                // 父节点被禁用或不存在时，整个分支不可见，而不是提升为根节点
+                log.warn("菜单 {} 的父节点 {} 已禁用或不存在，已跳过",
+                        permission.getId(), parentId);
             }
         }
         return roots;

@@ -61,7 +61,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         setValues({ parentId });
     }, [parentId])
 function onSubmit(fieldValues: Record<string, unknown>) {
-        addGroupChild({
+        return addGroupChild({
             id: fieldValues.id as string,
             name: fieldValues.name as string,
             parentId: fieldValues.parentId as string,

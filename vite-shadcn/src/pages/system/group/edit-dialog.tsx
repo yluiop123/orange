@@ -60,7 +60,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         };
     }, [id, open, intl])
 function onSubmit(fieldValues: Record<string, unknown>) {
-        updateGroup(id, {
+        return updateGroup(id, {
             id,
             name: fieldValues.name as string,
         }).then(() => {

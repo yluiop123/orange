@@ -137,13 +137,29 @@ const handlers = [
     const id = url.searchParams.get("id") || "";
     const name = url.searchParams.get("name") || "";
     const status = url.searchParams.get("status") || "all";
-    const list = getGroupList(locale).filter((item) => {
+    const all = getGroupList(locale);
+    const list = all.filter((item) => {
       if (id && !item.id.startsWith(id)) return false;
       if (name && !item.name.toLowerCase().startsWith(name.toLowerCase())) return false;
       if (status !== "all" && item.status !== status) return false;
       return true;
     });
-    return HttpResponse.json({ code: 200, data: list });
+    if (!id && !name) {
+      return HttpResponse.json({ code: 200, data: list });
+    }
+    // 文本筛选时带上祖先，前端才能保持树层级
+    const byId = new Map(all.map((item) => [item.id, item]));
+    const ids = new Set(list.map((item) => item.id));
+    for (const item of list) {
+      let parentId = item.parentId;
+      while (parentId && ids.add(parentId)) {
+        parentId = byId.get(parentId)?.parentId ?? null;
+      }
+    }
+    return HttpResponse.json({
+      code: 200,
+      data: all.filter((item) => ids.has(item.id)).sort(byCode),
+    });
   }),
 
   http.get<{ id: string }>("/api/system/groups/:id", async ({ request, params }) => {

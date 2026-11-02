@@ -32,7 +32,8 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
             defaultValue: "",
             validate: z.string().min(4, {
                 message: intl.formatMessage({ id: 'validate.username' }),
-            })
+            }),
+            disabled: true,
         },
         {
             name: "email",
@@ -111,7 +112,7 @@ function onSubmit(values: Record<string, unknown>) {
             roles: (values.roles as { value: string }[] | undefined)?.map((item) => item.value) ?? [],
             permissions: (values.permissions as string[] | undefined) ?? [],
         };
-        updateUser(id, payload).then(() => {
+        return updateUser(id, payload).then(() => {
             setOpen(false);
             toast.success(intl.formatMessage({ id: 'message.success' }));
             onSave();

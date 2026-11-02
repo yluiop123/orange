@@ -3,6 +3,7 @@ import type { User, UserQuery } from "@/api/system/user";
 import ActionAuth from "@/components/action-auth";
 import GroupTreeSelect from "@/components/group-tree-select";
 import { PasswordDialog } from "@/components/password-dialog";
+import { ConfirmActionDialog } from "@/components/system/confirm-action-dialog";
 import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
@@ -24,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import useUserStore from "@/store/user";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -43,6 +45,7 @@ const FILTER_FIELDS = [
 
 export default function User() {
     const intl = useIntl();
+    const currentUsername = useUserStore((state) => state.userInfo?.username);
 
     const [params, setParams] = useState<TableParams>({
         page: 1,
@@ -65,22 +68,42 @@ export default function User() {
     const [id, setId] = useState('' as string);
     const [tempPassword, setTempPassword] = useState<{ username?: string; password: string } | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [resetTarget, setResetTarget] = useState<User | null>(null);
+    const [resetting, setResetting] = useState(false);
 
+    function isSelf(row: User) {
+        return !!currentUsername && row.username === currentUsername;
+    }
     function handleEdit(row: User) {
         setId(row.id);
         setIsEditDialogOpen(true);
     }
     function handleReset(row: User) {
-        userApi.resetUserPassword(row.id).then(password => {
-            toast.success(intl.formatMessage({ id: 'message.success' }));
-            setTempPassword({ username: row.username, password });
-        })
+        setResetTarget(row);
     }
-    function requestDelete(rows: User[]) {
-        if (rows.length === 0) {
+    async function confirmReset() {
+        if (!resetTarget) {
             return;
         }
-        setDeleteTarget(rows);
+        setResetting(true);
+        try {
+            const password = await userApi.resetUserPassword(resetTarget.id);
+            toast.success(intl.formatMessage({ id: 'message.success' }));
+            setTempPassword({ username: resetTarget.username, password });
+            setResetTarget(null);
+        } finally {
+            setResetting(false);
+        }
+    }
+    function requestDelete(rows: User[]) {
+        const deletable = rows.filter((row) => !isSelf(row));
+        if (deletable.length !== rows.length) {
+            toast.warning(intl.formatMessage({ id: 'message.cannotDeleteSelf' }));
+        }
+        if (deletable.length === 0) {
+            return;
+        }
+        setDeleteTarget(deletable);
     }
     async function confirmDelete() {
         if (deleteTarget.length === 0) {
@@ -89,7 +112,9 @@ export default function User() {
         setDeleting(true);
         try {
             await userApi.deleteUsers(deleteTarget.map(item => item.id));
-            setParams(prev => ({ ...prev, page: 1 }));
+            const remaining = Math.max(0, data.total - deleteTarget.length);
+            const maxPage = Math.max(1, Math.ceil(remaining / params.size));
+            setParams(prev => ({ ...prev, page: Math.min(prev.page, maxPage) }));
             setSelectedRows([]);
             setDeleteTarget([]);
             toast.success(intl.formatMessage({ id: 'message.success' }));
@@ -163,6 +188,11 @@ export default function User() {
                 <ActionAuth action="edit">
                     <StatusSwitch
                         initial={row.getValue("status") as string}
+                        disabled={isSelf(row.original)}
+                        disableDescription={intl.formatMessage(
+                            { id: 'table.disableConfirmNamed' },
+                            { name: row.original.username },
+                        )}
                         onChange={(val) => handleStatusChange(row.original, val)} />
                 </ActionAuth>
             ,
@@ -187,9 +217,11 @@ export default function User() {
                                 <ActionAuth action="edit">
                                     <DropdownMenuItem onClick={() => handleEdit(user)}>{intl.formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
                                 </ActionAuth>
-                                <ActionAuth action="delete">
-                                    <DropdownMenuItem onClick={() => requestDelete([user])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
-                                </ActionAuth>
+                                {!isSelf(user) && (
+                                    <ActionAuth action="delete">
+                                        <DropdownMenuItem onClick={() => requestDelete([user])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
+                                    </ActionAuth>
+                                )}
                                 <ActionAuth action="edit">
                                     <DropdownMenuItem onClick={() => handleReset(user)}>{intl.formatMessage({ id: 'button.reset.password' })}</DropdownMenuItem>
                                 </ActionAuth>
@@ -208,9 +240,29 @@ export default function User() {
             <ConfirmDeleteDialog
                 open={deleteTarget.length > 0}
                 onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-                description={intl.formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+                description={deleteTarget.length === 1
+                    ? intl.formatMessage(
+                        { id: 'table.deleteConfirmSingle' },
+                        { name: deleteTarget[0].username },
+                    )
+                    : intl.formatMessage(
+                        { id: 'table.deleteConfirm' },
+                        { count: deleteTarget.length },
+                    )}
                 pending={deleting}
                 onConfirm={confirmDelete}
+            />
+            <ConfirmActionDialog
+                open={!!resetTarget}
+                onOpenChange={(open) => { if (!open) setResetTarget(null); }}
+                title={intl.formatMessage({ id: 'table.resetPasswordTitle' })}
+                description={intl.formatMessage(
+                    { id: 'table.resetPasswordConfirm' },
+                    { name: resetTarget?.username ?? '' },
+                )}
+                confirmLabel={intl.formatMessage({ id: 'button.reset.password' })}
+                pending={resetting}
+                onConfirm={confirmReset}
             />
 
             <div className="flex items-center py-3 gap-4">

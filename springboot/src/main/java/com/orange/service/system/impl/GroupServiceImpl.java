@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.orange.config.Constanst.STATUS_ALL;
+import static com.orange.config.Constanst.STATUS_DISABLE;
 import static com.orange.config.Constanst.STATUS_ENABLE;
 
 @Service
@@ -66,7 +67,9 @@ public class GroupServiceImpl implements GroupService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         // 同级顺序由编码决定，删除无需重排
-        return groupRepository.findAll(spec, Sort.by("id"));
+        boolean textFilter = StringUtils.isNotBlank(req.getId()) || StringUtils.isNotBlank(req.getName());
+        List<Group> matched = groupRepository.findAll(spec, Sort.by("id"));
+        return textFilter ? includeAncestors(matched, groupRepository.findAll()) : matched;
     }
 
     @CacheEvict(value = "group", allEntries = true)
@@ -151,6 +154,11 @@ public class GroupServiceImpl implements GroupService {
             group.setName(req.getName());
         }
         if(req.getStatus()!=null){
+            boolean disabling = !STATUS_DISABLE.equals(group.getStatus())
+                    && STATUS_DISABLE.equals(req.getStatus());
+            if (disabling) {
+                assertNoEnabledDescendants(group.getId());
+            }
             group.setStatus(req.getStatus());
         }
         return group;
@@ -176,6 +184,54 @@ public class GroupServiceImpl implements GroupService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         return groupRepository.findAll(spec, Sort.by("id"));
+    }
+
+    /**
+     * 禁用父节点前要求先禁用子节点，避免“父节点隐藏、子节点仍然生效”的中间状态。
+     */
+    private void assertNoEnabledDescendants(String id) {
+        List<Group> all = groupRepository.findAll();
+        Map<String, Group> byId = all.stream()
+                .collect(Collectors.toMap(Group::getId, group -> group));
+        Map<String, List<Group>> childrenByParent = all.stream()
+                .filter(group -> group.getParentId() != null)
+                .collect(Collectors.groupingBy(Group::getParentId));
+        Deque<String> queue = new ArrayDeque<>();
+        childrenByParent.getOrDefault(id, List.of())
+                .forEach(child -> queue.add(child.getId()));
+        Set<String> seen = new LinkedHashSet<>();
+        while (!queue.isEmpty()) {
+            String childId = queue.poll();
+            if (!seen.add(childId)) {
+                continue;
+            }
+            Group child = byId.get(childId);
+            if (child != null && STATUS_ENABLE.equals(child.getStatus())) {
+                throw new BusinessException("请先禁用子组织");
+            }
+            childrenByParent.getOrDefault(childId, List.of())
+                    .forEach(item -> queue.add(item.getId()));
+        }
+    }
+
+    /** 文本筛选时把祖先一并返回，前端才能保持树的层级。 */
+    private List<Group> includeAncestors(List<Group> matched, List<Group> all) {
+        Map<String, Group> byId = all.stream()
+                .collect(Collectors.toMap(Group::getId, group -> group));
+        Set<String> ids = matched.stream()
+                .map(Group::getId)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        for (Group group : matched) {
+            String parentId = group.getParentId();
+            while (parentId != null && ids.add(parentId)) {
+                Group parent = byId.get(parentId);
+                parentId = parent == null ? null : parent.getParentId();
+            }
+        }
+        return all.stream()
+                .filter(group -> ids.contains(group.getId()))
+                .sorted(Comparator.comparing(Group::getId))
+                .toList();
     }
 
     /**

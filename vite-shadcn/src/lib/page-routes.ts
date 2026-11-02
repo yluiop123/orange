@@ -1,7 +1,7 @@
 const pageModules = import.meta.glob("../pages/**/index.tsx");
 
 // 这些页面由 App.tsx 的固定路由直接渲染，不参与菜单路由注册
-const SPECIAL_PAGES = new Set(["/login", "/swagger", "/forbidden", "/not-found"]);
+const SPECIAL_PAGES = new Set(["/login", "/forbidden", "/not-found"]);
 
 function toPagePath(key: string) {
   return key.replace(/^\.\.\/pages/, "").replace(/\/index\.tsx$/, "");

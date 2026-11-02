@@ -96,7 +96,7 @@ export default function Group() {
     setDeleting(true);
     try {
       await deleteGroups(deleteTarget.map((row) => row.id));
-      setParams(prev => ({ ...prev, page: 1 }));
+      refetch();
       setSelectedRows([]);
       setDeleteTarget([]);
       toast.success(formatMessage({ id: 'message.success' }));
@@ -185,7 +185,9 @@ export default function Group() {
       <ConfirmDeleteDialog
         open={deleteTarget.length > 0}
         onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-        description={formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+        description={deleteTarget.length === 1
+          ? formatMessage({ id: 'table.deleteConfirmSingle' }, { name: deleteTarget[0].name })
+          : formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
         pending={deleting}
         onConfirm={confirmDelete}
       />

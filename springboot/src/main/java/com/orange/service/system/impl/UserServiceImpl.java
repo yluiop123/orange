@@ -112,8 +112,8 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(req.getPage()-1, req.getSize(), sort);
         Page<User>  pageUser = userRepository.findAll(spec, pageable);
         List<User> pageUserList = pageUser.getContent();
-        // 一次加载组织名称，避免逐行查询造成 N+1
-        Map<String, String> groupNameMap = groupService.queryGroups().stream()
+        // 一次加载组织名称，避免逐行查询造成 N+1；不过滤状态，禁用组织的名称也要显示
+        Map<String, String> groupNameMap = groupRepository.findAll().stream()
                 .collect(Collectors.toMap(
                         Group::getId,
                         group -> group.getName() == null ? "" : group.getName(),
@@ -179,8 +179,8 @@ public class UserServiceImpl implements UserService {
                 user.setName(req.getName());
             }
 
-            if (req.getUsername() != null) {
-                user.setUsername(req.getUsername());
+            if (req.getUsername() != null && !req.getUsername().equals(user.getUsername())) {
+                throw new BusinessException("用户名创建后不可修改");
             }
 
             if (req.getEmail() != null) {
@@ -228,7 +228,7 @@ public class UserServiceImpl implements UserService {
             return user;
         }
 
-        return null;
+        throw new BusinessException("用户不存在");
     }
     @Override
     @Transactional

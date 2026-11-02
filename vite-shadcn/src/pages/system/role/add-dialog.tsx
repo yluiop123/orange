@@ -37,7 +37,7 @@ export default function Index(props: { open: boolean, setOpen: (open: boolean) =
         },
     ]
 function onSubmit(values: Record<string, unknown>) {
-        createRole({
+        return createRole({
             id: values.id as string,
             name: values.name as string,
             permissions: values.permissions as string[],

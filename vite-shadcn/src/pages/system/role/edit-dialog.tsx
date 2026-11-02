@@ -60,7 +60,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         };
     }, [id, open, intl])
 function onSubmit(fieldValues: Record<string, unknown>) {
-        updateRole(id, fieldValues).then(() => {
+        return updateRole(id, fieldValues).then(() => {
             setOpen(false);
             toast.success(intl.formatMessage({ id: 'message.success' }));
             onSave();

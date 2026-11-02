@@ -13,6 +13,7 @@ type GroupTreeSelectProps = OmittedTreeSelectProps & {
 export type GroupNode = TreeNode & {
   children?: GroupNode[]
   parentId?: string | null
+  status?: "0" | "1"
 }
 function buildTree(data: GroupNode[]): GroupNode[] {
   const map = new Map<string, GroupNode>();
@@ -55,6 +56,8 @@ export default function GroupTreeSelect({ onChange: onChangeHandle, value, place
   const [data, setData] = useState<GroupNode[]>([])
   const [loading, setLoading] = useState(true)
 
+  const disabledLabel = intl.formatMessage({ id: "dict.status.disabled" })
+
   useEffect(() => {
     const controller = new AbortController()
     listGroups(undefined, controller.signal)
@@ -62,6 +65,8 @@ export default function GroupTreeSelect({ onChange: onChangeHandle, value, place
         ...group,
         value: group.id,
         title: group.name,
+        disabled: group.status === "0",
+        disabledLabel,
       })))))
       .catch(() => {
         // 错误提示由 axios 拦截器统一处理
@@ -70,7 +75,7 @@ export default function GroupTreeSelect({ onChange: onChangeHandle, value, place
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [])
+  }, [disabledLabel])
 
   return (
     <TreeSelect

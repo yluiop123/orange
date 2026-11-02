@@ -74,7 +74,9 @@ export default function Role() {
         setDeleting(true);
         try {
             await roleApi.deleteRoles(deleteTarget.map(item => item.id));
-            setParams(prev => ({ ...prev, page: 1 }));
+            const remaining = Math.max(0, data.total - deleteTarget.length);
+            const maxPage = Math.max(1, Math.ceil(remaining / params.size));
+            setParams(prev => ({ ...prev, page: Math.min(prev.page, maxPage) }));
             setSelectedRows([]);
             setDeleteTarget([]);
             toast.success(intl.formatMessage({ id: 'message.success' }));
@@ -168,7 +170,15 @@ export default function Role() {
             <ConfirmDeleteDialog
                 open={deleteTarget.length > 0}
                 onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-                description={intl.formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+                description={deleteTarget.length === 1
+                    ? intl.formatMessage(
+                        { id: 'table.deleteConfirmSingle' },
+                        { name: deleteTarget[0].name },
+                    )
+                    : intl.formatMessage(
+                        { id: 'table.deleteConfirm' },
+                        { count: deleteTarget.length },
+                    )}
                 pending={deleting}
                 onConfirm={confirmDelete}
             />

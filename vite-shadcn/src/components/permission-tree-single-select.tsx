@@ -15,6 +15,8 @@ export type PermissionNode = TreeNode & {
   parentId?: string | null
   id: string
   name: string
+  status?: "0" | "1"
+  type?: "menu" | "directory" | "action"
 }
 function buildTree(data: PermissionNode[]): PermissionNode[] {
   const map = new Map<string, PermissionNode>();
@@ -55,6 +57,9 @@ export default function PermissionTreeSelect({ onChange: onChangeHandle, placeho
   const [data, setData] = useState<PermissionNode[]>([])
   const [loading, setLoading] = useState(true)
 
+  const disabledLabel = intl.formatMessage({ id: "dict.status.disabled" })
+  const actionLabel = intl.formatMessage({ id: "dict.permissionType.action" })
+
   useEffect(() => {
     const controller = new AbortController()
     listPermissions(undefined, controller.signal)
@@ -75,11 +80,17 @@ export default function PermissionTreeSelect({ onChange: onChangeHandle, placeho
         }
         setData(buildTree(permissions
           .filter((permission) => !excluded.has(permission.id))
-          .map((permission) => ({
-            ...permission,
-            value: permission.id,
-            title: permission.name,
-          }))))
+          .map((permission) => {
+            const isDisabled = permission.status === "0"
+            const isAction = permission.type === "action"
+            return {
+              ...permission,
+              value: permission.id,
+              title: permission.name,
+              disabled: isDisabled || isAction,
+              disabledLabel: isDisabled ? disabledLabel : isAction ? actionLabel : undefined,
+            }
+          })))
       })
       .catch(() => {
         // 错误提示由 axios 拦截器统一处理
@@ -88,7 +99,7 @@ export default function PermissionTreeSelect({ onChange: onChangeHandle, placeho
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [excludeId])
+  }, [actionLabel, disabledLabel, excludeId])
 
   return (
     <TreeSelect

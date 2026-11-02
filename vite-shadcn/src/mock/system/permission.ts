@@ -130,14 +130,32 @@ const handlers = [
     const name = url.searchParams.get("name") || "";
     const path = url.searchParams.get("path") || "";
     const status = url.searchParams.get("status") || "all";
-    const list = getPermissionList(locale).filter((item) => {
+    const type = url.searchParams.get("type") || "all";
+    const all = getPermissionList(locale);
+    const list = all.filter((item) => {
       if (id && !item.id.startsWith(id)) return false;
       if (name && !item.name.toLowerCase().startsWith(name.toLowerCase())) return false;
       if (path && !(item.path ?? "").toLowerCase().startsWith(path.toLowerCase())) return false;
       if (status !== "all" && item.status !== status) return false;
+      if (type !== "all" && item.type !== type) return false;
       return true;
     });
-    return HttpResponse.json({ code: 200, data: list });
+    if (!id && !name && !path && type === "all") {
+      return HttpResponse.json({ code: 200, data: list });
+    }
+    // 文本/类型筛选时带上祖先，前端才能保持树层级
+    const byId = new Map(all.map((item) => [item.id, item]));
+    const ids = new Set(list.map((item) => item.id));
+    for (const item of list) {
+      let parentId = item.parentId;
+      while (parentId && ids.add(parentId)) {
+        parentId = byId.get(parentId)?.parentId ?? null;
+      }
+    }
+    return HttpResponse.json({
+      code: 200,
+      data: all.filter((item) => ids.has(item.id)).sort(byCode),
+    });
   }),
 
   http.get<{ id: string }>("/api/system/permissions/:id", async ({ request, params }) => {

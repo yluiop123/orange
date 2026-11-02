@@ -23,6 +23,10 @@ export type TreeNode = {
   value: string;
   title: string;
   children?: TreeNode[];
+  /** 节点自身不可选（例如已停用），但已选中的值仍会保留并允许移除。 */
+  disabled?: boolean;
+  /** 节点不可选时显示在标题后的说明文字。 */
+  disabledLabel?: string;
   [key: string]: unknown;
 };
 
@@ -51,88 +55,43 @@ export type TreeSelectProps = {
 const toArray = (val?: string | string[]) =>
   Array.isArray(val) ? val : val ? [val] : [];
 
-function getCheckStatus(
-  node: TreeNode,
-  selected: string[],
-  multiple: boolean
-): boolean | "indeterminate" {
-  if (!multiple) {
-    return selected.includes(node.value);
-  }
+function getCheckStatus(node: TreeNode, selected: string[]): boolean {
+  return selected.includes(node.value);
+}
 
-  if (!node.children?.length) {
-    return selected.includes(node.value);
-  }
-
-  if (selected.includes(node.value)) {
+function nodeMatches(node: TreeNode, keyword: string): boolean {
+  if (!keyword) {
     return true;
   }
-
-  const childStatuses = node.children.map((c) =>
-    getCheckStatus(c, selected, true)
-  );
-
-  const allChecked = childStatuses.every((s) => s === true);
-  const noneChecked = childStatuses.every((s) => s === false);
-
-  if (allChecked) return true;
-  if (noneChecked) return false;
-  return "indeterminate";
-}
-
-function collectAllChildIds(node: TreeNode): string[] {
-  let ids: string[] = [node.value];
-  if (node.children) {
-    node.children.forEach((c) => {
-      ids = ids.concat(collectAllChildIds(c));
-    });
+  if (node.title.toLowerCase().includes(keyword)) {
+    return true;
   }
-  return ids;
+  return node.children?.some((child) => nodeMatches(child, keyword)) ?? false;
 }
 
-function getConsolidatedNodes(
+/**
+ * 多选不再级联：选中目录/菜单只代表该权限本身，不会自动勾选子节点。
+ * 展示时按树顺序列出真实选中的节点，避免把“子节点全选”误显示成父节点。
+ */
+function flattenSelectedNodes(
   nodes: TreeNode[],
   selectedIds: string[]
 ): TreeNode[] {
+  const remaining = new Set(selectedIds);
   const result: TreeNode[] = [];
 
-  function traverse(node: TreeNode): boolean {
-    if (selectedIds.includes(node.value)) {
-      const childIds = collectAllChildIds(node).filter((id) => id !== node.value);
-      for (let i = result.length - 1; i >= 0; i--) {
-        if (childIds.includes(result[i].value)) {
-          result.splice(i, 1);
-        }
+  const traverse = (items: TreeNode[]) => {
+    for (const node of items) {
+      if (remaining.delete(node.value)) {
+        result.push(node);
       }
-      result.push(node);
-      return true;
-    }
-
-    if (!node.children || node.children.length === 0) {
-      return false;
-    }
-
-    const childrenSelectedCount = node.children.filter((child) =>
-      traverse(child)
-    ).length;
-
-    if (childrenSelectedCount === node.children.length) {
-      const childIds = collectAllChildIds(node).filter(
-        (id) => id !== node.value
-      );
-      for (let i = result.length - 1; i >= 0; i--) {
-        if (childIds.includes(result[i].value)) {
-          result.splice(i, 1);
-        }
+      if (node.children?.length) {
+        traverse(node.children);
       }
-      result.push(node);
-      return true;
     }
+  };
 
-    return childrenSelectedCount > 0;
-  }
-
-  nodes.forEach(traverse);
+  traverse(nodes);
   return result;
 }
 
@@ -164,15 +123,8 @@ function Tree({
     );
   };
 
-  const filteredNodes = nodes.filter((n) => {
-    const matchSelf = n.title
-      .toLowerCase()
-      .includes(filter.toLowerCase());
-    const matchChildren = n.children?.some((c) =>
-      c.title.toLowerCase().includes(filter.toLowerCase())
-    );
-    return matchSelf || matchChildren;
-  });
+  const keyword = filter.toLowerCase();
+  const filteredNodes = nodes.filter((node) => nodeMatches(node, keyword));
 
   return (
     <ul
@@ -186,17 +138,18 @@ function Tree({
         const isExpanded =
           expanded.includes(node.value) || filter !== "";
         const hasChildren = !!node.children?.length;
-        const status = getCheckStatus(
-          node,
-          selected,
-          multiple
-        );
+        const checked = getCheckStatus(node, selected);
+        // 已停用节点不可新选；已经选中的保留，允许取消授权。
+        const unselectable = multiple
+          ? !!node.disabled && !checked
+          : !!node.disabled;
 
         return (
           <li key={node.value} className="relative">
             <div
               className={cn(
-                "flex items-center space-x-2 py-1 rounded-sm px-1 transition-colors group/item hover:bg-accent/50"
+                "flex items-center space-x-2 py-1 rounded-sm px-1 transition-colors group/item hover:bg-accent/50",
+                node.disabled && "text-muted-foreground"
               )}
             >
               {/* 展开箭头 */}
@@ -225,36 +178,48 @@ function Tree({
               {multiple ? (
                 <Checkbox
                   className="h-4 w-4 shrink-0"
-                  checked={status !== false}
-                  indeterminate={
-                    status === "indeterminate"
-                  }
-                  onCheckedChange={(checked) =>
-                    onToggle(node, checked === true)
-                  }
+                  checked={checked}
+                  disabled={unselectable}
+                  onCheckedChange={(next) => {
+                    if (unselectable) return;
+                    onToggle(node, next === true);
+                  }}
                 />
               ) : (
                 <RadioGroup
                   className="h-4 w-4 shrink-0"
                   value={selected[0] || ""}
-                  onValueChange={() =>
-                    onToggle(node, true)
-                  }
+                  onValueChange={() => {
+                    if (unselectable) return;
+                    onToggle(node, true);
+                  }}
                 >
                   <RadioGroupItem
                     value={node.value}
+                    disabled={unselectable}
                   />
                 </RadioGroup>
               )}
 
               {/* 标题 */}
               <span
-                onClick={() =>
-                  onToggle(node, status !== true)
-                }
+                className={cn(
+                  "select-none",
+                  unselectable ? "cursor-not-allowed" : "cursor-pointer"
+                )}
+                aria-disabled={unselectable || undefined}
+                onClick={() => {
+                  if (unselectable) return;
+                  onToggle(node, multiple ? !checked : true);
+                }}
               >
                 {node.title}
               </span>
+              {node.disabled && node.disabledLabel && (
+                <span className="text-[10px] text-muted-foreground">
+                  {node.disabledLabel}
+                </span>
+              )}
             </div>
 
             {hasChildren && isExpanded && (
@@ -322,17 +287,18 @@ export default function TreeSelect(props: TreeSelectProps) {
   }, [data, fieldNames]);
 
   const handleToggle = (node: TreeNode, checked: boolean) => {
+    const isSelected = mergedSelected.includes(node.value);
+    if (node.disabled && !(multiple && isSelected)) {
+      return;
+    }
+
     let next: string[];
 
     if (multiple) {
-      const ids = collectAllChildIds(node);
+      // 不做级联：一个目录权限不会自动代表它的子权限。
       next = checked
-        ? Array.from(
-            new Set([...mergedSelected, ...ids])
-          )
-        : mergedSelected.filter(
-            (id) => !ids.includes(id)
-          );
+        ? Array.from(new Set([...mergedSelected, node.value]))
+        : mergedSelected.filter((id) => id !== node.value);
     } else {
       next = [node.value];
       setOpen(false);
@@ -349,7 +315,7 @@ export default function TreeSelect(props: TreeSelectProps) {
 
   const displayNodes = useMemo(() => {
     if (multiple) {
-      return getConsolidatedNodes(
+      return flattenSelectedNodes(
         treeData,
         mergedSelected
       );
@@ -438,7 +404,7 @@ export default function TreeSelect(props: TreeSelectProps) {
           )}
 
           <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 text-muted-foreground/50">
-            {mergedSelected.length > 0 && (
+            {!disabled && mergedSelected.length > 0 && (
               <X
                 className="h-4 w-4 hover:text-destructive transition-colors cursor-pointer"
                 onClick={(e) => {

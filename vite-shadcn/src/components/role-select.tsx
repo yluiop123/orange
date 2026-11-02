@@ -15,6 +15,7 @@ export default function RoleSelect({ ...props }) {
           result.list.map((role) => ({
             label: role.name,
             value: role.id,
+            disable: role.status === "0",
           })),
         );
       })

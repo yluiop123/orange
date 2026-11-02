@@ -46,6 +46,13 @@ type Permission = {
 
 type TableParams = ListParams<PermissionQuery>;
 
+const PERMISSION_TYPES = [
+  { value: 'all', label: 'dict.status.all' },
+  { value: 'directory', label: 'dict.permissionType.directory' },
+  { value: 'menu', label: 'dict.permissionType.menu' },
+  { value: 'action', label: 'dict.permissionType.action' },
+];
+
 export default function Permission() {
   const { formatMessage } = useIntl();
   const [params, setParams] = useState<TableParams>({
@@ -55,6 +62,7 @@ export default function Permission() {
     name: '',
     status: 'all',
     path: '',
+    type: 'all',
   });
 
   const { data, loading, error, refetch } = useResourceList<TableParams, Permission>({
@@ -62,7 +70,7 @@ export default function Permission() {
     errorMessage: formatMessage({ id: 'table.loadError' }),
     fetcher: (query, signal) =>
       listPermissions(
-        { id: query.id, name: query.name, path: query.path, status: query.status },
+        { id: query.id, name: query.name, path: query.path, status: query.status, type: query.type },
         signal,
       ),
     tree: {
@@ -95,7 +103,7 @@ export default function Permission() {
     setDeleting(true);
     try {
       await deletePermissions(deleteTarget.map((row) => row.id));
-      setParams(prev => ({ ...prev, page: 1 }));
+      refetch();
       setSelectedRows([]);
       setDeleteTarget([]);
       toast.success(formatMessage({ id: 'message.success' }));
@@ -206,7 +214,9 @@ export default function Permission() {
       <ConfirmDeleteDialog
         open={deleteTarget.length > 0}
         onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-        description={formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+        description={deleteTarget.length === 1
+          ? formatMessage({ id: 'table.deleteConfirmSingle' }, { name: deleteTarget[0].name })
+          : formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
         pending={deleting}
         onConfirm={confirmDelete}
       />
@@ -223,6 +233,29 @@ export default function Permission() {
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="permissionPath">{formatMessage({ id: 'page.system.permission.header.path' })}</Label>
           <Input id="permissionPath" type="text" placeholder="" value={params.path} onChange={(e) => setParams(prev => ({ ...prev, path: e.target.value, page: 1 }))} />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.type' })}</Label>
+          <Select
+            value={params.type}
+            onValueChange={(value) => setParams(prev => ({ ...prev, type: value || 'all', page: 1 }))}
+          >
+            <SelectTrigger className="flex items-center">
+              <SelectValue>
+                {formatMessage({
+                  id: PERMISSION_TYPES.find((item) => item.value === params.type)?.label
+                    ?? 'dict.status.all',
+                })}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {PERMISSION_TYPES.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {formatMessage({ id: item.label })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-2">
           <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.status' })}</Label>
