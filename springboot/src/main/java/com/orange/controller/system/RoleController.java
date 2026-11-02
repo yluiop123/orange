@@ -6,7 +6,6 @@ import com.orange.domain.system.role.req.AddRoleReq;
 import com.orange.domain.system.role.req.EditRoleReq;
 import com.orange.domain.system.role.req.QueryRoleReq;
 import com.orange.domain.system.role.resp.RoleBean;
-import com.orange.entity.Role;
 import com.orange.service.system.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,8 +28,8 @@ public class RoleController {
     @Operation(summary = "查询角色列表", description = "支持分页、过滤和排序")
     @GetMapping
     @PreAuthorize("hasAuthority('menu#/system/role')")
-    public Response<PageData<Role>> queryRoles(@Valid @ModelAttribute QueryRoleReq req) {
-        PageData<Role> pageData = roleService.queryRoles(req);
+    public Response<PageData<RoleBean>> queryRoles(@Valid @ModelAttribute QueryRoleReq req) {
+        PageData<RoleBean> pageData = roleService.queryRoles(req);
         return Response.ok(pageData);
     }
 

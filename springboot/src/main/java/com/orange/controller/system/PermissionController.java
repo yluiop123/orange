@@ -2,7 +2,7 @@ package com.orange.controller.system;
 
 import com.orange.domain.common.Response;
 import com.orange.domain.system.permission.req.*;
-import com.orange.entity.Permission;
+import com.orange.domain.system.permission.resp.PermissionBean;
 import com.orange.service.system.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,17 +25,17 @@ public class PermissionController {
     @Operation(summary = "查询权限列表", description = "支持按 ID、名称、状态过滤")
     @GetMapping
     @PreAuthorize("hasAuthority('menu#/system/permission')")
-    public Response<List<Permission>> queryPermissions(@Valid @ModelAttribute QueryPermissionReq req) {
-        return Response.ok(permissionService.queryPermissions(req));
+    public Response<List<PermissionBean>> queryPermissions(@Valid @ModelAttribute QueryPermissionReq req) {
+        return Response.ok(toBeans(permissionService.queryPermissions(req)));
     }
 
     @Operation(summary = "查询权限详情", description = "根据权限ID查询权限详情")
     @GetMapping("/{permissionId}")
     @PreAuthorize("hasAuthority('menu#/system/permission')")
-    public Response<Permission> queryPermission(
+    public Response<PermissionBean> queryPermission(
             @Schema(description = "权限ID", example = "1")
             @PathVariable("permissionId") String permissionId) {
-        return Response.ok(permissionService.queryPermission(permissionId));
+        return Response.ok(PermissionBean.from(permissionService.queryPermission(permissionId)));
     }
 
     @Operation(summary = "编辑权限", description = "根据权限ID更新权限信息")
@@ -67,8 +67,8 @@ public class PermissionController {
     @Operation(summary = "添加子权限", description = "在指定父权限下添加子权限")
     @PostMapping("/children")
     @PreAuthorize("hasAuthority('action#/system/permission:add')")
-    public Response<Permission> addChild(@Valid @RequestBody AddChildPermissionReq req) {
-        return Response.ok(permissionService.addChild(req));
+    public Response<PermissionBean> addChild(@Valid @RequestBody AddChildPermissionReq req) {
+        return Response.ok(PermissionBean.from(permissionService.addChild(req)));
     }
 
     // ===== 兼容旧接口（已废弃，后续版本移除） =====
@@ -76,24 +76,24 @@ public class PermissionController {
     @Operation(summary = "查询权限列表（旧）", deprecated = true)
     @PostMapping
     @PreAuthorize("hasAuthority('menu#/system/permission')")
-    public Response<List<Permission>> queryPermissionsLegacy(@Valid @RequestBody QueryPermissionReq req) {
-        return Response.ok(permissionService.queryPermissions(req));
+    public Response<List<PermissionBean>> queryPermissionsLegacy(@Valid @RequestBody QueryPermissionReq req) {
+        return Response.ok(toBeans(permissionService.queryPermissions(req)));
     }
 
     @Deprecated
     @Operation(summary = "查询权限详情（旧）", deprecated = true)
     @GetMapping("/detail/{permissionId}")
     @PreAuthorize("hasAuthority('menu#/system/permission')")
-    public Response<Permission> queryPermissionLegacy(@PathVariable("permissionId") String permissionId) {
-        return Response.ok(permissionService.queryPermission(permissionId));
+    public Response<PermissionBean> queryPermissionLegacy(@PathVariable("permissionId") String permissionId) {
+        return Response.ok(PermissionBean.from(permissionService.queryPermission(permissionId)));
     }
 
     @Deprecated
     @Operation(summary = "添加子权限（旧）", deprecated = true)
     @PostMapping("/addChild")
     @PreAuthorize("hasAuthority('action#/system/permission:add')")
-    public Response<Permission> addChildLegacy(@Valid @RequestBody AddChildPermissionReq req) {
-        return Response.ok(permissionService.addChild(req));
+    public Response<PermissionBean> addChildLegacy(@Valid @RequestBody AddChildPermissionReq req) {
+        return Response.ok(PermissionBean.from(permissionService.addChild(req)));
     }
 
     @Deprecated
@@ -103,6 +103,10 @@ public class PermissionController {
     public Response<String> editPermissionLegacy(@Valid @RequestBody EditPermissionReq req) {
         permissionService.editPermission(req);
         return Response.ok("操作成功");
+    }
+
+    private static List<PermissionBean> toBeans(List<com.orange.entity.Permission> permissions) {
+        return permissions.stream().map(PermissionBean::from).toList();
     }
 
     private static List<String> splitIds(String ids) {

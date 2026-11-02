@@ -48,7 +48,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageData<Role> queryRoles(QueryRoleReq req) {
+    public PageData<RoleBean> queryRoles(QueryRoleReq req) {
         String requestedSort = req.getSort() != null ? req.getSort() : req.getOrderField();
         String sortBy = requestedSort != null && ROLE_SORT_FIELDS.contains(requestedSort)
                 ? requestedSort : "id";
@@ -80,7 +80,10 @@ public class RoleServiceImpl implements RoleService {
         };
         Pageable pageable = PageRequest.of(req.getPage()-1, req.getSize(), sort);
         Page<Role> pageRole = roleRepository.findAll(spec, pageable);
-        return new PageData<>(pageRole.getTotalElements(), pageRole.getContent(),
+        List<RoleBean> beans = pageRole.getContent().stream()
+                .map(RoleBean::from)
+                .toList();
+        return new PageData<>(pageRole.getTotalElements(), beans,
                 req.getPage(), req.getSize(), pageRole.getTotalPages());
     }
 

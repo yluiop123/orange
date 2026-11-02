@@ -10,7 +10,7 @@ import com.orange.entity.Role;
 import java.util.List;
 
 public interface RoleService {
-    PageData<Role> queryRoles(QueryRoleReq req);
+    PageData<RoleBean> queryRoles(QueryRoleReq req);
     Role addRole(AddRoleReq role);
     Role editRole(EditRoleReq role);
     void deleteRoles(List<String> id);

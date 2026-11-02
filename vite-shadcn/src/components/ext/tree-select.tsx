@@ -162,6 +162,8 @@ function Tree({
                     onClick={(e) =>
                       toggleExpand(node.value, e)
                     }
+                    aria-label={node.title}
+                    aria-expanded={isExpanded}
                     className="size-4 min-h-0 rounded p-0.5 hover:bg-accent"
                   >
                     <ChevronRight
@@ -180,6 +182,7 @@ function Tree({
                   className="h-4 w-4 shrink-0"
                   checked={checked}
                   disabled={unselectable}
+                  aria-label={node.title}
                   onCheckedChange={(next) => {
                     if (unselectable) return;
                     onToggle(node, next === true);
@@ -197,6 +200,7 @@ function Tree({
                   <RadioGroupItem
                     value={node.value}
                     disabled={unselectable}
+                    aria-label={node.title}
                   />
                 </RadioGroup>
               )}
@@ -437,6 +441,7 @@ export default function TreeSelect(props: TreeSelectProps) {
           <div className="p-2 border-b border-muted">
             <Input
               value={filter}
+              aria-label={placeholder || "Filter"}
               onChange={(e) =>
                 setFilter(e.target.value)
               }
