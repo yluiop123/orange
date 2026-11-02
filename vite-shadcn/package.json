@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "db:seed": "node ../scripts/sync-permission-seed.mjs",
     "db:seed:check": "node ../scripts/sync-permission-seed.mjs --check",
+    "gen:api": "openapi-typescript openapi.json -o src/api/schema.d.ts",
     "preview": "vite preview",
     "preview:github": "vite preview --mode github",
     "analyze": "cross-env ANALYZE=true vite build"
@@ -102,6 +103,7 @@
     "globals": "^17.13.0",
     "less": "^4.9.1",
     "msw": "^3.0.3",
+    "openapi-typescript": "^7.13.0",
     "rollup-plugin-visualizer": "^7.1.1",
     "tailwind-scrollbar": "^4.0.2",
     "typescript": "~5.9.3",

@@ -333,6 +333,24 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void openApiSpecIsAvailable() throws Exception {
+        ResponseEntity<String> response = rest.getForEntity("/api-docs", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("\"openapi\"");
+
+        String snapshot = System.getProperty("openapi.snapshot");
+        if (snapshot != null && !snapshot.isBlank()) {
+            // 随机端口会让快照每次都变，生成时固定为相对地址
+            com.fasterxml.jackson.databind.node.ObjectNode root =
+                    (com.fasterxml.jackson.databind.node.ObjectNode) JSON.readTree(response.getBody());
+            root.putArray("servers").addObject().put("url", "/");
+            java.nio.file.Files.writeString(
+                    java.nio.file.Path.of(snapshot), JSON.writeValueAsString(root));
+        }
+    }
+
+    @Test
     void operationLogRecordsTraceIdBodyAndPath() throws Exception {
         Login login = login("super", "super");
         String traceId = "oplog" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);

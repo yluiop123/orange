@@ -8,7 +8,7 @@ import com.orange.domain.login.resp.UserInfo;
 import com.orange.domain.system.user.req.AddUserReq;
 import com.orange.domain.system.user.req.EditUserReq;
 import com.orange.domain.system.user.req.QueryUserReq;
-import com.orange.domain.system.user.resp.RoleBean;
+import com.orange.domain.system.user.resp.UserRoleBean;
 import com.orange.domain.system.user.resp.UserBean;
 import com.orange.entity.Group;
 import com.orange.entity.Permission;
@@ -386,7 +386,7 @@ public class UserServiceImpl implements UserService {
         userBean.setUpdateTime(user.getUpdateTime());
         Set<Role> roles = user.getRoles();
         for (Role role : roles) {
-            RoleBean roleBean = new RoleBean();
+            UserRoleBean roleBean = new UserRoleBean();
             roleBean.setId(role.getId());
             roleBean.setName(role.getName());
             userBean.getRoles().add(roleBean);

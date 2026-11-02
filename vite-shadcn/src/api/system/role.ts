@@ -1,35 +1,25 @@
 import axios from "@/lib/axios";
 import type { Status } from "@/lib/status";
 import type { PageResult } from "../types";
+import type { components } from "../schema";
 
-export type Role = {
+export type Role = components["schemas"]["RoleBean"] & {
   id: string;
   name: string;
   status: Status;
-  createTime?: string;
-  updateTime?: string;
-  permissions?: string[];
 };
 
-export type RoleQuery = {
+export type RoleQuery = components["schemas"]["QueryRoleReq"] & {
   page: number;
   size: number;
-  id?: string;
-  name?: string;
-  status?: string;
-  sort?: string;
   direction?: "asc" | "desc";
-  /** @deprecated 使用 sort */
-  orderField?: string;
-  /** @deprecated 使用 direction */
-  orderValue?: "asc" | "desc";
 };
 
-export type RolePayload = {
-  id?: string;
+export type RolePayload = Partial<
+  components["schemas"]["AddRoleReq"] & components["schemas"]["EditRoleReq"]
+> & {
   name: string;
   status?: Status;
-  permissions?: string[];
 };
 
 export async function listRoles(params: RoleQuery, signal?: AbortSignal) {

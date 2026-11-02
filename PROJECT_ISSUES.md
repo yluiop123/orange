@@ -12,10 +12,9 @@
 
 项目可以正常构建和演示。认证、权限、后端菜单树、统一错误响应、系统管理高危问题和安全测试已经收口；剩余问题主要集中在：
 
-1. 前端类型仍靠手写，可能与后端 OpenAPI 漂移；
-2. `dist` 总体积仍偏大，依赖大版本升级需要单独迁移；
-3. 新增行定位可继续加强；
-4. Swagger 仅在 `prod` profile 关闭，非 prod 部署仍需显式配置。
+1. `dist` 总体积仍偏大，依赖大版本升级需要单独迁移；
+2. 新增行定位可继续加强；
+3. Swagger 仅在 `prod` profile 关闭，非 prod 部署仍需显式配置。
 
 ### 0.2 已完成基线
 
@@ -24,7 +23,7 @@
 - **菜单**：`GET /api/v1/auth/menus` 返回启用菜单树；前端删除 `routes.ts`，页面路由由文件系统自动生成；前端只保留 `path → 图标` 映射；面包屑和 `/` 默认跳转使用后端菜单树。
 - **数据库**：主键、外键、索引、`sys_user.username` 唯一约束齐备；审计字段、操作日志、`timestamptz` + `OffsetDateTime` 已落地。
 - **前端**：`src/api/` 服务层；`useResourceList` + `ResourceTable` 深模块；系统页优先 shadcn；403 页面和按钮级 403 对话框；请求取消/竞态处理。
-- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；11 个安全单测 + 13 个 Testcontainers 集成测试；lint 0 warning。
+- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；11 个安全单测 + 14 个 Testcontainers 集成测试；lint 0 warning。
 
 ### 0.3 最新验证结果
 
@@ -37,7 +36,8 @@
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
 | 安全单测 | `mvn -Dtest=JwtUtilTest,... test` | 11 passed |
-| 安全集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 13 passed |
+| 安全集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 14 passed |
+| OpenAPI 快照 | `/api-docs` + `openapi-typescript` | 生成并用于前端 DTO |
 | 操作日志 | 集成测试 | 记录 traceId、请求体、路径和操作人；请求体脱敏并截断 |
 | 日志保留 | 配置检查 | 默认保留 90 天，每天凌晨清理 |
 | Trace ID | 集成测试 | 响应头、错误响应和操作日志使用同一个 ID |
@@ -100,11 +100,18 @@
 - [x] 用户列表新增 `keyword/status/sort/direction`，旧的 `filterField/filterValue/orderField/orderValue` 保留兼容；角色列表新增 `sort/direction`。
 - [x] 操作日志新增只读接口 `GET /api/v1/system/operation-logs`，使用显式过滤参数。
 - [x] 组织/权限/角色列表已改为 `GroupBean` / `PermissionBean` / `RoleBean` 响应 DTO，不再直接序列化 JPA 实体。
-- [ ] 前端 `src/api/types.ts` 仍是手写类型，可能与后端 OpenAPI 漂移。
+- [x] 前端 `src/api/schema.d.ts` 由 `openapi.json` 生成；用户、角色、组织、权限、操作日志的响应/请求类型已改用生成类型，`PageResult` 泛型仍是前端辅助类型。
 
-建议：
+重新生成类型：
 
-- 用 `openapi-typescript` 从运行中的 `/api-docs` 生成类型，逐步替换手写 DTO。
+```bash
+# 需要 Docker（Testcontainers）
+cd springboot
+mvn -Dtest=SecurityIntegrationTest#openApiSpecIsAvailable \
+  -Dopenapi.snapshot=../vite-shadcn/openapi.json test
+cd ../vite-shadcn
+pnpm gen:api
+```
 
 ### 1.2 安全与运维
 
@@ -224,7 +231,7 @@
 ### P1：API 契约
 
 4. [x] `/api/v1` + 认证接口分组 + 查询参数收敛。
-5. [ ] OpenAPI 生成前端类型，替换手写 DTO。
+5. [x] OpenAPI 生成前端类型，替换手写 DTO。
 6. [x] 操作日志 traceId/变更内容/保留策略；前端时区格式化。
 
 ### P2：工程质量
@@ -250,6 +257,8 @@
 | 系统管理审计 | `docs/audits/system-management-2026-11-01.md` |
 | 前端请求封装 | `vite-shadcn/src/lib/axios.ts` |
 | 前端 API 层 | `vite-shadcn/src/api/` |
+| OpenAPI 快照/生成类型 | `vite-shadcn/openapi.json`、`vite-shadcn/src/api/schema.d.ts` |
+| 操作日志 | `OperationLogInterceptor.java`、`OperationLogController.java`、`src/pages/system/operation-log/` |
 | 前端认证 | `vite-shadcn/src/auth/` |
 | 前端用户状态 | `vite-shadcn/src/store/user.ts` |
 | 前端菜单状态 | `vite-shadcn/src/store/menu.ts` |

@@ -263,7 +263,7 @@ export default function Permission() {
           <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.status' })}</Label>
           <Select
             value={params.status}
-            onValueChange={(value) => setParams(prev => ({ ...prev, status: value || '', page: 1 }))}
+            onValueChange={(value) => setParams(prev => ({ ...prev, status: value || 'all', page: 1 }))}
           >
             <SelectTrigger className="flex items-center">
               <SelectValue placeholder="Status">

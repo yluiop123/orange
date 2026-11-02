@@ -1,8 +1,23 @@
 import axios from "@/lib/axios";
 import type { Status } from "@/lib/status";
 import type { PageResult } from "../types";
+import type { components } from "../schema";
 
-export type User = {
+type UserContract = components["schemas"]["UserBean"];
+
+export type User = Omit<
+  UserContract,
+  | "id"
+  | "name"
+  | "username"
+  | "email"
+  | "groupId"
+  | "groupName"
+  | "status"
+  | "createTime"
+  | "updateTime"
+  | "phone"
+> & {
   id: string;
   name: string;
   username: string;
@@ -13,37 +28,18 @@ export type User = {
   createTime: string;
   updateTime: string;
   phone: string;
-  roles?: { id: string; name: string }[];
-  permissions?: string[];
 };
 
-export type UserQuery = {
+export type UserQuery = components["schemas"]["QueryUserReq"] & {
   page: number;
   size: number;
-  keyword?: string;
-  status?: string;
-  groupId?: string;
-  sort?: string;
   direction?: "asc" | "desc";
-  /** @deprecated 使用 keyword */
-  filterField?: string;
-  /** @deprecated 使用 keyword */
-  filterValue?: string;
-  /** @deprecated 使用 sort */
-  orderField?: string;
-  /** @deprecated 使用 direction */
-  orderValue?: "asc" | "desc";
 };
 
-export type UserPayload = {
-  name?: string;
-  username?: string;
-  email?: string;
-  groupId?: string;
-  phone?: string;
+export type UserPayload = Partial<
+  components["schemas"]["AddUserReq"] & components["schemas"]["EditUserReq"]
+> & {
   status?: Status;
-  roles?: string[];
-  permissions?: string[];
 };
 
 export async function listUsers(params: UserQuery, signal?: AbortSignal) {

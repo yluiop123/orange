@@ -1,28 +1,21 @@
 import axios from "@/lib/axios";
 import type { PageResult } from "../types";
+import type { components } from "../schema";
 
-export type OperationLog = {
+type OperationLogContract = components["schemas"]["OperationLogBean"];
+
+export type OperationLog = OperationLogContract & {
   id: number;
-  traceId?: string;
-  username?: string;
   method: string;
   path: string;
-  queryString?: string;
-  requestBody?: string;
   status: number;
   durationMs: number;
-  ip?: string;
   createTime: string;
 };
 
-export type OperationLogQuery = {
+export type OperationLogQuery = components["schemas"]["QueryOperationLogReq"] & {
   page: number;
   size: number;
-  username?: string;
-  path?: string;
-  status?: string;
-  from?: string;
-  to?: string;
 };
 
 export async function listOperationLogs(

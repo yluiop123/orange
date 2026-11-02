@@ -1,34 +1,22 @@
 import axios from "@/lib/axios";
 import type { Status } from "@/lib/status";
+import type { components } from "../schema";
 
-export type Permission = {
+type PermissionContract = components["schemas"]["PermissionBean"];
+
+export type Permission = Omit<PermissionContract, "status" | "type"> & {
   id: string;
   name: string;
-  path?: string;
-  action?: string;
   type?: "menu" | "action" | "directory";
   status?: Status;
-  parentId?: string | null;
-  createTime?: string;
-  updateTime?: string;
 };
 
-export type PermissionQuery = {
-  id?: string;
-  name?: string;
-  path?: string;
-  status?: string;
-  type?: string;
-};
+export type PermissionQuery = components["schemas"]["QueryPermissionReq"];
 
-export type PermissionPayload = {
-  id?: string;
-  name?: string;
-  path?: string;
-  action?: string;
-  type?: "menu" | "action" | "directory";
+export type PermissionPayload = Partial<
+  components["schemas"]["EditPermissionReq"] & components["schemas"]["AddChildPermissionReq"]
+> & {
   status?: Status;
-  parentId?: string;
 };
 
 export async function listPermissions(

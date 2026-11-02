@@ -44,7 +44,7 @@ public class UserBean {
     private OffsetDateTime updateTime;
 
     @Schema(description = "角色列表",example = "{'id':'1','name':'管理员'}")
-    private Set<RoleBean> roles = new HashSet<>();
+    private Set<UserRoleBean> roles = new HashSet<>();
 
     @Schema(description = "权限列表",example = "{'admin','user'}")
     private Set<String> permissions = new HashSet<>();

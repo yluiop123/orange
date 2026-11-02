@@ -1,26 +1,20 @@
 import axios from "@/lib/axios";
 import type { Status } from "@/lib/status";
+import type { components } from "../schema";
 
-export type Group = {
+export type Group = components["schemas"]["GroupBean"] & {
   id: string;
   name: string;
   status?: Status;
   parentId?: string | null;
-  createTime?: string;
-  updateTime?: string;
 };
 
-export type GroupQuery = {
-  id?: string;
-  name?: string;
-  status?: string;
-};
+export type GroupQuery = components["schemas"]["QueryGroupReq"];
 
-export type GroupPayload = {
-  id?: string;
-  name?: string;
+export type GroupPayload = Partial<
+  components["schemas"]["AddChildGroupReq"] & components["schemas"]["EditGroupReq"]
+> & {
   status?: Status;
-  parentId?: string;
 };
 
 export async function listGroups(params?: GroupQuery, signal?: AbortSignal) {
