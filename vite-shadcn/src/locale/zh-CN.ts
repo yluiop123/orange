@@ -92,6 +92,7 @@ export default {
     'button.save':'保存',
     'button.detail':'详情',
     'button.cancel':'取消',
+    'table.deleteConfirm':'确定删除选中的 {count} 项吗？此操作不可撤销。',
     'button.create':'创建',
     'button.reset':'重置',
     'button.clear':'清空',

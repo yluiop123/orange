@@ -40,17 +40,25 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
     const [values, setValues] = useState<Record<string, unknown>>({});
 
     useEffect(() => {
-        if (id === '') {
+        setValues({});
+        if (!open || id === '') {
             return;
         }
         let cancelled = false;
         getRole(id).then((role) => {
-            if (!cancelled) setValues(role);
+            if (cancelled) return;
+            if (!role) {
+                toast.error(intl.formatMessage({ id: 'table.loadError' }));
+                return;
+            }
+            setValues(role);
+        }).catch(() => {
+            // 错误提示由 axios 拦截器统一处理
         });
         return () => {
             cancelled = true;
         };
-    }, [id])
+    }, [id, open])
 function onSubmit(fieldValues: Record<string, unknown>) {
         updateRole(id, fieldValues).then(() => {
             setOpen(false);

@@ -1,6 +1,7 @@
 import * as roleApi from "@/api/system/role";
 import type { Role, RoleQuery } from "@/api/system/role";
 import ActionAuth from "@/components/action-auth";
+import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,8 @@ export default function Role() {
     });
 
     const [selectedRows, setSelectedRows] = useState<Role[]>([]);
+    const [deleteTarget, setDeleteTarget] = useState<Role[]>([]);
+    const [deleting, setDeleting] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [id, setId] = useState('' as string);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -58,19 +61,30 @@ export default function Role() {
         setId(row.id);
         setIsEditDialogOpen(true);
     }
-    function handleDelete(rows: Role[]) {
+    function requestDelete(rows: Role[]) {
         if (rows.length === 0) {
             return;
         }
-        roleApi.deleteRoles(rows.map(item => item.id)).then(() => {
-            setParams({ ...params, page: 1 });
+        setDeleteTarget(rows);
+    }
+    async function confirmDelete() {
+        if (deleteTarget.length === 0) {
+            return;
+        }
+        setDeleting(true);
+        try {
+            await roleApi.deleteRoles(deleteTarget.map(item => item.id));
+            setParams(prev => ({ ...prev, page: 1 }));
             setSelectedRows([]);
+            setDeleteTarget([]);
             toast.success(intl.formatMessage({ id: 'message.success' }));
-        })
+        } finally {
+            setDeleting(false);
+        }
     }
     function handleStatusChange(row: Role, status: "0" | "1") {
         return roleApi.updateRole(row.id, { status }).then(() => {
-            setParams({ ...params });
+            setParams(prev => ({ ...prev }));
         })
     }
 
@@ -85,7 +99,7 @@ export default function Role() {
                     onClick={() => {
                         const isAsc = column.getIsSorted() === "asc";
                         table.setSorting([{ id: "name", desc: isAsc }]);
-                        setParams({ ...params, orderValue: isAsc ? "desc" : "asc", orderField: 'name' })
+                        setParams(prev => ({ ...prev, orderValue: isAsc ? "desc" : "asc", orderField: 'name', page: 1 }))
                     }}
                 >
                     {intl.formatMessage({ id: 'page.system.role.header.name' })}
@@ -113,9 +127,7 @@ export default function Role() {
             cell: ({ row }) =>
                 <StatusSwitch
                     initial={row.getValue("status") as string}
-                    onChange={(val) => {
-                        handleStatusChange(row.original, val);
-                    }} />
+                    onChange={(val) => handleStatusChange(row.original, val)} />
             ,
         },
         {
@@ -137,7 +149,7 @@ export default function Role() {
                                     <DropdownMenuItem onClick={() => handleEdit(role)}>{intl.formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
                                 </ActionAuth>
                                 <ActionAuth action="delete">
-                                    <DropdownMenuItem onClick={() => handleDelete([role])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => requestDelete([role])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
                                 </ActionAuth>
                             </DropdownMenuGroup>
                         </DropdownMenuContent>
@@ -150,23 +162,30 @@ export default function Role() {
     return (
         <div className="w-full p-3">
             <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-                onSave={() => setParams({ ...params, page: 1 })} />
+                onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+            <ConfirmDeleteDialog
+                open={deleteTarget.length > 0}
+                onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
+                description={intl.formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+                pending={deleting}
+                onConfirm={confirmDelete}
+            />
 
             <div className="flex items-center py-3 gap-4">
                 <div className="flex items-center gap-4">
                     <Label className="whitespace-nowrap" htmlFor="roleName">{intl.formatMessage({ id: 'page.system.role.header.name' })}</Label>
-                    <Input id="roleName" type="text" placeholder="" value={params.name} onChange={(e) => setParams({ ...params, name: e.target.value })} />
+                    <Input id="roleName" type="text" placeholder="" value={params.name} onChange={(e) => setParams(prev => ({ ...prev, name: e.target.value, page: 1 }))} />
                 </div>
                 <div className="flex items-center gap-4">
                     <Label className="whitespace-nowrap" htmlFor="roleId">{intl.formatMessage({ id: 'page.system.role.header.role' })}</Label>
-                    <Input id="roleId" type="text" placeholder="" value={params.id} onChange={(e) => setParams({ ...params, id: e.target.value })} />
+                    <Input id="roleId" type="text" placeholder="" value={params.id} onChange={(e) => setParams(prev => ({ ...prev, id: e.target.value, page: 1 }))} />
                 </div>
 
                 <div className="flex items-center gap-2">
                     <Label className="whitespace-nowrap">{intl.formatMessage({ id: 'page.system.role.header.status' })}</Label>
                     <Select
                         onValueChange={(value) =>
-                            setParams({ ...params, status: value ? value : '' })
+                            setParams(prev => ({ ...prev, status: value ? value : '', page: 1 }))
                         } defaultValue={params.status}>
                         <SelectTrigger className="flex items-center">
                             <SelectValue placeholder="Status">
@@ -184,9 +203,9 @@ export default function Role() {
                     <ActionAuth action="add">
                         <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
                     </ActionAuth>
-                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => setParams({ ...params, page: 1 })} />
+                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
                     <ActionAuth action="delete">
-                        <Button onClick={() => handleDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
+                        <Button onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
                     </ActionAuth>
                 </div>
             </div>
@@ -197,7 +216,7 @@ export default function Role() {
                 total={data.total}
                 page={params.page}
                 size={params.size}
-                onPageChange={(page) => setParams({ ...params, page })}
+                onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
                 getRowId={(row) => row.id}
                 onSelectionChange={setSelectedRows}
                 loading={loading}

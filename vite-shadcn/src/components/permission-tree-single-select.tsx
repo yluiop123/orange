@@ -7,6 +7,7 @@ type PermissionTreeSelectProps = {
   placeholder?: string
   className?: string
   disabled?: boolean
+  excludeId?: string
 }
 export type PermissionNode = TreeNode & {
   children?: PermissionNode[]
@@ -49,18 +50,36 @@ function buildTree(data: PermissionNode[]): PermissionNode[] {
   sortByOrder(roots);
   return roots;
 }
-export default function PermissionTreeSelect({ onChange: onChangeHandle, placeholder, ...props }: PermissionTreeSelectProps) {
+export default function PermissionTreeSelect({ onChange: onChangeHandle, placeholder, excludeId, ...props }: PermissionTreeSelectProps) {
   const [data, setData] = useState<PermissionNode[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const controller = new AbortController()
     listPermissions(undefined, controller.signal)
-      .then((permissions) => setData(buildTree(permissions.map((permission) => ({
-        ...permission,
-        value: permission.id,
-        title: permission.name,
-      })))))
+      .then((permissions) => {
+        const excluded = new Set<string>();
+        if (excludeId) {
+          excluded.add(excludeId);
+          let changed = true;
+          while (changed) {
+            changed = false;
+            for (const permission of permissions) {
+              if (permission.parentId && excluded.has(permission.parentId) && !excluded.has(permission.id)) {
+                excluded.add(permission.id);
+                changed = true;
+              }
+            }
+          }
+        }
+        setData(buildTree(permissions
+          .filter((permission) => !excluded.has(permission.id))
+          .map((permission) => ({
+            ...permission,
+            value: permission.id,
+            title: permission.name,
+          }))))
+      })
       .catch(() => {
         // 错误提示由 axios 拦截器统一处理
       })
@@ -68,7 +87,7 @@ export default function PermissionTreeSelect({ onChange: onChangeHandle, placeho
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [])
+  }, [excludeId])
 
   return (
     <TreeSelect

@@ -1,6 +1,7 @@
 import { deletePermissions, listPermissions, movePermission, updatePermission } from "@/api/system/permission";
 import type { PermissionQuery } from "@/api/system/permission";
 import ActionAuth from "@/components/action-auth";
+import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,8 @@ export default function Permission() {
   });
 
   const [selectedRows, setSelectedRows] = useState<Permission[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<Permission[]>([]);
+  const [deleting, setDeleting] = useState(false);
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddBrotherDialogOpen, setIsAddBrotherDialogOpen] = useState(false);
@@ -83,19 +86,30 @@ export default function Permission() {
     setId(row.id);
     setIsEditDialogOpen(true);
   }
-  function handleDelete(rows: Permission[]) {
+  function requestDelete(rows: Permission[]) {
     if (rows.length === 0) {
       return;
     }
-    deletePermissions(rows.map((row) => row.id)).then(() => {
-      setParams({ ...params, page: 1 });
+    setDeleteTarget(rows);
+  }
+  async function confirmDelete() {
+    if (deleteTarget.length === 0) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deletePermissions(deleteTarget.map((row) => row.id));
+      setParams(prev => ({ ...prev, page: 1 }));
       setSelectedRows([]);
+      setDeleteTarget([]);
       toast.success(formatMessage({ id: 'message.success' }));
-    })
+    } finally {
+      setDeleting(false);
+    }
   }
   function handleStatusChange(row: Permission, status: "0" | "1") {
     return updatePermission(row.id, { status }).then(() => {
-      setParams({ ...params });
+      setParams(prev => ({ ...prev }));
     })
   }
   function handleAddChild(row: Permission | null) {
@@ -108,7 +122,7 @@ export default function Permission() {
   }
   function handleMove(row: Permission, direction: 'up' | 'down' | 'top') {
     movePermission(row.id, direction).then(() => {
-      setParams({ ...params });
+      setParams(prev => ({ ...prev }));
     })
   }
 
@@ -156,9 +170,7 @@ export default function Permission() {
       cell: ({ row }) => (
         <StatusSwitch
           initial={row.getValue("status") as string}
-          onChange={(val) => {
-            handleStatusChange(row.original, val);
-          }} />
+          onChange={(val) => handleStatusChange(row.original, val)} />
       ),
     },
     {
@@ -209,30 +221,37 @@ export default function Permission() {
   return (
     <div className="w-full p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-        onSave={() => setParams({ ...params, page: 1 })} />
+        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
       <AddBrotherDialog id={id} setOpen={setIsAddBrotherDialogOpen} open={isAddBrotherDialogOpen}
-        onSave={() => setParams({ ...params, page: 1 })} />
+        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
-        onSave={() => setParams({ ...params, page: 1 })} />
+        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+      <ConfirmDeleteDialog
+        open={deleteTarget.length > 0}
+        onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
+        description={formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+        pending={deleting}
+        onConfirm={confirmDelete}
+      />
 
       <div className="flex items-center py-3 gap-4">
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="permissionName">{formatMessage({ id: 'page.system.permission.header.name' })}</Label>
-          <Input id="permissionName" type="text" placeholder="" value={params.name} onChange={(e) => setParams({ ...params, name: e.target.value })} />
+          <Input id="permissionName" type="text" placeholder="" value={params.name} onChange={(e) => setParams(prev => ({ ...prev, name: e.target.value, page: 1 }))} />
         </div>
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="permissionId">{formatMessage({ id: 'page.system.permission.header.id' })}</Label>
-          <Input id="permissionId" type="text" placeholder="" value={params.id} onChange={(e) => setParams({ ...params, id: e.target.value })} />
+          <Input id="permissionId" type="text" placeholder="" value={params.id} onChange={(e) => setParams(prev => ({ ...prev, id: e.target.value, page: 1 }))} />
         </div>
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="permissionPath">{formatMessage({ id: 'page.system.permission.header.path' })}</Label>
-          <Input id="permissionPath" type="text" placeholder="" value={params.path} onChange={(e) => setParams({ ...params, path: e.target.value })} />
+          <Input id="permissionPath" type="text" placeholder="" value={params.path} onChange={(e) => setParams(prev => ({ ...prev, path: e.target.value, page: 1 }))} />
         </div>
         <div className="flex items-center gap-2">
           <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.status' })}</Label>
           <Select
             value={params.status}
-            onValueChange={(value) => setParams({ ...params, status: value || '' })}
+            onValueChange={(value) => setParams(prev => ({ ...prev, status: value || '', page: 1 }))}
           >
             <SelectTrigger className="flex items-center">
               <SelectValue placeholder="Status">
@@ -251,7 +270,7 @@ export default function Permission() {
             <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
           </ActionAuth>
           <ActionAuth action="delete">
-            <Button onClick={() => handleDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
+            <Button onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
           </ActionAuth>
         </div>
       </div>
@@ -262,7 +281,7 @@ export default function Permission() {
         total={data.total}
         page={params.page}
         size={params.size}
-        onPageChange={(page) => setParams({ ...params, page })}
+        onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
         getRowId={(row) => row.id}
         getSubRows={(row) => row.subRows}
         selectionMode="tree"

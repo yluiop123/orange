@@ -40,17 +40,25 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
     const [values, setValues] = useState<Record<string, unknown>>({});
 
     useEffect(() => {
-        if (id === '') {
+        setValues({});
+        if (!open || id === '') {
             return;
         }
         let cancelled = false;
         getGroup(id).then((group) => {
-            if (!cancelled) setValues(group);
+            if (cancelled) return;
+            if (!group) {
+                toast.error(intl.formatMessage({ id: 'table.loadError' }));
+                return;
+            }
+            setValues(group);
+        }).catch(() => {
+            // 错误提示由 axios 拦截器统一处理
         });
         return () => {
             cancelled = true;
         };
-    }, [id])
+    }, [id, open])
 function onSubmit(fieldValues: Record<string, unknown>) {
         updateGroup(id, {
             id,

@@ -1,6 +1,7 @@
 import { deleteGroups, listGroups, moveGroup, updateGroupStatus } from "@/api/system/group";
 import type { GroupQuery } from "@/api/system/group";
 import ActionAuth from "@/components/action-auth";
+import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,8 @@ export default function Group() {
   });
 
   const [selectedRows, setSelectedRows] = useState<Group[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<Group[]>([]);
+  const [deleting, setDeleting] = useState(false);
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddBrotherDialogOpen, setIsAddBrotherDialogOpen] = useState(false);
@@ -88,24 +91,35 @@ export default function Group() {
     setId(row?.id || '');
     setIsAddChildDialogOpen(true);
   }
-  function handleDelete(rows: Group[]) {
+  function requestDelete(rows: Group[]) {
     if (rows.length === 0) {
       return;
     }
-    deleteGroups(rows.map((row) => row.id)).then(() => {
-      setParams({ ...params, page: 1 });
+    setDeleteTarget(rows);
+  }
+  async function confirmDelete() {
+    if (deleteTarget.length === 0) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteGroups(deleteTarget.map((row) => row.id));
+      setParams(prev => ({ ...prev, page: 1 }));
       setSelectedRows([]);
+      setDeleteTarget([]);
       toast.success(formatMessage({ id: 'message.success' }));
-    })
+    } finally {
+      setDeleting(false);
+    }
   }
   function handleMove(row: Group, direction: 'up' | 'down' | 'top') {
     moveGroup(row.id, direction).then(() => {
-      setParams({ ...params });
+      setParams(prev => ({ ...prev }));
     })
   }
   function handleStatusChange(row: Group, status: "0" | "1") {
     return updateGroupStatus(row.id, status).then(() => {
-      setParams({ ...params });
+      setParams(prev => ({ ...prev }));
     })
   }
 
@@ -129,9 +143,7 @@ export default function Group() {
       cell: ({ row }) => (
         <StatusSwitch
           initial={row.getValue("status") as string}
-          onChange={(val) => {
-            handleStatusChange(row.original, val);
-          }} />
+          onChange={(val) => handleStatusChange(row.original, val)} />
       ),
     },
     {
@@ -182,27 +194,34 @@ export default function Group() {
   return (
     <div className="w-full p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-        onSave={() => setParams({ ...params, page: 1 })} />
+        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
       <AddBrotherDialog id={id} setOpen={setIsAddBrotherDialogOpen} open={isAddBrotherDialogOpen}
-        onSave={() => setParams({ ...params, page: 1 })} />
+        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
-        onSave={() => setParams({ ...params, page: 1 })} />
+        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+      <ConfirmDeleteDialog
+        open={deleteTarget.length > 0}
+        onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
+        description={formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+        pending={deleting}
+        onConfirm={confirmDelete}
+      />
 
       <div className="flex items-center py-3 gap-4">
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="groupName">{formatMessage({ id: 'page.system.group.header.name' })}</Label>
-          <Input id="groupName" type="text" placeholder="" value={params.name} onChange={(e) => setParams({ ...params, name: e.target.value })} />
+          <Input id="groupName" type="text" placeholder="" value={params.name} onChange={(e) => setParams(prev => ({ ...prev, name: e.target.value, page: 1 }))} />
         </div>
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="groupId">{formatMessage({ id: 'page.system.group.header.id' })}</Label>
-          <Input id="groupId" type="text" placeholder="" value={params.id} onChange={(e) => setParams({ ...params, id: e.target.value })} />
+          <Input id="groupId" type="text" placeholder="" value={params.id} onChange={(e) => setParams(prev => ({ ...prev, id: e.target.value, page: 1 }))} />
         </div>
 
         <div className="flex items-center gap-2">
           <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.group.header.status' })}</Label>
           <Select
             value={params.status}
-            onValueChange={(value) => setParams({ ...params, status: value || '' })}
+            onValueChange={(value) => setParams(prev => ({ ...prev, status: value || '', page: 1 }))}
           >
             <SelectTrigger className="flex items-center">
               <SelectValue>
@@ -225,7 +244,7 @@ export default function Group() {
             <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
           </ActionAuth>
           <ActionAuth action="delete">
-            <Button onClick={() => handleDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
+            <Button onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
           </ActionAuth>
         </div>
       </div>
@@ -236,7 +255,7 @@ export default function Group() {
         total={data.total}
         page={params.page}
         size={params.size}
-        onPageChange={(page) => setParams({ ...params, page })}
+        onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
         getRowId={(row) => row.id}
         getSubRows={(row) => row.subRows}
         selectionMode="tree"

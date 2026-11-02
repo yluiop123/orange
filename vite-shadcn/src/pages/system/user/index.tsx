@@ -3,6 +3,7 @@ import type { User, UserQuery } from "@/api/system/user";
 import ActionAuth from "@/components/action-auth";
 import GroupTreeSelect from "@/components/group-tree-select";
 import { PasswordDialog } from "@/components/password-dialog";
+import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
 import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,8 @@ export default function User() {
     });
 
     const [selectedRows, setSelectedRows] = useState<User[]>([]);
+    const [deleteTarget, setDeleteTarget] = useState<User[]>([]);
+    const [deleting, setDeleting] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [id, setId] = useState('' as string);
     const [tempPassword, setTempPassword] = useState<{ username?: string; password: string } | null>(null);
@@ -73,19 +76,30 @@ export default function User() {
             setTempPassword({ username: row.username, password });
         })
     }
-    function handleDelete(rows: User[]) {
+    function requestDelete(rows: User[]) {
         if (rows.length === 0) {
             return;
         }
-        userApi.deleteUsers(rows.map(item => item.id)).then(() => {
-            setParams({ ...params, page: 1 });
+        setDeleteTarget(rows);
+    }
+    async function confirmDelete() {
+        if (deleteTarget.length === 0) {
+            return;
+        }
+        setDeleting(true);
+        try {
+            await userApi.deleteUsers(deleteTarget.map(item => item.id));
+            setParams(prev => ({ ...prev, page: 1 }));
             setSelectedRows([]);
+            setDeleteTarget([]);
             toast.success(intl.formatMessage({ id: 'message.success' }));
-        })
+        } finally {
+            setDeleting(false);
+        }
     }
     function handleStatusChange(row: User, status: "0" | "1") {
         return userApi.updateUserStatus(row.id, status).then(() => {
-            setParams({ ...params });
+            setParams(prev => ({ ...prev }));
         })
     }
 
@@ -101,7 +115,7 @@ export default function User() {
                         onClick={() => {
                             const isAsc = column.getIsSorted() === "asc";
                             table.setSorting([{ id: "name", desc: isAsc }]);
-                            setParams({ ...params, orderValue: isAsc ? "desc" : "asc", orderField: 'name' })
+                            setParams(prev => ({ ...prev, orderValue: isAsc ? "desc" : "asc", orderField: 'name', page: 1 }))
                         }}
                     >
                         {intl.formatMessage({ id: 'page.system.user.header.name' })}
@@ -148,9 +162,7 @@ export default function User() {
             cell: ({ row }) =>
                 <StatusSwitch
                     initial={row.getValue("status") as string}
-                    onChange={(val) => {
-                        handleStatusChange(row.original, val);
-                    }} />
+                    onChange={(val) => handleStatusChange(row.original, val)} />
             ,
         },
         {
@@ -174,7 +186,7 @@ export default function User() {
                                     <DropdownMenuItem onClick={() => handleEdit(user)}>{intl.formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
                                 </ActionAuth>
                                 <ActionAuth action="delete">
-                                    <DropdownMenuItem onClick={() => handleDelete([user])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => requestDelete([user])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
                                 </ActionAuth>
                                 <ActionAuth action="edit">
                                     <DropdownMenuItem onClick={() => handleReset(user)}>{intl.formatMessage({ id: 'button.reset.password' })}</DropdownMenuItem>
@@ -190,19 +202,26 @@ export default function User() {
     return (
         <div className="w-full p-3">
             <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-                onSave={() => setParams({ ...params, page: 1 })} />
+                onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+            <ConfirmDeleteDialog
+                open={deleteTarget.length > 0}
+                onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
+                description={intl.formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+                pending={deleting}
+                onConfirm={confirmDelete}
+            />
 
             <div className="flex items-center py-3 gap-4">
                 <GroupTreeSelect
                     className="w-60"
                     value={params.groupId}
                     onChange={(node) => {
-                        setParams({ ...params, groupId: node })
+                        setParams(prev => ({ ...prev, groupId: node, page: 1 }))
                     }}
                 />
                 <Select
                     onValueChange={(value) =>
-                        setParams({ ...params, filterField: value ? value : "" })
+                        setParams(prev => ({ ...prev, filterField: value ? value : "", page: 1 }))
                     } defaultValue={params.filterField}>
                     <SelectTrigger className="flex items-center">
                         <SelectValue>
@@ -224,7 +243,7 @@ export default function User() {
                     placeholder={intl.formatMessage({ id: 'table.filterField' })}
                     value={params.filterValue}
                     onChange={(event) =>
-                        setParams({ ...params, filterValue: event.target.value })
+                        setParams(prev => ({ ...prev, filterValue: event.target.value, page: 1 }))
                     }
                     className="max-w-sm"
                 />
@@ -232,7 +251,7 @@ export default function User() {
                     <ActionAuth action="add">
                         <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
                     </ActionAuth>
-                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => setParams({ ...params, page: 1 })} onCreated={(password, username) => setTempPassword({ password, username })} />
+                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => setParams(prev => ({ ...prev, page: 1 }))} onCreated={(password, username) => setTempPassword({ password, username })} />
                     <PasswordDialog
                         open={!!tempPassword}
                         onOpenChange={(open) => { if (!open) setTempPassword(null); }}
@@ -240,7 +259,7 @@ export default function User() {
                         username={tempPassword?.username}
                     />
                     <ActionAuth action="delete">
-                        <Button onClick={() => handleDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
+                        <Button onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
                     </ActionAuth>
                 </div>
             </div>
@@ -251,7 +270,7 @@ export default function User() {
                 total={data.total}
                 page={params.page}
                 size={params.size}
-                onPageChange={(page) => setParams({ ...params, page })}
+                onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
                 getRowId={(row) => row.id}
                 onSelectionChange={setSelectedRows}
                 loading={loading}

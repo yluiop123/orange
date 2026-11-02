@@ -75,12 +75,17 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
     const [values, setValues] = useState<Record<string, unknown>>({});
 
     useEffect(() => {
-        if (id === '') {
+        setValues({});
+        if (!open || id === '') {
             return;
         }
         let cancelled = false;
         getUser(id).then((user) => {
             if (cancelled) return;
+            if (!user) {
+                toast.error(intl.formatMessage({ id: 'table.loadError' }));
+                return;
+            }
             setValues({
                 ...user,
                 roles: (user.roles ?? []).map((item) => ({
@@ -89,11 +94,13 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
                 })),
                 groupId: user.groupId || '',
             });
+        }).catch(() => {
+            // 错误提示由 axios 拦截器统一处理
         });
         return () => {
             cancelled = true;
         };
-    }, [id])
+    }, [id, open])
 function onSubmit(values: Record<string, unknown>) {
         const payload: UserPayload = {
             name: values.name as string,

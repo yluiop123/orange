@@ -4,6 +4,7 @@ import com.orange.domain.common.BusinessException;
 import com.orange.domain.system.permission.req.*;
 import com.orange.entity.Permission;
 import com.orange.repository.system.PermissionRepository;
+import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
 import com.orange.service.system.PermissionService;
 import jakarta.persistence.criteria.Predicate;
@@ -12,10 +13,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,6 +36,9 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Override
     public List<Permission> queryPermissions(QueryPermissionReq req) {
@@ -58,42 +67,62 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     @Transactional
     public void deletePermissions(List<String> ids) {
-        List<Permission> list = permissionRepository.findAllById(ids);
+        List<Permission> all = permissionRepository.findAll();
+        Map<String, Permission> byId = all.stream()
+                .collect(Collectors.toMap(Permission::getId, permission -> permission));
+        Set<String> requestedIds = new LinkedHashSet<>(ids);
+        List<Permission> selected = requestedIds.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .toList();
+        if (selected.size() != requestedIds.size()) {
+            throw new BusinessException("权限不存在");
+        }
 
-        if (list.isEmpty()) {
-            throw  new BusinessException("权限不存在");
-        }
-        for (Permission permission : list) {
-            if(!CollectionUtils.isEmpty(permission.getRoles())){
-                throw  new BusinessException("权限"+permission.getId()+"已被角色引用，不能删除");
+        Map<String, List<Permission>> childrenByParent = all.stream()
+                .filter(permission -> permission.getParentId() != null)
+                .collect(Collectors.groupingBy(Permission::getParentId));
+        Set<String> subtreeIds = new LinkedHashSet<>();
+        Deque<String> queue = new ArrayDeque<>(requestedIds);
+        while (!queue.isEmpty()) {
+            String id = queue.poll();
+            if (subtreeIds.add(id)) {
+                childrenByParent.getOrDefault(id, List.of())
+                        .forEach(child -> queue.add(child.getId()));
             }
-            if (!CollectionUtils.isEmpty(permission.getUsers())) {
-                throw  new BusinessException("权限"+permission.getId()+"已被用户引用，不能删除");
-            }
         }
-        // 1 收集受影响的 parentId
-        Set<String> parentIds = list.stream()
+
+        if (roleRepository.existsByPermissions_IdIn(subtreeIds)) {
+            throw new BusinessException("权限已被角色引用，不能删除");
+        }
+        if (userRepository.existsByPermissions_IdIn(subtreeIds)) {
+            throw new BusinessException("权限已被用户引用，不能删除");
+        }
+
+        // 只重排“被删除节点所在层”的兄弟节点
+        Set<String> parentIds = selected.stream()
                 .map(Permission::getParentId)
                 .collect(Collectors.toSet());
-        // 2 删除节点：先删深层节点，避免父子同时选中时父节点级联删除导致重复删除
-        list.sort((a, b) -> Integer.compare(b.getId().length(), a.getId().length()));
-        for (Permission node : list) {
-            if (permissionRepository.existsById(node.getId())) {
-                permissionRepository.delete(node);
+
+        // 先删深层节点，避免父子同时选中时父节点先删导致子节点找不到
+        List<Permission> toDelete = all.stream()
+                .filter(permission -> subtreeIds.contains(permission.getId()))
+                .sorted(Comparator.comparingInt((Permission permission) -> permission.getId().length()).reversed())
+                .toList();
+        for (Permission permission : toDelete) {
+            if (permissionRepository.existsById(permission.getId())) {
+                permissionRepository.delete(permission);
                 permissionRepository.flush();
             }
         }
-        // 3 重新排序
+
         for (String parentId : parentIds) {
-            List<Permission> children;
-            if (parentId == null) {
-                children = permissionRepository.findByParentIdIsNullOrderByOrder();
-            } else {
-                children = permissionRepository.findByParentIdOrderByOrder(parentId);
-            }
+            List<Permission> children = parentId == null
+                    ? permissionRepository.findByParentIdIsNullOrderByOrder()
+                    : permissionRepository.findByParentIdOrderByOrder(parentId);
             int index = 0;
-            for (Permission g : children) {
-                g.setOrder(index++);
+            for (Permission child : children) {
+                child.setOrder(index++);
             }
         }
     }

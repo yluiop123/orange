@@ -11,8 +11,10 @@ import com.orange.service.system.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,7 +75,9 @@ public class UserController {
     @Operation(summary = "重置用户密码", description = "根据用户ID重置用户密码")
     @PostMapping("/{userId}/reset-password")
     @PreAuthorize("hasAuthority('action#/system/user:edit')")
-    public Response<String> resetUser(@Parameter(description = "用户ID") @PathVariable("userId") String userId) {
+    public Response<String> resetUser(@Parameter(description = "用户ID") @PathVariable("userId") String userId,
+                                      HttpServletResponse response) {
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
         return Response.ok("操作成功", userService.resetUser(userId));
     }
 

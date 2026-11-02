@@ -33,7 +33,7 @@ export function useResourceList<TParams extends { page: number; size: number }, 
 }: UseResourceListOptions<TParams, TRow>) {
   const [state, setState] = useState<UseResourceListState<TRow>>({
     data: emptyData<TRow>(),
-    loading: false,
+    loading: true,
     error: null,
   });
 
@@ -48,32 +48,37 @@ export function useResourceList<TParams extends { page: number; size: number }, 
     const controller = new AbortController();
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    fetcherRef
-      .current(params, controller.signal)
-      .then((result) => {
-        if (controller.signal.aborted) return;
-        const normalized: PageResult<TRow> = Array.isArray(result)
-          ? { list: result, total: result.length }
-          : result;
-        const list = treeRef.current
-          ? buildTree(normalized.list, treeRef.current)
-          : normalized.list;
-        setState({
-          data: { ...normalized, list },
-          loading: false,
-          error: null,
+    const timer = window.setTimeout(() => {
+      fetcherRef
+        .current(params, controller.signal)
+        .then((result) => {
+          if (controller.signal.aborted) return;
+          const normalized: PageResult<TRow> = Array.isArray(result)
+            ? { list: result, total: result.length }
+            : result;
+          const list = treeRef.current
+            ? buildTree(normalized.list, treeRef.current)
+            : normalized.list;
+          setState({
+            data: { ...normalized, list },
+            loading: false,
+            error: null,
+          });
+        })
+        .catch(() => {
+          if (controller.signal.aborted) return;
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            error: errorMessageRef.current,
+          }));
         });
-      })
-      .catch(() => {
-        if (controller.signal.aborted) return;
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          error: errorMessageRef.current,
-        }));
-      });
+    }, 250);
 
-    return () => controller.abort();
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [params]);
 
   return {

@@ -17,6 +17,8 @@ import com.orange.entity.User;
 import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
+import com.orange.security.auth.GrantGuard;
+import com.orange.security.jwt.AuthUser;
 import com.orange.service.system.GroupService;
 import com.orange.service.system.UserService;
 import jakarta.persistence.criteria.Predicate;
@@ -26,6 +28,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +40,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.orange.config.Constanst.STATUS_DISABLE;
+import static com.orange.config.Constanst.STATUS_ENABLE;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -52,6 +57,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private GrantGuard grantGuard;
 
     private static final Set<String> USER_SORT_FIELDS =
             Set.of("id", "name", "username", "email", "status", "createTime", "updateTime");
@@ -120,12 +128,18 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public String addUser(AddUserReq req) {
+        if (userRepository.existsByUsername(req.getUsername())) {
+            throw new BusinessException("用户名已存在");
+        }
+        grantGuard.assertCanAssignRoles(req.getRoles());
+        grantGuard.assertCanAssignPermissions(req.getPermissions());
         User user = new User();
         user.setName(req.getName());
         user.setUsername(req.getUsername());
         user.setEmail(req.getEmail());
         user.setGroupId(req.getGroupId());
         user.setPhone(req.getPhone());
+        user.setStatus(req.getStatus() == null ? STATUS_ENABLE : req.getStatus());
         String tempPassword = generateTempPassword();
         user.setPassword(passwordEncoder.encode(tempPassword));
         user.setMustChangePassword(true);
@@ -165,6 +179,10 @@ public class UserServiceImpl implements UserService {
             if (req.getStatus() != null) {
                 boolean disabling = !STATUS_DISABLE.equals(user.getStatus())
                         && STATUS_DISABLE.equals(req.getStatus());
+                if (disabling) {
+                    assertNotSelf(user.getId(), "禁用");
+                    assertNotLastSuper(user, "禁用");
+                }
                 user.setStatus(req.getStatus());
                 if (disabling) {
                     user.setTokenVersion(nextTokenVersion(user.getTokenVersion()));
@@ -172,12 +190,14 @@ public class UserServiceImpl implements UserService {
             }
 
             if (req.getRoles()!=null) {
+                grantGuard.assertCanAssignRoles(req.getRoles());
                 List<Role> roles = roleRepository.findAllById(req.getRoles());
                 user.getRoles().clear();
                 user.getRoles().addAll(roles);
             }
 
             if (req.getPermissions()!=null) {
+                grantGuard.assertCanAssignPermissions(req.getPermissions());
                 List<Permission> permissions = permissionRepository.findAllById(req.getPermissions());
                 user.getPermissions().clear();
                 user.getPermissions().addAll(permissions);
@@ -195,6 +215,16 @@ public class UserServiceImpl implements UserService {
         if(CollectionUtils.isEmpty(list)){
             throw new BusinessException("用户不存在");
         }
+        long enabledSupers = userRepository.countByRoles_IdAndStatus("super", STATUS_ENABLE);
+        long deletingSupers = list.stream()
+                .filter(user -> !STATUS_DISABLE.equals(user.getStatus()) && hasRole(user, "super"))
+                .count();
+        if (deletingSupers > 0 && enabledSupers - deletingSupers < 1) {
+            throw new BusinessException("系统至少需要保留一个启用的超级管理员");
+        }
+        for (User user : list) {
+            assertNotSelf(user.getId(), "删除");
+        }
         // 删除用户前先清理角色/权限关联，避免“有角色就永远删不掉”
         for (User user : list) {
             user.getRoles().clear();
@@ -208,6 +238,9 @@ public class UserServiceImpl implements UserService {
     public String resetUser(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("用户不存在"));
+        if (hasRole(user, "super") && !grantGuard.isSuperAdmin()) {
+            throw new BusinessException("无权重置超级管理员密码");
+        }
         String tempPassword = generateTempPassword();
         user.setPassword(passwordEncoder.encode(tempPassword));
         user.setMustChangePassword(true);
@@ -260,6 +293,34 @@ public class UserServiceImpl implements UserService {
 
     private int nextTokenVersion(Integer current) {
         return (current == null ? 0 : current) + 1;
+    }
+
+    private String currentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof AuthUser authUser) {
+            return authUser.getUserId();
+        }
+        return null;
+    }
+
+    private boolean hasRole(User user, String roleId) {
+        return user.getRoles().stream().anyMatch(role -> roleId.equals(role.getId()));
+    }
+
+    private void assertNotSelf(String targetId, String action) {
+        if (targetId != null && targetId.equals(currentUserId())) {
+            throw new BusinessException("不能" + action + "当前登录用户");
+        }
+    }
+
+    private void assertNotLastSuper(User user, String action) {
+        if (!hasRole(user, "super") || STATUS_DISABLE.equals(user.getStatus())) {
+            return;
+        }
+        long enabledSupers = userRepository.countByRoles_IdAndStatus("super", STATUS_ENABLE);
+        if (enabledSupers <= 1) {
+            throw new BusinessException("系统至少需要保留一个启用的超级管理员，不能" + action);
+        }
     }
 
     @Override

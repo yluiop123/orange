@@ -2,8 +2,16 @@ package com.orange.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.orange.entity.Group;
+import com.orange.entity.Permission;
+import com.orange.entity.Role;
 import com.orange.entity.User;
+import com.orange.repository.system.GroupRepository;
+import com.orange.repository.system.PermissionRepository;
+import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
+import com.orange.service.system.GroupService;
+import com.orange.service.system.PermissionService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +37,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * 真实 HTTP + 真实 PostgreSQL 的安全集成测试。
@@ -61,6 +70,21 @@ class SecurityIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PermissionRepository permissionRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private GroupRepository groupRepository;
+
+    @Autowired
+    private PermissionService permissionService;
+
+    @Autowired
+    private GroupService groupService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -165,6 +189,165 @@ class SecurityIntegrationTest {
         ResponseEntity<String> blocked = authorizedGet("/api/system/users?page=1&size=1", login.token());
         assertThat(blocked.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(blocked.getBody()).contains("\"code\":40302");
+    }
+
+    @Test
+    void deletingPermissionSubtreeChecksReferencesAndRemovesDescendants() {
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String rootId = "p" + suffix;
+        String childId = rootId + "c";
+        String grandChildId = childId + "g";
+        Permission root = permission(rootId, null, "/it/permission/" + suffix);
+        Permission child = permission(childId, rootId, "/it/permission/" + suffix + "/child");
+        Permission grandChild = permission(grandChildId, childId, "/it/permission/" + suffix + "/grand");
+        permissionRepository.saveAll(List.of(root, child, grandChild));
+
+        Role role = new Role();
+        role.setId("r" + suffix);
+        role.setName("Integration Role " + suffix);
+        role.setStatus("1");
+        role.getPermissions().add(child);
+        Role savedRole = roleRepository.save(role);
+        try {
+            assertThatThrownBy(() -> permissionService.deletePermissions(List.of(rootId)))
+                    .hasMessageContaining("已被角色引用");
+
+            Role managedRole = roleRepository.findWithAllAttributesById(savedRole.getId());
+            managedRole.getPermissions().clear();
+            roleRepository.save(managedRole);
+
+            permissionService.deletePermissions(List.of(rootId));
+
+            assertThat(permissionRepository.findById(rootId)).isEmpty();
+            assertThat(permissionRepository.findById(childId)).isEmpty();
+            assertThat(permissionRepository.findById(grandChildId)).isEmpty();
+        } finally {
+            Role cleanupRole = roleRepository.findWithAllAttributesById(savedRole.getId());
+            if (cleanupRole != null) {
+                cleanupRole.getPermissions().clear();
+                roleRepository.save(cleanupRole);
+                roleRepository.delete(cleanupRole);
+            }
+            if (permissionRepository.existsById(rootId)) {
+                permissionService.deletePermissions(List.of(rootId));
+            }
+        }
+    }
+
+    @Test
+    void deletingGroupSubtreeChecksDescendantUsers() {
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String rootId = "g" + suffix;
+        String childId = rootId + "c";
+        groupRepository.saveAll(List.of(
+                group(rootId, null, "Integration Group " + suffix),
+                group(childId, rootId, "Integration Child " + suffix)));
+
+        User user = new User();
+        user.setUsername("itgrp" + suffix);
+        user.setName("Group User");
+        user.setGroupId(childId);
+        user.setStatus("1");
+        User savedUser = userRepository.save(user);
+        try {
+            assertThatThrownBy(() -> groupService.deleteGroups(List.of(rootId)))
+                    .hasMessageContaining("下有用户");
+
+            userRepository.delete(savedUser);
+            groupService.deleteGroups(List.of(rootId));
+
+            assertThat(groupRepository.findById(rootId)).isEmpty();
+            assertThat(groupRepository.findById(childId)).isEmpty();
+        } finally {
+            User remaining = userRepository.findByUsername("itgrp" + suffix);
+            if (remaining != null) {
+                userRepository.delete(remaining);
+            }
+            if (groupRepository.existsById(rootId)) {
+                groupService.deleteGroups(List.of(rootId));
+            }
+        }
+    }
+
+    @Test
+    void cannotDisableCurrentUser() throws Exception {
+        Login login = login("super", "super");
+        JsonNode info = JSON.readTree(authorizedGet("/api/user/userInfo", login.token()).getBody());
+        String userId = info.path("data").path("id").asText();
+
+        ResponseEntity<String> response = authorizedJson(
+                "PATCH", "/api/system/users/" + userId, login.token(), Map.of("status", "0"));
+
+        assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+        assertThat(response.getBody()).contains("不能禁用当前登录用户");
+        assertThat(JSON.readTree(authorizedGet("/api/user/userInfo", login.token()).getBody())
+                .path("data").path("status").asText()).isEqualTo("1");
+    }
+
+    @Test
+    void adminCannotResetSuperPassword() throws Exception {
+        Login admin = login("admin", "admin");
+        ResponseEntity<String> search = authorizedGet(
+                "/api/system/users?page=1&size=10&filterField=username&filterValue=super&groupId=",
+                admin.token());
+        String superId = JSON.readTree(search.getBody()).path("data").path("list").get(0).path("id").asText();
+
+        ResponseEntity<String> response = authorizedPost(
+                "/api/system/users/" + superId + "/reset-password", admin.token());
+
+        assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+        assertThat(response.getBody()).contains("无权重置超级管理员密码");
+    }
+
+    @Test
+    void adminCannotAssignSuperRole() throws Exception {
+        Login admin = login("admin", "admin");
+        String username = "itgrant" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        createdUsername = username;
+
+        ResponseEntity<String> response = authorizedJson("POST", "/api/system/users", admin.token(), Map.of(
+                "name", "Grant Test",
+                "username", username,
+                "email", username + "@example.com",
+                "groupId", "0001",
+                "phone", "13900000099",
+                "status", "1",
+                "roles", List.of("super"),
+                "permissions", List.of()));
+
+        assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+        assertThat(response.getBody()).contains("只有超级管理员可以授予 super 角色");
+    }
+
+    private ResponseEntity<String> authorizedJson(String method, String path, String token, Object body)
+            throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return rest.exchange(path, HttpMethod.valueOf(method),
+                new HttpEntity<>(JSON.writeValueAsString(body), headers), String.class);
+    }
+
+    private Permission permission(String id, String parentId, String path) {
+        Permission permission = new Permission();
+        permission.setId(id);
+        permission.setName("Integration " + id);
+        permission.setPath(path);
+        permission.setType("menu");
+        permission.setStatus("1");
+        permission.setParentId(parentId);
+        permission.setOrder(0);
+        return permission;
+    }
+
+    private Group group(String id, String parentId, String name) {
+        Group group = new Group();
+        group.setId(id);
+        group.setName(name);
+        group.setParentId(parentId);
+        group.setOrder(0);
+        group.setStatus("1");
+        return group;
     }
 
     private Login login(String username, String password) throws Exception {

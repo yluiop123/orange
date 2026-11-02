@@ -17,7 +17,7 @@ CREATE TABLE public.sys_group (
 	version int4 DEFAULT 0 NOT NULL, -- 乐观锁版本
 	CONSTRAINT sys_group_pkey PRIMARY KEY (id),
 	CONSTRAINT ck_sys_group_status CHECK (status IS NULL OR status IN ('0', '1')),
-	CONSTRAINT fk_sys_group_parent FOREIGN KEY (parent_id) REFERENCES public.sys_group(id) ON DELETE CASCADE
+	CONSTRAINT fk_sys_group_parent FOREIGN KEY (parent_id) REFERENCES public.sys_group(id) ON DELETE RESTRICT
 );
 CREATE INDEX idx_sys_group_parent ON public.sys_group(parent_id);
 COMMENT ON TABLE public.sys_group IS '组织机构表';
@@ -56,7 +56,7 @@ CREATE TABLE public.sys_permission (
 	CONSTRAINT sys_permission_pkey PRIMARY KEY (id),
 	CONSTRAINT ck_sys_permission_status CHECK (status IS NULL OR status IN ('0', '1')),
 	CONSTRAINT ck_sys_permission_type CHECK (type IS NULL OR type IN ('menu', 'action', 'directory')),
-	CONSTRAINT fk_sys_permission_parent FOREIGN KEY (parent_id) REFERENCES public.sys_permission(id) ON DELETE CASCADE
+	CONSTRAINT fk_sys_permission_parent FOREIGN KEY (parent_id) REFERENCES public.sys_permission(id) ON DELETE RESTRICT
 );
 CREATE INDEX idx_sys_permission_parent ON public.sys_permission(parent_id);
 COMMENT ON TABLE public.sys_permission IS '权限表';

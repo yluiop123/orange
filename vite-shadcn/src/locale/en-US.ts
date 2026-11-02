@@ -92,6 +92,7 @@ export default {
     'button.save':'Save',
     'button.detail':'Detail',
     'button.cancel':'Cancel',
+    'table.deleteConfirm':'Delete {count} selected item(s)? This cannot be undone.',
     'button.create':'Create',
     'button.reset':'Reset',
     'button.clear':'Clear',

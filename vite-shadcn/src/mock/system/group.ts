@@ -115,6 +115,7 @@ function reindex(list: Group[], parentId: string | null) {
 
 function persistGroup(group: Group) {
   const store = readStore();
+  store.deleted = store.deleted.filter((id) => id !== group.id);
   const index = store.created.findIndex((item) => item.id === group.id);
   if (index >= 0) store.created[index] = group;
   else store.created.push(group);
@@ -216,6 +217,9 @@ const handlers = [
 
   http.patch<{ id: string }>("/api/system/groups/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
+    if (!getGroupList(locale).some((item) => item.id === params.id)) {
+      return HttpResponse.json({ code: 40401, message: "组织不存在" }, { status: 404 });
+    }
     const body = (await request.clone().json()) as Partial<Group>;
     updateGroup(params.id, body);
     return HttpResponse.json({
@@ -226,6 +230,9 @@ const handlers = [
 
   http.patch<{ id: string }>("/api/system/groups/:id/status", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
+    if (!getGroupList(locale).some((item) => item.id === params.id)) {
+      return HttpResponse.json({ code: 40401, message: "组织不存在" }, { status: 404 });
+    }
     const body = (await request.clone().json()) as { status?: "0" | "1" };
     updateGroup(params.id, { status: body.status });
     return HttpResponse.json({
@@ -282,6 +289,13 @@ const handlers = [
       }
     }
     const store = readStore();
+    const users = JSON.parse(localStorage.getItem("orange.mock.users") || "[]") as Array<{ groupId?: string }>;
+    if (users.some((user) => user.groupId && toDelete.has(user.groupId))) {
+      return HttpResponse.json(
+        { code: 40901, message: "组织或其子组织下有用户，不能删除" },
+        { status: 409 },
+      );
+    }
     store.deleted = [...new Set([...store.deleted, ...toDelete])];
     store.created = store.created.filter((item) => !toDelete.has(item.id));
     writeStore(store);

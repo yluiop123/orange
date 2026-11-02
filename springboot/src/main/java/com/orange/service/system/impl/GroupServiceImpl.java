@@ -15,8 +15,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,40 +63,60 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public void deleteGroups(List<String> ids) {
-        List<Group> list = groupRepository.findAllById(ids);
-        if (list.isEmpty()) {
+        List<Group> all = groupRepository.findAll();
+        Map<String, Group> byId = all.stream()
+                .collect(Collectors.toMap(Group::getId, group -> group));
+        Set<String> requestedIds = new LinkedHashSet<>(ids);
+        List<Group> selected = requestedIds.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .toList();
+        if (selected.size() != requestedIds.size()) {
             throw new BusinessException("组织不存在");
         }
-        List<String> groupIds = list.stream().map(Group::getId).toList();
-        if(userRepository.existsByGroupIdIn(groupIds)){
-            throw new BusinessException("组织下有用户，不能删除");
-        }
-        // 1 收集受影响的 parentId
-        Set<String> parentIds = list.stream()
-                .map(Group::getParentId)
-                .collect(Collectors.toSet());
-        // 2 删除节点：先删深层节点，避免父子同时选中时父节点级联删除导致重复删除
-        list.sort((a, b) -> Integer.compare(b.getId().length(), a.getId().length()));
-        for (Group node : list) {
-            if (groupRepository.existsById(node.getId())) {
-                groupRepository.delete(node);
-                groupRepository.flush();
-            }
-        }
-        // 3 重新排序
-        for (String parentId : parentIds) {
-            List<Group> children;
-            if (parentId == null) {
-                children = groupRepository.findByParentIdIsNullOrderByOrder();
-            } else {
-                children = groupRepository.findByParentIdOrderByOrder(parentId);
-            }
-            int index = 0;
-            for (Group g : children) {
-                g.setOrder(index++);
+
+        Map<String, List<Group>> childrenByParent = all.stream()
+                .filter(group -> group.getParentId() != null)
+                .collect(Collectors.groupingBy(Group::getParentId));
+        Set<String> subtreeIds = new LinkedHashSet<>();
+        Deque<String> queue = new ArrayDeque<>(requestedIds);
+        while (!queue.isEmpty()) {
+            String id = queue.poll();
+            if (subtreeIds.add(id)) {
+                childrenByParent.getOrDefault(id, List.of())
+                        .forEach(child -> queue.add(child.getId()));
             }
         }
 
+        if (userRepository.existsByGroupIdIn(new ArrayList<>(subtreeIds))) {
+            throw new BusinessException("组织或其子组织下有用户，不能删除");
+        }
+
+        // 只重排“被删除节点所在层”的兄弟节点
+        Set<String> parentIds = selected.stream()
+                .map(Group::getParentId)
+                .collect(Collectors.toSet());
+
+        List<Group> toDelete = all.stream()
+                .filter(group -> subtreeIds.contains(group.getId()))
+                .sorted(Comparator.comparingInt((Group group) -> group.getId().length()).reversed())
+                .toList();
+        for (Group group : toDelete) {
+            if (groupRepository.existsById(group.getId())) {
+                groupRepository.delete(group);
+                groupRepository.flush();
+            }
+        }
+
+        for (String parentId : parentIds) {
+            List<Group> children = parentId == null
+                    ? groupRepository.findByParentIdIsNullOrderByOrder()
+                    : groupRepository.findByParentIdOrderByOrder(parentId);
+            int index = 0;
+            for (Group child : children) {
+                child.setOrder(index++);
+            }
+        }
     }
 
     @CacheEvict(value = "group", allEntries = true)

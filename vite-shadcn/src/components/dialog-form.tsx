@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forwardRef, useEffect, useImperativeHandle } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { Controller, useForm, UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
 import { z } from "zod";
@@ -31,6 +31,7 @@ type Field = {
     defaultValue?: string|string[];
     type?: string;
     disabled?: boolean;
+    excludeId?: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,6 +50,7 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
     }, {} as Record<string, z.ZodTypeAny>);
     const formSchema = z.object(schemaShape);
     const intl = useIntl();
+    const [submitting, setSubmitting] = useState(false);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: Object.fromEntries(fields.map(item => [item.name, item.defaultValue || ""])),
@@ -63,11 +65,22 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
             form.reset();
         }
     }, [values,form,open]);
+    const handleSubmit = form.handleSubmit(async (formValues) => {
+        if (submitting) return;
+        setSubmitting(true);
+        try {
+            await Promise.resolve(onSubmit(formValues));
+        } finally {
+            window.setTimeout(() => setSubmitting(false), 300);
+        }
+    });
     return (
         <Dialog open={open} 
-        onOpenChange={setOpen}> 
+        onOpenChange={(nextOpen) => {
+            if (!submitting) setOpen(nextOpen);
+        }}> 
             <DialogContent className="sm:max-w-106.25">
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <DialogHeader>
                         <DialogTitle>{title}</DialogTitle>
                         <DialogDescription className={description ? undefined : "sr-only"}>
@@ -89,7 +102,7 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
                                         <PermissionTreeSelect disabled={f.disabled} {...field} value={field.value as string[]} className="p-3"/>
                                         :
                                         f?.type === "permission"?
-                                        <PermissionTreeSingleSelect disabled={f.disabled} {...field} value={field.value as string} className="p-3"/>
+                                        <PermissionTreeSingleSelect disabled={f.disabled} excludeId={f.excludeId} {...field} value={field.value as string} className="p-3"/>
                                         :
                                         f?.type === "roles"?
                                         <RoleSelect disabled={f.disabled} {...field} className="p-3"/>
@@ -113,7 +126,7 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
                         </FieldGroup>
                     ))}
                     <DialogFooter>
-                        <Button type="submit">{intl.formatMessage({ id: 'button.save' })}</Button>
+                        <Button type="submit" disabled={submitting}>{intl.formatMessage({ id: 'button.save' })}</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

@@ -360,7 +360,7 @@ export default function TreeSelect(props: TreeSelectProps) {
     };
 
     return mergedSelected[0]
-      ? [findNode(treeData, mergedSelected[0])!]
+      ? [findNode(treeData, mergedSelected[0])].filter((node): node is TreeNode => !!node)
       : [];
   }, [treeData, mergedSelected, multiple]);
   return (

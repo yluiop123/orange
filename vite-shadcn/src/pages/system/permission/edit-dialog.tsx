@@ -51,23 +51,32 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
             label: "page.system.permission.header.parentPermission",
             defaultValue: '',
             validate: z.string().optional(),
-            type: "permission"
+            type: "permission",
+            excludeId: id,
         },
     ]
     const [values, setValues] = useState<Record<string, unknown>>({});
 
     useEffect(() => {
-        if (id === '') {
+        setValues({});
+        if (!open || id === '') {
             return;
         }
         let cancelled = false;
         getPermission(id).then((permission) => {
-            if (!cancelled) setValues(permission);
+            if (cancelled) return;
+            if (!permission) {
+                toast.error(intl.formatMessage({ id: 'table.loadError' }));
+                return;
+            }
+            setValues(permission);
+        }).catch(() => {
+            // 错误提示由 axios 拦截器统一处理
         });
         return () => {
             cancelled = true;
         };
-    }, [id])
+    }, [id, open])
 function onSubmit(fieldValues: Record<string, unknown>) {
         updatePermission(id, {
             id,

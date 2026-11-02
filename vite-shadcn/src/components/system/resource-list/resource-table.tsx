@@ -238,11 +238,19 @@ export function ResourceTable<TData>({
   }, [rowSelection, data]);
 
   useEffect(() => {
-    // 服务端分页时数据只代表当前页，切页后清掉上一页的勾选，避免隐藏状态
-    if (!isClientPagination) {
-      setRowSelection({});
-    }
-  }, [data, isClientPagination]);
+    // 数据变化（翻页/筛选/刷新）后清空选择，避免隐藏行被误删
+    setRowSelection({});
+  }, [data]);
+
+  useEffect(() => {
+    if (!isClientPagination) return;
+    const maxPageIndex = Math.max(0, Math.ceil(data.length / size) - 1);
+    setPagination((previous) =>
+      previous.pageIndex > maxPageIndex
+        ? { ...previous, pageIndex: maxPageIndex }
+        : previous,
+    );
+  }, [data.length, size, isClientPagination]);
 
   const pageTotal = paginationMode === "client" ? data.length : total;
   const totalPages = Math.max(1, Math.ceil(pageTotal / size));

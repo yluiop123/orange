@@ -101,6 +101,7 @@ function reindexSiblings(list: Permission[], parentId: string | null | undefined
 
 function persistPermission(permission: Permission) {
   const store = readStore();
+  store.deleted = store.deleted.filter((id) => id !== permission.id);
   const existing = store.created.findIndex((item) => item.id === permission.id);
   if (existing >= 0) {
     store.created[existing] = permission;
@@ -226,6 +227,12 @@ const handlers = [
 
   http.patch<{ id: string }>("/api/system/permissions/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
+    if (!getPermissionList(locale).some((item) => item.id === params.id)) {
+      return HttpResponse.json(
+        { code: 40401, message: "权限不存在" },
+        { status: 404 },
+      );
+    }
     const body = (await request.clone().json()) as Partial<Permission>;
     updatePermission(params.id, body);
     return HttpResponse.json({

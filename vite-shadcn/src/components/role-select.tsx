@@ -26,6 +26,7 @@ export default function RoleSelect({ ...props }) {
     <MultipleSelector
       {...props}
       selectFirstItem={false}
+      options={options}
       defaultOptions={options}
       placeholder=""
       emptyIndicator={

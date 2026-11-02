@@ -10,6 +10,7 @@ import com.orange.entity.Permission;
 import com.orange.entity.Role;
 import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
+import com.orange.security.auth.GrantGuard;
 import com.orange.service.system.RoleService;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +38,9 @@ public class RoleServiceImpl implements RoleService {
 
     @Autowired
     private PermissionRepository permissionRepository;
+
+    @Autowired
+    private GrantGuard grantGuard;
 
     private static final Set<String> ROLE_SORT_FIELDS =
             Set.of("id", "name", "status", "createTime", "updateTime");
@@ -85,6 +88,7 @@ public class RoleServiceImpl implements RoleService {
         Role role = new Role();
         role.setId(roleId);
         role.setName(req.getName());
+        grantGuard.assertCanAssignPermissions(req.getPermissions());
         List<Permission> permissions = req.getPermissions() == null
                 ? List.of()
                 : permissionRepository.findAllById(req.getPermissions());
@@ -113,6 +117,7 @@ public class RoleServiceImpl implements RoleService {
         }
 
         if (req.getPermissions() != null) {
+            grantGuard.assertCanAssignPermissions(req.getPermissions());
             role.getPermissions().clear();
             if(!req.getPermissions().isEmpty()){
                 List<Permission> permissions =
@@ -131,14 +136,15 @@ public class RoleServiceImpl implements RoleService {
             throw new BusinessException("角色不存在");
         }
         for (Role role : list) {
-            if(!CollectionUtils.isEmpty(role.getPermissions())){
-                throw new BusinessException("角色"+role.getId()+"已被权限引用，不能删除");
-            }
-            if(!CollectionUtils.isEmpty(role.getUsers())){
-                throw new BusinessException("角色"+role.getId()+"已被用户引用，不能删除");
+            if (!role.getUsers().isEmpty()) {
+                throw new BusinessException("角色" + role.getId() + "已被用户引用，不能删除");
             }
         }
-        roleRepository.deleteAllById(ids);
+        // 角色自身拥有的权限不是外部引用，删除角色时一并清理关联
+        for (Role role : list) {
+            role.getPermissions().clear();
+        }
+        roleRepository.deleteAll(list);
     }
 
     @Override

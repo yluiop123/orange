@@ -89,6 +89,7 @@ function getRoleList(locale: string): Role[] {
 
 function persistRole(role: Role) {
   const store = readStore();
+  store.deleted = store.deleted.filter((id) => id !== role.id);
   const index = store.created.findIndex((item) => item.id === role.id);
   if (index >= 0) {
     store.created[index] = role;
@@ -182,6 +183,9 @@ const handlers = [
 
   http.patch<{ id: string }>("/api/system/roles/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
+    if (!getRoleList(locale).some((item) => item.id === params.id)) {
+      return HttpResponse.json({ code: 40401, message: "角色不存在" }, { status: 404 });
+    }
     const body = (await request.clone().json()) as Partial<Role>;
     updateRole(params.id, body);
     return HttpResponse.json({
