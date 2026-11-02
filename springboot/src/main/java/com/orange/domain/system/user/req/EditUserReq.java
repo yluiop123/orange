@@ -21,6 +21,7 @@ public class EditUserReq {
 
     @Schema(description = "用户名",example = "zhangsan")
     @Size(min = 4, max = 50, message = "用户名长度需在 4-50 之间")
+    @Pattern(regexp = "^[A-Za-z0-9_]{4,50}$", message = "用户名只能包含字母、数字和下划线")
     private String username;
 
     @Schema(description = "用户邮箱",example = "zhangsan@example.com")
@@ -35,7 +36,7 @@ public class EditUserReq {
     private String phone;
 
     @Schema(description = "用户状态",example = "1")
-    @Pattern(regexp = "0|1", message = "状态只能是 0 或 1")
+    @Pattern(regexp = "^(0|1)$", message = "状态只能是 0 或 1")
     private String status;
 
     @Schema(description = "用户角色ID列表",example = "[\"admin\",\"user\"]")

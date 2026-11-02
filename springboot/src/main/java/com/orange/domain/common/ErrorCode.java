@@ -10,6 +10,7 @@ public enum ErrorCode {
     PASSWORD_CHANGE_REQUIRED(40302, "请先修改初始密码", 403),
     AUTH_DENIED(40301, "无权限", 403),
     NOT_FOUND(40401, "数据不存在", 404),
+    METHOD_NOT_ALLOWED(40501, "方法不允许", 405),
     CONFLICT(40901, "数据冲突", 409),
 
     SYSTEM_ERROR(50000, "系统异常", 500);

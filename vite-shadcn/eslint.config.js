@@ -31,4 +31,11 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['src/components/ui/**/*.{ts,tsx}', 'src/components/ext/**/*.{ts,tsx}'],
+    rules: {
+      // shadcn / 扩展组件会同时导出样式常量和组件，Fast Refresh 规则在这里不适用
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 )

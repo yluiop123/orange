@@ -56,7 +56,7 @@ export default function Group() {
     status: 'all'
   });
 
-  const { data, loading, error } = useResourceList<TableParams, Group>({
+  const { data, loading, error, refetch } = useResourceList<TableParams, Group>({
     params,
     errorMessage: formatMessage({ id: 'table.loadError' }),
     fetcher: (query, signal) =>
@@ -141,9 +141,11 @@ export default function Group() {
       meta: { title: formatMessage({ id: "page.system.group.header.status" }) },
       header: formatMessage({ id: "page.system.group.header.status" }),
       cell: ({ row }) => (
-        <StatusSwitch
-          initial={row.getValue("status") as string}
-          onChange={(val) => handleStatusChange(row.original, val)} />
+        <ActionAuth action="edit">
+          <StatusSwitch
+            initial={row.getValue("status") as string}
+            onChange={(val) => handleStatusChange(row.original, val)} />
+        </ActionAuth>
       ),
     },
     {
@@ -244,7 +246,7 @@ export default function Group() {
             <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
           </ActionAuth>
           <ActionAuth action="delete">
-            <Button onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
+            <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
           </ActionAuth>
         </div>
       </div>
@@ -263,6 +265,7 @@ export default function Group() {
         onSelectionChange={setSelectedRows}
         loading={loading}
         error={error}
+        onRetry={refetch}
       />
     </div>
   )

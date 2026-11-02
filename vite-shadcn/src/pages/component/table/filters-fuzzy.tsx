@@ -83,7 +83,6 @@ function makeData(...lens: number[]) {
   return makeDataLevel()
 }
 // Define a custom fuzzy filter function that will apply ranking info to rows (using match-sorter utils)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fuzzyFilter: FilterFn<Person> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
 
@@ -177,13 +176,14 @@ export default function FilterFuzzyTable() {
   })
 
   //apply the fuzzy sort if the fullName column is being filtered
+  const fullNameFilterId = table.getState().columnFilters[0]?.id
   React.useEffect(() => {
-    if (table.getState().columnFilters[0]?.id === 'fullName') {
+    if (fullNameFilterId === 'fullName') {
       if (table.getState().sorting[0]?.id !== 'fullName') {
         table.setSorting([{ id: 'fullName', desc: false }])
       }
     }
-  }, [table.getState().columnFilters[0]?.id])
+  }, [fullNameFilterId, table])
 
   return (
     <div className="p-2">
@@ -379,7 +379,7 @@ function DebouncedInput({
     }, debounce)
 
     return () => clearTimeout(timeout)
-  }, [value])
+  }, [value, debounce, onChange])
 
   return (
     <Input

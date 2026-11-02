@@ -1,8 +1,10 @@
 import { listRoles } from "@/api/system/role";
 import MultipleSelector, { Option } from "@/components/ext/multiple-selector";
 import { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 
 export default function RoleSelect({ ...props }) {
+  const intl = useIntl();
   const [options, setOptions] = useState<Option[]>([]);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function RoleSelect({ ...props }) {
       placeholder=""
       emptyIndicator={
         <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-          no results found.
+          {intl.formatMessage({ id: "table.empty" })}
         </p>
       }
     />

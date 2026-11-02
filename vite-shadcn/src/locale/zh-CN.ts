@@ -138,6 +138,7 @@ export default {
     'table.previous':'上一页',
     'table.columns':'列',
     'table.loading':'加载中...',
+    'table.retry':'重试',
     'table.loadError':'加载列表失败',
     'table.empty':'暂无数据',
     'table.selectedCount':'已选择 {selected} / {total} 条',

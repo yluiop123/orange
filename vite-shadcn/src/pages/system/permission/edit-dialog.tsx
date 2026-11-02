@@ -76,7 +76,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         return () => {
             cancelled = true;
         };
-    }, [id, open])
+    }, [id, open, intl])
 function onSubmit(fieldValues: Record<string, unknown>) {
         updatePermission(id, {
             id,

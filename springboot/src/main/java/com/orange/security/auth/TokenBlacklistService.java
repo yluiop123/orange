@@ -1,6 +1,5 @@
 package com.orange.security.auth;
 
-import com.orange.entity.RevokedToken;
 import com.orange.repository.system.RevokedTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,20 +21,17 @@ public class TokenBlacklistService {
     }
 
     @Transactional
-    public void revoke(String jti, String tokenType, Instant expiresAt) {
+    public boolean revoke(String jti, String tokenType, Instant expiresAt) {
         if (jti == null || jti.isBlank() || expiresAt == null) {
-            return;
+            return false;
         }
         repository.deleteByExpiresAtBefore(OffsetDateTime.now());
-        if (repository.existsById(jti)) {
-            return;
-        }
-        RevokedToken token = new RevokedToken();
-        token.setJti(jti);
-        token.setTokenType(tokenType);
-        token.setExpiresAt(expiresAt.atOffset(ZoneOffset.UTC));
-        token.setCreateTime(OffsetDateTime.now());
-        repository.save(token);
+        int inserted = repository.insertIfAbsent(
+                jti,
+                tokenType,
+                expiresAt.atOffset(ZoneOffset.UTC),
+                OffsetDateTime.now());
+        return inserted > 0;
     }
 
     public boolean isRevoked(String jti) {

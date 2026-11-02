@@ -38,7 +38,7 @@ public class AddUserReq {
     private String phone;
 
     @Schema(description = "状态", example = "1")
-    @Pattern(regexp = "0|1", message = "状态只能是 0 或 1")
+    @Pattern(regexp = "^(0|1)$", message = "状态只能是 0 或 1")
     private String status;
 
     @Schema(description = "角色ID列表",  example = "[\"1001\",\"1002\"]")

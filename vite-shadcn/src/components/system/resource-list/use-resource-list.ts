@@ -36,6 +36,7 @@ export function useResourceList<TParams extends { page: number; size: number }, 
     loading: true,
     error: null,
   });
+  const [version, setVersion] = useState(0);
 
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
@@ -79,11 +80,12 @@ export function useResourceList<TParams extends { page: number; size: number }, 
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [params]);
+  }, [params, version]);
 
   return {
     data: state.data,
     loading: state.loading,
     error: state.error,
+    refetch: () => setVersion((current) => current + 1),
   };
 }

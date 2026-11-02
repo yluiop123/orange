@@ -138,6 +138,7 @@ export default {
     'table.previous':'Previous',
     'table.columns':'Columns',
     'table.loading':'Loading...',
+    'table.retry':'Retry',
     'table.loadError':'Failed to load list',
     'table.empty':'No results.',
     'table.selectedCount':'{selected} of {total} row(s) selected',

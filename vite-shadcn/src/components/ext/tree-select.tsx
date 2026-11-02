@@ -64,6 +64,10 @@ function getCheckStatus(
     return selected.includes(node.value);
   }
 
+  if (selected.includes(node.value)) {
+    return true;
+  }
+
   const childStatuses = node.children.map((c) =>
     getCheckStatus(c, selected, true)
   );
@@ -93,10 +97,19 @@ function getConsolidatedNodes(
   const result: TreeNode[] = [];
 
   function traverse(node: TreeNode): boolean {
+    if (selectedIds.includes(node.value)) {
+      const childIds = collectAllChildIds(node).filter((id) => id !== node.value);
+      for (let i = result.length - 1; i >= 0; i--) {
+        if (childIds.includes(result[i].value)) {
+          result.splice(i, 1);
+        }
+      }
+      result.push(node);
+      return true;
+    }
+
     if (!node.children || node.children.length === 0) {
-      const isSelected = selectedIds.includes(node.value);
-      if (isSelected) result.push(node);
-      return isSelected;
+      return false;
     }
 
     const childrenSelectedCount = node.children.filter((child) =>

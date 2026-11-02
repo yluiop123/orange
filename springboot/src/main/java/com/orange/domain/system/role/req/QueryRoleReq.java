@@ -22,10 +22,12 @@ public class QueryRoleReq {
     private String orderField;
 
     @Schema(description = "排序值",example = "asc")
+    @jakarta.validation.constraints.Pattern(regexp = "^(asc|desc)$", message = "排序方向只能是 asc 或 desc")
     private String orderValue;
 
     @Schema(description = "页码",example = "1")
     @Min(value = 1, message = "页码不能小于 1")
+    @Max(value = 10000, message = "页码不能超过 10000")
     private Integer page = 1;
 
     @Schema(description = "每页数量",example = "10")

@@ -44,7 +44,7 @@ export default function Role() {
         status: 'all'
     });
 
-    const { data, loading, error } = useResourceList<TableParams, Role>({
+    const { data, loading, error, refetch } = useResourceList<TableParams, Role>({
         params,
         errorMessage: intl.formatMessage({ id: 'table.loadError' }),
         fetcher: (query, signal) => roleApi.listRoles(query, signal),
@@ -125,9 +125,11 @@ export default function Role() {
             accessorKey: "status",
             header: intl.formatMessage({ id: 'page.system.role.header.status' }),
             cell: ({ row }) =>
-                <StatusSwitch
-                    initial={row.getValue("status") as string}
-                    onChange={(val) => handleStatusChange(row.original, val)} />
+                <ActionAuth action="edit">
+                    <StatusSwitch
+                        initial={row.getValue("status") as string}
+                        onChange={(val) => handleStatusChange(row.original, val)} />
+                </ActionAuth>
             ,
         },
         {
@@ -205,7 +207,7 @@ export default function Role() {
                     </ActionAuth>
                     <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
                     <ActionAuth action="delete">
-                        <Button onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
+                        <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
                     </ActionAuth>
                 </div>
             </div>
@@ -221,6 +223,7 @@ export default function Role() {
                 onSelectionChange={setSelectedRows}
                 loading={loading}
                 error={error}
+                onRetry={refetch}
             />
         </div>
     )

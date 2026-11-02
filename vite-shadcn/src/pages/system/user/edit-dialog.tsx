@@ -100,7 +100,7 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         return () => {
             cancelled = true;
         };
-    }, [id, open])
+    }, [id, open, intl])
 function onSubmit(values: Record<string, unknown>) {
         const payload: UserPayload = {
             name: values.name as string,

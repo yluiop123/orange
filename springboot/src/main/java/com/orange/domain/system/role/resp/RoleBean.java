@@ -14,6 +14,9 @@ public class RoleBean {
     @Schema(description = "角色ID")
     private String id;
 
+    @Schema(description = "角色状态", example = "1")
+    private String status;
+
     @Schema(description = "权限列表")
     private List<String> permissions;
 }

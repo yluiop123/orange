@@ -14,6 +14,7 @@ import com.orange.entity.Group;
 import com.orange.entity.Permission;
 import com.orange.entity.Role;
 import com.orange.entity.User;
+import com.orange.repository.system.GroupRepository;
 import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
@@ -21,6 +22,7 @@ import com.orange.security.auth.GrantGuard;
 import com.orange.security.jwt.AuthUser;
 import com.orange.service.system.GroupService;
 import com.orange.service.system.UserService;
+import com.orange.util.QueryUtils;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -56,6 +58,9 @@ public class UserServiceImpl implements UserService {
     private PermissionRepository permissionRepository;
 
     @Autowired
+    private GroupRepository groupRepository;
+
+    @Autowired
     private GroupService groupService;
 
     @Autowired
@@ -67,10 +72,14 @@ public class UserServiceImpl implements UserService {
             Set.of("name", "username", "email", "phone", "status");
 
     @Override
+    @Transactional(readOnly = true)
     public PageData<UserBean> queryUsers(QueryUserReq req) {
         String sortBy = req.getOrderField() != null && USER_SORT_FIELDS.contains(req.getOrderField())
                 ? req.getOrderField() : "id";
         String sortDir = req.getOrderValue() == null ? "asc" : req.getOrderValue();
+        if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
+            throw new BusinessException("排序方向只能是 asc 或 desc");
+        }
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())?
                 Sort.by(sortBy).ascending(): Sort.by(sortBy).descending();
 
@@ -84,14 +93,14 @@ public class UserServiceImpl implements UserService {
                 if (!USER_FILTER_FIELDS.contains(filterField)) {
                     throw new BusinessException("不支持的过滤字段");
                 }
-                String keyword = filterValue == null ? "" : filterValue.toLowerCase();
+                String keyword = filterValue == null ? "" : filterValue;
                 predicates.add(
-                        cb.like(cb.lower(root.get(filterField)), keyword + "%")
+                        cb.like(cb.lower(root.get(filterField)), QueryUtils.likePrefix(keyword), '\\')
                 );
             }
             if(req.getGroupId()!=null&&!req.getGroupId().isEmpty()){
                 predicates.add(
-                        cb.like(cb.lower(root.get("groupId")), req.getGroupId().toLowerCase()+"%")
+                        cb.like(cb.lower(root.get("groupId")), QueryUtils.likePrefix(req.getGroupId()), '\\')
                 );
             }
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -133,6 +142,9 @@ public class UserServiceImpl implements UserService {
         }
         grantGuard.assertCanAssignRoles(req.getRoles());
         grantGuard.assertCanAssignPermissions(req.getPermissions());
+        if (!groupRepository.existsById(req.getGroupId())) {
+            throw new BusinessException("组织不存在");
+        }
         User user = new User();
         user.setName(req.getName());
         user.setUsername(req.getUsername());
@@ -169,6 +181,9 @@ public class UserServiceImpl implements UserService {
             }
 
             if (req.getGroupId() != null) {
+                if (req.getGroupId().isBlank() || !groupRepository.existsById(req.getGroupId())) {
+                    throw new BusinessException("组织不存在");
+                }
                 user.setGroupId(req.getGroupId());
             }
 
@@ -324,10 +339,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserBean queryUser(String id) {
         User user = userRepository.findWithAllAttributesById(id);
         if (user==null) {
-            return null;
+            throw new BusinessException("用户不存在");
         }
         Group group = groupService.queryGroup(user.getGroupId());
         UserBean userBean = new UserBean();
@@ -359,7 +375,7 @@ public class UserServiceImpl implements UserService {
     public UserInfo queryUserInfo(String username) {
         User user = userRepository.findWithAllAttributesByUsername(username);
         if (user==null) {
-            return null;
+            throw new BusinessException("用户不存在");
         }
         Group group = groupService.queryGroup(user.getGroupId());
         UserInfo userInfo = new UserInfo();

@@ -10,13 +10,13 @@
 
 ### 0.1 结论
 
-项目可以正常构建和演示。认证、权限、后端菜单树、统一错误响应和安全测试已经收口；剩余问题主要集中在：
+项目可以正常构建和演示。认证、权限、后端菜单树、统一错误响应、系统管理高危问题和安全测试已经收口；剩余问题主要集中在：
 
 1. API 契约与版本仍未统一，前端类型仍靠手写；
-2. `dist` 总体积仍偏大，前端还有 20 个 lint warning；
-3. 演示 RSA 私钥被提交进仓库，`.env.example` 和演示密钥说明缺失；
-4. CI 只跑前端，后端编译和安全集成测试尚未进入流水线；
-5. 少量领域/运维债：角色删除策略、操作日志保留、时区展示、`setParams` 刷新方式。
+2. `dist` 总体积仍偏大，依赖大版本升级需要单独迁移；
+3. 操作日志仍缺 traceId/变更内容/保留策略，前端时间未按用户时区格式化；
+4. 前端仍有 `status` 字符串常量和少量硬编码 i18n，树/表格可访问性可继续加强；
+5. 性能优化项：`queryUserInfo` 的 EntityGraph 笛卡尔积、Swagger 生产鉴权。
 
 ### 0.2 已完成基线
 
@@ -25,26 +25,33 @@
 - **菜单**：`GET /api/user/menus` 返回启用菜单树；前端删除 `routes.ts`，页面路由由文件系统自动生成；前端只保留 `path → 图标` 映射；面包屑和 `/` 默认跳转使用后端菜单树。
 - **数据库**：主键、外键、索引、`sys_user.username` 唯一约束齐备；审计字段、操作日志、`timestamptz` + `OffsetDateTime` 已落地。
 - **前端**：`src/api/` 服务层；`useResourceList` + `ResourceTable` 深模块；系统页优先 shadcn；403 页面和按钮级 403 对话框；请求取消/竞态处理。
-- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；11 个安全单测 + 6 个 Testcontainers 集成测试。
+- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；11 个安全单测 + 11 个 Testcontainers 集成测试；lint 0 warning。
 
 ### 0.3 最新验证结果
 
 | 项目 | 命令/方式 | 结果 |
 |---|---|---|
 | 前端类型检查 | `pnpm exec tsc -b` | 通过 |
-| 前端 lint | `pnpm lint` | 0 errors / 20 warnings |
+| 前端 lint | `pnpm lint` | 0 errors / 0 warnings |
 | 前端测试 | `pnpm test` | 25 passed |
 | 权限种子一致性 | `pnpm db:seed:check` | 通过 |
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功，88 个主源码文件 |
 | 安全单测 | `mvn -Dtest=JwtUtilTest,... test` | 11 passed |
-| 安全集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 6 passed |
+| 安全集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 11 passed |
 | 登录限流 | 后端联调 | 第 6 次失败返回 429 |
 | refresh 轮换 | 后端联调 | 旧 refresh 重放返回 401 |
 | 登出吊销 | 后端联调 | 旧 access token 返回 401 |
 | 401 契约 | 后端联调/集成测试 | 401 + 40101 + traceId |
 | 强制改密 | 后端联调/集成测试 | 其它接口 403 + 40302；userInfo/menus 仍可访问 |
 | 菜单树 | 后端联调/集成测试 | 6 个根节点，action 不入树，顺序正确 |
+| 权限/组织级联删除 | 集成测试 | 后代引用返回 409；无引用时显式删除整棵子树 |
+| 自删/自禁/最后管理员 | 集成测试 | 当前用户不可禁用；至少保留一个启用的 super |
+| 越权授予/重置超管 | 集成测试 | admin 不能授予 super、不能重置 super 密码 |
+| refresh 并发重放 | 集成测试 | 旧 refresh 重放返回 401 |
+| 系统管理交互 | 前端检查 | 树选择器/角色下拉/编辑弹窗/删除确认/状态开关/分页选择/防抖已修复 |
+| JWT 密钥外置 | 集成测试 | 密钥缺失时自动生成临时密钥；仓库不再跟踪 PEM |
+| 后端 CI | 工作流检查 | 新增 JDK 25 编译 + 安全测试 job |
 | 直接访问 403 | 浏览器实测 | `user` 访问 `/system/user` 跳 `/forbidden` |
 | 菜单 Mock | 浏览器实测 | mock 模式与真实后端一致 |
 
@@ -101,57 +108,56 @@
 
 ### 1.2 安全与运维
 
-- [ ] **演示 RSA 私钥已提交到仓库**：`springboot/src/main/resources/keys/private_key.pem` 被 Git 跟踪。生产部署必须轮换密钥并改为外部 Secret/环境变量，仓库只保留公钥或生成脚本。
-- [ ] 缺少 `.env.example`：根目录、前端、后端都没有示例环境变量文件，也没有演示密钥/生产密钥的说明。
+- [x] JWT 私钥已移出 Git；缺失时后端生成临时密钥，生产通过 `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` 挂载固定 PEM。说明见 `docs/security/jwt-keys.md`。
+- [x] 已补 `.env.example`，覆盖后端数据库/JWT/Cookie/限流和前端 Vite 变量。
 - [ ] 生产跨站部署仍受刷新 Cookie 限制：需要同域或子域；跨站需要 `SameSite=None; Secure`，并受浏览器第三方 Cookie 策略影响。
 - [ ] access token 不能单独吊销，只能靠 `tokenVersion` 吊销该用户全部会话；如需单 token 吊销，可复用 jti 黑名单。
-- [ ] CI 只跑前端：`.github/workflows/main.yml` 没有 `mvn compile`、后端测试或 Testcontainers 集成测试。
-
-建议：
-
-1. 先把私钥从仓库移出，补密钥轮换文档和 `.env.example`；
-2. CI 增加后端编译 + 安全单测；Docker 可用时再跑 Testcontainers 集成测试；
-3. 如确实需要单 token 吊销，再扩展黑名单，不提前设计。
+- [x] CI 已增加后端 JDK 25 编译 + 安全测试 job；Testcontainers 在 GitHub Ubuntu 的 Docker 环境运行。
 
 ### 1.3 构建体积与 lint
 
 - [ ] `dist` 约 35.92 MB、1017 个 JS 文件，部署产物偏大。
 - [ ] 大 chunk：Babylon 6.09 MB、Cesium 5.8 MB、L7 4.5 MB、Swagger 1.36 MB、AntV 1.28 MB、ECharts 1.17 MB。
-- [ ] 前端仍有 **20 个 lint warning**，主要集中在 `components/ui/*` 和演示页面。
+- [x] 前端 lint 已清零（0 errors / 0 warnings）。
 
 建议：
 
 - `/swagger` 如果只用于演示，改为外链后端 Swagger UI，移除 `swagger-ui-react`；
 - 不需要的 3D/地图演示页和依赖（Babylon、L7、MapLibre、Three）可以按实际演示范围裁剪；
-- 用 `pnpm analyze` 检查重复依赖和异常 chunk；
-- 20 个 warning 分批清零，先处理业务代码，再处理 shadcn 源码。
+- 用 `pnpm analyze` 检查重复依赖和异常 chunk。
 
 ### 1.4 数据与领域
 
-- [ ] 删除仍有权限或用户引用的角色返回 409，必须先手动清空关联。需要明确策略：继续 409，还是删除时自动清理 `sys_role_permission` / `sys_user_role`。
-- [ ] 操作日志只记录 HTTP 维度和查询参数，没有记录请求体差异。
+- [x] 角色删除已改为只检查 `sys_user_role` 引用；角色自身权限在删除时清理，不再“有权限就永远删不掉”。
+- [ ] 操作日志只记录 HTTP 维度和查询参数，没有记录请求体差异，也没有 traceId。
 - [ ] `sys_operation_log` 没有归档、保留期或清理任务。
-- [ ] 登录/刷新链路仍可继续用缓存优化；用户列表的组织名称仍是单独一次查询。
+- [ ] `queryUserInfo` 的多集合 EntityGraph 仍可能产生笛卡尔积；认证链路已改为一次图查询。
 - [ ] 前端直接展示服务端时间字符串，没有按用户时区格式化。
 
-### 1.5 系统管理审计发现（2026-11-01）
+### 1.5 系统管理审计修复进度
 
 完整报告：`docs/audits/system-management-2026-11-01.md`
 
-最高优先级：
+已修复（2026-11-02）：
 
-1. 删除父权限/父组织会级联删除整棵子树，可能清空授权或返回 500；
-2. 无自删/自禁/最后管理员保护；重置超管密码可被 `user:edit` 接管；
-3. 角色删除语义错误：有权限的角色永远 409；
-4. 树选择器加载前/失效 id 白屏；用户表单角色下拉永远为空；编辑弹窗串上一行数据；
-5. 删除无确认，树形全选跨页选中全部；
-6. 不存在资源返回 200/500 而非 404；用户名/groupId 校验前后不一致；
-7. 每个请求重新加载权限图；`queryUserInfo` 多集合 EntityGraph 产生笛卡尔积；
-8. 筛选每次按键请求、分页不夹紧、选择生命周期不一致；
-9. mock 角色鉴权与真实角色数据脱节；
-10. 私钥、默认口令、Swagger 生产无鉴权等运维安全项。
+- 权限/组织删除递归检查后代引用，无引用时显式级联删除；父级 FK 改为 `RESTRICT`；
+- 自删/自禁/最后 super 管理员保护；
+- 角色删除语义修正；
+- 越权授予 super/权限、admin 重置 super 密码拦截；
+- refresh 轮换改为数据库原子插入，堵住并发重放；
+- 用户名校验统一、groupId 存在性校验、`AddUserReq.status` 生效；
+- 不存在资源统一 404；补充 405/409 异常映射；LIKE 通配符转义；查询 `readOnly`；
+- 新增树节点校验父节点存在；
+- 种子无密码用户改为禁用；`status` 列 `NOT NULL DEFAULT '1'`；
+- 前端树选择器崩溃、角色下拉为空、编辑弹窗串数据、删除确认、状态开关回滚、分页/选择生命周期、防抖、重复提交、mock 墓碑/组织删除等问题；
+- lint 清零；移除 `src` 内残留构建产物。
 
-建议按审计报告 §四的 A/B/C/D 批次处理：数据丢失与锁死 → 功能阻断 → 契约一致性 → 性能与可观测性。
+仍存在：
+
+- 操作日志 traceId/变更内容/归档；
+- 前端 `status` 常量、少量硬编码 i18n、树/表格可访问性；
+- `queryUserInfo` 笛卡尔积、Swagger 生产鉴权；
+- 构建体积和依赖大版本升级。
 
 ---
 
@@ -159,7 +165,7 @@
 
 ### 2.1 前端数据层
 
-- [ ] `setParams({ ...params })` 被用来制造新对象、触发重新取数；依赖对象身份而不是显式 `refetch` 信号，容易误用。
+- [x] `setParams` 已改为函数式更新；`useResourceList` 暴露显式 `refetch`，错误态可重试。
 - [ ] `status` 仍是字符串 `"0"`/`"1"` 散落在页面、Mock 和 DTO 中，没有共享枚举/常量。
 - [ ] 可以引入 TanStack Query 统一缓存、重试、失效和请求状态；当前 `useResourceList` 已能工作，属于优化项，不是必须。
 - [ ] `SidebarGroupLabel` 仍硬编码 `"Menu"`，`MenuRedirect` 的 Loading 文案也仍是硬编码，未走 i18n。
@@ -199,23 +205,23 @@
 
 ## 5. 建议处理顺序
 
-### P0：安全与可运维
+### P0：安全与可运维（已完成）
 
-1. 移出演示 RSA 私钥，补密钥轮换说明和 `.env.example`。
-2. CI 增加后端编译 + 安全单测；Docker 可用时跑 Testcontainers。
-3. 明确角色删除策略（409 还是自动清理关联）。
+1. [x] 移出演示 RSA 私钥，补密钥轮换说明和 `.env.example`。
+2. [x] CI 增加后端编译 + 安全测试；Testcontainers 在 GitHub Docker 环境运行。
+3. [x] 角色删除策略：只检查用户引用，删除时清理角色权限关联。
 
 ### P1：API 契约
 
-4. `/api/v1` + 认证接口分组 + 查询参数收敛。
-5. OpenAPI 生成前端类型，替换手写 DTO。
-6. 操作日志保留策略和前端时区格式化。
+4. [ ] `/api/v1` + 认证接口分组 + 查询参数收敛。
+5. [ ] OpenAPI 生成前端类型，替换手写 DTO。
+6. [ ] 操作日志 traceId/变更内容/保留策略；前端时区格式化。
 
 ### P2：工程质量
 
-7. 降低构建体积，清理 20 个 lint warning。
-8. 用显式 `refetch` 替换 `setParams({ ...params })`。
-9. 收敛 `status` 常量和菜单 i18n 残留。
+7. [ ] 降低构建体积。
+8. [ ] 收敛 `status` 常量和菜单 i18n 残留。
+9. [ ] 继续补树/表格可访问性和新行定位。
 
 ### P3：依赖升级
 
@@ -248,6 +254,11 @@
 | 后端 JWT | `springboot/src/main/java/com/orange/security/jwt/JwtUtil.java`、`JwtClaims.java`、`JwtRequestFilter.java` |
 | 后端认证服务 | `springboot/src/main/java/com/orange/security/auth/JwtUserDetailsService.java`、`LoginAttemptService.java`、`TokenBlacklistService.java` |
 | 后端 authority | `springboot/src/main/java/com/orange/security/auth/PermissionAuthorityBuilder.java` |
+| 后端授权守卫 | `springboot/src/main/java/com/orange/security/auth/GrantGuard.java` |
+| 后端查询工具 | `springboot/src/main/java/com/orange/util/QueryUtils.java` |
+| JWT 密钥说明 | `docs/security/jwt-keys.md`、`scripts/generate-jwt-keys.mjs` |
+| 环境变量示例 | `.env.example` |
+| 删除确认弹窗 | `vite-shadcn/src/components/system/confirm-delete-dialog.tsx` |
 | 后端 401/403 输出 | `springboot/src/main/java/com/orange/security/SecurityResponseWriter.java` |
 | 后端登录 | `springboot/src/main/java/com/orange/controller/login/LoginController.java` |
 | 后端菜单 | `springboot/src/main/java/com/orange/controller/login/MenuController.java`、`service/system/impl/MenuServiceImpl.java` |

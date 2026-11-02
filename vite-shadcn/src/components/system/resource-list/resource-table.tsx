@@ -52,6 +52,7 @@ type ResourceTableProps<TData> = {
   onSelectionChange?: (rows: TData[]) => void;
   loading?: boolean;
   error?: string | null;
+  onRetry?: () => void;
 };
 
 function toggleTreeRow<TData>(
@@ -96,6 +97,7 @@ export function ResourceTable<TData>({
   onSelectionChange,
   loading = false,
   error = null,
+  onRetry,
 }: ResourceTableProps<TData>) {
   const intl = useIntl();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -271,7 +273,14 @@ export function ResourceTable<TData>({
 
   if (error) {
     return (
-      <p className="px-1 text-sm text-destructive">{error}</p>
+      <div className="flex items-center gap-2 px-1">
+        <p className="text-sm text-destructive">{error}</p>
+        {onRetry && (
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            {intl.formatMessage({ id: "table.retry" })}
+          </Button>
+        )}
+      </div>
     );
   }
 

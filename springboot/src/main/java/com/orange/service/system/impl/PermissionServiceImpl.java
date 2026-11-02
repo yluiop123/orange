@@ -7,6 +7,7 @@ import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
 import com.orange.service.system.PermissionService;
+import com.orange.util.QueryUtils;
 import jakarta.persistence.criteria.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ public class PermissionServiceImpl implements PermissionService {
     private RoleRepository roleRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<Permission> queryPermissions(QueryPermissionReq req) {
         Specification<Permission> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -49,13 +51,13 @@ public class PermissionServiceImpl implements PermissionService {
             String path = req.getPath();
             String status = req.getStatus();
             if (id!=null&&!id.isEmpty()) {
-                predicates.add( cb.like(cb.lower(root.get("id")), id.toLowerCase() + "%"));
+                predicates.add( cb.like(cb.lower(root.get("id")), QueryUtils.likePrefix(id), '\\'));
             }
             if (name!=null&&!name.isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("name")), name.toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("name")), QueryUtils.likePrefix(name), '\\'));
             }
             if (path!=null&&!path.isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("path")), path.toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("path")), QueryUtils.likePrefix(path), '\\'));
             }
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));
@@ -130,10 +132,8 @@ public class PermissionServiceImpl implements PermissionService {
     @Transactional
     public void movePermission(MovePermissionReq req) {
         Optional<Permission> permissionOptional = permissionRepository.findById(req.getId());
-        Permission permission = permissionOptional.orElse(null);
-        if (permission==null) {
-            return;
-        }
+        Permission permission = permissionOptional.orElseThrow(
+                () -> new BusinessException("权限不存在"));
         if ("top".equals(req.getAction())) {
             List<Permission> list = permission.getParentId() == null
                     ? permissionRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(permission.getOrder())
@@ -181,6 +181,9 @@ public class PermissionServiceImpl implements PermissionService {
             }
         }
         String parentId = StringUtils.isEmpty(req.getParentId()) ? null : req.getParentId();
+        if (parentId != null && !permissionRepository.existsById(parentId)) {
+            throw new BusinessException("父权限不存在");
+        }
         Optional<Permission> lastPermissionOptional = parentId == null
                 ? permissionRepository.findFirstByParentIdIsNullOrderByOrderDesc()
                 : permissionRepository.findFirstByParentIdOrderByOrderDesc(parentId);
@@ -210,10 +213,8 @@ public class PermissionServiceImpl implements PermissionService {
         assertUniquePermission(req.getType(), req.getPath(), req.getAction(), null);
 
         Optional<Permission> brotherGroupOptional = permissionRepository.findById(req.getBrotherId());
-        Permission brotherPermission = brotherGroupOptional.orElse(null);
-        if(brotherPermission==null){
-            return null;
-        }
+        Permission brotherPermission = brotherGroupOptional.orElseThrow(
+                () -> new BusinessException("同级权限不存在"));
         Integer order = brotherPermission.getOrder();
         String parentId = brotherPermission.getParentId();
 
@@ -257,7 +258,7 @@ public class PermissionServiceImpl implements PermissionService {
     public Permission editPermission(EditPermissionReq req) {
         Optional<Permission> optionalPermission = permissionRepository.findById(req.getId());
         if(optionalPermission.isEmpty()){
-            return null;
+            throw new BusinessException("权限不存在");
         }
         Permission permission = optionalPermission.get();
         String effectiveType = req.getType() != null ? req.getType() : permission.getType();
@@ -283,10 +284,13 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Permission queryPermission(String id) {
-        return permissionRepository.findById(id).orElse(null);
+        return permissionRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("权限不存在"));
     }
     @Override
+    @Transactional(readOnly = true)
     public List<Permission> queryPermissions() {
         Specification<Permission> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

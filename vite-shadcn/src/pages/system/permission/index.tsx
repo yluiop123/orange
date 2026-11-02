@@ -59,7 +59,7 @@ export default function Permission() {
     path: '',
   });
 
-  const { data, loading, error } = useResourceList<TableParams, Permission>({
+  const { data, loading, error, refetch } = useResourceList<TableParams, Permission>({
     params,
     errorMessage: formatMessage({ id: 'table.loadError' }),
     fetcher: (query, signal) =>
@@ -168,9 +168,11 @@ export default function Permission() {
       meta: { title: formatMessage({ id: "page.system.permission.header.status" }) },
       header: formatMessage({ id: "page.system.permission.header.status" }),
       cell: ({ row }) => (
-        <StatusSwitch
-          initial={row.getValue("status") as string}
-          onChange={(val) => handleStatusChange(row.original, val)} />
+        <ActionAuth action="edit">
+          <StatusSwitch
+            initial={row.getValue("status") as string}
+            onChange={(val) => handleStatusChange(row.original, val)} />
+        </ActionAuth>
       ),
     },
     {
@@ -270,7 +272,7 @@ export default function Permission() {
             <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
           </ActionAuth>
           <ActionAuth action="delete">
-            <Button onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
+            <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
           </ActionAuth>
         </div>
       </div>
@@ -289,6 +291,7 @@ export default function Permission() {
         onSelectionChange={setSelectedRows}
         loading={loading}
         error={error}
+        onRetry={refetch}
       />
     </div>
   )

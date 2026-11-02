@@ -1,5 +1,6 @@
 import { listPermissions } from "@/api/system/permission";
 import { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 import TreeSelect, { TreeNode } from "./ext/tree-select";
 type PermissionTreeSelectProps = {
   value: string
@@ -51,6 +52,7 @@ function buildTree(data: PermissionNode[]): PermissionNode[] {
   return roots;
 }
 export default function PermissionTreeSelect({ onChange: onChangeHandle, placeholder, excludeId, ...props }: PermissionTreeSelectProps) {
+  const intl = useIntl()
   const [data, setData] = useState<PermissionNode[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -97,7 +99,7 @@ export default function PermissionTreeSelect({ onChange: onChangeHandle, placeho
           onChangeHandle?.(value)
         }
       }}
-      placeholder={loading ? "加载中..." : placeholder}
+      placeholder={loading ? intl.formatMessage({ id: "table.loading" }) : placeholder}
       fieldNames={{ value: "id", title: "name", children: "children" }}
       multiple={false}
       {...props}

@@ -52,7 +52,7 @@ export default function User() {
         groupId: '',
     });
 
-    const { data, loading, error } = useResourceList<TableParams, User>({
+    const { data, loading, error, refetch } = useResourceList<TableParams, User>({
         params,
         errorMessage: intl.formatMessage({ id: 'table.loadError' }),
         fetcher: (query, signal) => userApi.listUsers(query, signal),
@@ -160,9 +160,11 @@ export default function User() {
             accessorKey: "status",
             header: intl.formatMessage({ id: 'page.system.user.header.status' }),
             cell: ({ row }) =>
-                <StatusSwitch
-                    initial={row.getValue("status") as string}
-                    onChange={(val) => handleStatusChange(row.original, val)} />
+                <ActionAuth action="edit">
+                    <StatusSwitch
+                        initial={row.getValue("status") as string}
+                        onChange={(val) => handleStatusChange(row.original, val)} />
+                </ActionAuth>
             ,
         },
         {
@@ -259,7 +261,7 @@ export default function User() {
                         username={tempPassword?.username}
                     />
                     <ActionAuth action="delete">
-                        <Button onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
+                        <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
                     </ActionAuth>
                 </div>
             </div>
@@ -275,6 +277,7 @@ export default function User() {
                 onSelectionChange={setSelectedRows}
                 loading={loading}
                 error={error}
+                onRetry={refetch}
             />
         </div>
     )

@@ -7,8 +7,8 @@ export default function PermissionType(props:{disabled?:boolean,className?:strin
     return (
     <Select  disabled={props.disabled} value={props.value} onValueChange={props.onChange}>
         <SelectTrigger className={props.className}>
-            <SelectValue placeholder="Permission Type" >
-                {props.value ? formatMessage({ id: `dict.permissionType.${props.value}`, defaultMessage: '' }) : "Permission Type"}
+            <SelectValue placeholder={formatMessage({ id: 'page.system.permission.header.type' })} >
+                {props.value ? formatMessage({ id: `dict.permissionType.${props.value}`, defaultMessage: '' }) : formatMessage({ id: 'page.system.permission.header.type' })}
             </SelectValue>
         </SelectTrigger>
         <SelectContent>

@@ -8,7 +8,7 @@ CREATE TABLE public.sys_group (
 	id varchar NOT NULL, -- 组织id
 	"name" varchar NULL, -- 组织名
 	order_num int4 NULL, -- 序号
-	status varchar NULL, -- 状态
+	status varchar NOT NULL DEFAULT '1', -- 状态
 	create_time timestamptz DEFAULT now() NULL, -- 创建时间
 	parent_id varchar NULL, -- 父组织id
 	update_time timestamptz DEFAULT now() NULL, -- 更新时间
@@ -45,7 +45,7 @@ CREATE TABLE public.sys_permission (
 	"path" varchar NULL, -- 权限路径
 	"action" varchar NULL, -- 权限动作
 	"type" varchar NULL, -- 权限类型
-	status varchar NULL, -- 权限状态
+	status varchar NOT NULL DEFAULT '1', -- 权限状态
 	parent_id varchar NULL, -- 父权限id
 	order_num int4 NULL, -- 序号
 	create_time timestamptz DEFAULT now() NULL, -- 创建时间
@@ -84,7 +84,7 @@ COMMENT ON COLUMN public.sys_permission.update_time IS '更新时间';
 CREATE TABLE public.sys_role (
 	id varchar NOT NULL, -- 角色id
 	"name" varchar NULL, -- 角色名
-	status varchar NULL, -- 角色状态
+	status varchar NOT NULL DEFAULT '1', -- 角色状态
 	create_time timestamptz DEFAULT now() NULL, -- 创建时间
 	update_time timestamptz DEFAULT now() NULL, -- 更新时间
 	created_by varchar NULL, -- 创建人
@@ -138,7 +138,7 @@ CREATE TABLE public.sys_user (
 	email varchar(255) NULL, -- 用户邮箱
 	group_id varchar NULL, -- 用户组织id
 	phone varchar(255) NULL, -- 用户电话
-	status varchar(255) NULL, -- 用户状态
+	status varchar(255) NOT NULL DEFAULT '1', -- 用户状态
 	token_version int4 DEFAULT 0 NOT NULL, -- 令牌版本，递增后旧 token 失效
 	must_change_password bool DEFAULT false NOT NULL, -- 是否需要强制修改密码
 	version int4 DEFAULT 0 NOT NULL, -- 乐观锁版本

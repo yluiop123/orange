@@ -32,6 +32,9 @@ lerna-debug.log*
 **/target/
 **/build/
 
+# JWT keys (generate with: node scripts/generate-jwt-keys.mjs)
+springboot/src/main/resources/keys/*.pem
+
 # Maven wrapper
 .mvn/wrapper/maven-wrapper.jar
 

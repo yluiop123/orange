@@ -12,6 +12,7 @@ import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
 import com.orange.security.auth.GrantGuard;
 import com.orange.service.system.RoleService;
+import com.orange.util.QueryUtils;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -46,10 +47,14 @@ public class RoleServiceImpl implements RoleService {
             Set.of("id", "name", "status", "createTime", "updateTime");
 
     @Override
+    @Transactional(readOnly = true)
     public PageData<Role> queryRoles(QueryRoleReq req) {
         String sortBy = req.getOrderField() != null && ROLE_SORT_FIELDS.contains(req.getOrderField())
                 ? req.getOrderField() : "id";
         String sortDir = req.getOrderValue() == null ? "asc" : req.getOrderValue();
+        if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
+            throw new BusinessException("排序方向只能是 asc 或 desc");
+        }
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())?
                 Sort.by(sortBy).ascending(): Sort.by(sortBy).descending();
 
@@ -60,10 +65,10 @@ public class RoleServiceImpl implements RoleService {
             String name = req.getName();
             String status = req.getStatus();
             if (id!=null&&!id.isEmpty()) {
-                predicates.add( cb.like(cb.lower(root.get("id")), id.toLowerCase() + "%"));
+                predicates.add( cb.like(cb.lower(root.get("id")), QueryUtils.likePrefix(id), '\\'));
             }
             if (name!=null&&!name.isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("name")), name.toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("name")), QueryUtils.likePrefix(name), '\\'));
             }
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));
@@ -102,7 +107,7 @@ public class RoleServiceImpl implements RoleService {
     public Role editRole(EditRoleReq req) {
         Optional<Role> roleOptional = roleRepository.findById(req.getId());
         if (roleOptional.isEmpty()) {
-            return null;
+            throw new BusinessException("角色不存在");
         }
 
         Role role = roleOptional.get();
@@ -148,11 +153,16 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RoleBean queryRole(String id) {
         Role role = roleRepository.findWithAllAttributesById(id);
+        if (role == null) {
+            throw new BusinessException("角色不存在");
+        }
         RoleBean roleBean = new RoleBean();
         roleBean.setId(role.getId());
         roleBean.setName(role.getName());
+        roleBean.setStatus(role.getStatus());
         roleBean.setPermissions(role.getPermissions().stream().map(Permission::getId).collect(Collectors.toList()));
         return roleBean;
     }

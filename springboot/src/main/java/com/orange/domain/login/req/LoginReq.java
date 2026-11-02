@@ -11,8 +11,8 @@ public class LoginReq {
     @Schema(description = "用户名",example = "admin")
     @NotBlank(message = "用户名不能为空")
     @Pattern(
-            regexp = "^[A-Za-z0-9]{4,}$",
-            message = "只能包含数字和大小写字母，且长度不能小于4"
+            regexp = "^[A-Za-z0-9_]{4,50}$",
+            message = "只能包含字母、数字和下划线，且长度需在 4-50 之间"
     )
     private String username;
 

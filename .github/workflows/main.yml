@@ -21,6 +21,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Compile
+        run: mvn -B -DskipTests compile
+        working-directory: springboot
+      - name: Security tests
+        run: >-
+          mvn -B
+          -Dtest=JwtUtilTest,PermissionAuthorityBuilderTest,LoginAttemptServiceTest,SecurityResponseWriterTest,SecurityIntegrationTest
+          test
+        working-directory: springboot
+
   # 单次部署的工作描述
   deploy:
     env:

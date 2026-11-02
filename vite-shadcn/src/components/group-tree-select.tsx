@@ -1,5 +1,6 @@
 import { listGroups } from "@/api/system/group";
 import { useEffect, useState } from "react";
+import { useIntl } from "react-intl";
 import TreeSelect, { TreeNode, TreeSelectProps } from "./ext/tree-select";
 type OmittedTreeSelectProps = Omit<TreeSelectProps, 'value' | 'onChange' | 'data'>;
 
@@ -47,6 +48,7 @@ function buildTree(data: GroupNode[]): GroupNode[] {
   return roots;
 }
 export default function GroupTreeSelect({ onChange: onChangeHandle, value, placeholder, ...props }: GroupTreeSelectProps) {
+  const intl = useIntl()
   const [data, setData] = useState<GroupNode[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -72,7 +74,7 @@ export default function GroupTreeSelect({ onChange: onChangeHandle, value, place
       data={data}
       multiple={false}
       value={value}
-      placeholder={loading ? "加载中..." : placeholder}
+      placeholder={loading ? intl.formatMessage({ id: "table.loading" }) : placeholder}
       onChange={(nextValue) => {
         if (typeof nextValue === "string") {
           onChangeHandle?.(nextValue)

@@ -2,8 +2,33 @@
 
 > 日期：2026-11-01
 > 范围：`vite-shadcn` 系统管理页面与交互、`springboot` 系统管理 API、`database/postgres`
-> 状态：**静态审计，未修改任何代码**
+> 状态：**主体问题已修复（2026-11-02），剩余项见下方“修复进度”**
 > 相关文档：`PROJECT_ISSUES.md`
+
+---
+
+## 修复进度（2026-11-02）
+
+已修复：
+
+- S1：权限/组织删除递归检查后代引用，无引用时显式删除子树；父级 FK 改为 `RESTRICT`。
+- S1：自删/自禁/最后 super 管理员保护。
+- S2：角色删除只检查用户引用；角色自身权限在删除时清理。
+- S2：越权授予 super/权限、admin 重置 super 密码拦截。
+- S2：refresh 轮换改为 `INSERT ... ON CONFLICT DO NOTHING` 原子吊销。
+- S2：用户名校验统一、groupId 存在性校验、`AddUserReq.status` 生效。
+- S2/S3：不存在资源统一 404；补 405/409 映射；LIKE 通配符转义；查询 `readOnly`。
+- S3：新增树节点校验父节点存在。
+- S3：种子无密码用户改为禁用；`status` 列 `NOT NULL DEFAULT '1'`。
+- 前端：树选择器崩溃、角色下拉为空、编辑弹窗串数据、删除确认、状态开关回滚、分页/选择生命周期、防抖、重复提交、mock 墓碑/组织删除、父级权限回显、ActionAuth 状态开关、错误重试。
+- 工程：lint 清零；移除 `src` 内残留构建产物；JWT 私钥移出 Git；`.env.example`；CI 后端 job。
+
+仍存在：
+
+- 操作日志 traceId/变更内容/归档策略。
+- 前端 `status` 常量、少量硬编码 i18n、树/表格可访问性、新增行定位。
+- `queryUserInfo` 多集合 EntityGraph 笛卡尔积；Swagger 生产鉴权。
+- 构建体积和依赖大版本升级。
 
 ---
 

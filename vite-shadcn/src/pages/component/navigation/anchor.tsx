@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
+const SECTIONS = ['section1', 'section2', 'section3'];
+
 export default function AnchorPage() {
-    const sections = ['section1', 'section2', 'section3'];
     const [active, setActive] = useState<string>(window.location.hash || "#section1");
     
     // 监听滚动事件以更新活动状态
@@ -10,7 +11,7 @@ export default function AnchorPage() {
         const handleScroll = () => {
             const scrollPosition = window.scrollY + 100; // 添加偏移量以提前激活锚点
             
-            for (const section of sections) {
+            for (const section of SECTIONS) {
                 const element = document.getElementById(section);
                 if (element) {
                     const offsetTop = element.offsetTop;
@@ -49,7 +50,7 @@ export default function AnchorPage() {
         <div className="flex gap-10 h-full">
             {/* 左侧导航栏 - 固定位置 */}
             <nav className="w-48 space-y-2 sticky top-0 self-start p-4 dark:bg-black shadow-sm rounded-lg border  dark:border-border mt-5 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-track-transparent scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-                {sections.map((section) => (
+                {SECTIONS.map((section) => (
                     <a
                         key={section}
                         href={`#${section}`}

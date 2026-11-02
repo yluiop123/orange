@@ -4,12 +4,16 @@ import com.orange.domain.common.BusinessException;
 import com.orange.domain.common.ErrorCode;
 import com.orange.domain.common.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -19,6 +23,7 @@ import java.util.stream.Collectors;
 
 import static com.orange.domain.common.ErrorCode.AUTH_DENIED;
 import static com.orange.domain.common.ErrorCode.CONFLICT;
+import static com.orange.domain.common.ErrorCode.METHOD_NOT_ALLOWED;
 import static com.orange.domain.common.ErrorCode.NOT_FOUND;
 import static com.orange.domain.common.ErrorCode.PARAM_ERROR;
 import static com.orange.domain.common.ErrorCode.SYSTEM_ERROR;
@@ -93,6 +98,33 @@ public class GlobalExceptionHandler {
         Response<?> body = Response.error(PARAM_ERROR);
         body.setTraceId(traceId);
         return ResponseEntity.status(PARAM_ERROR.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler({DataIntegrityViolationException.class, ObjectOptimisticLockingFailureException.class})
+    public ResponseEntity<Response<?>> handleConflict(Exception e) {
+        String traceId = Response.newTraceId();
+        log.warn("Data conflict traceId={}: {}", traceId, e.getMessage());
+        Response<?> body = Response.error(CONFLICT.getCode(), "数据冲突，请刷新后重试");
+        body.setTraceId(traceId);
+        return ResponseEntity.status(CONFLICT.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Response<?>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {
+        String traceId = Response.newTraceId();
+        log.warn("Method not allowed traceId={}: {}", traceId, e.getMessage());
+        Response<?> body = Response.error(METHOD_NOT_ALLOWED);
+        body.setTraceId(traceId);
+        return ResponseEntity.status(METHOD_NOT_ALLOWED.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Response<?>> handleNoResource(NoResourceFoundException e) {
+        String traceId = Response.newTraceId();
+        log.warn("Resource not found traceId={}: {}", traceId, e.getMessage());
+        Response<?> body = Response.error(NOT_FOUND);
+        body.setTraceId(traceId);
+        return ResponseEntity.status(NOT_FOUND.getHttpStatus()).body(body);
     }
 
     // 捕获未处理异常（系统异常）

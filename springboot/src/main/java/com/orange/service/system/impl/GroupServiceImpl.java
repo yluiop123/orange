@@ -6,6 +6,7 @@ import com.orange.entity.Group;
 import com.orange.repository.system.GroupRepository;
 import com.orange.repository.system.UserRepository;
 import com.orange.service.system.GroupService;
+import com.orange.util.QueryUtils;
 import jakarta.persistence.criteria.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ public class GroupServiceImpl implements GroupService {
     private UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<Group> queryGroups(QueryGroupReq req) {
         Specification<Group> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -46,10 +48,10 @@ public class GroupServiceImpl implements GroupService {
             String name = req.getName();
             String status = req.getStatus();
             if (id!=null&&!id.isEmpty()) {
-                predicates.add( cb.like(cb.lower(root.get("id")), id.toLowerCase() + "%"));
+                predicates.add( cb.like(cb.lower(root.get("id")), QueryUtils.likePrefix(id), '\\'));
             }
             if (name!=null&&!name.isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("name")), name.toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("name")), QueryUtils.likePrefix(name), '\\'));
             }
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));
@@ -124,10 +126,7 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void moveGroup(MoveGroupReq req) {
         Optional<Group> groupOptional = groupRepository.findById(req.getId());
-        Group group = groupOptional.orElse(null);
-        if (group==null) {
-            return;
-        }
+        Group group = groupOptional.orElseThrow(() -> new BusinessException("组织不存在"));
         if ("top".equals(req.getAction())) {
             List<Group> list = group.getParentId() == null
                     ? groupRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(group.getOrder())
@@ -175,6 +174,9 @@ public class GroupServiceImpl implements GroupService {
             }
         }
         String parentId = StringUtils.isEmpty(user.getParentId()) ? null : user.getParentId();
+        if (parentId != null && !groupRepository.existsById(parentId)) {
+            throw new BusinessException("父组织不存在");
+        }
         Optional<Group> lastGroupOptional = parentId == null
                 ? groupRepository.findFirstByParentIdIsNullOrderByOrderDesc()
                 : groupRepository.findFirstByParentIdOrderByOrderDesc(parentId);
@@ -200,10 +202,8 @@ public class GroupServiceImpl implements GroupService {
             throw  new BusinessException("组织编码已存在");
         }
         Optional<Group> brotherGroupOptional = groupRepository.findById(user.getBrotherId());
-        Group brotherGroup = brotherGroupOptional.orElse(null);
-        if(brotherGroup==null){
-            return null;
-        }
+        Group brotherGroup = brotherGroupOptional.orElseThrow(
+                () -> new BusinessException("同级组织不存在"));
         String parentId = brotherGroup.getParentId();
         Integer order = brotherGroup.getOrder();
 
@@ -244,7 +244,7 @@ public class GroupServiceImpl implements GroupService {
     public Group editGroup(EditGroupReq req) {
         Optional<Group> groupOptional = groupRepository.findById(req.getId());
         if(groupOptional.isEmpty()){
-            return null;
+            throw new BusinessException("组织不存在");
         }
         Group group = groupOptional.get();
         if(req.getName()!=null){
@@ -256,13 +256,19 @@ public class GroupServiceImpl implements GroupService {
         return group;
     }
 
-    @Cacheable(value = "group", key = "#id")
+    @Cacheable(value = "group", key = "#id", condition = "#id != null and #id != ''")
     @Override
+    @Transactional(readOnly = true)
     public Group queryGroup(String id) {
-        return groupRepository.findById(id).orElse(new Group());
+        if (id == null || id.isBlank()) {
+            return new Group();
+        }
+        return groupRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("组织不存在"));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Group> queryGroups(){
         Specification<Group> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
