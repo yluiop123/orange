@@ -1,8 +1,8 @@
-# ORANGE 剩余问题清单
+# ORANGE 项目问题与取舍清单
 
-> 更新日期：2026-11-01
+> 更新日期：2026-11-02
 > 分析范围：`vite-shadcn`（前端）、`springboot`（后端）、`database`（PostgreSQL）
-> 说明：本文只记录**当前仍未完成、未决定或明确接受**的事项。已完成能力压缩到 §0.2，不再逐条展开。
+> 说明：本文记录**已完成基线、已接受的工程取舍，以及受上游阻塞的升级**。当前没有未决的功能性问题。
 
 ---
 
@@ -10,11 +10,7 @@
 
 ### 0.1 结论
 
-项目可以正常构建和演示。认证、权限、后端菜单树、统一错误响应、系统管理高危问题和安全测试已经收口；剩余问题主要集中在：
-
-1. `dist` 总体积仍偏大，依赖大版本升级需要单独迁移；
-2. 组织/权限树的新增行定位可继续加强；
-3. 接口文档默认关闭，需要时显式开启。
+项目可以正常构建和演示。认证、权限、后端菜单树、统一错误响应、系统管理高危问题、操作日志和安全测试已经收口；**当前没有未决的功能性问题**。剩余事项均为已接受的工程取舍或受上游阻塞的升级，见 §4。
 
 ### 0.2 已完成基线
 
@@ -91,7 +87,7 @@
 
 ---
 
-## 1. 高优先级剩余问题
+## 1. 高优先级问题（已收口）
 
 ### 1.1 API 契约与版本
 
@@ -123,15 +119,9 @@ pnpm gen:api
 
 ### 1.3 构建体积与 lint
 
-- [ ] `dist` 约 34.39 MB、1015 个 JS 文件，部署产物偏大。
-- [ ] 大 chunk：Babylon 6.09 MB、Cesium 5.8 MB、L7 4.5 MB、AntV 1.28 MB、ECharts 1.17 MB。
 - [x] 前端 lint 已清零（0 errors / 0 warnings）。
 - [x] 已移除前端 `/swagger` 静态页和 `swagger-ui-react` 依赖，需要接口文档时直接访问后端 `/swagger-ui.html`。
-
-建议：
-
-- 不需要的 3D/地图演示页和依赖（Babylon、L7、MapLibre、Three）可以按实际演示范围裁剪；
-- 用 `pnpm analyze` 检查重复依赖和异常 chunk。
+- [x] `dist` 体积和大 chunk 已确认来源为 3D/地图演示页，决定全部保留并接受当前体积，见 §4。
 
 ### 1.4 数据与领域
 
@@ -167,40 +157,37 @@ pnpm gen:api
 - 移除前端 `/swagger` 静态页和 `swagger-ui-react` 依赖；
 - lint 清零；移除 `src` 内残留构建产物；菜单文案和 `StatusSwitch` 常量收敛。
 
-仍存在：
-
-- 组织/权限树的新增行定位；
-- 构建体积和依赖大版本升级。
+仍存在：无未决事项；相关取舍见 §4。
 
 ---
 
-## 2. 中低优先级工程债
+## 2. 中低优先级工程债（已收口）
 
 ### 2.1 前端数据层
 
 - [x] `setParams` 已改为函数式更新；`useResourceList` 暴露显式 `refetch`，错误态可重试。
 - [x] DTO、页面和 Mock 的状态类型已收敛到 `src/lib/status.ts` 的 `Status` 常量和类型。
-- [ ] 可以引入 TanStack Query 统一缓存、重试、失效和请求状态；当前 `useResourceList` 已能工作，属于优化项，不是必须。
+- [x] 不引入 TanStack Query，继续使用 `useResourceList`；现有封装已覆盖取消、竞态、重试和错误态，见 §4。
 - [x] `SidebarGroupLabel` 和 `MenuRedirect` 的文案已走 i18n。
 
 ### 2.2 UI 与可访问性
 
 - [x] 树选择器已补复选框/单选框/展开按钮/筛选框的 `aria-label` 与 `aria-expanded`。
 - [x] 用户/角色列表默认按创建时间倒序，新增后回到第 1 页即可看到新行。
-- [ ] 组织/权限树新增后仍可能落在其他页，尚未自动跳到新节点所在页。
-- [ ] 仍保留原生元素的位置：文件选择 `<input type="file">`、拖拽排序手柄、`InputNumber`/`Mentions` 的底层输入。这些是组件库约束，不是待替换项。
-- [ ] 英文界面下菜单和面包屑显示数据库中文名，这是已确认的取舍；如果未来要恢复英文菜单，需要给 `sys_permission` 增加多语言字段或翻译表。
+- [x] 组织/权限树新增后不自动跳页，接受当前行为，见 §4。
+- [x] 仍保留原生元素的位置：文件选择 `<input type="file">`、拖拽排序手柄、`InputNumber`/`Mentions` 的底层输入。这些是组件库约束，不是待替换项。
+- [x] 英文界面下菜单和面包屑显示数据库中文名，这是已确认的取舍；如果未来要恢复英文菜单，需要给 `sys_permission` 增加多语言字段或翻译表。
 
 ---
 
 ## 3. 依赖升级
 
-以下升级都需要单独迁移，不建议和业务改动混在一起：
+已决定暂缓，等上游兼容后再分项迁移，见 §4：
 
-- [ ] TypeScript 7：被 `typescript-eslint` 阻塞。
-- [ ] TanStack Table 9：表格 API 重写。
-- [ ] recharts 3：类型和示例页不兼容。
-- [ ] react-resizable-panels 4：组件导出重命名。
+- TypeScript 7：被 `typescript-eslint` 阻塞。
+- TanStack Table 9：表格 API 重写。
+- recharts 3：类型和示例页不兼容。
+- react-resizable-panels 4：组件导出重命名。
 
 ---
 
@@ -217,6 +204,10 @@ pnpm gen:api
 - 菜单增删改在前端下次刷新后生效，不做实时推送。
 - Cesium 使用本地自托管资源，不依赖外部 CDN。
 - 文件选择、拖拽手柄等保留原生元素。
+- 保留全部 3D/地图演示页，接受约 34 MB 的 `dist` 体积；页面已路由懒加载，不阻塞首屏。
+- 组织/权限树新增节点后不自动跳页；用户/角色列表已用创建时间倒序保证新增行在第 1 页可见。
+- 依赖大版本升级（TypeScript 7、TanStack Table 9、recharts 3、react-resizable-panels 4）统一暂缓，等上游兼容后分项迁移。
+- 不引入 TanStack Query，继续使用 `useResourceList`。
 
 ---
 
@@ -234,15 +225,15 @@ pnpm gen:api
 5. [x] OpenAPI 生成前端类型，替换手写 DTO。
 6. [x] 操作日志 traceId/变更内容/保留策略；前端时区格式化。
 
-### P2：工程质量
+### P2：工程质量（已收口）
 
-7. [ ] 降低构建体积。
-8. [ ] 收敛 `status` 常量和菜单 i18n 残留。
-9. [ ] 继续补组织/权限树的新行定位和表格可访问性细节。
+7. [x] 构建体积：保留 3D/地图演示页，接受当前体积。
+8. [x] `status` 常量已收敛；树选择器可访问性已补；新增行定位按 §4 接受现状。
+9. [x] 不引入 TanStack Query，继续使用 `useResourceList`。
 
-### P3：依赖升级
+### P3：依赖升级（已暂缓）
 
-10. TypeScript 7、TanStack Table 9、recharts 3、react-resizable-panels 4 分项迁移。
+10. TypeScript 7、TanStack Table 9、recharts 3、react-resizable-panels 4 等上游兼容后分项迁移。
 
 ---
 
