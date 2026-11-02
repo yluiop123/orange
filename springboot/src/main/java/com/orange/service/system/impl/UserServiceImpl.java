@@ -19,6 +19,7 @@ import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
 import com.orange.security.auth.GrantGuard;
+import com.orange.security.auth.LoginAttemptService;
 import com.orange.security.jwt.AuthUser;
 import com.orange.service.system.GroupService;
 import com.orange.service.system.UserService;
@@ -65,6 +66,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private GrantGuard grantGuard;
+
+    @Autowired
+    private LoginAttemptService loginAttemptService;
 
     private static final Set<String> USER_SORT_FIELDS =
             Set.of("id", "name", "username", "email", "status", "createTime", "updateTime");
@@ -165,6 +169,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User editUser(EditUserReq req) {
+        if (req.getId() == null) {
+            throw new BusinessException("用户ID不能为空");
+        }
         Optional<User> userOptional = userRepository.findById(req.getId());
         if (userOptional.isPresent()) {
             User user = userOptional.get();
@@ -262,6 +269,7 @@ public class UserServiceImpl implements UserService {
         // 密码被重置后，旧 token 必须立即失效
         user.setTokenVersion(nextTokenVersion(user.getTokenVersion()));
         userRepository.save(user);
+        loginAttemptService.clearUserAttempts(user.getUsername());
         return tempPassword;
     }
 
@@ -283,6 +291,7 @@ public class UserServiceImpl implements UserService {
         // 修改密码后让旧 token 失效，要求重新登录
         user.setTokenVersion(nextTokenVersion(user.getTokenVersion()));
         userRepository.save(user);
+        loginAttemptService.clearUserAttempts(user.getUsername());
     }
 
     private static final String PASSWORD_CHARS =

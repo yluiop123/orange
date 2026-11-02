@@ -17,6 +17,6 @@ public class QueryPermissionReq {
     private String path;
 
     @Schema(description = "权限状态",allowableValues = {"1","0","all"})
-    @Pattern(regexp = "0|1|all", message = "状态只能是 0、1 或 all")
+    @Pattern(regexp = "^(0|1|all)$", message = "状态只能是 0、1 或 all")
     private String status;
 }

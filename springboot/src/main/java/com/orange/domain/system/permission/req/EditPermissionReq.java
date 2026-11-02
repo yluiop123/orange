@@ -25,10 +25,10 @@ public class EditPermissionReq {
     private String action;
 
     @Schema(description = "权限状态",example = "1")
-    @Pattern(regexp = "0|1", message = "状态只能是 0 或 1")
+    @Pattern(regexp = "^(0|1)$", message = "状态只能是 0 或 1")
     private String status;
 
     @Schema(description = "权限类型",example = "menu")
-    @Pattern(regexp = "menu|action|directory", message = "权限类型只能是 menu、action 或 directory")
+    @Pattern(regexp = "^(menu|action|directory)$", message = "权限类型只能是 menu、action 或 directory")
     private String type;
 }

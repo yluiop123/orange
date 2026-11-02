@@ -22,7 +22,7 @@ public class EditGroupReq {
 
     @Schema(description = "组织状态",example = "1",allowableValues = {"0","1"})
     @Pattern(
-            regexp = "[01]",
+            regexp = "^[01]$",
             message = "状态只能是 0 或 1"
     )
     private String status;

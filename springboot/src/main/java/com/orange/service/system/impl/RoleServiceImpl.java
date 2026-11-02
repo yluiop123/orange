@@ -105,6 +105,9 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional
     public Role editRole(EditRoleReq req) {
+        if (req.getId() == null) {
+            throw new BusinessException("角色ID不能为空");
+        }
         Optional<Role> roleOptional = roleRepository.findById(req.getId());
         if (roleOptional.isEmpty()) {
             throw new BusinessException("角色不存在");

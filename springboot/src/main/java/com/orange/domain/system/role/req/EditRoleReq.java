@@ -19,7 +19,7 @@ public class EditRoleReq {
     private String name;
 
     @Schema(description = "角色状态",example = "1")
-    @Pattern(regexp = "0|1", message = "状态只能是 0 或 1")
+    @Pattern(regexp = "^(0|1)$", message = "状态只能是 0 或 1")
     private String status;
 
     @Schema(description = "权限ID列表",example = "[ \"1\",\"2\",\"3\" ]")

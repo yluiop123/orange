@@ -127,27 +127,40 @@ public class GroupServiceImpl implements GroupService {
     public void moveGroup(MoveGroupReq req) {
         Optional<Group> groupOptional = groupRepository.findById(req.getId());
         Group group = groupOptional.orElseThrow(() -> new BusinessException("组织不存在"));
+        Integer order = group.getOrder();
+        if (order == null) {
+            throw new BusinessException("组织排序数据异常");
+        }
         if ("top".equals(req.getAction())) {
             List<Group> list = group.getParentId() == null
-                    ? groupRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(group.getOrder())
-                    : groupRepository.queryByParentIdAndOrderNotOrderByOrder(group.getParentId(), group.getOrder());
+                    ? groupRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(order)
+                    : groupRepository.queryByParentIdAndOrderNotOrderByOrder(group.getParentId(), order);
             for(int i=0;i<list.size();i++){
                 Group groupI = list.get(i);
                 groupI.setOrder(i+1);
             }
             group.setOrder(0);
         } else if ("up".equals(req.getAction())) {
+            if (order <= 0) {
+                return;
+            }
             Group swapGroup = group.getParentId() == null
-                    ? groupRepository.queryByParentIdIsNullAndOrder(group.getOrder()-1)
-                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), group.getOrder()-1);
-            swapGroup.setOrder(group.getOrder());
-            group.setOrder(group.getOrder() - 1);
+                    ? groupRepository.queryByParentIdIsNullAndOrder(order-1)
+                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), order-1);
+            if (swapGroup == null) {
+                return;
+            }
+            swapGroup.setOrder(order);
+            group.setOrder(order - 1);
         } else if ("down".equals(req.getAction())) {
             Group swapGroup = group.getParentId() == null
-                    ? groupRepository.queryByParentIdIsNullAndOrder(group.getOrder()+1)
-                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), group.getOrder()+1);
-            swapGroup.setOrder(group.getOrder());
-            group.setOrder(group.getOrder() + 1);
+                    ? groupRepository.queryByParentIdIsNullAndOrder(order+1)
+                    : groupRepository.queryByParentIdAndOrder(group.getParentId(), order+1);
+            if (swapGroup == null) {
+                return;
+            }
+            swapGroup.setOrder(order);
+            group.setOrder(order + 1);
         }
 
     }
@@ -242,6 +255,9 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public Group editGroup(EditGroupReq req) {
+        if (req.getId() == null) {
+            throw new BusinessException("组织ID不能为空");
+        }
         Optional<Group> groupOptional = groupRepository.findById(req.getId());
         if(groupOptional.isEmpty()){
             throw new BusinessException("组织不存在");

@@ -18,6 +18,8 @@
 - S2：refresh 轮换改为 `INSERT ... ON CONFLICT DO NOTHING` 原子吊销。
 - S2：用户名校验统一、groupId 存在性校验、`AddUserReq.status` 生效。
 - S2/S3：不存在资源统一 404；补 405/409 映射；LIKE 通配符转义；查询 `readOnly`。
+- S3：权限类型/action 组合校验、状态/类型正则锚点、旧接口缺 id 保护、排序边界保护。
+- S3：重置/修改密码清理登录锁定；Swagger 生产 profile 默认关闭。
 - S3：新增树节点校验父节点存在。
 - S3：种子无密码用户改为禁用；`status` 列 `NOT NULL DEFAULT '1'`。
 - 前端：树选择器崩溃、角色下拉为空、编辑弹窗串数据、删除确认、状态开关回滚、分页/选择生命周期、防抖、重复提交、mock 墓碑/组织删除、父级权限回显、ActionAuth 状态开关、错误重试。

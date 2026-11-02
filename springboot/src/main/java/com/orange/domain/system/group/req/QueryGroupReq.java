@@ -19,7 +19,7 @@ public class QueryGroupReq {
     private String name;
 
     @Pattern(
-            regexp = "0|1|all",
+            regexp = "^(0|1|all)$",
             message = "只能是 0 或 1 或 all"
     )
     @Schema(description = "组织状态")

@@ -10,6 +10,6 @@ import lombok.Data;
 public class StatusReq {
     @Schema(description = "状态", example = "1", allowableValues = {"0", "1"})
     @NotBlank(message = "状态不能为空")
-    @Pattern(regexp = "0|1", message = "状态只能是 0 或 1")
+    @Pattern(regexp = "^(0|1)$", message = "状态只能是 0 或 1")
     private String status;
 }

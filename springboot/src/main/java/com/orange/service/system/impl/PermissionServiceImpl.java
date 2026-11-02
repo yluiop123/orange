@@ -134,27 +134,40 @@ public class PermissionServiceImpl implements PermissionService {
         Optional<Permission> permissionOptional = permissionRepository.findById(req.getId());
         Permission permission = permissionOptional.orElseThrow(
                 () -> new BusinessException("权限不存在"));
+        Integer order = permission.getOrder();
+        if (order == null) {
+            throw new BusinessException("权限排序数据异常");
+        }
         if ("top".equals(req.getAction())) {
             List<Permission> list = permission.getParentId() == null
-                    ? permissionRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(permission.getOrder())
-                    : permissionRepository.queryByParentIdAndOrderNotOrderByOrder(permission.getParentId(), permission.getOrder());
+                    ? permissionRepository.queryByParentIdIsNullAndOrderNotOrderByOrder(order)
+                    : permissionRepository.queryByParentIdAndOrderNotOrderByOrder(permission.getParentId(), order);
             for(int i=0;i<list.size();i++){
                 Permission permissionI = list.get(i);
                 permissionI.setOrder(i+1);
             }
             permission.setOrder(0);
         } else if ("up".equals(req.getAction())) {
+            if (order <= 0) {
+                return;
+            }
             Permission swapPermission = permission.getParentId() == null
-                    ? permissionRepository.queryByParentIdIsNullAndOrder(permission.getOrder()-1)
-                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), permission.getOrder()-1);
-            swapPermission.setOrder(permission.getOrder());
-            permission.setOrder(permission.getOrder() - 1);
+                    ? permissionRepository.queryByParentIdIsNullAndOrder(order-1)
+                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), order-1);
+            if (swapPermission == null) {
+                return;
+            }
+            swapPermission.setOrder(order);
+            permission.setOrder(order - 1);
         } else if ("down".equals(req.getAction())) {
             Permission swapPermission = permission.getParentId() == null
-                    ? permissionRepository.queryByParentIdIsNullAndOrder(permission.getOrder()+1)
-                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), permission.getOrder()+1);
-            swapPermission.setOrder(permission.getOrder());
-            permission.setOrder(permission.getOrder() + 1);
+                    ? permissionRepository.queryByParentIdIsNullAndOrder(order+1)
+                    : permissionRepository.queryByParentIdAndOrder(permission.getParentId(), order+1);
+            if (swapPermission == null) {
+                return;
+            }
+            swapPermission.setOrder(order);
+            permission.setOrder(order + 1);
         }
 
     }
@@ -256,6 +269,9 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     @Transactional
     public Permission editPermission(EditPermissionReq req) {
+        if (req.getId() == null) {
+            throw new BusinessException("权限ID不能为空");
+        }
         Optional<Permission> optionalPermission = permissionRepository.findById(req.getId());
         if(optionalPermission.isEmpty()){
             throw new BusinessException("权限不存在");
@@ -300,7 +316,22 @@ public class PermissionServiceImpl implements PermissionService {
         return permissionRepository.findAll(spec);
     }
 
+    private void validatePermissionShape(String type, String action) {
+        if ("action".equals(type)) {
+            if (StringUtils.isBlank(action)) {
+                throw new BusinessException("action 类型的权限必须填写 action");
+            }
+            return;
+        }
+        if ("menu".equals(type) || "directory".equals(type)) {
+            if (StringUtils.isNotBlank(action)) {
+                throw new BusinessException("menu/directory 类型的权限不能填写 action");
+            }
+        }
+    }
+
     private void assertUniquePermission(String type, String path, String action, String excludeId) {
+        validatePermissionShape(type, action);
         Specification<Permission> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("type"), type));

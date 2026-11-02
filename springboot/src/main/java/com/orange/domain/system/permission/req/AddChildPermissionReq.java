@@ -26,7 +26,7 @@ public class AddChildPermissionReq {
 
     @Schema(description = "权限类型",example = "menu")
     @NotBlank(message = "权限类型不能为空")
-    @Pattern(regexp = "menu|action|directory", message = "权限类型只能是 menu、action 或 directory")
+    @Pattern(regexp = "^(menu|action|directory)$", message = "权限类型只能是 menu、action 或 directory")
     private String type;
 
     @Schema(description = "父权限编码",example = "01")

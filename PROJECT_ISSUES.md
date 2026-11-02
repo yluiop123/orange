@@ -147,16 +147,20 @@
 - refresh 轮换改为数据库原子插入，堵住并发重放；
 - 用户名校验统一、groupId 存在性校验、`AddUserReq.status` 生效；
 - 不存在资源统一 404；补充 405/409 异常映射；LIKE 通配符转义；查询 `readOnly`；
+- 权限类型/action 组合校验、状态/类型正则锚点、旧 `POST .../edit` 缺 id 保护；
+- 排序上移/下移边界与空 order 保护；重置/修改密码清理登录锁定；
 - 新增树节点校验父节点存在；
 - 种子无密码用户改为禁用；`status` 列 `NOT NULL DEFAULT '1'`；
+- `application-prod.yaml` 默认关闭 Swagger/OpenAPI；
 - 前端树选择器崩溃、角色下拉为空、编辑弹窗串数据、删除确认、状态开关回滚、分页/选择生命周期、防抖、重复提交、mock 墓碑/组织删除等问题；
-- lint 清零；移除 `src` 内残留构建产物。
+- lint 清零；移除 `src` 内残留构建产物；菜单文案和 `StatusSwitch` 常量收敛。
 
 仍存在：
 
 - 操作日志 traceId/变更内容/归档；
-- 前端 `status` 常量、少量硬编码 i18n、树/表格可访问性；
-- `queryUserInfo` 笛卡尔积、Swagger 生产鉴权；
+- 前端 `status` 仍散落在页面/Mock/DTO（`StatusSwitch` 已收敛）；树/表格可访问性、新增行定位；
+- `queryUserInfo` 多集合 EntityGraph 笛卡尔积；
+- Swagger 仅在 `prod` profile 关闭，非 prod 部署仍需显式配置；
 - 构建体积和依赖大版本升级。
 
 ---
@@ -256,6 +260,7 @@
 | 后端 authority | `springboot/src/main/java/com/orange/security/auth/PermissionAuthorityBuilder.java` |
 | 后端授权守卫 | `springboot/src/main/java/com/orange/security/auth/GrantGuard.java` |
 | 后端查询工具 | `springboot/src/main/java/com/orange/util/QueryUtils.java` |
+| 生产配置 | `springboot/src/main/resources/application-prod.yaml` |
 | JWT 密钥说明 | `docs/security/jwt-keys.md`、`scripts/generate-jwt-keys.mjs` |
 | 环境变量示例 | `.env.example` |
 | 删除确认弹窗 | `vite-shadcn/src/components/system/confirm-delete-dialog.tsx` |

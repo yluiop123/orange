@@ -51,6 +51,11 @@ public class LoginAttemptService {
         repository.findById(userKey(username)).ifPresent(repository::delete);
     }
 
+    @Transactional
+    public void clearUserAttempts(String username) {
+        repository.findById(userKey(username)).ifPresent(repository::delete);
+    }
+
     private void record(String key, int maxAttempts) {
         LoginAttempt attempt = repository.findForUpdate(key).orElse(null);
         OffsetDateTime now = OffsetDateTime.now();
