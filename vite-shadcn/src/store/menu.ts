@@ -20,7 +20,7 @@ const useMenuStore = create<MenuState>()((set, get) => ({
     if (get().loading) return;
     set({ loading: true, error: false });
     try {
-      const res = await axios.get("/user/menus");
+      const res = await axios.get("/auth/menus");
       set({
         menus: res.data.data ?? [],
         loading: false,

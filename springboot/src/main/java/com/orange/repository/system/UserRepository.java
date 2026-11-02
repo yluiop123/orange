@@ -21,15 +21,13 @@ public interface UserRepository extends JpaRepository<User,String>, JpaSpecifica
     long countByRoles_IdAndStatus(String roleId, String status);
 
     @EntityGraph(attributePaths = {"roles", "roles.permissions", "permissions"})
-    User findWithAllAttributesByUsername(String username);
-
-    @EntityGraph(attributePaths = {"roles", "roles.permissions", "permissions"})
     User findWithAllAttributesById(String id);
 
+    /** 只抓取角色和角色权限，避免与直属权限同时 join 产生笛卡尔积。 */
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})
     User findWithRolesByUsername(String username);
 
-    // 2. 只抓取用户直属权限
+    /** 只抓取用户直属权限，与角色查询分开执行。 */
     @EntityGraph(attributePaths = {"permissions"})
     User findWithPermissionsByUsername(String username);
 

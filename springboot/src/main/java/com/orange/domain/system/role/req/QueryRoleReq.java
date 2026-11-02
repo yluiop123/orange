@@ -19,10 +19,19 @@ public class QueryRoleReq {
     private String status;
 
     @Schema(description = "排序字段",example = "name")
+    private String sort;
+
+    @Schema(description = "排序方向", allowableValues = {"asc", "desc"}, example = "asc")
+    @jakarta.validation.constraints.Pattern(regexp = "^$|^(asc|desc)$", message = "排序方向只能是 asc 或 desc")
+    private String direction;
+
+    @Deprecated
+    @Schema(description = "旧版排序字段，仅用于兼容", deprecated = true)
     private String orderField;
 
-    @Schema(description = "排序值",example = "asc")
-    @jakarta.validation.constraints.Pattern(regexp = "^(asc|desc)$", message = "排序方向只能是 asc 或 desc")
+    @Deprecated
+    @Schema(description = "旧版排序方向，仅用于兼容", deprecated = true)
+    @jakarta.validation.constraints.Pattern(regexp = "^$|^(asc|desc)$", message = "排序方向只能是 asc 或 desc")
     private String orderValue;
 
     @Schema(description = "页码",example = "1")

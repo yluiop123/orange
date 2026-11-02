@@ -32,10 +32,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private static final String BEARER_PREFIX = "Bearer ";
     private static final Set<String> ALLOWED_BEFORE_PASSWORD_CHANGE = Set.of(
-            "/api/user/change-password",
-            "/api/user/userInfo",
-            "/api/user/menus",
-            "/api/user/logout");
+            "/api/v1/auth/change-password",
+            "/api/v1/auth/user-info",
+            "/api/v1/auth/menus",
+            "/api/v1/auth/logout");
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;

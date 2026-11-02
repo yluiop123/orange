@@ -22,10 +22,12 @@ public class JwtUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findWithAllAttributesByUsername(username);
+        // 分成两次查询：角色权限和直属权限都是多值集合，放在同一个 EntityGraph 里会笛卡尔积。
+        User user = userRepository.findWithRolesByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
+        userRepository.findWithPermissionsByUsername(username);
         int tokenVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
         return new AuthUser(
                 user.getId(),

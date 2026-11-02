@@ -14,7 +14,7 @@ import java.util.List;
 
 @Tag(name = "菜单")
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/v1/auth")
 public class MenuController {
 
     @Autowired

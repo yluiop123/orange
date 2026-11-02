@@ -59,7 +59,7 @@ export default function Login({
   function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     axios
-      .post('/user/login', values)
+      .post('/auth/login', values)
       .then((res) => {
         const data = res.data?.data;
         if (data?.status === 'ok' && data.token) {

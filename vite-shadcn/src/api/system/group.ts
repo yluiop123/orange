@@ -1,9 +1,10 @@
 import axios from "@/lib/axios";
+import type { Status } from "@/lib/status";
 
 export type Group = {
   id: string;
   name: string;
-  status?: "0" | "1";
+  status?: Status;
   parentId?: string | null;
   createTime?: string;
   updateTime?: string;
@@ -18,7 +19,7 @@ export type GroupQuery = {
 export type GroupPayload = {
   id?: string;
   name?: string;
-  status?: "0" | "1";
+  status?: Status;
   parentId?: string;
 };
 
@@ -39,7 +40,7 @@ export async function updateGroup(id: string, payload: GroupPayload) {
   await axios.patch(`/system/groups/${id}`, { ...payload, id });
 }
 
-export async function updateGroupStatus(id: string, status: "0" | "1") {
+export async function updateGroupStatus(id: string, status: Status) {
   await axios.patch(`/system/groups/${id}/status`, { status });
 }
 

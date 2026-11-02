@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import com.orange.util.TraceId;
 
 import static com.orange.domain.common.ErrorCode.SUCCESS;
 
@@ -58,6 +58,6 @@ public class Response<T> {
     }
 
     public static String newTraceId() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        return TraceId.currentOrNew();
     }
 }

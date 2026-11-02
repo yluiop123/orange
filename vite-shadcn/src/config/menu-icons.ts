@@ -20,6 +20,7 @@ import {
   Monitor,
   Network,
   PieChart,
+  ScrollText,
   Puzzle,
   Radar,
   Settings,
@@ -74,6 +75,7 @@ const menuIcons: Record<string, LucideIcon> = {
   "/system/role": Shield,
   "/system/permission": KeyRound,
   "/system/group": Users,
+  "/system/operation-log": ScrollText,
 };
 
 /** 前端只维护 path 到图标的映射，未知路径按类型回退 */

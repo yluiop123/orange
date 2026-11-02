@@ -2,6 +2,7 @@ import { setupWorker } from "msw/browser";
 import loginMenuHandlers from "./login/menu";
 import loginUserHandlers from "./login/user";
 import systemGroupHandlers from "./system/group";
+import systemOperationLogHandlers from "./system/operation-log";
 import systemPermissionHandlers from "./system/permission";
 import systemRoleHandlers from "./system/role";
 import systemUserHandlers from "./system/user";
@@ -11,7 +12,8 @@ const mockHandlers = [
   ...systemUserHandlers,
   ...systemRoleHandlers,
   ...systemGroupHandlers,
-  ...systemPermissionHandlers
+  ...systemPermissionHandlers,
+  ...systemOperationLogHandlers
 ];
 let worker: ReturnType<typeof setupWorker> | null = null;
 export default async function initMSW() {

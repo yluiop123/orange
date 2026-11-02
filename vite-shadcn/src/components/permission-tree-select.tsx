@@ -1,4 +1,5 @@
 import { listPermissions } from "@/api/system/permission";
+import type { Status } from "@/lib/status";
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import TreeSelect, { TreeNode } from "./ext/tree-select";
@@ -14,7 +15,7 @@ export type PermissionNode = TreeNode & {
   parentId?: string | null
   id: string
   name: string
-  status?: "0" | "1"
+  status?: Status
   type?: "menu" | "directory" | "action"
 }
 function buildTree(data: PermissionNode[]): PermissionNode[] {

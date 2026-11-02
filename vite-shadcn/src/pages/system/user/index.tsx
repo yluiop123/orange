@@ -25,6 +25,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { formatDateTime } from "@/lib/date-time";
+import { statusEnum } from "@/lib/dict";
+import type { Status } from "@/lib/status";
 import useUserStore from "@/store/user";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
@@ -36,13 +39,6 @@ import EditDialog from "./edit-dialog";
 
 type TableParams = ListParams<UserQuery>;
 
-const FILTER_FIELDS = [
-    { value: "name", label: "page.system.user.header.name" },
-    { value: "username", label: "page.system.user.header.userName" },
-    { value: "email", label: "page.system.user.header.email" },
-    { value: "phone", label: "page.system.user.header.phone" },
-];
-
 export default function User() {
     const intl = useIntl();
     const currentUsername = useUserStore((state) => state.userInfo?.username);
@@ -50,8 +46,8 @@ export default function User() {
     const [params, setParams] = useState<TableParams>({
         page: 1,
         size: 10,
-        filterField: 'name',
-        filterValue: '',
+        keyword: '',
+        status: 'all',
         groupId: '',
     });
 
@@ -122,7 +118,7 @@ export default function User() {
             setDeleting(false);
         }
     }
-    function handleStatusChange(row: User, status: "0" | "1") {
+    function handleStatusChange(row: User, status: Status) {
         return userApi.updateUserStatus(row.id, status).then(() => {
             setParams(prev => ({ ...prev }));
         })
@@ -140,7 +136,7 @@ export default function User() {
                         onClick={() => {
                             const isAsc = column.getIsSorted() === "asc";
                             table.setSorting([{ id: "name", desc: isAsc }]);
-                            setParams(prev => ({ ...prev, orderValue: isAsc ? "desc" : "asc", orderField: 'name', page: 1 }))
+                            setParams(prev => ({ ...prev, direction: isAsc ? "desc" : "asc", sort: 'name', page: 1 }))
                         }}
                     >
                         {intl.formatMessage({ id: 'page.system.user.header.name' })}
@@ -178,7 +174,7 @@ export default function User() {
             meta: { title: intl.formatMessage({ id: 'page.system.user.header.createTime' }) },
             accessorKey: "createTime",
             header: intl.formatMessage({ id: 'page.system.user.header.createTime' }),
-            cell: ({ row }) => <div>{row.getValue("createTime")}</div>,
+            cell: ({ row }) => <div>{formatDateTime(row.getValue("createTime"))}</div>,
         },
         {
             meta: { title: intl.formatMessage({ id: 'page.system.user.header.status' }) },
@@ -273,34 +269,35 @@ export default function User() {
                         setParams(prev => ({ ...prev, groupId: node, page: 1 }))
                     }}
                 />
+                <Input
+                    placeholder={intl.formatMessage({ id: 'page.system.user.searchPlaceholder' })}
+                    value={params.keyword}
+                    onChange={(event) =>
+                        setParams(prev => ({ ...prev, keyword: event.target.value, page: 1 }))
+                    }
+                    className="max-w-sm"
+                />
                 <Select
+                    value={params.status}
                     onValueChange={(value) =>
-                        setParams(prev => ({ ...prev, filterField: value ? value : "", page: 1 }))
-                    } defaultValue={params.filterField}>
+                        setParams(prev => ({ ...prev, status: value || 'all', page: 1 }))
+                    }
+                >
                     <SelectTrigger className="flex items-center">
                         <SelectValue>
                             {intl.formatMessage({
-                                id: FILTER_FIELDS.find((field) => field.value === params.filterField)?.label
-                                    ?? 'page.system.user.header.name',
+                                id: `dict.status.${statusEnum.get(params.status || 'all') || 'all'}`,
                             })}
                         </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                        {FILTER_FIELDS.map((field) => (
-                            <SelectItem key={field.value} value={field.value}>
-                                {intl.formatMessage({ id: field.label })}
+                        {Array.from(statusEnum).map(([key, value]) => (
+                            <SelectItem key={key} value={key}>
+                                {intl.formatMessage({ id: `dict.status.${value}` })}
                             </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
-                <Input
-                    placeholder={intl.formatMessage({ id: 'table.filterField' })}
-                    value={params.filterValue}
-                    onChange={(event) =>
-                        setParams(prev => ({ ...prev, filterValue: event.target.value, page: 1 }))
-                    }
-                    className="max-w-sm"
-                />
                 <div className="ml-auto flex items-center gap-2">
                     <ActionAuth action="add">
                         <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>

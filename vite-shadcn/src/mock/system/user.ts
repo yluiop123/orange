@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { STATUS_ENABLED, type Status } from "@/lib/status";
 
 const zh = {
   roles:{    
@@ -43,7 +44,7 @@ type User = {
   email: string;
   groupId: string;
   groupName: string;
-  status: "0" | "1";
+  status: Status;
   createTime: string;
   updateTime: string;
   phone: string;
@@ -58,7 +59,7 @@ type UserRecord = {
   username: string;
   email: string;
   groupId: string;
-  status: "0" | "1";
+  status: Status;
   createTime: string;
   updateTime: string;
   phone: string;
@@ -73,7 +74,7 @@ type UserBody = {
   username?: string;
   email?: string;
   groupId?: string;
-  status?: "0" | "1";
+  status?: Status;
   phone?: string;
   roles?: string[];
   permissions?: string[];
@@ -94,7 +95,7 @@ function createSeedUsers(): UserRecord[] {
       username: "super",
       email: "yluiop123@qq.com",
       groupId: "0003",
-      status: "1",
+      status: STATUS_ENABLED,
       phone: "13800000000",
       createTime: SEED_TIME,
       updateTime: SEED_TIME,
@@ -109,7 +110,7 @@ function createSeedUsers(): UserRecord[] {
       username: "admin",
       email: "admin@example.com",
       groupId: "0003",
-      status: "1",
+      status: STATUS_ENABLED,
       phone: "13800000001",
       createTime: SEED_TIME,
       updateTime: SEED_TIME,
@@ -124,7 +125,7 @@ function createSeedUsers(): UserRecord[] {
       username: "user",
       email: "user@example.com",
       groupId: "0001",
-      status: "1",
+      status: STATUS_ENABLED,
       phone: "13800000002",
       createTime: SEED_TIME,
       updateTime: SEED_TIME,
@@ -143,7 +144,7 @@ function createSeedUsers(): UserRecord[] {
         username: `user${userId}`,
         email: `user${userId}@example.com`,
         groupId: GROUPS[i % GROUPS.length],
-        status: "1",
+        status: STATUS_ENABLED,
         phone: `${13800000000 + i}`,
         createTime: SEED_TIME,
         updateTime: SEED_TIME,
@@ -260,33 +261,43 @@ function randomPassword() {
 }
 
 const handlers = [
-  http.get("/api/system/users", async ({ request }) => {
+  http.get("/api/v1/system/users", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
-    const filterField = url.searchParams.get("filterField") || "name";
-    const filterValue = url.searchParams.get("filterValue") || "";
+    const keyword = (
+      url.searchParams.get("keyword")
+      || url.searchParams.get("filterValue")
+      || ""
+    ).toLowerCase();
+    const filterField = url.searchParams.get("filterField");
+    const status = url.searchParams.get("status") || "all";
     const groupId = url.searchParams.get("groupId") || "";
     const page = Number(url.searchParams.get("page") || 1);
     const size = Number(url.searchParams.get("size") || 10);
-    const orderField = url.searchParams.get("orderField");
-    const orderValue = url.searchParams.get("orderValue");
+    const sort = url.searchParams.get("sort") || url.searchParams.get("orderField");
+    const direction = url.searchParams.get("direction")
+      || url.searchParams.get("orderValue")
+      || "asc";
     const filterList = users
       .map((item) => toUser(item, locale))
-      .filter(
-        (item) =>
-          item[filterField as keyof User].toString().startsWith(filterValue) &&
-          item.groupId.startsWith(groupId)
-      );
-    if (orderField) {
+      .filter((item) => {
+        const matchesKeyword = keyword
+          ? [item.name, item.username, item.email, item.phone]
+            .some((value) => value.toLowerCase().startsWith(keyword))
+          : true;
+        const matchesLegacy = filterField
+          ? item[filterField as keyof User].toString().startsWith(keyword)
+          : true;
+        const matchesStatus = status !== "all" ? item.status === status : true;
+        return matchesKeyword && matchesLegacy && matchesStatus && item.groupId.startsWith(groupId);
+      });
+    if (sort) {
       filterList.sort((a, b) => {
-        if (orderValue === "asc") {
-          return a[orderField as keyof User] > b[orderField as keyof User]
-            ? 1
-            : -1;
-        }
-        return a[orderField as keyof User] < b[orderField as keyof User]
-          ? 1
-          : -1;
+        const left = a[sort as keyof User];
+        const right = b[sort as keyof User];
+        if (left === right) return 0;
+        const result = left > right ? 1 : -1;
+        return direction === "desc" ? -result : result;
       });
     }
     const start = (page - 1) * size;
@@ -299,7 +310,7 @@ const handlers = [
       },
     });
   }),
-  http.delete("/api/system/users", async ({ request }) => {
+  http.delete("/api/v1/system/users", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
     const ids = (url.searchParams.get("ids") || "").split(",").filter(Boolean);
@@ -310,7 +321,7 @@ const handlers = [
       message: localeMap[locale]["success"],
     });
   }),
-  http.post("/api/system/users", async ({ request }) => {
+  http.post("/api/v1/system/users", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as UserBody;
     const password = randomPassword();
@@ -337,7 +348,7 @@ const handlers = [
       data: password,
     });
   }),
-  http.patch<{ id: string }>("/api/system/users/:id", async ({ request, params }) => {
+  http.patch<{ id: string }>("/api/v1/system/users/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as UserBody;
     users = users.map((item) => {
@@ -361,7 +372,7 @@ const handlers = [
       message: localeMap[locale]["success"],
     });
   }),
-  http.patch<{ id: string }>("/api/system/users/:id/status", async ({ request, params }) => {
+  http.patch<{ id: string }>("/api/v1/system/users/:id/status", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as UserBody;
     users = users.map((item) =>
@@ -375,7 +386,7 @@ const handlers = [
       message: localeMap[locale]["success"],
     });
   }),
-  http.post<{ id: string }>("/api/system/users/:id/reset-password", async ({ request, params }) => {
+  http.post<{ id: string }>("/api/v1/system/users/:id/reset-password", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     const password = randomPassword();
     users = users.map((item) =>
@@ -390,7 +401,7 @@ const handlers = [
       data: password,
     });
   }),
-  http.get<{ id: string }>("/api/system/users/:id", async ({ request, params }) => {
+  http.get<{ id: string }>("/api/v1/system/users/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     const user = users.find((item) => item.id === params.id);
     return HttpResponse.json({

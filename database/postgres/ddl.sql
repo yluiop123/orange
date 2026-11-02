@@ -236,10 +236,12 @@ CREATE INDEX idx_sys_login_attempt_locked ON public.sys_login_attempt(locked_unt
 
 CREATE TABLE public.sys_operation_log (
 	id bigserial NOT NULL,
+	trace_id varchar(64) NULL, -- 链路追踪 ID
 	username varchar NULL, -- 操作人
 	method varchar NOT NULL, -- HTTP 方法
 	path varchar NOT NULL, -- 请求路径
 	query_string varchar(512) NULL, -- 查询参数
+	request_body text NULL, -- 请求体（已脱敏并截断）
 	status int4 NOT NULL, -- HTTP 状态
 	duration_ms bigint NOT NULL, -- 耗时毫秒
 	ip varchar NULL, -- 客户端 IP
@@ -247,6 +249,8 @@ CREATE TABLE public.sys_operation_log (
 	CONSTRAINT sys_operation_log_pkey PRIMARY KEY (id)
 );
 CREATE INDEX idx_sys_operation_log_time ON public.sys_operation_log(create_time);
+CREATE INDEX idx_sys_operation_log_trace ON public.sys_operation_log(trace_id);
+CREATE INDEX idx_sys_operation_log_username ON public.sys_operation_log(username);
 COMMENT ON TABLE public.sys_user_role IS '用户-角色关系表';
 
 -- Column comments

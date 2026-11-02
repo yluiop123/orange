@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import catalog from "@/config/permissions.json";
+import { STATUS_ENABLED, type Status } from "@/lib/status";
 
 type Locale = "zh" | "en";
 
@@ -9,7 +10,7 @@ type Permission = {
   path?: string;
   type: "menu" | "directory" | "action";
   action?: string;
-  status: "0" | "1";
+  status: Status;
   createTime: string;
   parentId?: string | null;
 };
@@ -71,7 +72,7 @@ export function getPermissionList(locale: string): Permission[] {
       path: permission.path,
       type: permission.type as Permission["type"],
       action: permission.action ?? undefined,
-      status: (permission.status as "0" | "1") ?? "1",
+      status: (permission.status as Status) ?? STATUS_ENABLED,
       parentId: permission.parentId,
       createTime: "2023-01-01 00:00:00",
       ...store.updated[permission.id],
@@ -123,7 +124,7 @@ function validateCode(id: string, parentId: string | null): string | null {
 }
 
 const handlers = [
-  http.get("/api/system/permissions", async ({ request }) => {
+  http.get("/api/v1/system/permissions", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
     const id = url.searchParams.get("id") || "";
@@ -158,7 +159,7 @@ const handlers = [
     });
   }),
 
-  http.get<{ id: string }>("/api/system/permissions/:id", async ({ request, params }) => {
+  http.get<{ id: string }>("/api/v1/system/permissions/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     const permission = getPermissionList(locale).find((item) => item.id === params.id);
     if (!permission) {
@@ -170,7 +171,7 @@ const handlers = [
     return HttpResponse.json({ code: 200, data: permission });
   }),
 
-  http.post("/api/system/permissions/children", async ({ request }) => {
+  http.post("/api/v1/system/permissions/children", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as Partial<Permission>;
     const list = getPermissionList(locale);
@@ -207,7 +208,7 @@ const handlers = [
       path: body.path,
       type: (body.type as Permission["type"]) || "menu",
       action: body.action,
-      status: "1",
+      status: STATUS_ENABLED,
       parentId,
       createTime: nowText(),
     };
@@ -219,7 +220,7 @@ const handlers = [
     });
   }),
 
-  http.patch<{ id: string }>("/api/system/permissions/:id", async ({ request, params }) => {
+  http.patch<{ id: string }>("/api/v1/system/permissions/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     if (!getPermissionList(locale).some((item) => item.id === params.id)) {
       return HttpResponse.json(
@@ -235,7 +236,7 @@ const handlers = [
     });
   }),
 
-  http.delete("/api/system/permissions", async ({ request }) => {
+  http.delete("/api/v1/system/permissions", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
     const ids = (url.searchParams.get("ids") || "").split(",").filter(Boolean);

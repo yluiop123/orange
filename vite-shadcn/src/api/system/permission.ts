@@ -1,4 +1,5 @@
 import axios from "@/lib/axios";
+import type { Status } from "@/lib/status";
 
 export type Permission = {
   id: string;
@@ -6,7 +7,7 @@ export type Permission = {
   path?: string;
   action?: string;
   type?: "menu" | "action" | "directory";
-  status?: "0" | "1";
+  status?: Status;
   parentId?: string | null;
   createTime?: string;
   updateTime?: string;
@@ -26,7 +27,7 @@ export type PermissionPayload = {
   path?: string;
   action?: string;
   type?: "menu" | "action" | "directory";
-  status?: "0" | "1";
+  status?: Status;
   parentId?: string;
 };
 

@@ -1,10 +1,11 @@
 import axios from "@/lib/axios";
+import type { Status } from "@/lib/status";
 import type { PageResult } from "../types";
 
 export type Role = {
   id: string;
   name: string;
-  status: "0" | "1";
+  status: Status;
   createTime?: string;
   updateTime?: string;
   permissions?: string[];
@@ -16,14 +17,18 @@ export type RoleQuery = {
   id?: string;
   name?: string;
   status?: string;
+  sort?: string;
+  direction?: "asc" | "desc";
+  /** @deprecated 使用 sort */
   orderField?: string;
+  /** @deprecated 使用 direction */
   orderValue?: "asc" | "desc";
 };
 
 export type RolePayload = {
   id?: string;
   name: string;
-  status?: "0" | "1";
+  status?: Status;
   permissions?: string[];
 };
 

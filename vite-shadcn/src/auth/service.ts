@@ -8,7 +8,7 @@ import { sessionHint } from "./session";
  * 演示环境由 MSW 直接返回 token，不需要模拟 Cookie。
  */
 export async function refreshSession(): Promise<string> {
-  const res = await http.post("/user/refresh");
+  const res = await http.post("/auth/refresh");
   const data = res.data?.data;
   const token = data?.token;
   if (!token) {

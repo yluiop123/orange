@@ -46,7 +46,7 @@ function buildMenuTree(): MenuNode[] {
 }
 
 const handlers = [
-  http.get("/api/user/menus", () => {
+  http.get("/api/v1/auth/menus", () => {
     return HttpResponse.json({ code: 200, data: buildMenuTree() });
   }),
 ];

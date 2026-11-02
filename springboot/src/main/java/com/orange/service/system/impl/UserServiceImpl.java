@@ -42,6 +42,7 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.orange.config.Constanst.STATUS_ALL;
 import static com.orange.config.Constanst.STATUS_DISABLE;
 import static com.orange.config.Constanst.STATUS_ENABLE;
 
@@ -78,9 +79,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public PageData<UserBean> queryUsers(QueryUserReq req) {
-        String sortBy = req.getOrderField() != null && USER_SORT_FIELDS.contains(req.getOrderField())
-                ? req.getOrderField() : "id";
-        String sortDir = req.getOrderValue() == null ? "asc" : req.getOrderValue();
+        String requestedSort = req.getSort() != null ? req.getSort() : req.getOrderField();
+        String sortBy = requestedSort != null && USER_SORT_FIELDS.contains(requestedSort)
+                ? requestedSort : "id";
+        String requestedDirection = req.getDirection() != null ? req.getDirection() : req.getOrderValue();
+        String sortDir = requestedDirection == null || requestedDirection.isBlank()
+                ? "asc" : requestedDirection;
         if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
             throw new BusinessException("排序方向只能是 asc 或 desc");
         }
@@ -90,19 +94,33 @@ public class UserServiceImpl implements UserService {
         Specification<User> spec = (root, query, cb) -> {
 
             List<Predicate> predicates = new ArrayList<>();
+            String keyword = req.getKeyword();
+            if (keyword != null && !keyword.isBlank()) {
+                String pattern = QueryUtils.likePrefix(keyword);
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("name")), pattern, '\\'),
+                        cb.like(cb.lower(root.get("username")), pattern, '\\'),
+                        cb.like(cb.lower(root.get("email")), pattern, '\\'),
+                        cb.like(cb.lower(root.get("phone")), pattern, '\\')
+                ));
+            }
+            // 旧版单字段过滤，保留兼容
             String filterField = req.getFilterField();
             String filterValue = req.getFilterValue();
-
             if (filterField != null && !filterField.isBlank()) {
                 if (!USER_FILTER_FIELDS.contains(filterField)) {
                     throw new BusinessException("不支持的过滤字段");
                 }
-                String keyword = filterValue == null ? "" : filterValue;
+                String legacyKeyword = filterValue == null ? "" : filterValue;
                 predicates.add(
-                        cb.like(cb.lower(root.get(filterField)), QueryUtils.likePrefix(keyword), '\\')
+                        cb.like(cb.lower(root.get(filterField)), QueryUtils.likePrefix(legacyKeyword), '\\')
                 );
             }
-            if(req.getGroupId()!=null&&!req.getGroupId().isEmpty()){
+            if (req.getStatus() != null && !req.getStatus().isBlank()
+                    && !STATUS_ALL.equals(req.getStatus())) {
+                predicates.add(cb.equal(root.get("status"), req.getStatus()));
+            }
+            if (req.getGroupId() != null && !req.getGroupId().isEmpty()) {
                 predicates.add(
                         cb.like(cb.lower(root.get("groupId")), QueryUtils.likePrefix(req.getGroupId()), '\\')
                 );
@@ -382,10 +400,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserInfo queryUserInfo(String username) {
-        User user = userRepository.findWithAllAttributesByUsername(username);
+        // 分成两次查询，避免角色权限和直属权限的笛卡尔积。
+        User user = userRepository.findWithRolesByUsername(username);
         if (user==null) {
             throw new BusinessException("用户不存在");
         }
+        userRepository.findWithPermissionsByUsername(username);
         Group group = groupService.queryGroup(user.getGroupId());
         UserInfo userInfo = new UserInfo();
         userInfo.setId(user.getId());

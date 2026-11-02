@@ -1,4 +1,5 @@
 import axios from "@/lib/axios";
+import type { Status } from "@/lib/status";
 import type { PageResult } from "../types";
 
 export type User = {
@@ -8,7 +9,7 @@ export type User = {
   email: string;
   groupId: string;
   groupName: string;
-  status: "0" | "1";
+  status: Status;
   createTime: string;
   updateTime: string;
   phone: string;
@@ -19,10 +20,18 @@ export type User = {
 export type UserQuery = {
   page: number;
   size: number;
-  filterField?: string;
-  filterValue?: string;
+  keyword?: string;
+  status?: string;
   groupId?: string;
+  sort?: string;
+  direction?: "asc" | "desc";
+  /** @deprecated 使用 keyword */
+  filterField?: string;
+  /** @deprecated 使用 keyword */
+  filterValue?: string;
+  /** @deprecated 使用 sort */
   orderField?: string;
+  /** @deprecated 使用 direction */
   orderValue?: "asc" | "desc";
 };
 
@@ -32,7 +41,7 @@ export type UserPayload = {
   email?: string;
   groupId?: string;
   phone?: string;
-  status?: "0" | "1";
+  status?: Status;
   roles?: string[];
   permissions?: string[];
 };
@@ -59,7 +68,7 @@ export async function updateUser(id: string, payload: UserPayload) {
   await axios.patch(`/system/users/${id}`, { ...payload, id });
 }
 
-export async function updateUserStatus(id: string, status: "0" | "1") {
+export async function updateUserStatus(id: string, status: Status) {
   await axios.patch(`/system/users/${id}/status`, { status });
 }
 
@@ -71,7 +80,7 @@ export async function resetUserPassword(id: string) {
 }
 
 export async function changeOwnPassword(oldPassword: string, newPassword: string) {
-  const res = await axios.post<{ message: string }>("/user/change-password", {
+  const res = await axios.post<{ message: string }>("/auth/change-password", {
     oldPassword,
     newPassword,
   });

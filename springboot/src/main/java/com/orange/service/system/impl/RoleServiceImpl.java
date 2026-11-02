@@ -49,9 +49,12 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional(readOnly = true)
     public PageData<Role> queryRoles(QueryRoleReq req) {
-        String sortBy = req.getOrderField() != null && ROLE_SORT_FIELDS.contains(req.getOrderField())
-                ? req.getOrderField() : "id";
-        String sortDir = req.getOrderValue() == null ? "asc" : req.getOrderValue();
+        String requestedSort = req.getSort() != null ? req.getSort() : req.getOrderField();
+        String sortBy = requestedSort != null && ROLE_SORT_FIELDS.contains(requestedSort)
+                ? requestedSort : "id";
+        String requestedDirection = req.getDirection() != null ? req.getDirection() : req.getOrderValue();
+        String sortDir = requestedDirection == null || requestedDirection.isBlank()
+                ? "asc" : requestedDirection;
         if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
             throw new BusinessException("排序方向只能是 asc 或 desc");
         }

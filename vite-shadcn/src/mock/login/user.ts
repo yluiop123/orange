@@ -61,7 +61,7 @@ function buildUserPermissions(locale: string, permissionIds: string[]) {
 }
 
 const handlers = [
-  http.get<never, never>("/api/user/userInfo", ({ request }) => {
+  http.get<never, never>("/api/v1/auth/user-info", ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const dict = localeMap[locale] ?? zh;
     const user = findMockUser(currentUsername());
@@ -90,7 +90,7 @@ const handlers = [
     });
   }),
 
-  http.post<never, never, never>(/\/api\/user\/login$/, async ({ request }) => {
+  http.post<never, never, never>(/\/api\/v1\/auth\/login$/, async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as {
       username?: string;
@@ -130,7 +130,7 @@ const handlers = [
     });
   }),
 
-  http.post<never, never>("/api/user/change-password", async ({ request }) => {
+  http.post<never, never>("/api/v1/auth/change-password", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as {
       oldPassword?: string;
@@ -163,7 +163,7 @@ const handlers = [
   }),
 
   // 演示环境不模拟 HttpOnly Cookie，只按同一接口契约返回新的 access token
-  http.post<never, never>("/api/user/refresh", () => {
+  http.post<never, never>("/api/v1/auth/refresh", () => {
     return HttpResponse.json({
       code: 200,
       data: {
@@ -173,7 +173,7 @@ const handlers = [
     });
   }),
 
-  http.post<never, never>("/api/user/logout", () => {
+  http.post<never, never>("/api/v1/auth/logout", () => {
     localStorage.removeItem(CURRENT_USER_KEY);
     return HttpResponse.json({
       code: 200,

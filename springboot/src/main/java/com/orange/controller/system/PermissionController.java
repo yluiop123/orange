@@ -17,7 +17,7 @@ import java.util.List;
 
 @Tag(name = "权限管理", description = "权限管理相关接口")
 @RestController
-@RequestMapping("/api/system/permissions")
+@RequestMapping("/api/v1/system/permissions")
 public class PermissionController {
     @Autowired
     private PermissionService permissionService;

@@ -23,7 +23,7 @@ import java.util.List;
 
 @Tag(name = "用户管理", description = "用户管理相关接口")
 @RestController
-@RequestMapping("/api/system/users")
+@RequestMapping("/api/v1/system/users")
 public class UserController {
     @Autowired
     private UserService userService;

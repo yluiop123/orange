@@ -4,7 +4,7 @@ import { notify } from "@/lib/notify";
 import { useForbiddenStore } from "@/store/forbidden";
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-const BASE_API = import.meta.env.VITE_BASE_API || "/api/";
+const BASE_API = import.meta.env.VITE_BASE_API || "/api/v1/";
 
 const instance = axios.create({
   baseURL: BASE_API, // 根据环境配置
@@ -16,8 +16,8 @@ const instance = axios.create({
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
 function isAuthEndpoint(url?: string) {
-  // 兼容 "user/login"、"/api/user/login" 等写法
-  return !!url && /(?:^|\/)user\/(login|refresh|logout)(?:\?|$)/.test(url);
+  // 兼容 "auth/login"、"/api/v1/auth/login" 等写法
+  return !!url && /(?:^|\/)auth\/(login|refresh|logout)(?:\?|$)/.test(url);
 }
 
 let refreshing: Promise<string | null> | null = null;
@@ -29,7 +29,7 @@ let refreshing: Promise<string | null> | null = null;
 function refreshAccessToken(): Promise<string | null> {
   if (!refreshing) {
     refreshing = instance
-      .post("/user/refresh")
+      .post("/auth/refresh")
       .then((res) => {
         const data = res.data?.data;
         const token = data?.token ?? null;

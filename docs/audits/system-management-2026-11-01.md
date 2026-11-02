@@ -281,7 +281,7 @@
 ### B15. `queryUserInfo` 多集合 EntityGraph 笛卡尔积
 
 - 文件：`UserRepository.java:16-20`；`UserServiceImpl.java:298-353`
-- 触发：每次 `GET /api/user/userInfo`。
+- 触发：每次 `GET /api/v1/auth/user-info`。
 - 影响：`roles × roles.permissions × permissions` 行数膨胀。
 - 修复：拆两个查询或 DTO 投影。
 

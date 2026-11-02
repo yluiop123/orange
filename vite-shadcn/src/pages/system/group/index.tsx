@@ -23,7 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDateTime } from "@/lib/date-time";
 import { statusEnum } from "@/lib/dict";
+import type { Status } from "@/lib/status";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -35,7 +37,7 @@ import EditDialog from "./edit-dialog";
 type Group = {
   name: string
   id: string
-  status?: "0" | "1"
+  status?: Status
   remark?: string
   createTime?: string,
   parentId?: string | null
@@ -104,7 +106,7 @@ export default function Group() {
       setDeleting(false);
     }
   }
-  function handleStatusChange(row: Group, status: "0" | "1") {
+  function handleStatusChange(row: Group, status: Status) {
     return updateGroupStatus(row.id, status).then(() => {
       setParams(prev => ({ ...prev }));
     })
@@ -145,7 +147,7 @@ export default function Group() {
       accessorKey: "createTime",
       meta: { title: formatMessage({ id: "page.system.group.header.createTime" }) },
       header: formatMessage({ id: "page.system.group.header.createTime" }),
-      cell: ({ row }) => <div className="capitalize">{row.getValue("createTime")}</div>,
+      cell: ({ row }) => <div className="capitalize">{formatDateTime(row.getValue("createTime"))}</div>,
     },
     {
       id: "actions",

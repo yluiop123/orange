@@ -1,10 +1,11 @@
 import { http, HttpResponse } from "msw";
+import { STATUS_ENABLED, type Status } from "@/lib/status";
 
 type Group = {
   id: string;
   name: string;
   parentId: string | null;
-  status: "0" | "1";
+  status: Status;
   createTime: string;
   updateTime?: string;
 };
@@ -86,7 +87,7 @@ export function getGroupList(locale: string): Group[] {
   ].map((item) => ({
     ...item,
     name: dict[item.id] ?? item.id,
-    status: "1",
+    status: STATUS_ENABLED,
     createTime: "2023-01-01 00:00:00",
     updateTime: "2023-01-01 00:00:00",
   }));
@@ -131,7 +132,7 @@ function validateCode(id: string, parentId: string | null): string | null {
 }
 
 const handlers = [
-  http.get("/api/system/groups", async ({ request }) => {
+  http.get("/api/v1/system/groups", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
     const id = url.searchParams.get("id") || "";
@@ -162,7 +163,7 @@ const handlers = [
     });
   }),
 
-  http.get<{ id: string }>("/api/system/groups/:id", async ({ request, params }) => {
+  http.get<{ id: string }>("/api/v1/system/groups/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     const group = getGroupList(locale).find((item) => item.id === params.id);
     if (!group) {
@@ -171,7 +172,7 @@ const handlers = [
     return HttpResponse.json({ code: 200, data: group });
   }),
 
-  http.post("/api/system/groups/children", async ({ request }) => {
+  http.post("/api/v1/system/groups/children", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as Partial<Group>;
     const list = getGroupList(locale);
@@ -191,7 +192,7 @@ const handlers = [
       id,
       name: body.name || id,
       parentId,
-      status: "1",
+      status: STATUS_ENABLED,
       createTime: nowText(),
       updateTime: nowText(),
     };
@@ -203,7 +204,7 @@ const handlers = [
     });
   }),
 
-  http.patch<{ id: string }>("/api/system/groups/:id", async ({ request, params }) => {
+  http.patch<{ id: string }>("/api/v1/system/groups/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     if (!getGroupList(locale).some((item) => item.id === params.id)) {
       return HttpResponse.json({ code: 40401, message: "组织不存在" }, { status: 404 });
@@ -216,12 +217,12 @@ const handlers = [
     });
   }),
 
-  http.patch<{ id: string }>("/api/system/groups/:id/status", async ({ request, params }) => {
+  http.patch<{ id: string }>("/api/v1/system/groups/:id/status", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     if (!getGroupList(locale).some((item) => item.id === params.id)) {
       return HttpResponse.json({ code: 40401, message: "组织不存在" }, { status: 404 });
     }
-    const body = (await request.clone().json()) as { status?: "0" | "1" };
+    const body = (await request.clone().json()) as { status?: Status };
     updateGroup(params.id, { status: body.status });
     return HttpResponse.json({
       code: 200,
@@ -229,7 +230,7 @@ const handlers = [
     });
   }),
 
-  http.delete("/api/system/groups", async ({ request }) => {
+  http.delete("/api/v1/system/groups", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
     const ids = (url.searchParams.get("ids") || "").split(",").filter(Boolean);

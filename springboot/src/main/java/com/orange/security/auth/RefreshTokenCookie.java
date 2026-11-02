@@ -14,7 +14,7 @@ import java.time.Duration;
 public class RefreshTokenCookie {
 
     public static final String NAME = "refresh_token";
-    private static final String COOKIE_PATH = "/api/user";
+    private static final String COOKIE_PATH = "/api/v1/auth";
 
     private final boolean secure;
     private final String sameSite;

@@ -51,6 +51,10 @@ springdoc:
   # 只扫描特定的包
   packages-to-scan: com.orange.controller
 app:
+  operation-log:
+    # 操作日志保留天数，过期日志每天凌晨清理
+    retention-days: ${OPERATION_LOG_RETENTION_DAYS:90}
+    cleanup-cron: ${OPERATION_LOG_CLEANUP_CRON:0 30 3 * * *}
   cors:
     # 允许跨域访问的来源，逗号分隔。
     # 本地开发默认 http://localhost:3000；生产通过环境变量覆盖，例如：

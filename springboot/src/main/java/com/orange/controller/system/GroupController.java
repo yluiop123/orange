@@ -18,7 +18,7 @@ import java.util.List;
 
 @Tag(name = "组织管理", description = "组织管理相关接口")
 @RestController
-@RequestMapping("/api/system/groups")
+@RequestMapping("/api/v1/system/groups")
 public class GroupController {
     @Autowired
     private GroupService groupService;

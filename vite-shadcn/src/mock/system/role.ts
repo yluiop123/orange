@@ -1,10 +1,11 @@
 import { http, HttpResponse } from "msw";
+import { STATUS_ENABLED, type Status } from "@/lib/status";
 import catalog from "@/config/permissions.json";
 
 type Role = {
   id: string;
   name: string;
-  status: "0" | "1";
+  status: Status;
   createTime: string;
   updateTime: string;
   permissions: string[];
@@ -72,7 +73,7 @@ function getRoleList(locale: string): Role[] {
       const role: Role = {
         id,
         name: dict[id] ?? id,
-        status: "1",
+        status: STATUS_ENABLED,
         createTime,
         updateTime: createTime,
         permissions: catalog.rolePermissions[id as keyof typeof catalog.rolePermissions] ?? [],
@@ -111,7 +112,7 @@ function updateRole(id: string, patch: Partial<Role>) {
 }
 
 const handlers = [
-  http.get("/api/system/roles", async ({ request }) => {
+  http.get("/api/v1/system/roles", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
     const id = url.searchParams.get("id") || "";
@@ -119,19 +120,21 @@ const handlers = [
     const status = url.searchParams.get("status") || "";
     const page = Number(url.searchParams.get("page") || 1);
     const size = Number(url.searchParams.get("size") || 10);
-    const orderField = url.searchParams.get("orderField");
-    const orderValue = url.searchParams.get("orderValue");
+    const sort = url.searchParams.get("sort") || url.searchParams.get("orderField");
+    const direction = url.searchParams.get("direction")
+      || url.searchParams.get("orderValue")
+      || "asc";
     let list = getRoleList(locale);
     if (id) list = list.filter((item) => item.id.startsWith(id));
     if (name) list = list.filter((item) => item.name.toLowerCase().startsWith(name.toLowerCase()));
     if (status && status !== "all") list = list.filter((item) => item.status === status);
-    if (orderField) {
+    if (sort) {
       list = [...list].sort((a, b) => {
-        const av = a[orderField as keyof Role];
-        const bv = b[orderField as keyof Role];
+        const av = a[sort as keyof Role];
+        const bv = b[sort as keyof Role];
         if (av === bv) return 0;
         const result = av > bv ? 1 : -1;
-        return orderValue === "desc" ? -result : result;
+        return direction === "desc" ? -result : result;
       });
     }
     const start = (page - 1) * size;
@@ -147,7 +150,7 @@ const handlers = [
     });
   }),
 
-  http.get<{ id: string }>("/api/system/roles/:id", async ({ request, params }) => {
+  http.get<{ id: string }>("/api/v1/system/roles/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     const role = getRoleList(locale).find((item) => item.id === params.id);
     if (!role) {
@@ -156,7 +159,7 @@ const handlers = [
     return HttpResponse.json({ code: 200, data: role });
   }),
 
-  http.post("/api/system/roles", async ({ request }) => {
+  http.post("/api/v1/system/roles", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const body = (await request.clone().json()) as Partial<Role>;
     const list = getRoleList(locale);
@@ -168,7 +171,7 @@ const handlers = [
     const role: Role = {
       id,
       name: body.name || id,
-      status: "1",
+      status: STATUS_ENABLED,
       createTime: now,
       updateTime: now,
       permissions: body.permissions ?? [],
@@ -181,7 +184,7 @@ const handlers = [
     });
   }),
 
-  http.patch<{ id: string }>("/api/system/roles/:id", async ({ request, params }) => {
+  http.patch<{ id: string }>("/api/v1/system/roles/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
     if (!getRoleList(locale).some((item) => item.id === params.id)) {
       return HttpResponse.json({ code: 40401, message: "角色不存在" }, { status: 404 });
@@ -194,7 +197,7 @@ const handlers = [
     });
   }),
 
-  http.delete("/api/system/roles", async ({ request }) => {
+  http.delete("/api/v1/system/roles", async ({ request }) => {
     const locale = request.headers.get("locale") || "zh";
     const url = new URL(request.url);
     const ids = (url.searchParams.get("ids") || "").split(",").filter(Boolean);

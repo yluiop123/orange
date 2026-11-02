@@ -31,7 +31,7 @@ import java.security.Principal;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class LoginController {
     private final UserDetailsService userDetailsService;
@@ -152,7 +152,7 @@ public class LoginController {
                 .body(Response.<LoginResp>error(429, "登录失败次数过多，请稍后再试"));
     }
 
-    @GetMapping("/userInfo")
+    @GetMapping("/user-info")
     public Response<UserInfo> userInfo(Principal principal) {
         String username = principal.getName();
         UserInfo userInfo = userService.queryUserInfo(username);

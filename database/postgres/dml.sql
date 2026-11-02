@@ -54,7 +54,8 @@ INSERT INTO public.sys_permission (id,"name","path","action","type",status,paren
 	 ('000503','组织管理','/system/group',NULL,'menu','1','0005'),
 	 ('00050300','新增','/system/group','add','action','1','000503'),
 	 ('00050301','删除','/system/group','delete','action','1','000503'),
-	 ('00050302','编辑','/system/group','edit','action','1','000503');
+	 ('00050302','编辑','/system/group','edit','action','1','000503'),
+	 ('000504','操作日志','/system/operation-log',NULL,'menu','1','0005');
 -- END GENERATED PERMISSIONS
 INSERT INTO public.sys_role (id,"name",status) VALUES
 	 ('admin','管理员','1'),
@@ -103,6 +104,7 @@ INSERT INTO public.sys_role_permission (role_id,permission_id) VALUES
 	 ('super','00050300'),
 	 ('super','00050301'),
 	 ('super','00050302'),
+	 ('super','000504'),
 	 ('super','000000'),
 	 ('super','000001'),
 	 ('super','000002'),
@@ -126,6 +128,7 @@ INSERT INTO public.sys_role_permission (role_id,permission_id) VALUES
 	 ('admin','00050300'),
 	 ('admin','00050301'),
 	 ('admin','00050302'),
+	 ('admin','000504'),
 	 ('user','0000');
 -- END GENERATED ROLE_PERMISSIONS
 INSERT INTO public.sys_user (id,"name",username,email,group_id,phone,status,"password") VALUES

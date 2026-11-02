@@ -1,4 +1,5 @@
 import { listGroups } from "@/api/system/group";
+import type { Status } from "@/lib/status";
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 import TreeSelect, { TreeNode, TreeSelectProps } from "./ext/tree-select";
@@ -13,7 +14,7 @@ type GroupTreeSelectProps = OmittedTreeSelectProps & {
 export type GroupNode = TreeNode & {
   children?: GroupNode[]
   parentId?: string | null
-  status?: "0" | "1"
+  status?: Status
 }
 function buildTree(data: GroupNode[]): GroupNode[] {
   const map = new Map<string, GroupNode>();

@@ -23,7 +23,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { formatDateTime } from "@/lib/date-time";
 import { statusEnum } from "@/lib/dict";
+import type { Status } from "@/lib/status";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -84,7 +86,7 @@ export default function Role() {
             setDeleting(false);
         }
     }
-    function handleStatusChange(row: Role, status: "0" | "1") {
+    function handleStatusChange(row: Role, status: Status) {
         return roleApi.updateRole(row.id, { status }).then(() => {
             setParams(prev => ({ ...prev }));
         })
@@ -101,7 +103,7 @@ export default function Role() {
                     onClick={() => {
                         const isAsc = column.getIsSorted() === "asc";
                         table.setSorting([{ id: "name", desc: isAsc }]);
-                        setParams(prev => ({ ...prev, orderValue: isAsc ? "desc" : "asc", orderField: 'name', page: 1 }))
+                        setParams(prev => ({ ...prev, direction: isAsc ? "desc" : "asc", sort: 'name', page: 1 }))
                     }}
                 >
                     {intl.formatMessage({ id: 'page.system.role.header.name' })}
@@ -120,7 +122,7 @@ export default function Role() {
             meta: { title: intl.formatMessage({ id: 'page.system.role.header.createTime' }) },
             accessorKey: "createTime",
             header: intl.formatMessage({ id: 'page.system.role.header.createTime' }),
-            cell: ({ row }) => <div>{row.getValue("createTime")}</div>,
+            cell: ({ row }) => <div>{formatDateTime(row.getValue("createTime"))}</div>,
         },
         {
             meta: { title: intl.formatMessage({ id: 'page.system.role.header.status' }) },

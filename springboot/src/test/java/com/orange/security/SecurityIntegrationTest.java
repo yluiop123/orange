@@ -104,7 +104,7 @@ class SecurityIntegrationTest {
 
     @Test
     void unauthenticatedRequestsUseUnified401() {
-        ResponseEntity<String> response = rest.getForEntity("/api/user/userInfo", String.class);
+        ResponseEntity<String> response = rest.getForEntity("/api/v1/auth/user-info", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(response.getBody()).contains("\"code\":40101").contains("\"traceId\"");
@@ -119,10 +119,10 @@ class SecurityIntegrationTest {
         assertThat(login.refreshCookie()).startsWith("refresh_token=");
         assertThat(login.body().path("data").path("expiresIn").asLong()).isPositive();
 
-        assertThat(authorizedGet("/api/user/userInfo", login.token()).getStatusCode())
+        assertThat(authorizedGet("/api/v1/auth/user-info", login.token()).getStatusCode())
                 .isEqualTo(HttpStatus.OK);
 
-        ResponseEntity<String> menus = authorizedGet("/api/user/menus", login.token());
+        ResponseEntity<String> menus = authorizedGet("/api/v1/auth/menus", login.token());
         assertThat(menus.getStatusCode()).isEqualTo(HttpStatus.OK);
         JsonNode roots = JSON.readTree(menus.getBody()).path("data");
         assertThat(roots.isArray()).isTrue();
@@ -147,10 +147,10 @@ class SecurityIntegrationTest {
     void logoutRevokesAccessToken() throws Exception {
         Login login = login("super", "super");
 
-        assertThat(authorizedPost("/api/user/logout", login.token()).getStatusCode())
+        assertThat(authorizedPost("/api/v1/auth/logout", login.token()).getStatusCode())
                 .isEqualTo(HttpStatus.OK);
 
-        assertThat(authorizedGet("/api/user/userInfo", login.token()).getStatusCode())
+        assertThat(authorizedGet("/api/v1/auth/user-info", login.token()).getStatusCode())
                 .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
@@ -158,7 +158,7 @@ class SecurityIntegrationTest {
     void normalUserCannotCallSystemApi() throws Exception {
         Login login = login("user", "user");
 
-        ResponseEntity<String> denied = authorizedGet("/api/system/users?page=1&size=1", login.token());
+        ResponseEntity<String> denied = authorizedGet("/api/v1/system/users?page=1&size=1", login.token());
 
         assertThat(denied.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(denied.getBody()).contains("\"code\":40301");
@@ -181,12 +181,12 @@ class SecurityIntegrationTest {
         Login login = login(createdUsername, "TempPass123");
 
         assertThat(login.status()).isEqualTo(HttpStatus.OK);
-        assertThat(authorizedGet("/api/user/userInfo", login.token()).getStatusCode())
+        assertThat(authorizedGet("/api/v1/auth/user-info", login.token()).getStatusCode())
                 .isEqualTo(HttpStatus.OK);
-        assertThat(authorizedGet("/api/user/menus", login.token()).getStatusCode())
+        assertThat(authorizedGet("/api/v1/auth/menus", login.token()).getStatusCode())
                 .isEqualTo(HttpStatus.OK);
 
-        ResponseEntity<String> blocked = authorizedGet("/api/system/users?page=1&size=1", login.token());
+        ResponseEntity<String> blocked = authorizedGet("/api/v1/system/users?page=1&size=1", login.token());
         assertThat(blocked.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(blocked.getBody()).contains("\"code\":40302");
     }
@@ -272,15 +272,15 @@ class SecurityIntegrationTest {
     @Test
     void cannotDisableCurrentUser() throws Exception {
         Login login = login("super", "super");
-        JsonNode info = JSON.readTree(authorizedGet("/api/user/userInfo", login.token()).getBody());
+        JsonNode info = JSON.readTree(authorizedGet("/api/v1/auth/user-info", login.token()).getBody());
         String userId = info.path("data").path("id").asText();
 
         ResponseEntity<String> response = authorizedJson(
-                "PATCH", "/api/system/users/" + userId, login.token(), Map.of("status", "0"));
+                "PATCH", "/api/v1/system/users/" + userId, login.token(), Map.of("status", "0"));
 
         assertThat(response.getStatusCode().is4xxClientError()).isTrue();
         assertThat(response.getBody()).contains("不能禁用当前登录用户");
-        assertThat(JSON.readTree(authorizedGet("/api/user/userInfo", login.token()).getBody())
+        assertThat(JSON.readTree(authorizedGet("/api/v1/auth/user-info", login.token()).getBody())
                 .path("data").path("status").asText()).isEqualTo("1");
     }
 
@@ -288,12 +288,12 @@ class SecurityIntegrationTest {
     void adminCannotResetSuperPassword() throws Exception {
         Login admin = login("admin", "admin");
         ResponseEntity<String> search = authorizedGet(
-                "/api/system/users?page=1&size=10&filterField=username&filterValue=super&groupId=",
+                "/api/v1/system/users?page=1&size=10&keyword=super&groupId=",
                 admin.token());
         String superId = JSON.readTree(search.getBody()).path("data").path("list").get(0).path("id").asText();
 
         ResponseEntity<String> response = authorizedPost(
-                "/api/system/users/" + superId + "/reset-password", admin.token());
+                "/api/v1/system/users/" + superId + "/reset-password", admin.token());
 
         assertThat(response.getStatusCode().is4xxClientError()).isTrue();
         assertThat(response.getBody()).contains("无权重置超级管理员密码");
@@ -305,7 +305,7 @@ class SecurityIntegrationTest {
         String username = "itgrant" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         createdUsername = username;
 
-        ResponseEntity<String> response = authorizedJson("POST", "/api/system/users", admin.token(), Map.of(
+        ResponseEntity<String> response = authorizedJson("POST", "/api/v1/system/users", admin.token(), Map.of(
                 "name", "Grant Test",
                 "username", username,
                 "email", username + "@example.com",
@@ -317,6 +317,52 @@ class SecurityIntegrationTest {
 
         assertThat(response.getStatusCode().is4xxClientError()).isTrue();
         assertThat(response.getBody()).contains("只有超级管理员可以授予 super 角色");
+    }
+
+    @Test
+    void traceIdHeaderIsReusedInErrorResponse() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Request-Id", "trace-test-1234");
+
+        ResponseEntity<String> response = rest.exchange(
+                "/api/v1/auth/user-info", HttpMethod.GET, new HttpEntity<>(headers), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getHeaders().getFirst("X-Request-Id")).isEqualTo("trace-test-1234");
+        assertThat(response.getBody()).contains("\"traceId\":\"trace-test-1234\"");
+    }
+
+    @Test
+    void operationLogRecordsTraceIdBodyAndPath() throws Exception {
+        Login login = login("super", "super");
+        String traceId = "oplog" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(login.token());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Request-Id", traceId);
+
+        ResponseEntity<String> created = rest.exchange(
+                "/api/v1/system/groups/children",
+                HttpMethod.POST,
+                new HttpEntity<>(JSON.writeValueAsString(Map.of("id", "97", "name", "Log Test")), headers),
+                String.class);
+        assertThat(created.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        try {
+            ResponseEntity<String> logs = authorizedGet(
+                    "/api/v1/system/operation-logs?path=/api/v1/system/groups&size=20", login.token());
+
+            assertThat(logs.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(logs.getBody())
+                    .contains(traceId)
+                    .contains("/api/v1/system/groups/children")
+                    .contains("Log Test")
+                    .contains("\"username\":\"super\"");
+        } finally {
+            if (groupRepository.existsById("97")) {
+                groupRepository.deleteById("97");
+            }
+        }
     }
 
     private ResponseEntity<String> authorizedJson(String method, String path, String token, Object body)
@@ -353,7 +399,7 @@ class SecurityIntegrationTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> request = new HttpEntity<>(
                 JSON.writeValueAsString(Map.of("username", username, "password", password)), headers);
-        ResponseEntity<String> response = rest.postForEntity("/api/user/login", request, String.class);
+        ResponseEntity<String> response = rest.postForEntity("/api/v1/auth/login", request, String.class);
         JsonNode body = JSON.readTree(response.getBody());
         String token = body.path("data").path("token").asText(null);
         String refreshCookie = response.getHeaders()
@@ -381,7 +427,7 @@ class SecurityIntegrationTest {
     private ResponseEntity<String> refresh(String cookie) {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.COOKIE, cookie);
-        return rest.exchange("/api/user/refresh", HttpMethod.POST, new HttpEntity<>(headers), String.class);
+        return rest.exchange("/api/v1/auth/refresh", HttpMethod.POST, new HttpEntity<>(headers), String.class);
     }
 
     private record Login(HttpStatusCode status, String token, String refreshCookie, JsonNode body) {

@@ -60,7 +60,7 @@ const useUserStore = create<GlobalInfo>()((set, get) => ({
     }
     try {
     // 模拟获取用户信息
-    const res = await axios.get("/user/userInfo");
+    const res = await axios.get("/auth/user-info");
     if (res.data.data) {
       const userInfo: UserInfo = res.data.data;
       // 刷新后恢复上次选择的角色；角色已不属于当前用户时回退到“全部”
@@ -97,7 +97,7 @@ const useUserStore = create<GlobalInfo>()((set, get) => ({
     useMenuStore.getState().clearMenus();
     // 通知后端递增 token 版本并清 refresh Cookie；失败也不影响本地登出
     axios
-      .post("/user/logout", undefined, {
+      .post("/auth/logout", undefined, {
         headers: currentToken
           ? { Authorization: `Bearer ${currentToken}` }
           : undefined,
