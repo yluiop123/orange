@@ -50,11 +50,13 @@ public class RoleServiceImpl implements RoleService {
     @Transactional(readOnly = true)
     public PageData<RoleBean> queryRoles(QueryRoleReq req) {
         String requestedSort = req.getSort() != null ? req.getSort() : req.getOrderField();
-        String sortBy = requestedSort != null && ROLE_SORT_FIELDS.contains(requestedSort)
-                ? requestedSort : "id";
+        boolean explicitSort = requestedSort != null && ROLE_SORT_FIELDS.contains(requestedSort);
+        // 默认按创建时间倒序，新增角色回到第 1 页即可看到
+        String sortBy = explicitSort ? requestedSort : "createTime";
         String requestedDirection = req.getDirection() != null ? req.getDirection() : req.getOrderValue();
         String sortDir = requestedDirection == null || requestedDirection.isBlank()
-                ? "asc" : requestedDirection;
+                ? (explicitSort ? "asc" : "desc")
+                : requestedDirection;
         if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
             throw new BusinessException("排序方向只能是 asc 或 desc");
         }

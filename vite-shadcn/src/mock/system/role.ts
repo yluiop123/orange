@@ -120,10 +120,12 @@ const handlers = [
     const status = url.searchParams.get("status") || "";
     const page = Number(url.searchParams.get("page") || 1);
     const size = Number(url.searchParams.get("size") || 10);
-    const sort = url.searchParams.get("sort") || url.searchParams.get("orderField");
+    const sort = url.searchParams.get("sort")
+      || url.searchParams.get("orderField")
+      || "createTime";
     const direction = url.searchParams.get("direction")
       || url.searchParams.get("orderValue")
-      || "asc";
+      || "desc";
     let list = getRoleList(locale);
     if (id) list = list.filter((item) => item.id.startsWith(id));
     if (name) list = list.filter((item) => item.name.toLowerCase().startsWith(name.toLowerCase()));

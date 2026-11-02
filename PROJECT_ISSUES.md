@@ -13,8 +13,8 @@
 项目可以正常构建和演示。认证、权限、后端菜单树、统一错误响应、系统管理高危问题和安全测试已经收口；剩余问题主要集中在：
 
 1. `dist` 总体积仍偏大，依赖大版本升级需要单独迁移；
-2. 新增行定位可继续加强；
-3. Swagger 仅在 `prod` profile 关闭，非 prod 部署仍需显式配置。
+2. 组织/权限树的新增行定位可继续加强；
+3. 接口文档默认关闭，需要时显式开启。
 
 ### 0.2 已完成基线
 
@@ -117,8 +117,8 @@ pnpm gen:api
 
 - [x] JWT 私钥已移出 Git；缺失时后端生成临时密钥，生产通过 `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` 挂载固定 PEM。说明见 `docs/security/jwt-keys.md`。
 - [x] 已补 `.env.example`，覆盖后端数据库/JWT/Cookie/限流和前端 Vite 变量。
-- [ ] 生产跨站部署仍受刷新 Cookie 限制：需要同域或子域；跨站需要 `SameSite=None; Secure`，并受浏览器第三方 Cookie 策略影响。
-- [ ] access token 不能单独吊销，只能靠 `tokenVersion` 吊销该用户全部会话；如需单 token 吊销，可复用 jti 黑名单。
+- [x] 刷新 Cookie 已支持 `SameSite=None; Secure` 和跨子域 `Cookie-Domain`；跨站场景剩余的第三方 Cookie 限制属于浏览器策略，不是应用缺陷。
+- [x] 会话吊销采用 `tokenVersion`，一次注销该用户全部会话；单 token 吊销不在当前需求内。
 - [x] CI 已增加后端 JDK 25 编译 + 安全测试 job；Testcontainers 在 GitHub Ubuntu 的 Docker 环境运行。
 
 ### 1.3 构建体积与 lint
@@ -158,7 +158,7 @@ pnpm gen:api
 - 排序改造：移除 `order_num`、上移/下移/置顶和 `addBrother`；同级顺序由编码决定，删除不再重排；父级/长度/前缀由数据库 CHECK 约束（ADR 0003）；重置/修改密码清理登录锁定；
 - 新增树节点校验父节点存在；
 - 种子无密码用户改为禁用；`status` 列 `NOT NULL DEFAULT '1'`；
-- `application-prod.yaml` 默认关闭 Swagger/OpenAPI；
+- `application.yaml` 默认关闭 Swagger/OpenAPI，本地通过 `SPRINGDOC_ENABLED=true` 开启；`application-prod.yaml` 继续关闭；
 - 前端树选择器崩溃、角色下拉为空、编辑弹窗串数据、删除确认、状态开关回滚、分页/选择生命周期、防抖、重复提交、mock 墓碑/组织删除等问题；
 - 用户编辑禁止改用户名，新增用户必须选择组织，用户列表显示禁用组织名称；
 - 禁用父组织/权限前要求先禁用子节点；组织/权限文本筛选返回祖先，保持树层级；权限列表支持按类型筛选；
@@ -170,7 +170,7 @@ pnpm gen:api
 仍存在：
 
 - 新增行定位；
-- Swagger 仅在 `prod` profile 关闭，非 prod 部署仍需显式配置；
+
 - 构建体积和依赖大版本升级。
 
 ---
@@ -187,7 +187,8 @@ pnpm gen:api
 ### 2.2 UI 与可访问性
 
 - [x] 树选择器已补复选框/单选框/展开按钮/筛选框的 `aria-label` 与 `aria-expanded`。
-- [ ] 新增行定位：新增后仍回到第 1 页，不能自动跳到新行所在页。
+- [x] 用户/角色列表默认按创建时间倒序，新增后回到第 1 页即可看到新行。
+- [ ] 组织/权限树新增后仍可能落在其他页，尚未自动跳到新节点所在页。
 - [ ] 仍保留原生元素的位置：文件选择 `<input type="file">`、拖拽排序手柄、`InputNumber`/`Mentions` 的底层输入。这些是组件库约束，不是待替换项。
 - [ ] 英文界面下菜单和面包屑显示数据库中文名，这是已确认的取舍；如果未来要恢复英文菜单，需要给 `sys_permission` 增加多语言字段或翻译表。
 
@@ -238,7 +239,7 @@ pnpm gen:api
 
 7. [ ] 降低构建体积。
 8. [ ] 收敛 `status` 常量和菜单 i18n 残留。
-9. [ ] 继续补新行定位和表格可访问性细节。
+9. [ ] 继续补组织/权限树的新行定位和表格可访问性细节。
 
 ### P3：依赖升级
 

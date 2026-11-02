@@ -63,6 +63,7 @@ class SecurityIntegrationTest {
         registry.add("spring.sql.init.data-locations", () -> "file:../database/postgres/dml.sql");
         registry.add("spring.sql.init.encoding", () -> "UTF-8");
         registry.add("spring.jpa.show-sql", () -> "false");
+        registry.add("springdoc.api-docs.enabled", () -> "true");
     }
 
     @Autowired

@@ -40,14 +40,13 @@ jwt:
   access-expire: 900        # 15分钟
   refresh-expire: 604800    # 7天
 springdoc:
+  # 默认关闭接口文档；本地联调时显式设置 SPRINGDOC_ENABLED=true
   swagger-ui:
-    # 自定义 Swagger UI 的访问地址，默认是 /swagger-ui.html
     path: /swagger-ui.html
-    # 启用尝试功能（Try it out）
-    enabled: true
+    enabled: ${SPRINGDOC_ENABLED:false}
   api-docs:
-    # OpenAPI 描述文件的路径，默认是 /v3/api-docs
     path: /api-docs
+    enabled: ${SPRINGDOC_ENABLED:false}
   # 只扫描特定的包
   packages-to-scan: com.orange.controller
 app:
