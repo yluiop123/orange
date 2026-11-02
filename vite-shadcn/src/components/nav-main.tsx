@@ -8,10 +8,12 @@ import {
   SidebarMenu
 } from "@/components/ui/sidebar";
 import type { MenuNode } from "@/types/menu";
+import { useIntl } from "react-intl";
 export function NavMain({items}: {items: MenuNode[]}) {
+  const intl = useIntl();
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Menu</SidebarGroupLabel>
+      <SidebarGroupLabel>{intl.formatMessage({ id: "sidebar.menu.title" })}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
            <SidebarMenuTree item={item} key={item.id}></SidebarMenuTree>

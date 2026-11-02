@@ -166,9 +166,9 @@
 ### 2.1 前端数据层
 
 - [x] `setParams` 已改为函数式更新；`useResourceList` 暴露显式 `refetch`，错误态可重试。
-- [ ] `status` 仍是字符串 `"0"`/`"1"` 散落在页面、Mock 和 DTO 中，没有共享枚举/常量。
+- [ ] `status` 仍是字符串 `"0"`/`"1"` 散落在页面、Mock 和 DTO 中，没有统一枚举；`StatusSwitch` 已使用 `src/lib/status.ts` 常量。
 - [ ] 可以引入 TanStack Query 统一缓存、重试、失效和请求状态；当前 `useResourceList` 已能工作，属于优化项，不是必须。
-- [ ] `SidebarGroupLabel` 仍硬编码 `"Menu"`，`MenuRedirect` 的 Loading 文案也仍是硬编码，未走 i18n。
+- [x] `SidebarGroupLabel` 和 `MenuRedirect` 的文案已走 i18n。
 
 ### 2.2 UI 与可访问性
 

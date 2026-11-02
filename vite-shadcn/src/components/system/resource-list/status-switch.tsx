@@ -1,10 +1,11 @@
 import { Switch } from "@/components/ui/switch";
+import { isStatusEnabled, STATUS_DISABLED, STATUS_ENABLED, type Status } from "@/lib/status";
 import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
 
 type StatusSwitchProps = {
   initial: string;
-  onChange: (value: "0" | "1") => void | Promise<unknown>;
+  onChange: (value: Status) => void | Promise<unknown>;
   disabled?: boolean;
 };
 
@@ -13,18 +14,18 @@ type StatusSwitchProps = {
  */
 export function StatusSwitch({ initial, onChange, disabled }: StatusSwitchProps) {
   const intl = useIntl();
-  const [checked, setChecked] = useState(initial === "1");
+  const [checked, setChecked] = useState(isStatusEnabled(initial));
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    setChecked(initial === "1");
+    setChecked(isStatusEnabled(initial));
   }, [initial]);
 
   async function handleChange(value: boolean) {
     setChecked(value);
     setPending(true);
     try {
-      await onChange(value ? "1" : "0");
+      await onChange(value ? STATUS_ENABLED : STATUS_DISABLED);
     } catch {
       setChecked(!value);
     } finally {

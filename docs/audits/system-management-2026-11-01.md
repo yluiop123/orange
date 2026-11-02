@@ -26,7 +26,7 @@
 仍存在：
 
 - 操作日志 traceId/变更内容/归档策略。
-- 前端 `status` 常量、少量硬编码 i18n、树/表格可访问性、新增行定位。
+- 前端 `status` 常量（`StatusSwitch` 已收敛）、树/表格可访问性、新增行定位。
 - `queryUserInfo` 多集合 EntityGraph 笛卡尔积；Swagger 生产鉴权。
 - 构建体积和依赖大版本升级。
 

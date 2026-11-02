@@ -35,7 +35,9 @@ export function MenuRedirect({ nodePath }: { nodePath?: string }) {
       );
     }
     return (
-      <div className="flex h-full items-center justify-center">Loading...</div>
+      <div className="flex h-full items-center justify-center">
+        {intl.formatMessage({ id: "sidebar.menu.loading" })}
+      </div>
     );
   }
 

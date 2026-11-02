@@ -40,6 +40,7 @@ export default {
     'sidebar.menu.loading': 'Loading menu…',
     'sidebar.menu.error': 'Failed to load menu',
     'sidebar.menu.retry': 'Retry',
+    'sidebar.menu.title': 'Menu',
     'page.login.title': 'Welcome',
     'page.login.desc': 'Please enter your account information to log in',
     'page.login.username': 'Username',

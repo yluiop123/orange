@@ -40,6 +40,7 @@ export default {
     'sidebar.menu.loading': '菜单加载中…',
     'sidebar.menu.error': '菜单加载失败',
     'sidebar.menu.retry': '重试',
+    'sidebar.menu.title': '菜单',
     'page.login.title': '欢迎登录',
     'page.login.desc': '请输入您的账户信息以登录',
     'page.login.username': '用户名',
