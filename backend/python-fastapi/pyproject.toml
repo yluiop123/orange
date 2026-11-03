@@ -1,0 +1,10 @@
+[project]
+name = "orange-python-fastapi"
+version = "1.0.0"
+description = "ORANGE system management API — Python 3.13 / FastAPI port"
+requires-python = ">=3.13"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
