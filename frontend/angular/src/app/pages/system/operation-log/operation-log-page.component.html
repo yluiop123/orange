@@ -1,0 +1,126 @@
+<div class="page">
+  <app-page-header titleKey="page.system.operationLog.title" descKey="page.system.operationLog.desc" />
+
+  <div class="toolbar-row">
+    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
+      <mat-label>{{ 'page.system.operationLog.header.username' | t }}</mat-label>
+      <input matInput [value]="usernameValue()" (input)="onUsername($event)" autocomplete="off" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
+      <mat-label>{{ 'page.system.operationLog.header.path' | t }}</mat-label>
+      <input matInput [value]="pathValue()" (input)="onPath($event)" autocomplete="off" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter-sm" subscriptSizing="dynamic">
+      <mat-label>{{ 'page.system.operationLog.header.status' | t }}</mat-label>
+      <mat-select [value]="statusValue()" (selectionChange)="onStatus($event.value)">
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">
+            {{ status || ('dict.status.all' | t) }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter-date" subscriptSizing="dynamic">
+      <mat-label>{{ 'page.system.operationLog.header.from' | t }}</mat-label>
+      <input matInput type="datetime-local" [value]="fromValue()" (input)="onFrom($event)" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter-date" subscriptSizing="dynamic">
+      <mat-label>{{ 'page.system.operationLog.header.to' | t }}</mat-label>
+      <input matInput type="datetime-local" [value]="toValue()" (input)="onTo($event)" />
+    </mat-form-field>
+    <button mat-stroked-button type="button" (click)="lists.reload()">
+      <mat-icon>refresh</mat-icon>
+      {{ 'button.refresh' | t }}
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    @if (lists.loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <table mat-table [dataSource]="lists.rows()">
+      <ng-container matColumnDef="createTime">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.createTime' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="nowrap">{{ formatDateTime(log.createTime) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.username' | t }}</th>
+        <td mat-cell *matCellDef="let log">{{ log.username || '-' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="method">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.method' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="mono">{{ log.method }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="path">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.path' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="mono path-cell">{{ log.path }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.status' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="mono" [class.error]="log.status >= 400">{{ log.status }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="durationMs">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.duration' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="nowrap">{{ log.durationMs }} ms</td>
+      </ng-container>
+
+      <ng-container matColumnDef="ip">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.ip' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="mono">{{ log.ip || '-' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="traceId">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.operationLog.header.traceId' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="mono trace-cell" [title]="log.traceId || ''">
+          {{ log.traceId || '-' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="actions-cell">{{ 'table.actions' | t }}</th>
+        <td mat-cell *matCellDef="let log" class="actions-cell">
+          <button
+            mat-icon-button
+            type="button"
+            [attr.aria-label]="'button.detail' | t"
+            (click)="openDetail(log)"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    </table>
+
+    @if (lists.error()) {
+      <div class="empty-state">
+        <mat-icon>cloud_off</mat-icon>
+        <p>{{ 'table.loadError' | t }}</p>
+        <button mat-stroked-button type="button" (click)="lists.reload()">{{ 'table.retry' | t }}</button>
+      </div>
+    } @else if (!lists.loading() && lists.rows().length === 0) {
+      <div class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <p>{{ 'table.empty' | t }}</p>
+      </div>
+    }
+
+    <mat-paginator
+      [length]="lists.total()"
+      [pageIndex]="page() - 1"
+      [pageSize]="size()"
+      [pageSizeOptions]="[10, 20, 50]"
+      [showFirstLastButtons]="true"
+      (page)="onPage($event)"
+    />
+  </div>
+
+  <p class="muted count-note">{{ 'table.total' | t: { total: lists.total() } }}</p>
+</div>

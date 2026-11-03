@@ -1,0 +1,148 @@
+:host {
+  display: block;
+}
+
+.login-page {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 100vh;
+  background: var(--mat-sys-surface, #fff);
+}
+
+.brand-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 56px;
+  color: #f8fafc;
+  background:
+    radial-gradient(900px 600px at 10% 0%, rgba(245, 158, 11, 0.32), transparent 60%),
+    radial-gradient(700px 500px at 90% 100%, rgba(37, 99, 235, 0.25), transparent 60%),
+    #0f141d;
+}
+
+.brand-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.brand-name {
+  letter-spacing: 0.22em;
+  font-weight: 700;
+}
+
+.brand-copy h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 3vw, 2.9rem);
+  letter-spacing: -0.02em;
+}
+
+.brand-copy p {
+  margin: 0 0 28px;
+  color: #aab2c0;
+}
+
+.brand-copy ul {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #cbd5e1;
+  font-size: 0.92rem;
+}
+
+.brand-copy li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+}
+
+.brand-foot {
+  color: #6b7484;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+.form-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: var(--mat-sys-surface-container-low, #f7f8fa);
+}
+
+.locale {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 104px;
+}
+
+.login-card {
+  width: min(420px, 92vw);
+  padding: 10px 6px 4px;
+}
+
+mat-card-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.submit {
+  margin-top: 8px;
+  height: 46px;
+}
+
+.form-error {
+  margin: 0 0 4px;
+  color: var(--mat-sys-error, #b3261e);
+  font-size: 0.85rem;
+}
+
+.demo-hint {
+  margin: 18px 0 4px;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 0.78rem;
+}
+
+@media (max-width: 860px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+  .brand-panel {
+    display: none;
+  }
+  .form-panel {
+    min-height: 100vh;
+  }
+}

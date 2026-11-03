@@ -1,0 +1,79 @@
+.filter {
+  width: 160px;
+}
+
+.filter-sm {
+  width: 116px;
+}
+
+.select-cell {
+  width: 52px;
+}
+
+.actions-cell {
+  width: 64px;
+  text-align: right;
+}
+
+.tree-cell {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 40px;
+}
+
+.tree-toggle {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+}
+
+.tree-toggle mat-icon {
+  font-size: 19px;
+  width: 19px;
+  height: 19px;
+}
+
+.tree-spacer {
+  display: inline-block;
+  width: 32px;
+}
+
+.type-chip {
+  display: inline-flex;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.type-chip.action {
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.status-pill {
+  display: inline-flex;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(21, 128, 61, 0.12);
+  color: #15803d;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.status-pill.off {
+  background: rgba(185, 28, 28, 0.1);
+  color: #b91c1c;
+}
+
+.count-note {
+  margin: 10px 2px 0;
+  font-size: 0.78rem;
+}

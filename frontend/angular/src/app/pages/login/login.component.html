@@ -1,0 +1,75 @@
+<div class="login-page">
+  <section class="brand-panel">
+    <div class="brand-top">
+      <span class="brand-mark">O</span>
+      <span class="brand-name">{{ 'app.name' | t }}</span>
+    </div>
+    <div class="brand-copy">
+      <h1>{{ 'app.subtitle' | t }}</h1>
+      <p>RBAC · Auditing · Dashboards · Charts · Maps · 3D</p>
+      <ul>
+        <li><span class="dot"></span> In-memory access token, rotating refresh cookie</li>
+        <li><span class="dot"></span> Menu tree and permissions from the backend</li>
+        <li><span class="dot"></span> Chinese &amp; English</li>
+      </ul>
+    </div>
+    <div class="brand-foot">ORANGE · Angular + Angular Material</div>
+  </section>
+
+  <section class="form-panel">
+    <mat-select
+      class="locale"
+      [value]="i18n.locale()"
+      [attr.aria-label]="'header.language' | t"
+      (selectionChange)="changeLocale($event.value)"
+    >
+      @for (language of i18n.languages(); track language.id) {
+        <mat-option [value]="language.id">{{ language.label }}</mat-option>
+      }
+    </mat-select>
+
+    <mat-card appearance="outlined" class="login-card">
+      <mat-card-header>
+        <mat-card-title>{{ 'login.title' | t }}</mat-card-title>
+        <mat-card-subtitle>{{ 'login.desc' | t }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'login.username' | t }}</mat-label>
+            <input matInput formControlName="username" autocomplete="username" placeholder="super" />
+            <mat-icon matPrefix>person</mat-icon>
+            @if (form.controls.username.touched && form.controls.username.invalid) {
+              <mat-error>{{ 'login.username.valid' | t }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'login.password' | t }}</mat-label>
+            <input matInput type="password" formControlName="password" autocomplete="current-password" placeholder="super" />
+            <mat-icon matPrefix>lock</mat-icon>
+            @if (form.controls.password.touched && form.controls.password.invalid) {
+              <mat-error>{{ 'login.password.valid' | t }}</mat-error>
+            }
+          </mat-form-field>
+
+          @if (error()) {
+            <p class="form-error" role="alert">{{ error() }}</p>
+          }
+
+          <button mat-flat-button color="primary" type="submit" class="submit" [disabled]="loading()">
+            @if (loading()) {
+              <mat-spinner diameter="18" />
+            } @else {
+              <mat-icon>login</mat-icon>
+            }
+            {{ 'login.login' | t }}
+          </button>
+        </form>
+
+        <p class="demo-hint">{{ 'login.demoHint' | t }}</p>
+      </mat-card-content>
+    </mat-card>
+  </section>
+</div>

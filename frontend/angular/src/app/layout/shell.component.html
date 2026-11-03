@@ -1,0 +1,111 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    class="sidebar"
+    [mode]="mobile() ? 'over' : 'side'"
+    [opened]="mobile() ? navOpen() : true"
+    (closedStart)="navOpen.set(false)"
+  >
+    <a class="brand" routerLink="/" (click)="goHome()">
+      <span class="brand-mark">O</span>
+      <span class="brand-text">
+        <strong>{{ 'app.name' | t }}</strong>
+        <small>{{ 'app.subtitle' | t }}</small>
+      </span>
+    </a>
+
+    <nav class="menu" aria-label="Main navigation">
+      @for (node of auth.visibleMenus(); track node.id) {
+        <app-sidebar-item [node]="node" (click)="closeNav()" />
+      } @empty {
+        @if (auth.menusLoading()) {
+          <p class="menu-note">{{ 'sidebar.menu.loading' | t }}</p>
+        } @else if (auth.menusError()) {
+          <div class="menu-note">
+            <p>{{ 'sidebar.menu.error' | t }}</p>
+            <button mat-button type="button" (click)="auth.loadMenus()">
+              {{ 'sidebar.menu.retry' | t }}
+            </button>
+          </div>
+        }
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="dot"></span>
+      <span>ORANGE · Angular</span>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main">
+    <header class="topbar">
+      <button
+        mat-icon-button
+        type="button"
+        class="menu-toggle"
+        [attr.aria-label]="'header.toggleMenu' | t"
+        (click)="toggleNav()"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <nav class="breadcrumb" [attr.aria-label]="'header.breadcrumb' | t">
+        <a class="crumb home" routerLink="/" (click)="goHome()" [attr.aria-label]="'header.home' | t">
+          <mat-icon>home</mat-icon>
+        </a>
+        @for (node of breadcrumb(); track node.id; let last = $last) {
+          <mat-icon class="sep">chevron_right</mat-icon>
+          @if (last) {
+            <span class="crumb current" aria-current="page">{{ node.name }}</span>
+          } @else {
+            <a class="crumb" [routerLink]="node.path">{{ node.name }}</a>
+          }
+        }
+      </nav>
+
+      <span class="spacer"></span>
+
+      <mat-select
+        class="role-select"
+        [value]="auth.currentRole()"
+        [attr.aria-label]="'header.switchRole' | t"
+        (selectionChange)="changeRole($event.value)"
+      >
+        <mat-option [value]="allRoles">{{ 'header.allRoles' | t }}</mat-option>
+        @for (role of auth.roles(); track role.id) {
+          <mat-option [value]="role.id">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+
+      <mat-select
+        class="lang-select"
+        [value]="i18n.locale()"
+        [attr.aria-label]="'header.language' | t"
+        (selectionChange)="changeLocale($event.value)"
+      >
+        @for (language of i18n.languages(); track language.id) {
+          <mat-option [value]="language.id">{{ language.label }}</mat-option>
+        }
+      </mat-select>
+
+      <button mat-button type="button" class="user-button" [matMenuTriggerFor]="userMenu">
+        <span class="avatar">{{ initials() }}</span>
+        <span class="user-name">{{ auth.displayName() }}</span>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu" xPosition="before">
+        <button mat-menu-item type="button" (click)="openChangePassword()">
+          <mat-icon>lock</mat-icon>
+          <span>{{ 'header.changePassword' | t }}</span>
+        </button>
+        <button mat-menu-item type="button" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>{{ 'header.logout' | t }}</span>
+        </button>
+      </mat-menu>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,350 @@
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$orange-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--mat-sys-surface-container-low, #f7f8fa);
+  color: var(--mat-sys-on-surface, #1f2329);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+/* ---------- shared page primitives ---------- */
+
+.page {
+  padding: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.panel {
+  background: var(--mat-sys-surface, #fff);
+  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panel-title h2,
+.panel-title h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  gap: 16px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--mat-sys-surface, #fff);
+  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
+}
+
+.stat-card .label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-card .value {
+  margin-top: 10px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.stat-card .delta {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #15803d;
+}
+
+.stat-card .delta.down {
+  color: #b91c1c;
+}
+
+.stat-card .glyph {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #c2410c;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.chart-card {
+  background: var(--mat-sys-surface, #fff);
+  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.chart-card h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.chart-card p {
+  margin: 3px 0 8px;
+  font-size: 0.76rem;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  text-align: center;
+}
+
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 240px;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+}
+
+/* Full-bleed demo pages (maps, 3D) */
+.full-bleed {
+  height: calc(100vh - 60px);
+  min-height: 420px;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-host {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.map-overlay {
+  position: absolute;
+  z-index: 500;
+  top: 16px;
+  left: 16px;
+  max-width: 320px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+  font-size: 0.8rem;
+}
+
+.map-overlay h2 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.map-overlay p {
+  margin: 0;
+  color: #475569;
+}
+
+.map-legend {
+  position: absolute;
+  z-index: 500;
+  right: 16px;
+  bottom: 22px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.84);
+  color: #e2e8f0;
+  font-size: 0.75rem;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Leaflet */
+.leaflet-container {
+  background: #0b1220;
+}
+
+.map-pin {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f59e0b;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.map-pin.blue {
+  background: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.map-pin.red {
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.95);
+  color: #e2e8f0;
+}
+
+.flow-line {
+  stroke-dasharray: 8 10;
+  animation: flowdash 1.1s linear infinite;
+}
+
+@keyframes flowdash {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+
+
+/* ECharts tooltip readability */
+.echarts-tooltip {
+  font-family: Roboto, sans-serif;
+}
+
+/* Snackbars */
+.snack-success .mdc-snackbar__surface {
+  background: #166534 !important;
+}
+.snack-error .mdc-snackbar__surface {
+  background: #991b1b !important;
+}
+.snack-warning .mdc-snackbar__surface {
+  background: #92400e !important;
+}
+.snack-info .mdc-snackbar__surface {
+  background: #1e3a8a !important;
+}
+
+/* Dialog/table density */
+.mat-mdc-dialog-content {
+  color: var(--mat-sys-on-surface, #1f2329);
+}
+
+.table-wrap {
+  overflow: auto;
+  background: var(--mat-sys-surface, #fff);
+  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
+  border-radius: 14px;
+}
+
+table.mat-mdc-table {
+  width: 100%;
+}
+
+.mat-mdc-header-cell {
+  white-space: nowrap;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.toolbar-row .grow {
+  flex: 1;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 12px;
+  }
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}

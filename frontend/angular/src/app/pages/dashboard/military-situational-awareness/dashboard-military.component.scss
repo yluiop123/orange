@@ -1,0 +1,147 @@
+.military-page {
+  min-height: calc(100vh - 60px);
+  background:
+    linear-gradient(rgba(30, 58, 95, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 95, 0.18) 1px, transparent 1px),
+    radial-gradient(900px 600px at 20% 0%, rgba(14, 165, 233, 0.18), transparent 60%),
+    #060b14;
+  background-size: 36px 36px, 36px 36px, auto, auto;
+  color: #dbeafe;
+}
+
+.military-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.tag {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: #38bdf8;
+}
+
+.military-head h1 {
+  margin: 8px 0 4px;
+  font-size: 1.5rem;
+  color: #f0f9ff;
+}
+
+.military-head p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.86rem;
+}
+
+.readiness {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.readiness .value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #38bdf8;
+  line-height: 1;
+}
+
+.readiness .label {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.military-page ::ng-deep .stat-card,
+.military-page ::ng-deep .chart-card {
+  background: rgba(8, 20, 38, 0.82);
+  border-color: rgba(56, 189, 248, 0.18);
+}
+
+.military-page ::ng-deep .stat-card .label,
+.military-page ::ng-deep .chart-card p {
+  color: #94a3b8;
+}
+
+.military-page ::ng-deep .stat-card .value {
+  color: #f0f9ff;
+}
+
+.military-page ::ng-deep .stat-card .glyph {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+}
+
+.military-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.span-2 { grid-column: span 2; }
+.span-3 { grid-column: span 3; }
+
+.mil-card {
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(8, 20, 38, 0.82);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+}
+
+.mil-card h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #e0f2fe;
+}
+
+.mil-card p {
+  margin: 3px 0 8px;
+  color: #94a3b8;
+  font-size: 0.76rem;
+}
+
+.mil-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.mil-table th {
+  text-align: left;
+  padding: 8px;
+  color: #7dd3fc;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.mil-table td {
+  padding: 9px 8px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.08);
+}
+
+.status {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  font-size: 0.68rem;
+}
+
+.status.engaged {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+}
+
+@media (max-width: 1000px) {
+  .military-grid { grid-template-columns: 1fr 1fr; }
+  .span-2, .span-3 { grid-column: span 2; }
+}
+
+@media (max-width: 680px) {
+  .military-grid { grid-template-columns: 1fr; }
+  .span-2, .span-3 { grid-column: span 1; }
+}

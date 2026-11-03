@@ -1,0 +1,53 @@
+{
+  "name": "orange-angular",
+  "version": "1.0.0",
+  "description": "ORANGE admin console - Angular + Angular Material port",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --port 4200",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test --watch=false",
+    "lint": "ng lint"
+  },
+  "private": true,
+  "packageManager": "npm@11.6.0",
+  "dependencies": {
+    "@angular/animations": "21.2.25",
+    "@angular/cdk": "21.2.14",
+    "@angular/common": "21.2.25",
+    "@angular/compiler": "21.2.25",
+    "@angular/core": "21.2.25",
+    "@angular/forms": "21.2.25",
+    "@angular/material": "21.2.14",
+    "@angular/platform-browser": "21.2.25",
+    "@angular/router": "21.2.25",
+    "@babylonjs/core": "^9.33.2",
+    "@deck.gl/core": "^9.4.1",
+    "@deck.gl/geo-layers": "^9.4.1",
+    "@deck.gl/layers": "^9.4.1",
+    "d3": "^7.9.0",
+    "echarts": "6.1.0",
+    "leaflet": "1.9.4",
+    "ol": "10.11.0",
+    "rxjs": "~7.8.0",
+    "three": "0.187.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "21.2.25",
+    "@angular/cli": "21.2.25",
+    "@angular/compiler-cli": "21.2.25",
+    "@eslint/js": "^10.0.1",
+    "@types/d3": "^7.4.3",
+    "@types/leaflet": "1.9.20",
+    "@types/three": "0.187.0",
+    "angular-eslint": "21.4.0",
+    "eslint": "^10.3.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "8.59.2",
+    "vitest": "^4.0.8"
+  }
+}

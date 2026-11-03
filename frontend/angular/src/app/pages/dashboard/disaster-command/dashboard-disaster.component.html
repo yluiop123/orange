@@ -1,0 +1,46 @@
+<div class="page">
+  <app-page-header titleKey="page.dashboard.disaster.title" descKey="page.dashboard.disaster.desc">
+    <span class="alert-badge"><mat-icon>warning</mat-icon> Red alert · District 3</span>
+  </app-page-header>
+
+  <div class="stat-grid">
+    <app-stat-card labelKey="demo.incidents" value="24" icon="crisis_alert" delta="+4 in 2h" [down]="true" />
+    <app-stat-card labelKey="demo.resources" value="76%" icon="inventory_2" delta="18 convoys" />
+    <app-stat-card labelKey="demo.teams" value="31" icon="diversity_3" delta="9 on scene" />
+    <app-stat-card labelKey="demo.shelters" value="12" icon="home_work" delta="2,140 people" />
+  </div>
+
+  <div class="disaster-grid">
+    <section class="chart-card">
+      <h3>{{ 'demo.severity' | t }}</h3>
+      <p>Active incidents by severity</p>
+      <app-echart [option]="severity" height="270px" label="Incident severity" />
+    </section>
+    <section class="chart-card span-2">
+      <h3>Response performance</h3>
+      <p>Average response time and resolved incidents</p>
+      <app-echart [option]="response" height="270px" label="Response performance" />
+    </section>
+    <section class="chart-card">
+      <h3>{{ 'demo.resources' | t }}</h3>
+      <p>Allocation against requested units</p>
+      <app-echart [option]="resources" height="250px" label="Resource allocation" />
+    </section>
+    <section class="chart-card span-2">
+      <h3>Command timeline</h3>
+      <p>Latest decisions and field reports</p>
+      <ul class="timeline">
+        @for (item of timeline; track item.time) {
+          <li [class]="item.tone">
+            <span class="time mono">{{ item.time }}</span>
+            <span class="dot"></span>
+            <span class="body">
+              <strong>{{ item.title }}</strong>
+              <small>{{ item.detail }}</small>
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+</div>

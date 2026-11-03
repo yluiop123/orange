@@ -1,0 +1,47 @@
+<div class="page">
+  <app-page-header titleKey="page.dashboard.agriculture.title" descKey="page.dashboard.agriculture.desc">
+    <span class="season"><mat-icon>eco</mat-icon> Harvest season · Autumn</span>
+  </app-page-header>
+
+  <div class="stat-grid">
+    <app-stat-card labelKey="demo.fields" value="1,240 ha" icon="grass" delta="+6.2% area" />
+    <app-stat-card labelKey="demo.harvest" value="82%" icon="agriculture" delta="+9.4% YoY" />
+    <app-stat-card labelKey="demo.irrigation" value="64%" icon="water_drop" delta="18 zones active" />
+    <app-stat-card labelKey="demo.sensors" value="318" icon="sensors" delta="97% online" />
+  </div>
+
+  <div class="agri-grid">
+    <section class="chart-card span-2">
+      <h3>{{ 'demo.harvest' | t }}</h3>
+      <p>Monthly harvest volume by crop (tonnes)</p>
+      <app-echart [option]="harvest" height="290px" label="Harvest volume" />
+    </section>
+    <section class="chart-card">
+      <h3>{{ 'demo.crops' | t }}</h3>
+      <p>Planted area by crop</p>
+      <app-echart [option]="crops" height="290px" label="Crop mix" />
+    </section>
+    <section class="chart-card">
+      <h3>{{ 'demo.rainfall' | t }}</h3>
+      <p>Monthly precipitation in millimetres</p>
+      <app-echart [option]="rainfall" height="260px" label="Rainfall" />
+    </section>
+    <section class="chart-card span-2">
+      <h3>Field status</h3>
+      <table class="agri-table">
+        <thead><tr><th>Field</th><th>Crop</th><th>Area</th><th>Moisture</th><th>Status</th></tr></thead>
+        <tbody>
+          @for (field of fields; track field.name) {
+            <tr>
+              <td>{{ field.name }}</td>
+              <td>{{ field.crop }}</td>
+              <td>{{ field.area }}</td>
+              <td>{{ field.moisture }}</td>
+              <td><span class="state" [class.warn]="field.status !== 'Healthy'">{{ field.status }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>

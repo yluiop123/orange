@@ -1,0 +1,54 @@
+<div class="page">
+  <app-page-header titleKey="page.dashboard.normal.title" descKey="page.dashboard.desc" />
+
+  <div class="stat-grid">
+    <app-stat-card labelKey="demo.totalUsers" value="12,480" icon="group" delta="+12.4%" />
+    <app-stat-card labelKey="demo.revenue" value="$842K" icon="payments" delta="+8.2%" />
+    <app-stat-card labelKey="demo.orders" value="3,642" icon="shopping_cart" delta="-2.1%" [down]="true" />
+    <app-stat-card labelKey="demo.activeSessions" value="1,204" icon="bolt" delta="+4.4%" />
+  </div>
+
+  <div class="dashboard-grid">
+    <section class="chart-card span-2">
+      <h3>{{ 'demo.trend' | t }}</h3>
+      <p>Revenue and orders over the last twelve months</p>
+      <app-echart [option]="traffic" height="300px" label="Revenue and orders trend" />
+    </section>
+
+    <section class="chart-card">
+      <h3>{{ 'demo.trafficSources' | t }}</h3>
+      <p>Where signed-in visitors come from</p>
+      <app-echart [option]="sources" height="300px" label="Traffic sources" />
+    </section>
+
+    <section class="chart-card">
+      <h3>{{ 'demo.goal' | t }}</h3>
+      <p>Quarterly targets</p>
+      <div class="goal-list">
+        @for (goal of goals; track goal.label) {
+          <div class="goal">
+            <div class="goal-head">
+              <span>{{ goal.label }}</span>
+              <span class="muted">{{ goal.hint }}</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="goal.value" />
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="chart-card">
+      <h3>{{ 'demo.recentActivity' | t }}</h3>
+      <p>Latest customer and billing events</p>
+      <ul class="activity">
+        @for (item of activities; track item.when) {
+          <li>
+            <span class="icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+            <span class="text"><strong>{{ item.who }}</strong> {{ item.what }}</span>
+            <span class="when">{{ item.when }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+</div>

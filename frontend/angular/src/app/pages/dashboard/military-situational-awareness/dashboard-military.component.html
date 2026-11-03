@@ -1,0 +1,52 @@
+<div class="military-page">
+  <div class="page">
+    <header class="military-head">
+      <div>
+        <span class="tag">SITREP · 2026-11-03 08:00Z</span>
+        <h1>{{ 'page.dashboard.military.title' | t }}</h1>
+        <p>{{ 'page.dashboard.military.desc' | t }}</p>
+      </div>
+      <div class="readiness">
+        <span class="value">92%</span>
+        <span class="label">{{ 'demo.readiness' | t }}</span>
+      </div>
+    </header>
+
+    <div class="stat-grid">
+      <app-stat-card labelKey="demo.readiness" value="92%" icon="military_tech" delta="+3 pts" />
+      <app-stat-card labelKey="demo.units" value="48" icon="groups" delta="12 deployed" />
+      <app-stat-card labelKey="demo.incidents" value="17" icon="flag" delta="4 priority" />
+      <app-stat-card labelKey="demo.alerts" value="3" icon="notification_important" delta="1 critical" [down]="true" />
+    </div>
+
+    <div class="military-grid">
+      <section class="mil-card span-2">
+        <h3>Common operating picture</h3>
+        <p>Unit positions on a 100×100 tactical grid · size = combat power</p>
+        <app-echart [option]="situation" height="330px" label="Tactical situation" />
+      </section>
+      <section class="mil-card">
+        <h3>Capability profile</h3>
+        <p>Current versus target readiness</p>
+        <app-echart [option]="capabilities" height="330px" label="Capability radar" />
+      </section>
+      <section class="mil-card span-3">
+        <h3>Unit status</h3>
+        <table class="mil-table">
+          <thead><tr><th>Unit</th><th>Type</th><th>Status</th><th>Strength</th><th>Sector</th></tr></thead>
+          <tbody>
+            @for (unit of units; track unit.name) {
+              <tr>
+                <td class="mono">{{ unit.name }}</td>
+                <td>{{ unit.type }}</td>
+                <td><span class="status" [class.engaged]="unit.status === 'Engaged'">{{ unit.status }}</span></td>
+                <td>{{ unit.strength }}</td>
+                <td class="mono">{{ unit.sector }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</div>

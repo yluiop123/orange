@@ -1,0 +1,81 @@
+<div class="page">
+  <app-page-header titleKey="page.chart.d3.title" descKey="page.chart.d3.desc" />
+  <div class="d3-grid">
+    <section class="chart-card">
+      <h3>Bar chart</h3>
+      <p>d3-scale band + linear scales</p>
+      <svg class="d3-svg" [attr.viewBox]="'0 0 ' + width + ' ' + height" role="img" aria-label="Bar chart">
+        <g [attr.transform]="'translate(' + margin.left + ',' + margin.top + ')'">
+          @for (tick of barTicks; track tick.value) {
+            <line class="grid-line" x1="0" [attr.y1]="tick.y" [attr.x2]="innerWidth" [attr.y2]="tick.y" />
+            <text class="axis-label" x="-8" [attr.y]="tick.y + 3" text-anchor="end">{{ tick.value }}</text>
+          }
+          @for (bar of bars; track bar.label) {
+            <rect [attr.x]="bar.x" [attr.y]="bar.y" [attr.width]="bar.w" [attr.height]="bar.h" rx="4" fill="#f59e0b">
+              <title>{{ bar.label }}: {{ bar.value }}</title>
+            </rect>
+            <text class="axis-label" [attr.x]="bar.x + bar.w / 2" [attr.y]="innerHeight + 18" text-anchor="middle">{{ bar.label }}</text>
+          }
+          <line class="axis-line" x1="0" [attr.y1]="innerHeight" [attr.x2]="innerWidth" [attr.y2]="innerHeight" />
+        </g>
+      </svg>
+    </section>
+
+    <section class="chart-card">
+      <h3>Area line</h3>
+      <p>d3-shape line with a monotone curve</p>
+      <svg class="d3-svg" [attr.viewBox]="'0 0 ' + width + ' ' + height" role="img" aria-label="Area line chart">
+        <g [attr.transform]="'translate(' + margin.left + ',' + margin.top + ')'">
+          @for (tick of lineTicks; track tick.value) {
+            <line class="grid-line" x1="0" [attr.y1]="tick.y" [attr.x2]="innerWidth" [attr.y2]="tick.y" />
+            <text class="axis-label" x="-8" [attr.y]="tick.y + 3" text-anchor="end">{{ tick.value }}</text>
+          }
+          <path [attr.d]="areaPath" fill="rgba(37, 99, 235, 0.14)" />
+          <path [attr.d]="linePath" fill="none" stroke="#2563eb" stroke-width="2.5" />
+          @for (dot of lineDots; track dot.x) {
+            <circle [attr.cx]="dot.cx" [attr.cy]="dot.cy" r="3.5" fill="#2563eb" />
+          }
+          <line class="axis-line" x1="0" [attr.y1]="innerHeight" [attr.x2]="innerWidth" [attr.y2]="innerHeight" />
+        </g>
+      </svg>
+    </section>
+
+    <section class="chart-card">
+      <h3>Scatter plot</h3>
+      <p>Radius encodes sample weight</p>
+      <svg class="d3-svg" [attr.viewBox]="'0 0 ' + width + ' ' + height" role="img" aria-label="Scatter plot">
+        <g [attr.transform]="'translate(' + margin.left + ',' + margin.top + ')'">
+          @for (tick of lineTicks; track tick.value) {
+            <line class="grid-line" x1="0" [attr.y1]="tick.y" [attr.x2]="innerWidth" [attr.y2]="tick.y" />
+            <text class="axis-label" x="-8" [attr.y]="tick.y + 3" text-anchor="end">{{ tick.value }}</text>
+          }
+          @for (point of scatterPoints; track point.cx) {
+            <circle [attr.cx]="point.cx" [attr.cy]="point.cy" [attr.r]="point.r" fill="rgba(139, 92, 246, 0.7)" stroke="#7c3aed" stroke-width="1" />
+          }
+          <line class="axis-line" x1="0" [attr.y1]="innerHeight" [attr.x2]="innerWidth" [attr.y2]="innerHeight" />
+        </g>
+      </svg>
+    </section>
+
+    <section class="chart-card">
+      <h3>Donut</h3>
+      <p>d3-shape pie and arc generators</p>
+      <div class="donut-row">
+        <svg viewBox="0 0 220 260" class="donut-svg" role="img" aria-label="Donut chart">
+          <g transform="translate(110, 130)">
+            @for (slice of donut; track slice.name) {
+              <path [attr.d]="slice.d" [attr.fill]="slice.color" stroke="#fff" stroke-width="2">
+                <title>{{ slice.name }}</title>
+              </path>
+            }
+          </g>
+        </svg>
+        <ul class="legend-list">
+          @for (slice of donut; track slice.name) {
+            <li><span class="swatch" [style.background]="slice.color"></span>{{ slice.name }}</li>
+          }
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+.d3-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+.d3-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.grid-line {
+  stroke: rgba(148, 163, 184, 0.28);
+  stroke-dasharray: 3 3;
+}
+
+.axis-line {
+  stroke: #cbd5e1;
+}
+
+.axis-label {
+  fill: #64748b;
+  font-size: 10px;
+  font-family: Roboto, sans-serif;
+}
+
+.donut-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.donut-svg {
+  width: 220px;
+  max-width: 55%;
+  height: auto;
+}
+
+.legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.legend-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}

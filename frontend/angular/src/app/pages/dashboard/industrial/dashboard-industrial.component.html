@@ -1,0 +1,47 @@
+<div class="page">
+  <app-page-header titleKey="page.dashboard.industrial.title" descKey="page.dashboard.industrial.desc">
+    <span class="shift"><mat-icon>schedule</mat-icon> Shift B · 06:00–18:00</span>
+  </app-page-header>
+
+  <div class="stat-grid">
+    <app-stat-card labelKey="demo.throughput" value="12,400/h" icon="precision_manufacturing" delta="+5.8%" />
+    <app-stat-card labelKey="demo.oee" value="86%" icon="speed" delta="+2.4 pts" />
+    <app-stat-card labelKey="demo.lines" value="8" icon="conveyor_belt" delta="7 running" />
+    <app-stat-card labelKey="demo.alerts" value="5" icon="notification_important" delta="1 critical" [down]="true" />
+  </div>
+
+  <div class="ind-grid">
+    <section class="chart-card span-2">
+      <h3>{{ 'demo.production' | t }}</h3>
+      <p>Hourly output against target</p>
+      <app-echart [option]="output" height="280px" label="Hourly production" />
+    </section>
+    <section class="chart-card">
+      <h3>{{ 'demo.oee' | t }}</h3>
+      <p>Availability × performance × quality</p>
+      <app-echart [option]="oee" height="280px" label="OEE gauge" />
+    </section>
+    <section class="chart-card span-3">
+      <h3>Line performance</h3>
+      <p>Output and quality index by production line</p>
+      <app-echart [option]="byLine" height="250px" label="Line performance" />
+    </section>
+    <section class="chart-card span-3">
+      <h3>{{ 'demo.equipment' | t }}</h3>
+      <table class="ind-table">
+        <thead><tr><th>Asset</th><th>Line</th><th>{{ 'demo.status' | t }}</th><th>Temp</th><th>Vibration</th></tr></thead>
+        <tbody>
+          @for (item of equipment; track item.name) {
+            <tr>
+              <td>{{ item.name }}</td>
+              <td class="mono">{{ item.line }}</td>
+              <td><span class="state" [class.warn]="item.state !== 'Running'">{{ item.state }}</span></td>
+              <td>{{ item.temp }}</td>
+              <td>{{ item.vibration }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>

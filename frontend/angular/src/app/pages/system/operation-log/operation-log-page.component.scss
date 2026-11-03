@@ -1,0 +1,44 @@
+.filter {
+  width: 156px;
+}
+
+.filter-sm {
+  width: 104px;
+}
+
+.filter-date {
+  width: 198px;
+}
+
+.actions-cell {
+  width: 60px;
+  text-align: right;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.path-cell {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trace-cell {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.count-note {
+  margin: 10px 2px 0;
+  font-size: 0.78rem;
+}

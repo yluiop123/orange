@@ -1,0 +1,54 @@
+<div class="dark-page">
+  <div class="page">
+    <header class="dark-head">
+      <div>
+        <span class="live"><span class="pulse"></span>{{ 'demo.live' | t }}</span>
+        <h1>{{ 'page.dashboard.networkSecurity.title' | t }}</h1>
+        <p>{{ 'page.dashboard.networkSecurity.desc' | t }}</p>
+      </div>
+      <mat-icon class="shield">shield</mat-icon>
+    </header>
+
+    <div class="stat-grid">
+      <app-stat-card labelKey="demo.threats" value="1,284" icon="gpp_maybe" delta="+6.1%" [down]="true" />
+      <app-stat-card labelKey="demo.blocked" value="1,196" icon="block" delta="93.1% blocked" />
+      <app-stat-card labelKey="demo.open" value="88" icon="report" delta="-12 today" />
+      <app-stat-card labelKey="demo.endpoints" value="3,420" icon="devices" delta="98.2% healthy" />
+    </div>
+
+    <div class="dark-grid">
+      <section class="dark-card span-2">
+        <h3>{{ 'demo.trend' | t }}</h3>
+        <p>Ingress versus blocked traffic, last 24 hours (Gb/s)</p>
+        <app-echart [option]="traffic" height="280px" label="Network traffic" />
+      </section>
+      <section class="dark-card">
+        <h3>Risk</h3>
+        <p>Weighted exposure across critical assets</p>
+        <app-echart [option]="risk" height="280px" label="Risk score" />
+      </section>
+      <section class="dark-card">
+        <h3>{{ 'demo.severity' | t }}</h3>
+        <p>Open findings by severity</p>
+        <app-echart [option]="severity" height="260px" label="Severity distribution" />
+      </section>
+      <section class="dark-card span-2">
+        <h3>{{ 'demo.alerts' | t }}</h3>
+        <p>Streaming detections, newest first</p>
+        <table class="dark-table">
+          <thead><tr><th>Level</th><th>Event</th><th>Source</th><th>Time</th></tr></thead>
+          <tbody>
+            @for (alert of alerts; track alert.time) {
+              <tr>
+                <td><span class="level {{ alert.level }}">{{ alert.level }}</span></td>
+                <td>{{ alert.text }}</td>
+                <td class="mono">{{ alert.src }}</td>
+                <td class="mono">{{ alert.time }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</div>

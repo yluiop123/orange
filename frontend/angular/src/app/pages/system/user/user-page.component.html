@@ -1,0 +1,177 @@
+<div class="page">
+  <app-page-header titleKey="page.system.user.title" descKey="page.system.user.desc" />
+
+  <div class="toolbar-row">
+    <app-group-select
+      [value]="groupValue()"
+      [label]="'page.system.user.filterGroup'"
+      [attr.aria-label]="'page.system.user.filterGroup'"
+      (valueChange)="onGroup($event)"
+    />
+    <mat-form-field appearance="outline" class="keyword" subscriptSizing="dynamic">
+      <mat-label>{{ 'page.system.user.searchPlaceholder' | t }}</mat-label>
+      <input matInput [value]="keywordValue()" (input)="onKeyword($event)" autocomplete="off" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <app-status-filter
+      [value]="statusValue()"
+      [label]="'page.system.user.filterStatus'"
+      (valueChange)="onStatus($event)"
+    />
+    <span class="grow"></span>
+    @if (auth.canAct(path, 'add')) {
+      <button mat-flat-button type="button" (click)="openAdd()">
+        <mat-icon>add</mat-icon>
+        {{ 'button.add' | t }}
+      </button>
+    }
+    @if (auth.canAct(path, 'delete')) {
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="lists.selected().size === 0"
+        (click)="deleteSelected()"
+      >
+        <mat-icon>delete</mat-icon>
+        {{ 'button.delete' | t }}
+      </button>
+    }
+  </div>
+
+  <div class="table-wrap">
+    @if (lists.loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    <table mat-table [dataSource]="lists.rows()" class="user-table">
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef class="select-cell">
+          <mat-checkbox
+            [checked]="allSelected()"
+            [indeterminate]="someSelected()"
+            [attr.aria-label]="'button.selectAll' | t"
+            (change)="toggleAll($event)"
+          />
+        </th>
+        <td mat-cell *matCellDef="let user" class="select-cell">
+          <mat-checkbox
+            [checked]="lists.isSelected(user.id)"
+            [attr.aria-label]="'table.selectRow' | t"
+            (change)="lists.toggleRow(user.id)"
+          />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>
+          <button mat-button type="button" class="sort-button" (click)="sortByName()">
+            {{ 'page.system.user.header.name' | t }}
+            <mat-icon>arrow_upward</mat-icon>
+          </button>
+        </th>
+        <td mat-cell *matCellDef="let user">{{ user.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.user.header.userName' | t }}</th>
+        <td mat-cell *matCellDef="let user" class="mono">{{ user.username }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.user.header.email' | t }}</th>
+        <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.user.header.phone' | t }}</th>
+        <td mat-cell *matCellDef="let user">{{ user.phone }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="groupName">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.user.header.groupName' | t }}</th>
+        <td mat-cell *matCellDef="let user">{{ user.groupName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="createTime">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.user.header.createTime' | t }}</th>
+        <td mat-cell *matCellDef="let user" class="nowrap">{{ formatDateTime(user.createTime) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.user.header.status' | t }}</th>
+        <td mat-cell *matCellDef="let user">
+          @if (auth.canAct(path, 'edit')) {
+            <app-status-toggle
+              [status]="user.status"
+              [name]="user.username"
+              (changed)="changeStatus(user, $event)"
+            />
+          } @else {
+            <span class="status-pill" [class.off]="user.status === '0'">
+              {{ (user.status === '1' ? 'dict.status.enabled' : 'dict.status.disabled') | t }}
+            </span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="actions-cell">{{ 'table.actions' | t }}</th>
+        <td mat-cell *matCellDef="let user" class="actions-cell">
+          <button
+            mat-icon-button
+            type="button"
+            [matMenuTriggerFor]="rowMenu"
+            [attr.aria-label]="'table.openMenu' | t"
+          >
+            <mat-icon>more_horiz</mat-icon>
+          </button>
+          <mat-menu #rowMenu="matMenu" xPosition="before">
+            @if (auth.canAct(path, 'edit')) {
+              <button mat-menu-item type="button" (click)="openEdit(user)">
+                <mat-icon>edit</mat-icon>
+                <span>{{ 'button.edit' | t }}</span>
+              </button>
+              <button mat-menu-item type="button" (click)="resetPassword(user)">
+                <mat-icon>key</mat-icon>
+                <span>{{ 'button.reset.password' | t }}</span>
+              </button>
+            }
+            @if (auth.canAct(path, 'delete') && !isSelf(user)) {
+              <button mat-menu-item type="button" (click)="requestDelete([user])">
+                <mat-icon>delete</mat-icon>
+                <span>{{ 'button.delete' | t }}</span>
+              </button>
+            }
+          </mat-menu>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    </table>
+
+    @if (lists.error()) {
+      <div class="empty-state">
+        <mat-icon>cloud_off</mat-icon>
+        <p>{{ 'table.loadError' | t }}</p>
+        <button mat-stroked-button type="button" (click)="lists.reload()">{{ 'table.retry' | t }}</button>
+      </div>
+    } @else if (!lists.loading() && lists.rows().length === 0) {
+      <div class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <p>{{ 'table.empty' | t }}</p>
+      </div>
+    }
+
+    <mat-paginator
+      [length]="lists.total()"
+      [pageIndex]="page() - 1"
+      [pageSize]="size()"
+      [pageSizeOptions]="[10, 20, 50]"
+      [showFirstLastButtons]="true"
+      (page)="onPage($event)"
+    />
+  </div>
+
+  <p class="muted count-note">{{ 'table.total' | t: { total: lists.total() } }}</p>
+</div>
