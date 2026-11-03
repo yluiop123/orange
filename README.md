@@ -56,15 +56,15 @@ Rules for the layout:
 - Anything tied to a technology stack lives under `frontend/<stack>` or `backend/<stack>`.
 - `docs/`, `contracts/`, `database/` and the root READMEs are technology-agnostic.
 - `database/<engine>` contains only DDL and seed data. Runtime connection settings belong to each backend.
-- Only `frontend/react` is deployed to GitHub Pages. Angular and Vue are built and tested in CI but not deployed.
+- Only `frontend/react` is deployed to GitHub Pages. Angular and Vue are built and tested locally, but are not part of the Pages workflow.
 
 ## Stack matrix
 
 | Layer | Stack | Directory | Status |
 | --- | --- | --- | --- |
 | Frontend | React 19 + Vite + shadcn/ui | `frontend/react` | Implemented, deployed |
-| Frontend | Angular + Angular Material | `frontend/angular` | In progress |
-| Frontend | Vue 3 + Vuetify | `frontend/vue` | In progress |
+| Frontend | Angular + Angular Material | `frontend/angular` | Implemented, 19 tests pass |
+| Frontend | Vue 3 + Vuetify | `frontend/vue` | Implemented, 20 tests pass |
 | Backend | Java 25 + Spring Boot | `backend/springboot` | Implemented with PostgreSQL |
 | Backend | Go + Gin + GORM | `backend/go-gin-gorm` | Implemented |
 | Backend | Node.js + NestJS | `backend/node-nestjs` | Implemented |

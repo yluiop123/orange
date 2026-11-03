@@ -7,8 +7,8 @@ Every stack implements the same product. The contract is [API.md](./API.md); the
 | Layer | Stack | Directory | Port | Status |
 | --- | --- | --- | --- | --- |
 | Frontend | React 19 + Vite + shadcn/ui | `frontend/react` | 5173 | Implemented, deployed to GitHub Pages |
-| Frontend | Angular + Angular Material | `frontend/angular` | 4200 | In progress |
-| Frontend | Vue 3 + Vuetify | `frontend/vue` | 5174 | In progress |
+| Frontend | Angular + Angular Material | `frontend/angular` | 4200 | Implemented, 19 tests pass |
+| Frontend | Vue 3 + Vuetify | `frontend/vue` | 5174 | Implemented, 20 tests pass |
 | Backend | Java 25 + Spring Boot | `backend/springboot` | 8080 | Implemented |
 | Backend | Go + Gin + GORM | `backend/go-gin-gorm` | 8081 | Implemented |
 | Backend | Node.js + NestJS | `backend/node-nestjs` | 3000 | Implemented |
@@ -16,7 +16,7 @@ Every stack implements the same product. The contract is [API.md](./API.md); the
 | Backend | Rust + Axum | `backend/rust-axum` | 8083 | Implemented, 40 tests pass |
 | Backend | Python + FastAPI | `backend/python-fastapi` | 8000 | Implemented |
 
-Only `frontend/react` is deployed. CI builds and tests the other frontends but does not publish them.
+Only `frontend/react` is deployed. Angular and Vue are built and tested locally, but are not published.
 
 ## 2. Database per stack
 
@@ -121,7 +121,7 @@ Each stack README is the source of truth for its exact commands and environment 
 ## 4. CI and deployment
 
 - `.github/workflows/main.yml` compiles the Java backend, runs its tests, then builds the React app and deploys `frontend/react/dist` to GitHub Pages.
-- Angular and Vue are not deployed. Add their build/test steps to CI only if they stay green.
+- Angular and Vue are not deployed and are not yet in the CI workflow. Add their build/test steps when CI capacity allows.
 - The database scripts are not executed in CI except the PostgreSQL schema used by the Java integration tests.
 - New backends should add a CI job that at least compiles the project and runs unit tests.
 
