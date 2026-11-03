@@ -8,4 +8,4 @@ Routes are not generated from the menu tree. Every non-special page under `src/p
 
 Titles come from the database `name` column, not from locale messages. The trade-off is accepted: an English locale shows the database menu names, but the menu has one source of truth and no per-menu translation table.
 
-No database columns were added. Icons are mapped by page path on the frontend, with `Folder` for unknown directories and `Circle` for unknown menus. Enabled menu nodes whose parent is disabled or missing are promoted to roots with a warning log instead of being silently dropped.
+No database columns were added. Icons are mapped by page path on the frontend, with `Folder` for unknown directories and `Circle` for unknown menus. Enabled menu nodes whose parent is disabled or missing are dropped with a warning log. The menu tree never promotes an orphan branch. The system-management table may still promote a filtered orphan as a display fallback; that is a table behaviour, not the menu rule.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTree, collectTreeIds } from "./tree";
+import { buildChildrenTree, buildTree, collectTreeIds } from "./tree";
 
 type Node = { id: string; parentId?: string | null; name: string };
 
@@ -35,6 +35,22 @@ describe("buildTree", () => {
     const copy = rows.map((row) => ({ ...row }));
     buildTree(rows, config);
     expect(rows).toEqual(copy);
+  });
+});
+
+describe("buildChildrenTree", () => {
+  it("sorts roots and children by code using children", () => {
+    const tree = buildChildrenTree(rows, config);
+    expect(tree.map((node) => node.id)).toEqual(["0001", "0002", "9999"]);
+    expect(tree[0].children?.map((node) => node.id)).toEqual([
+      "000101",
+      "000102",
+    ]);
+  });
+
+  it("can drop orphans instead of promoting them", () => {
+    const tree = buildChildrenTree(rows, { ...config, orphan: "drop" });
+    expect(tree.map((node) => node.id)).toEqual(["0001", "0002"]);
   });
 });
 

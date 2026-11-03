@@ -1,29 +1,23 @@
 import { listRoles } from "@/api/system/role";
 import MultipleSelector, { Option } from "@/components/ext/multiple-selector";
-import { useEffect, useState } from "react";
+import { useReferenceData } from "@/components/ext/use-reference-data";
+import { useMemo } from "react";
 import { useIntl } from "react-intl";
 
 export default function RoleSelect({ ...props }) {
   const intl = useIntl();
-  const [options, setOptions] = useState<Option[]>([]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    listRoles({ page: 1, size: 100 }, controller.signal)
-      .then((result) => {
-        setOptions(
-          result.list.map((role) => ({
-            label: role.name,
-            value: role.id,
-            disable: role.status === "0",
-          })),
-        );
-      })
-      .catch(() => {
-        // 错误提示由 axios 拦截器统一处理
-      });
-    return () => controller.abort();
-  }, []);
+  const { data } = useReferenceData((signal) =>
+    listRoles({ page: 1, size: 100 }, signal).then((result) => result.list),
+  );
+  const options = useMemo<Option[]>(
+    () =>
+      data.map((role) => ({
+        label: role.name,
+        value: role.id,
+        disable: role.status === "0",
+      })),
+    [data],
+  );
 
   return (
     <MultipleSelector

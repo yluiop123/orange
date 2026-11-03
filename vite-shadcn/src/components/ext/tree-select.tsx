@@ -30,12 +30,6 @@ export type TreeNode = {
   [key: string]: unknown;
 };
 
-export type FieldNames = {
-  value?: string;
-  title?: string;
-  children?: string;
-};
-
 export type TreeSelectProps = {
   data: TreeNode[];
   multiple?: boolean;
@@ -45,7 +39,6 @@ export type TreeSelectProps = {
   placeholder?: string;
   filterable?: boolean;
   maxTagCount?: number;
-  fieldNames?: FieldNames;
   className?: string;
   disabled?: boolean;
 };
@@ -256,11 +249,6 @@ export default function TreeSelect(props: TreeSelectProps) {
     filterable = true,
     maxTagCount = 3,
     disabled = false,
-    fieldNames = {
-      value: "value",
-      title: "title",
-      children: "children",
-    },
     className,
   } = props;
 
@@ -276,19 +264,8 @@ export default function TreeSelect(props: TreeSelectProps) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
 
-  const treeData = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const transform = (nodes: any[]): TreeNode[] =>
-      nodes.map((item) => ({
-        ...item,
-        value: String(item[fieldNames.value!]),
-        title: String(item[fieldNames.title!]),
-        children: item[fieldNames.children!]
-          ? transform(item[fieldNames.children!])
-          : undefined,
-      }));
-    return transform(data);
-  }, [data, fieldNames]);
+  // 调用方负责把 DTO 归一化成 value/title/children，TreeSelect 不再二次映射。
+  const treeData = data;
 
   const handleToggle = (node: TreeNode, checked: boolean) => {
     const isSelected = mergedSelected.includes(node.value);

@@ -499,29 +499,28 @@ export default function TreeSelectExample() {
         </div>
       </section>
 
-      {/* 7. 自定义字段名 */}
+      {/* 7. 预归一化节点 */}
       <section className="space-y-4">
-        <h2 className="text-2xl font-semibold">自定义字段名 / Custom Field Names</h2>
+        <h2 className="text-2xl font-semibold">预归一化节点 / Normalized Nodes</h2>
         <div className="bg-card p-6 rounded-lg border">
           <Label className="mb-3 block">
-            当数据结构不同时 / Custom Field Structure
+            选择器只接收 value / title / children
           </Label>
           <TreeSelect
             data={[
               {
-                id: "custom-a",
-                name: "Custom Item A / 自定义项 A",
+                value: "custom-a",
+                title: "Custom Item A / 自定义项 A",
                 children: [
-                  { id: "custom-a-1", name: "Sub Item 1 / 子项 1" },
-                  { id: "custom-a-2", name: "Sub Item 2 / 子项 2" },
+                  { value: "custom-a-1", title: "Sub Item 1 / 子项 1" },
+                  { value: "custom-a-2", title: "Sub Item 2 / 子项 2" },
                 ],
               },
-            ] as TreeNode[]}
-            fieldNames={{ value: "id", title: "name", children: "children" }}
-            placeholder="自定义字段 / Custom fields"
+            ]}
+            placeholder="归一化节点 / Normalized nodes"
           />
           <p className="text-xs text-muted-foreground mt-3">
-            使用 fieldNames 属性映射不同的字段名 / Use fieldNames to map custom field names
+            数据源负责映射字段；TreeSelect 不再二次转换
           </p>
         </div>
       </section>
