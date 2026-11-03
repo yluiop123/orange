@@ -20,6 +20,6 @@ pub async fn list(
 ) -> ApiResult<PageData<OperationLogBean>> {
     require(&auth, "menu#/system/operation-log")?;
     let query = parse_query(params)?;
-    let page = log_service::list(&state.pool, &query).await?;
+    let page = log_service::list(&state.db, &query).await?;
     Ok(Json(ApiResponse::ok(page)))
 }

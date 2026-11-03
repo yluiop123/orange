@@ -112,9 +112,7 @@ impl From<sqlx::Error> for AppError {
     fn from(error: sqlx::Error) -> Self {
         if let sqlx::Error::Database(database_error) = &error {
             if let Some(code) = database_error.code() {
-                let code: &str = code.as_ref();
-                // unique_violation / foreign_key_violation / check_violation
-                if matches!(code, "23505" | "23503" | "23514") {
+                if crate::db::integrity_conflict(code.as_ref()) {
                     tracing::warn!(error = %error, "database integrity conflict");
                     return Self::conflict("数据冲突，请刷新后重试");
                 }

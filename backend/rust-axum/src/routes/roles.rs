@@ -20,7 +20,7 @@ pub async fn list(
 ) -> ApiResult<PageData<RoleBean>> {
     require(&auth, "menu#/system/role")?;
     let query = parse_query(params)?;
-    let page = role_service::list(&state.pool, &query).await?;
+    let page = role_service::list(&state.db, &query).await?;
     Ok(Json(ApiResponse::ok(page)))
 }
 
@@ -30,7 +30,7 @@ pub async fn get(
     Path(role_id): Path<String>,
 ) -> ApiResult<RoleBean> {
     require(&auth, "menu#/system/role")?;
-    let role = role_service::get(&state.pool, &role_id).await?;
+    let role = role_service::get(&state.db, &role_id).await?;
     Ok(Json(ApiResponse::ok(role)))
 }
 
@@ -41,7 +41,7 @@ pub async fn create(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/role:add")?;
     let req = parse_json(payload)?;
-    let id = role_service::create(&state.pool, &auth, &req).await?;
+    let id = role_service::create(&state.db, &auth, &req).await?;
     Ok(Json(ApiResponse::message("操作成功", id)))
 }
 
@@ -53,7 +53,7 @@ pub async fn edit(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/role:edit")?;
     let req = parse_json(payload)?;
-    role_service::edit(&state.pool, &auth, &role_id, &req).await?;
+    role_service::edit(&state.db, &auth, &role_id, &req).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -63,7 +63,7 @@ pub async fn delete_one(
     Path(role_id): Path<String>,
 ) -> ApiResult<String> {
     require(&auth, "action#/system/role:delete")?;
-    role_service::delete(&state.pool, &[role_id]).await?;
+    role_service::delete(&state.db, &[role_id]).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -74,6 +74,6 @@ pub async fn delete_many(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/role:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
-    role_service::delete(&state.pool, &ids).await?;
+    role_service::delete(&state.db, &ids).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }

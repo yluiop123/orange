@@ -1,7 +1,7 @@
 //! Role CRUD. Role ids are `[A-Za-z0-9_-]{2,32}`; a referenced role cannot be
 //! deleted, and granting `super` or unknown direct permissions is guarded.
 
-use sqlx::PgPool;
+use crate::db::Db;
 
 use crate::auth::AuthUser;
 use crate::domain::dto::{
@@ -35,7 +35,7 @@ fn sort_column(sort: Option<&str>, direction: Option<&str>) -> Result<(&'static 
 }
 
 pub async fn list(
-    pool: &PgPool,
+    pool: &Db,
     query: &RoleListQuery,
 ) -> Result<PageData<RoleBean>, AppError> {
     let page = parse_page(query.page, 1, 10_000)?;
@@ -78,7 +78,7 @@ pub async fn list(
     Ok(PageData::new(total, list, page, size))
 }
 
-pub async fn get(pool: &PgPool, id: &str) -> Result<RoleBean, AppError> {
+pub async fn get(pool: &Db, id: &str) -> Result<RoleBean, AppError> {
     let role = role_repo::find(pool, id)
         .await?
         .ok_or_else(|| AppError::business("角色不存在"))?;
@@ -94,7 +94,7 @@ pub async fn get(pool: &PgPool, id: &str) -> Result<RoleBean, AppError> {
 }
 
 pub async fn create(
-    pool: &PgPool,
+    pool: &Db,
     caller: &AuthUser,
     req: &AddRoleReq,
 ) -> Result<String, AppError> {
@@ -122,7 +122,7 @@ pub async fn create(
 }
 
 pub async fn edit(
-    pool: &PgPool,
+    pool: &Db,
     caller: &AuthUser,
     id: &str,
     req: &EditRoleReq,
@@ -159,7 +159,7 @@ pub async fn edit(
     Ok(())
 }
 
-pub async fn delete(pool: &PgPool, ids: &[String]) -> Result<(), AppError> {
+pub async fn delete(pool: &Db, ids: &[String]) -> Result<(), AppError> {
     let mut existing = Vec::new();
     for id in ids {
         if let Some(role) = role_repo::find(pool, id).await? {

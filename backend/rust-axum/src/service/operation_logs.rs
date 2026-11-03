@@ -1,6 +1,6 @@
 //! Operation log query validation and mapping.
 
-use sqlx::PgPool;
+use crate::db::Db;
 
 use crate::domain::dto::{OperationLogBean, OperationLogQuery, PageData};
 use crate::domain::validate::{parse_page, parse_size};
@@ -32,7 +32,7 @@ fn parse_status(value: Option<&str>) -> Result<Option<i32>, AppError> {
 }
 
 pub async fn list(
-    pool: &PgPool,
+    pool: &Db,
     query: &OperationLogQuery,
 ) -> Result<PageData<OperationLogBean>, AppError> {
     let page = parse_page(query.page, 1, i32::MAX)?;

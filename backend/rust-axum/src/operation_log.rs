@@ -139,7 +139,7 @@ pub async fn operation_log(
         duration_ms,
         ip: Some(ip),
     };
-    if let Err(error) = operation_logs::insert(&state.pool, &log).await {
+    if let Err(error) = operation_logs::insert(&state.db, &log).await {
         tracing::error!(error = %error, "failed to persist operation log");
     }
 

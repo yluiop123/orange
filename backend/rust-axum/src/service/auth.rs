@@ -60,7 +60,7 @@ async fn record_failure(state: &AppState, ip: &str, username: &str) {
     ];
     for (key, max_attempts) in attempts {
         if let Err(error) = security::record_failure(
-            &state.pool,
+            &state.db,
             &key,
             max_attempts,
             state.config.login_lock_minutes,
@@ -79,11 +79,11 @@ pub async fn login(
     ip: &str,
 ) -> Result<LoginSuccess, AppError> {
     let keys = vec![ip_key(ip), user_key(username)];
-    if security::is_blocked(&state.pool, &keys).await? {
+    if security::is_blocked(&state.db, &keys).await? {
         return Err(AppError::rate_limited("登录失败次数过多，请稍后再试"));
     }
 
-    let user = users::find_by_username(&state.pool, username).await?;
+    let user = users::find_by_username(&state.db, username).await?;
     let mut valid = false;
     if let Some(found) = user.as_ref() {
         if let Some(hash) = found.password.as_deref() {
@@ -95,7 +95,7 @@ pub async fn login(
 
     match user {
         Some(found) if valid && found.status != "0" => {
-            security::clear_attempt(&state.pool, &user_key(&found.username)).await?;
+            security::clear_attempt(&state.db, &user_key(&found.username)).await?;
             issue_tokens(state, &found)
         }
         _ => {
@@ -114,11 +114,11 @@ pub async fn refresh(
     if claims.typ != jwt::TYPE_REFRESH {
         return Err(AppError::unauthorized("登录已过期"));
     }
-    if security::is_revoked(&state.pool, &claims.jti).await? {
+    if security::is_revoked(&state.db, &claims.jti).await? {
         return Err(AppError::unauthorized("登录已过期"));
     }
 
-    let user = users::find_by_username(&state.pool, &claims.username)
+    let user = users::find_by_username(&state.db, &claims.username)
         .await?
         .ok_or_else(|| AppError::unauthorized("登录已过期"))?;
     if user.status == "0" || user.token_version != claims.ver || user.id != claims.sub {
@@ -128,7 +128,7 @@ pub async fn refresh(
     // Rotate: the old jti is revoked before a new refresh token is issued.
     // Replaying the old token then fails at the revocation check above.
     if !security::revoke(
-        &state.pool,
+        &state.db,
         &claims.jti,
         jwt::TYPE_REFRESH,
         expires_at(claims.exp),
@@ -153,7 +153,7 @@ pub async fn logout(
             if claims.typ == jwt::TYPE_REFRESH {
                 username = Some(claims.username.clone());
                 let _ = security::revoke(
-                    &state.pool,
+                    &state.db,
                     &claims.jti,
                     jwt::TYPE_REFRESH,
                     expires_at(claims.exp),
@@ -168,7 +168,7 @@ pub async fn logout(
             username = Some(claims.username.clone());
         }
         let _ = security::revoke(
-            &state.pool,
+            &state.db,
             &claims.jti,
             jwt::TYPE_ACCESS,
             expires_at(claims.exp),
@@ -178,7 +178,7 @@ pub async fn logout(
 
     if let Some(username) = username {
         // Matches the reference: logout invalidates every session for the user.
-        users::bump_token_version_by_username(&state.pool, &username).await?;
+        users::bump_token_version_by_username(&state.db, &username).await?;
     }
     Ok(())
 }

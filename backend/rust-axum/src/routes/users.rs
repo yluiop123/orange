@@ -24,7 +24,7 @@ pub async fn list(
 ) -> ApiResult<PageData<UserBean>> {
     require(&auth, "menu#/system/user")?;
     let query = parse_query(params)?;
-    let page = user_service::list(&state.pool, &query).await?;
+    let page = user_service::list(&state.db, &query).await?;
     Ok(Json(ApiResponse::ok(page)))
 }
 
@@ -34,7 +34,7 @@ pub async fn get(
     Path(user_id): Path<String>,
 ) -> ApiResult<UserBean> {
     require(&auth, "menu#/system/user")?;
-    let user = user_service::get(&state.pool, &user_id).await?;
+    let user = user_service::get(&state.db, &user_id).await?;
     Ok(Json(ApiResponse::ok(user)))
 }
 
@@ -45,7 +45,7 @@ pub async fn create(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/user:add")?;
     let req = parse_json(payload)?;
-    let temp_password = user_service::create(&state.pool, &auth, &req).await?;
+    let temp_password = user_service::create(&state.db, &auth, &req).await?;
     Ok(Json(ApiResponse::message("操作成功", temp_password)))
 }
 
@@ -57,7 +57,7 @@ pub async fn edit(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/user:edit")?;
     let req = parse_json(payload)?;
-    user_service::edit(&state.pool, &auth, &user_id, &req).await?;
+    user_service::edit(&state.db, &auth, &user_id, &req).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -69,7 +69,7 @@ pub async fn update_status(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/user:edit")?;
     let status = status_from_body(parse_json(payload)?)?;
-    user_service::edit_status(&state.pool, &auth, &user_id, &status).await?;
+    user_service::edit_status(&state.db, &auth, &user_id, &status).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -79,7 +79,7 @@ pub async fn reset_password(
     Path(user_id): Path<String>,
 ) -> Result<Response, crate::error::AppError> {
     require(&auth, "action#/system/user:edit")?;
-    let temp_password = user_service::reset_password(&state.pool, &auth, &user_id).await?;
+    let temp_password = user_service::reset_password(&state.db, &auth, &user_id).await?;
     let mut response =
         Json(ApiResponse::message("操作成功", temp_password)).into_response();
     response
@@ -94,7 +94,7 @@ pub async fn delete_one(
     Path(user_id): Path<String>,
 ) -> ApiResult<String> {
     require(&auth, "action#/system/user:delete")?;
-    user_service::delete(&state.pool, &auth, &[user_id]).await?;
+    user_service::delete(&state.db, &auth, &[user_id]).await?;
     Ok(Json(ApiResponse::ok_text("删除成功")))
 }
 
@@ -105,6 +105,6 @@ pub async fn delete_many(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/user:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
-    user_service::delete(&state.pool, &auth, &ids).await?;
+    user_service::delete(&state.db, &auth, &ids).await?;
     Ok(Json(ApiResponse::ok_text("删除成功")))
 }

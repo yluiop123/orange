@@ -22,7 +22,7 @@ pub async fn list(
 ) -> ApiResult<Vec<GroupBean>> {
     require(&auth, "menu#/system/group")?;
     let query = parse_query(params)?;
-    let groups = group_service::list(&state.pool, &query).await?;
+    let groups = group_service::list(&state.db, &query).await?;
     Ok(Json(ApiResponse::ok(groups)))
 }
 
@@ -32,7 +32,7 @@ pub async fn get(
     Path(group_id): Path<String>,
 ) -> ApiResult<GroupBean> {
     require(&auth, "menu#/system/group")?;
-    let group = group_service::get(&state.pool, &group_id).await?;
+    let group = group_service::get(&state.db, &group_id).await?;
     Ok(Json(ApiResponse::ok(group)))
 }
 
@@ -43,7 +43,7 @@ pub async fn create(
 ) -> ApiResult<GroupBean> {
     require(&auth, "action#/system/group:add")?;
     let req = parse_json(payload)?;
-    let group = group_service::create(&state.pool, &req).await?;
+    let group = group_service::create(&state.db, &req).await?;
     Ok(Json(ApiResponse::ok(group)))
 }
 
@@ -64,7 +64,7 @@ pub async fn edit(
     {
         return Err(crate::error::AppError::param("组织名称不能为空"));
     }
-    group_service::edit(&state.pool, &group_id, &req).await?;
+    group_service::edit(&state.db, &group_id, &req).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -80,7 +80,7 @@ pub async fn update_status(
         name: None,
         status: Some(status),
     };
-    group_service::edit(&state.pool, &group_id, &req).await?;
+    group_service::edit(&state.db, &group_id, &req).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -90,7 +90,7 @@ pub async fn delete_one(
     Path(group_id): Path<String>,
 ) -> ApiResult<String> {
     require(&auth, "action#/system/group:delete")?;
-    group_service::delete(&state.pool, &[group_id]).await?;
+    group_service::delete(&state.db, &[group_id]).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -101,6 +101,6 @@ pub async fn delete_many(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/group:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
-    group_service::delete(&state.pool, &ids).await?;
+    group_service::delete(&state.db, &ids).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }

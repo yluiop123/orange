@@ -7,6 +7,7 @@ pub mod roles;
 pub mod users;
 
 use crate::auth::AuthUser;
+use crate::db::Db;
 use crate::domain::validate::{like_prefix, STATUS_ALL};
 use crate::error::AppError;
 use crate::repository::{permissions as permission_repo, roles as role_repo};
@@ -59,7 +60,7 @@ pub fn assert_can_assign_permissions(
 /// The Java reference loads grants with `findAllById`, which silently drops
 /// unknown ids. Filtering here keeps that behaviour and avoids FK errors.
 pub async fn existing_role_ids(
-    pool: &sqlx::PgPool,
+    pool: &Db,
     ids: &[String],
 ) -> Result<Vec<String>, AppError> {
     let mut existing = Vec::new();
@@ -72,7 +73,7 @@ pub async fn existing_role_ids(
 }
 
 pub async fn existing_permission_ids(
-    pool: &sqlx::PgPool,
+    pool: &Db,
     ids: &[String],
 ) -> Result<Vec<String>, AppError> {
     let mut existing = Vec::new();

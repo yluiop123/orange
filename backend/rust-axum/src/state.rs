@@ -1,19 +1,18 @@
 use std::sync::Arc;
 
-use sqlx::PgPool;
-
 use crate::config::Config;
+use crate::db::Db;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub pool: PgPool,
+    pub db: Db,
     pub config: Arc<Config>,
 }
 
 impl AppState {
-    pub fn new(pool: PgPool, config: Config) -> Self {
+    pub fn new(db: Db, config: Config) -> Self {
         Self {
-            pool,
+            db,
             config: Arc::new(config),
         }
     }

@@ -1,15 +1,18 @@
 # ORANGE backend — Rust + Axum
 
-A port of `backend/springboot` to **Rust 2021 / Axum 0.8 / Tokio / SQLx (PostgreSQL)**.
+A port of `backend/springboot` to **Rust 2021 / Axum 0.8 / Tokio / SQLx**.
 It serves the canonical API from [`docs/API.md`](../../docs/API.md) under
-`/api/v1` on port **8083** and uses the existing `database/postgres` schema and
-seed (no migrations of its own).
+`/api/v1` on port **8083** and uses the existing `database/{postgres,mysql,mariadb,sqlite}`
+schema and seed (no migrations of its own).
 
-> **Build status — compiled, tested and smoke-tested.**
+> **Build status — compiled, tested and smoke-tested on all four engines.**
 > `cargo check`, `cargo build` and `cargo test` pass (40 unit tests) with the
 > `stable-x86_64-pc-windows-gnu` toolchain and the MSYS2 UCRT64 `gcc` linker.
-> A live PostgreSQL 16 smoke test also passed: login, `user-info` (3 roles),
-> 6 menu roots and the user list.
+> Live smoke tests passed on PostgreSQL 16, MySQL 8, MariaDB and SQLite:
+> `super/super` login, `user-info`, `menus`, users list (plain and keyword
+> filtered), role list sorted by name, permission and group lists, group/user/
+> role create and delete, and the operation-log list (write + contains filter).
+> `scripts/smoke-databases.ps1` reproduces the matrix.
 > Windows users without Visual Studio Build Tools should use the GNU toolchain:
 >
 > ```bash
@@ -45,24 +48,35 @@ uses business code `429`.
 ## Prerequisites
 
 - Rust 1.75+ (edition 2021). Only `cargo` is required.
-- PostgreSQL 13+ with the ORANGE schema.
+- One of: PostgreSQL 13+, MySQL 8/MariaDB 10.6+, or SQLite 3.24+
+  (SQLite is linked in via `libsqlite3-sys` `bundled`; no system library).
 - A reachable database and a JWT secret.
 
 ## Database setup
 
-From the repository root:
+The schema and seed are the shared ones from `database/`. Load the engine you
+want to run against, then point `DATABASE_URL` at it.
 
 ```bash
+# PostgreSQL
 psql -U postgres -c "CREATE DATABASE orange;"
 psql -U postgres -d orange -f database/postgres/ddl.sql
 psql -U postgres -d orange -f database/postgres/dml.sql
+
+# MySQL / MariaDB
+mysql -u root -proot orange < database/mysql/ddl.sql
+mysql -u root -proot orange < database/mysql/dml.sql
+
+# SQLite
+sqlite3 orange.db < database/sqlite/ddl.sql
+sqlite3 orange.db < database/sqlite/dml.sql
 ```
 
 The seed stores BCrypt hashes with Spring's `{bcrypt}` id prefix; the Rust
 password verifier strips that prefix, so the same seed works unchanged.
 
-`migrations/` is intentionally absent: `database/postgres` is the single source
-of truth, as required by `docs/PORTING.md`.
+`migrations/` is intentionally absent: `database/` is the single source of
+truth, as required by `docs/PORTING.md`.
 
 ## Configuration
 
@@ -72,6 +86,9 @@ All configuration comes from the environment. Copy `.env.example` to `.env`
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/orange` | SQLx connection string |
+| `DB_DRIVER` | inferred from the URL scheme | `postgres`, `mysql`, `mariadb` or `sqlite`; wins over the scheme |
+| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | engine defaults | Discrete connection values, used only when `DATABASE_URL` is unset |
+| `DB_FILE` | `DB_NAME` | SQLite file path, used only when `DATABASE_URL` is unset |
 | `JWT_SECRET` | dev-only fallback (warns) | HMAC secret for access/refresh tokens |
 | `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated allowed origins |
 | `PORT` | `8083` | HTTP port |
@@ -98,6 +115,25 @@ cargo run
 
 The server listens on **http://0.0.0.0:8083** and the API base is
 **http://localhost:8083/api/v1**.
+
+One process talks to one engine. Pick it with `DB_DRIVER` plus `DATABASE_URL`:
+
+```bash
+# PostgreSQL
+DB_DRIVER=postgres DATABASE_URL=postgres://postgres:postgres@localhost:5432/orange cargo run
+
+# MySQL
+DB_DRIVER=mysql DATABASE_URL=mysql://root:root@localhost:3306/orange cargo run
+
+# MariaDB (same MySQL driver)
+DB_DRIVER=mariadb DATABASE_URL=mysql://root:root@localhost:3307/orange cargo run
+
+# SQLite
+DB_DRIVER=sqlite DATABASE_URL=sqlite:./orange.db cargo run
+```
+
+`DB_DRIVER` wins over the URL scheme, so it must agree with `DATABASE_URL`.
+A bare SQLite path (`DATABASE_URL=D:\data\orange.db`) is accepted too.
 
 Smoke check:
 
@@ -126,7 +162,17 @@ The `#[cfg(test)]` tests are pure and need no database:
 - `auth/lockout.rs` — failure accumulation, window restart, lock and unblock.
 - `operation_log.rs` — record policy, sensitive paths, redaction, truncation.
 
-There are no database-backed tests in this port.
+`cargo test` does not need a database. The cross-engine smoke test is a script:
+
+```powershell
+cargo build
+pwsh -File scripts/smoke-databases.ps1                  # all four engines
+pwsh -File scripts/smoke-databases.ps1 -Engine sqlite
+```
+
+It expects the per-engine databases from `docs/DB-MATRIX.md` to be loaded and
+only creates/deletes its own rows (`0088` group, `smoketest1` user,
+`smokerole` role).
 
 ## API coverage
 
@@ -148,10 +194,12 @@ implemented, as allowed by `docs/API.md §7`.
 backend/rust-axum/
 ├── Cargo.toml
 ├── .env.example
+├── scripts/smoke-databases.ps1  # cross-engine smoke test
 └── src/
     ├── main.rs              # bootstrap, listener, daily cleanup
     ├── config.rs            # environment configuration
-    ├── state.rs             # PgPool + Arc<Config>
+    ├── db.rs                # DB_DRIVER/DATABASE_URL, dialect helpers, dispatch
+    ├── state.rs             # Db + Arc<Config>
     ├── error.rs             # business codes + error envelope
     ├── response.rs          # envelope + task-local trace id
     ├── middleware.rs        # trace, auth, optional auth
@@ -165,9 +213,21 @@ backend/rust-axum/
 
 ## Known gaps / risks
 
-- **No committed database integration test.** A live PostgreSQL smoke test passed
-  (login, user-info, menus, user list), but the checklist's full endpoint matrix
-  is not automated. Add `#[ignore]` DB tests or a shell smoke script.
+- **No database-backed `cargo test`.** `scripts/smoke-databases.ps1` covers the
+  four engines end to end, but it is not part of `cargo test`; add `#[ignore]`
+  DB tests if the matrix must run in CI.
+- Dialect differences are handled in `src/db.rs` and by generating one copy of
+  each repository query per driver (`*_repository!` macros). Adding a query
+  means editing the macro body once; no `cfg!` branching is needed.
+- SQLite stores timestamps as ISO-8601 text, so timestamp filters go through
+  `datetime(...)`; rows written by the SQLite seed's `CURRENT_TIMESTAMP`
+  defaults are still comparable. Millisecond precision differs from the
+  PostgreSQL/MySQL seeds.
+- MySQL/MariaDB join-table inserts use `INSERT IGNORE`, which also ignores
+  foreign-key failures. The services validate role/permission ids first, so
+  the practical behaviour matches the other engines.
+- SQLite has no `FOR UPDATE`; login-attempt updates rely on SQLite's writer
+  serialisation instead of a row lock.
 - Field-level validation errors are returned as a single `message`; the Java
   backend also puts a `{ field: message }` map in `data` for `@Valid` failures.
 - Deprecated list parameters (`filterField`, `filterValue`, `orderField`,
@@ -175,9 +235,9 @@ backend/rust-axum/
 - No OpenAPI/Swagger UI. The contract remains `contracts/openapi.json`.
 - JWTs are signed with HS256 from `JWT_SECRET`, not the Java backend's RSA key
   pair. Tokens are therefore not interchangeable between the two backends.
-- Login lockout concurrency uses `SELECT ... FOR UPDATE` plus an upsert; a
-  simultaneous first insert for the same key can lose one count (same class of
-  race the reference handles by catching the integrity violation).
+- Login lockout concurrency uses `SELECT ... FOR UPDATE` plus an upsert on
+  PostgreSQL/MySQL (no row lock on SQLite); a simultaneous first insert for
+  the same key can lose one count on SQLite.
 - Operation log cleanup runs once at startup and then every 24 hours; there is
   no cron expression configuration.
 - The operation log reads at most 16 KiB of a request body. Larger bodies are

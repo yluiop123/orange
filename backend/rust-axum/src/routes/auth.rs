@@ -105,7 +105,7 @@ pub async fn user_info(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
 ) -> ApiResult<UserInfo> {
-    let info = user_service::user_info(&state.pool, &auth.username).await?;
+    let info = user_service::user_info(&state.db, &auth.username).await?;
     Ok(Json(ApiResponse::ok(info)))
 }
 
@@ -127,7 +127,7 @@ pub async fn change_password(
             .filter(|value| !value.is_empty())
             .ok_or_else(|| AppError::param("新密码不能为空"))?;
         check_new_password(new_password)?;
-        user_service::change_password(&state.pool, &auth.username, old_password, new_password).await
+        user_service::change_password(&state.db, &auth.username, old_password, new_password).await
     }
     .await;
 

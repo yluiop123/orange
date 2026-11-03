@@ -11,6 +11,8 @@ const DEV_JWT_SECRET: &str = "orange-dev-secret-change-me-in-production";
 #[derive(Clone, Debug)]
 pub struct Config {
     pub database_url: String,
+    /// `DB_DRIVER` when set; otherwise the URL scheme decides.
+    pub db_driver: Option<String>,
     pub jwt_secret: String,
     pub cors_origins: Vec<String>,
     pub port: u16,
@@ -27,10 +29,8 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Self {
-        let database_url = env_required_or(
-            "DATABASE_URL",
-            "postgres://postgres:postgres@localhost:5432/orange",
-        );
+        let database_url = resolve_database_url();
+        let db_driver = optional_env("DB_DRIVER");
 
         let jwt_secret = match optional_env("JWT_SECRET") {
             Some(secret) => secret,
@@ -55,6 +55,7 @@ impl Config {
 
         Self {
             database_url,
+            db_driver,
             jwt_secret,
             cors_origins,
             port: parse_env_any(&["APP_PORT", "PORT"], 8083u16),
@@ -78,8 +79,37 @@ fn optional_env(key: &str) -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
-fn env_required_or(key: &str, default: &str) -> String {
-    optional_env(key).unwrap_or_else(|| default.to_string())
+/// Builds the connection string.
+///
+/// `DATABASE_URL` wins. Otherwise the discrete `DB_*` variables are assembled;
+/// `DB_DRIVER` defaults to `postgres`. SQLite accepts `DB_FILE` or `DB_NAME`
+/// as the database file path.
+fn resolve_database_url() -> String {
+    if let Some(url) = optional_env("DATABASE_URL") {
+        return url;
+    }
+
+    let driver = optional_env("DB_DRIVER")
+        .unwrap_or_else(|| "postgres".to_string())
+        .to_ascii_lowercase();
+    let is_mysql = matches!(driver.as_str(), "mysql" | "mariadb");
+
+    let host = optional_env("DB_HOST").unwrap_or_else(|| "localhost".to_string());
+    let user = optional_env("DB_USER")
+        .unwrap_or_else(|| if is_mysql { "root".into() } else { "postgres".into() });
+    let password = optional_env("DB_PASSWORD")
+        .unwrap_or_else(|| if is_mysql { "root".into() } else { "postgres".into() });
+    let name = optional_env("DB_NAME").unwrap_or_else(|| "orange".to_string());
+    let port = optional_env("DB_PORT")
+        .unwrap_or_else(|| if is_mysql { "3306".into() } else { "5432".into() });
+
+    if matches!(driver.as_str(), "sqlite" | "sqlite3") {
+        let path = optional_env("DB_FILE").unwrap_or(name);
+        return format!("sqlite:{path}");
+    }
+
+    let scheme = if is_mysql { "mysql" } else { "postgres" };
+    format!("{scheme}://{user}:{password}@{host}:{port}/{name}")
 }
 
 fn parse_env<T>(key: &str, default: T) -> T

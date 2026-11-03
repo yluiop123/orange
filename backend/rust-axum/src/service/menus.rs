@@ -5,7 +5,7 @@
 
 use std::collections::HashMap;
 
-use sqlx::PgPool;
+use crate::db::Db;
 
 use crate::domain::dto::MenuInfo;
 use crate::domain::entities::Permission;
@@ -31,7 +31,7 @@ fn build_node(
     }
 }
 
-pub async fn tree(pool: &PgPool) -> Result<Vec<MenuInfo>, AppError> {
+pub async fn tree(pool: &Db) -> Result<Vec<MenuInfo>, AppError> {
     let all = permissions::all(pool).await?;
 
     let by_id: HashMap<String, &Permission> = all

@@ -1,7 +1,7 @@
 //! Group tree rules: code shape, parent existence, disable guard,
 //! reference guard and deepest-first delete.
 
-use sqlx::PgPool;
+use crate::db::Db;
 
 use crate::domain::dto::{AddChildGroupReq, EditGroupReq, GroupBean, GroupListQuery};
 use crate::domain::entities::Group;
@@ -26,7 +26,7 @@ pub fn to_bean(group: &Group) -> GroupBean {
     }
 }
 
-pub async fn list(pool: &PgPool, query: &GroupListQuery) -> Result<Vec<GroupBean>, AppError> {
+pub async fn list(pool: &Db, query: &GroupListQuery) -> Result<Vec<GroupBean>, AppError> {
     let status = status_filter(query.status.as_deref())?;
 
     let id_pattern = match non_blank(query.id.as_deref()) {
@@ -66,14 +66,14 @@ pub async fn list(pool: &PgPool, query: &GroupListQuery) -> Result<Vec<GroupBean
     Ok(result.iter().map(to_bean).collect())
 }
 
-pub async fn get(pool: &PgPool, id: &str) -> Result<GroupBean, AppError> {
+pub async fn get(pool: &Db, id: &str) -> Result<GroupBean, AppError> {
     let group = group_repo::find(pool, id)
         .await?
         .ok_or_else(|| AppError::business("组织不存在"))?;
     Ok(to_bean(&group))
 }
 
-pub async fn create(pool: &PgPool, req: &AddChildGroupReq) -> Result<GroupBean, AppError> {
+pub async fn create(pool: &Db, req: &AddChildGroupReq) -> Result<GroupBean, AppError> {
     let id = require_text(req.id.as_deref(), "分组ID不能为空")?;
     if id.chars().count() < 2 || !id.chars().all(|ch| ch.is_ascii_digit()) {
         return Err(AppError::param("组织编码只能包含数字"));
@@ -99,7 +99,7 @@ pub async fn create(pool: &PgPool, req: &AddChildGroupReq) -> Result<GroupBean, 
     Ok(to_bean(&group))
 }
 
-pub async fn edit(pool: &PgPool, id: &str, req: &EditGroupReq) -> Result<(), AppError> {
+pub async fn edit(pool: &Db, id: &str, req: &EditGroupReq) -> Result<(), AppError> {
     let group = group_repo::find(pool, id)
         .await?
         .ok_or_else(|| AppError::business("组织不存在"))?;
@@ -133,7 +133,7 @@ pub async fn edit(pool: &PgPool, id: &str, req: &EditGroupReq) -> Result<(), App
     Ok(())
 }
 
-pub async fn delete(pool: &PgPool, ids: &[String]) -> Result<(), AppError> {
+pub async fn delete(pool: &Db, ids: &[String]) -> Result<(), AppError> {
     if ids.is_empty() {
         return Ok(());
     }

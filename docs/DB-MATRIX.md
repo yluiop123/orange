@@ -13,6 +13,7 @@ Each stack gets its own database, so parallel smoke tests do not collide.
 | NestJS | `.../orange_nest` | `.../orange_nest` | `.../orange_nest` | `orange-nest.db` |
 | C# | `.../orange_csharp` | `.../orange_csharp` | `.../orange_csharp` | `orange-csharp.db` |
 | FastAPI | `.../orange_fastapi` | `.../orange_fastapi` | `.../orange_fastapi` | `orange-fastapi.db` |
+| Rust | `.../orange_rust` | `.../orange_rust` | `.../orange_rust` | `D:\User\Cache\Temp\opencode\orange-rust.db` |
 
 Ports: PostgreSQL 55432, MySQL 53306, MariaDB 53307.
 
@@ -44,5 +45,5 @@ Fill this table with the real result. "Static" means the connection profile exis
 | Go | passed | passed | passed | passed | static | static | static |
 | NestJS | passed | passed | passed | passed | static | static | static |
 | C# | passed | passed | passed | passed | static | static | static |
-| Rust | pending | static | static | static | static | static | static |
+| Rust | passed | passed | passed | passed | static | static | static |
 | FastAPI | passed | passed | passed | passed | static | static | static |

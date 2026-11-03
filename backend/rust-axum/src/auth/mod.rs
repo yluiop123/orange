@@ -9,7 +9,7 @@ pub mod password;
 use std::collections::HashSet;
 
 use axum::http::{header, HeaderMap};
-use sqlx::PgPool;
+use crate::db::Db;
 
 use crate::domain::effective::EffectivePermissions;
 use crate::domain::entities::User;
@@ -80,7 +80,7 @@ pub fn cookie_value(headers: &HeaderMap, name: &str) -> Option<String> {
     None
 }
 
-pub async fn build_auth_user(pool: &PgPool, user: User) -> Result<AuthUser, sqlx::Error> {
+pub async fn build_auth_user(pool: &Db, user: User) -> Result<AuthUser, sqlx::Error> {
     let roles = users::roles_for_user(pool, &user.id).await?;
     let role_permissions = users::role_permissions_for_user(pool, &user.id).await?;
     let direct_permissions = users::direct_permissions_for_user(pool, &user.id).await?;
@@ -108,11 +108,11 @@ pub async fn authenticate_token(
     if claims.typ != jwt::TYPE_ACCESS {
         return Err(AppError::unauthorized("未登录"));
     }
-    if security::is_revoked(&state.pool, &claims.jti).await? {
+    if security::is_revoked(&state.db, &claims.jti).await? {
         return Err(AppError::unauthorized("登录已过期"));
     }
 
-    let user = users::find_by_username(&state.pool, &claims.username)
+    let user = users::find_by_username(&state.db, &claims.username)
         .await?
         .ok_or_else(|| AppError::unauthorized("未登录"))?;
 
@@ -120,7 +120,7 @@ pub async fn authenticate_token(
         return Err(AppError::unauthorized("登录已过期"));
     }
 
-    let auth_user = build_auth_user(&state.pool, user).await?;
+    let auth_user = build_auth_user(&state.db, user).await?;
     let claims = AccessClaims {
         jti: claims.jti,
         exp: claims.exp,

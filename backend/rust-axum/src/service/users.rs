@@ -1,6 +1,6 @@
 //! User CRUD, forced password change, temp passwords and the last-super guard.
 
-use sqlx::PgPool;
+use crate::db::Db;
 
 use crate::auth::lockout::user_key;
 use crate::auth::password;
@@ -72,7 +72,7 @@ fn to_bean(user: &User, group_name: String) -> UserBean {
     }
 }
 
-async fn group_name(pool: &PgPool, group_id: Option<&str>) -> Result<String, AppError> {
+async fn group_name(pool: &Db, group_id: Option<&str>) -> Result<String, AppError> {
     match group_id.map(str::trim).filter(|value| !value.is_empty()) {
         Some(id) => Ok(groups::find(pool, id)
             .await?
@@ -83,7 +83,7 @@ async fn group_name(pool: &PgPool, group_id: Option<&str>) -> Result<String, App
 }
 
 pub async fn list(
-    pool: &PgPool,
+    pool: &Db,
     query: &UserListQuery,
 ) -> Result<PageData<UserBean>, AppError> {
     let page = parse_page(query.page, 1, 10_000)?;
@@ -134,7 +134,7 @@ pub async fn list(
     Ok(PageData::new(total, list, page, size))
 }
 
-pub async fn get(pool: &PgPool, id: &str) -> Result<UserBean, AppError> {
+pub async fn get(pool: &Db, id: &str) -> Result<UserBean, AppError> {
     let user = user_repo::find_by_id(pool, id)
         .await?
         .ok_or_else(|| AppError::business("用户不存在"))?;
@@ -161,7 +161,7 @@ pub async fn get(pool: &PgPool, id: &str) -> Result<UserBean, AppError> {
 }
 
 pub async fn create(
-    pool: &PgPool,
+    pool: &Db,
     caller: &AuthUser,
     req: &AddUserReq,
 ) -> Result<String, AppError> {
@@ -225,7 +225,7 @@ pub async fn create(
 }
 
 pub async fn edit(
-    pool: &PgPool,
+    pool: &Db,
     caller: &AuthUser,
     id: &str,
     req: &EditUserReq,
@@ -331,7 +331,7 @@ pub async fn edit(
 }
 
 pub async fn edit_status(
-    pool: &PgPool,
+    pool: &Db,
     caller: &AuthUser,
     id: &str,
     status: &str,
@@ -350,7 +350,7 @@ pub async fn edit_status(
 }
 
 pub async fn reset_password(
-    pool: &PgPool,
+    pool: &Db,
     caller: &AuthUser,
     id: &str,
 ) -> Result<String, AppError> {
@@ -378,7 +378,7 @@ pub async fn reset_password(
 }
 
 pub async fn delete(
-    pool: &PgPool,
+    pool: &Db,
     caller: &AuthUser,
     ids: &[String],
 ) -> Result<(), AppError> {
@@ -413,7 +413,7 @@ pub async fn delete(
 }
 
 pub async fn change_password(
-    pool: &PgPool,
+    pool: &Db,
     username: &str,
     old_password: &str,
     new_password: &str,
@@ -438,7 +438,7 @@ pub async fn change_password(
     Ok(())
 }
 
-pub async fn user_info(pool: &PgPool, username: &str) -> Result<UserInfo, AppError> {
+pub async fn user_info(pool: &Db, username: &str) -> Result<UserInfo, AppError> {
     let user = user_repo::find_by_username(pool, username)
         .await?
         .ok_or_else(|| AppError::business("用户不存在"))?;
@@ -504,7 +504,7 @@ pub async fn user_info(pool: &PgPool, username: &str) -> Result<UserInfo, AppErr
 }
 
 /// Exposed for the logout flow (increments `token_version`).
-pub async fn revoke_tokens(pool: &PgPool, username: &str) -> Result<(), AppError> {
+pub async fn revoke_tokens(pool: &Db, username: &str) -> Result<(), AppError> {
     user_repo::bump_token_version_by_username(pool, username).await?;
     Ok(())
 }
@@ -517,7 +517,7 @@ fn assert_not_self(caller: &AuthUser, target_id: &str, action: &str) -> Result<(
 }
 
 async fn assert_not_last_super(
-    pool: &PgPool,
+    pool: &Db,
     user: &User,
     action: &str,
 ) -> Result<(), AppError> {

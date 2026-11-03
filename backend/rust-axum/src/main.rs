@@ -1,10 +1,11 @@
 //! ORANGE backend - Rust + Axum.
 //!
-//! Port 8083, API base `/api/v1`, PostgreSQL schema and seed from
-//! `database/postgres`.
+//! Port 8083, API base `/api/v1`. One process talks to the engine selected by
+//! `DB_DRIVER`/`DATABASE_URL`; the schema and seed come from `database/`.
 
 mod auth;
 mod config;
+mod db;
 mod domain;
 mod error;
 mod middleware;
@@ -18,7 +19,6 @@ mod state;
 use std::net::SocketAddr;
 use std::time::Duration;
 
-use sqlx::postgres::PgPoolOptions;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
@@ -33,17 +33,21 @@ async fn main() {
     let config = config::Config::from_env();
     let port = config.port;
 
-    let pool = match PgPoolOptions::new()
-        .max_connections(10)
-        .connect(&config.database_url)
-        .await
-    {
-        Ok(pool) => pool,
+    let driver = match db::resolve_driver(config.db_driver.as_deref(), &config.database_url) {
+        Ok(driver) => driver,
         Err(error) => {
-            tracing::error!(error = %error, "failed to connect to PostgreSQL; check DATABASE_URL");
+            tracing::error!(error = %error, "invalid database configuration");
             std::process::exit(1);
         }
     };
+    let pool = match db::connect(driver, &config.database_url).await {
+        Ok(pool) => pool,
+        Err(error) => {
+            tracing::error!(error = %error, driver, "failed to open the database");
+            std::process::exit(1);
+        }
+    };
+    tracing::info!(engine = pool.engine(), driver, "database connection established");
 
     let state = state::AppState::new(pool, config);
     spawn_cleanup(state.clone());
@@ -74,15 +78,11 @@ fn spawn_cleanup(state: state::AppState) {
         loop {
             let retention = state.config.operation_log_retention_days;
             if let Err(error) =
-                repository::operation_logs::delete_older_than_days(&state.pool, retention).await
+                repository::operation_logs::delete_older_than_days(&state.db, retention).await
             {
                 tracing::error!(error = %error, "operation log cleanup failed");
             }
-            if let Err(error) =
-                sqlx::query("DELETE FROM sys_revoked_token WHERE expires_at < now()")
-                    .execute(&state.pool)
-                    .await
-            {
+            if let Err(error) = repository::security::delete_expired(&state.db).await {
                 tracing::error!(error = %error, "revoked token cleanup failed");
             }
             tokio::time::sleep(Duration::from_secs(24 * 60 * 60)).await;

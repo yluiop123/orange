@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-use sqlx::PgPool;
+use crate::db::Db;
 
 use crate::domain::dto::{
     AddChildPermissionReq, EditPermissionReq, PermissionBean, PermissionListQuery,
@@ -51,7 +51,7 @@ fn type_filter(value: Option<&str>) -> Result<Option<String>, AppError> {
 }
 
 pub async fn list(
-    pool: &PgPool,
+    pool: &Db,
     query: &PermissionListQuery,
 ) -> Result<Vec<PermissionBean>, AppError> {
     let status = status_filter(query.status.as_deref())?;
@@ -92,7 +92,7 @@ pub async fn list(
     Ok(result.iter().map(to_bean).collect())
 }
 
-pub async fn get(pool: &PgPool, id: &str) -> Result<PermissionBean, AppError> {
+pub async fn get(pool: &Db, id: &str) -> Result<PermissionBean, AppError> {
     let permission = permission_repo::find(pool, id)
         .await?
         .ok_or_else(|| AppError::business("权限不存在"))?;
@@ -100,7 +100,7 @@ pub async fn get(pool: &PgPool, id: &str) -> Result<PermissionBean, AppError> {
 }
 
 pub async fn create(
-    pool: &PgPool,
+    pool: &Db,
     req: &AddChildPermissionReq,
 ) -> Result<PermissionBean, AppError> {
     let id = require_text(req.id.as_deref(), "权限编码不能为空")?;
@@ -152,7 +152,7 @@ pub async fn create(
 }
 
 pub async fn edit(
-    pool: &PgPool,
+    pool: &Db,
     id: &str,
     req: &EditPermissionReq,
 ) -> Result<(), AppError> {
@@ -230,7 +230,7 @@ pub async fn edit(
     Ok(())
 }
 
-pub async fn delete(pool: &PgPool, ids: &[String]) -> Result<(), AppError> {
+pub async fn delete(pool: &Db, ids: &[String]) -> Result<(), AppError> {
     if ids.is_empty() {
         return Ok(());
     }

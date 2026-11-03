@@ -11,6 +11,6 @@ use crate::state::AppState;
 use super::ApiResult;
 
 pub async fn tree(State(state): State<AppState>) -> ApiResult<Vec<MenuInfo>> {
-    let tree = menu_service::tree(&state.pool).await?;
+    let tree = menu_service::tree(&state.db).await?;
     Ok(Json(ApiResponse::ok(tree)))
 }
