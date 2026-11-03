@@ -2,8 +2,10 @@ import { deleteGroups, listGroups, updateGroupStatus } from "@/api/system/group"
 import type { GroupQuery } from "@/api/system/group";
 import ActionAuth from "@/components/action-auth";
 import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
-import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import { ResourceTable, StatusSwitch } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
+import { useResourcePage } from "@/components/system/resource-list/use-resource-page";
+import { StatusFilter } from "@/components/system/status-filter";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,21 +18,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatDateTime } from "@/lib/date-time";
-import { statusEnum } from "@/lib/dict";
 import type { Status } from "@/lib/status";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useIntl } from "react-intl";
-import { toast } from "sonner";
 import AddChildDialog from "./add-child-dialog";
 import EditDialog from "./edit-dialog";
 
@@ -48,31 +41,49 @@ type TableParams = ListParams<GroupQuery>;
 
 export default function Group() {
   const { formatMessage } = useIntl();
-  const [params, setParams] = useState<TableParams>({
-    page: 1,
-    size: 10,
-    id: '',
-    name: '',
-    status: 'all'
-  });
-
-  const { data, loading, error, refetch } = useResourceList<TableParams, Group>({
+  const {
     params,
-    errorMessage: formatMessage({ id: 'table.loadError' }),
+    updateParams,
+    setPage,
+    data,
+    loading,
+    error,
+    refetch,
+    selectedRows,
+    setSelectedRows,
+    deleteTarget,
+    deleteDescription,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
+    deleting,
+    handleStatusChange,
+  } = useResourcePage<Group, TableParams>({
+    initialParams: {
+      page: 1,
+      size: 10,
+      id: '',
+      name: '',
+      status: 'all'
+    },
     fetcher: (query, signal) =>
       listGroups(
         { id: query.id, name: query.name, status: query.status },
         signal,
       ),
+    errorMessage: formatMessage({ id: 'table.loadError' }),
     tree: {
       id: (row) => row.id,
       parentId: (row) => row.parentId,
     },
+    getRowId: (row) => row.id,
+    labelOf: (row) => row.name,
+    deleteRows: deleteGroups,
+    updateStatus: (row, status) => updateGroupStatus(row.id, status),
+    paginationMode: "client",
+    cascadeDelete: true,
   });
 
-  const [selectedRows, setSelectedRows] = useState<Group[]>([]);
-  const [deleteTarget, setDeleteTarget] = useState<Group[]>([]);
-  const [deleting, setDeleting] = useState(false);
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false);
@@ -84,32 +95,6 @@ export default function Group() {
   function handleAddChild(row: Group | null) {
     setId(row?.id || '');
     setIsAddChildDialogOpen(true);
-  }
-  function requestDelete(rows: Group[]) {
-    if (rows.length === 0) {
-      return;
-    }
-    setDeleteTarget(rows);
-  }
-  async function confirmDelete() {
-    if (deleteTarget.length === 0) {
-      return;
-    }
-    setDeleting(true);
-    try {
-      await deleteGroups(deleteTarget.map((row) => row.id));
-      refetch();
-      setSelectedRows([]);
-      setDeleteTarget([]);
-      toast.success(formatMessage({ id: 'message.success' }));
-    } finally {
-      setDeleting(false);
-    }
-  }
-  function handleStatusChange(row: Group, status: Status) {
-    return updateGroupStatus(row.id, status).then(() => {
-      setParams(prev => ({ ...prev }));
-    })
   }
 
   const columns: ColumnDef<Group>[] = [
@@ -181,15 +166,13 @@ export default function Group() {
   return (
     <div className="w-full p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+        onSave={refetch} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
-        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+        onSave={() => updateParams({}, true)} />
       <ConfirmDeleteDialog
         open={deleteTarget.length > 0}
-        onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-        description={deleteTarget.length === 1
-          ? formatMessage({ id: 'table.deleteConfirmSingle' }, { name: deleteTarget[0].name })
-          : formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+        onOpenChange={(open) => { if (!open) cancelDelete(); }}
+        description={deleteDescription}
         pending={deleting}
         onConfirm={confirmDelete}
       />
@@ -197,34 +180,16 @@ export default function Group() {
       <div className="flex items-center py-3 gap-4">
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="groupName">{formatMessage({ id: 'page.system.group.header.name' })}</Label>
-          <Input id="groupName" type="text" placeholder="" value={params.name} onChange={(e) => setParams(prev => ({ ...prev, name: e.target.value, page: 1 }))} />
+          <Input id="groupName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} />
         </div>
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="groupId">{formatMessage({ id: 'page.system.group.header.id' })}</Label>
-          <Input id="groupId" type="text" placeholder="" value={params.id} onChange={(e) => setParams(prev => ({ ...prev, id: e.target.value, page: 1 }))} />
+          <Input id="groupId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} />
         </div>
 
         <div className="flex items-center gap-2">
           <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.group.header.status' })}</Label>
-          <Select
-            value={params.status}
-            onValueChange={(value) => setParams(prev => ({ ...prev, status: value || '', page: 1 }))}
-          >
-            <SelectTrigger className="flex items-center">
-              <SelectValue>
-                {params.status
-                  ? formatMessage({ id: `dict.status.${statusEnum.get(params.status)}` })
-                  : 'Status'}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from(statusEnum).map(([key, value]) => (
-                <SelectItem key={key} value={key}>
-                  {formatMessage({ id: `dict.status.${value}` })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
         </div>
         <div className="ml-auto flex items-center gap-2">
           <ActionAuth action="add">
@@ -242,7 +207,7 @@ export default function Group() {
         total={data.total}
         page={params.page}
         size={params.size}
-        onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
+        onPageChange={setPage}
         getRowId={(row) => row.id}
         getSubRows={(row) => row.subRows}
         selectionMode="tree"

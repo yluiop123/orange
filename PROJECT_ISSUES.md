@@ -27,7 +27,7 @@
 |---|---|---|
 | 前端类型检查 | `pnpm exec tsc -b` | 通过 |
 | 前端 lint | `pnpm lint` | 0 errors / 0 warnings |
-| 前端测试 | `pnpm test` | 37 passed |
+| 前端测试 | `pnpm test` | 40 passed |
 | 权限种子一致性 | `pnpm db:seed:check` | 通过 |
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
@@ -157,6 +157,7 @@ pnpm gen:api
 - 前端访问判断收敛为 `createAccess` / `useAccess`；layout、ActionAuth、sidebar、MenuRedirect 共用 `canView` / `canAct` / `visibleMenuTree` / `firstVisibleLeaf`；
 - 后端有效权限收敛为 `EffectivePermissions`；Spring authorities 与 `/auth/user-info` 同源；新增 `@PreAuthorize` 与 `permissions.json` 的覆盖测试，路径改名会在 CI 失败；
 - 操作日志收敛为 `OperationLogRecorder` + `OperationLogPolicy`；写入和查询共用一份列定义；请求体通过显式 `OperationLogContext` 传递；脱敏、截断、敏感路径和 IP 解析可单测；
+- 用户/角色/组织/权限四个列表页的生命周期收敛为 `useResourcePage`；选择、删除、状态写入、页码夹紧和刷新契约只维护一处；状态筛选收敛为 `StatusFilter`；
 - 用户编辑禁止改用户名，新增用户必须选择组织，用户列表显示禁用组织名称；
 - 禁用父组织/权限前要求先禁用子节点；组织/权限文本筛选返回祖先，保持树层级；权限列表支持按类型筛选；
 - 权限树取消父节点级联选择；停用/动作节点标记为不可选，已选中的停用项仍可移除；角色下拉标记停用角色，组织/权限下拉保留已选停用项；

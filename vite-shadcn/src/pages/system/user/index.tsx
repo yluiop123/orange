@@ -5,8 +5,10 @@ import GroupTreeSelect from "@/components/group-tree-select";
 import { PasswordDialog } from "@/components/password-dialog";
 import { ConfirmActionDialog } from "@/components/system/confirm-action-dialog";
 import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
-import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import { ResourceTable, StatusSwitch } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
+import { useResourcePage } from "@/components/system/resource-list/use-resource-page";
+import { StatusFilter } from "@/components/system/status-filter";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -18,16 +20,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { formatDateTime } from "@/lib/date-time";
-import { statusEnum } from "@/lib/dict";
-import type { Status } from "@/lib/status";
 import useUserStore from "@/store/user";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
@@ -42,24 +35,40 @@ type TableParams = ListParams<UserQuery>;
 export default function User() {
     const intl = useIntl();
     const currentUsername = useUserStore((state) => state.userInfo?.username);
-
-    const [params, setParams] = useState<TableParams>({
-        page: 1,
-        size: 10,
-        keyword: '',
-        status: 'all',
-        groupId: '',
-    });
-
-    const { data, loading, error, refetch } = useResourceList<TableParams, User>({
+    const {
         params,
+        updateParams,
+        setPage,
+        data,
+        loading,
+        error,
+        refetch,
+        selectedRows,
+        setSelectedRows,
+        deleteTarget,
+        deleteDescription,
+        requestDelete,
+        cancelDelete,
+        confirmDelete,
+        deleting,
+        handleStatusChange,
+    } = useResourcePage<User, TableParams>({
+        initialParams: {
+            page: 1,
+            size: 10,
+            keyword: '',
+            status: 'all',
+            groupId: '',
+        },
+        fetcher: userApi.listUsers,
         errorMessage: intl.formatMessage({ id: 'table.loadError' }),
-        fetcher: (query, signal) => userApi.listUsers(query, signal),
+        getRowId: (row) => row.id,
+        labelOf: (row) => row.username,
+        deleteRows: userApi.deleteUsers,
+        updateStatus: (row, status) => userApi.updateUserStatus(row.id, status),
+        paginationMode: "server",
     });
 
-    const [selectedRows, setSelectedRows] = useState<User[]>([]);
-    const [deleteTarget, setDeleteTarget] = useState<User[]>([]);
-    const [deleting, setDeleting] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [id, setId] = useState('' as string);
     const [tempPassword, setTempPassword] = useState<{ username?: string; password: string } | null>(null);
@@ -91,7 +100,7 @@ export default function User() {
             setResetting(false);
         }
     }
-    function requestDelete(rows: User[]) {
+    function requestDeleteSafe(rows: User[]) {
         const deletable = rows.filter((row) => !isSelf(row));
         if (deletable.length !== rows.length) {
             toast.warning(intl.formatMessage({ id: 'message.cannotDeleteSelf' }));
@@ -99,29 +108,7 @@ export default function User() {
         if (deletable.length === 0) {
             return;
         }
-        setDeleteTarget(deletable);
-    }
-    async function confirmDelete() {
-        if (deleteTarget.length === 0) {
-            return;
-        }
-        setDeleting(true);
-        try {
-            await userApi.deleteUsers(deleteTarget.map(item => item.id));
-            const remaining = Math.max(0, data.total - deleteTarget.length);
-            const maxPage = Math.max(1, Math.ceil(remaining / params.size));
-            setParams(prev => ({ ...prev, page: Math.min(prev.page, maxPage) }));
-            setSelectedRows([]);
-            setDeleteTarget([]);
-            toast.success(intl.formatMessage({ id: 'message.success' }));
-        } finally {
-            setDeleting(false);
-        }
-    }
-    function handleStatusChange(row: User, status: Status) {
-        return userApi.updateUserStatus(row.id, status).then(() => {
-            setParams(prev => ({ ...prev }));
-        })
+        requestDelete(deletable);
     }
 
     const columns: ColumnDef<User>[] = [
@@ -136,7 +123,7 @@ export default function User() {
                         onClick={() => {
                             const isAsc = column.getIsSorted() === "asc";
                             table.setSorting([{ id: "name", desc: isAsc }]);
-                            setParams(prev => ({ ...prev, direction: isAsc ? "desc" : "asc", sort: 'name', page: 1 }))
+                            updateParams({ direction: isAsc ? "desc" : "asc", sort: 'name' });
                         }}
                     >
                         {intl.formatMessage({ id: 'page.system.user.header.name' })}
@@ -215,7 +202,7 @@ export default function User() {
                                 </ActionAuth>
                                 {!isSelf(user) && (
                                     <ActionAuth action="delete">
-                                        <DropdownMenuItem onClick={() => requestDelete([user])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => requestDeleteSafe([user])}>{intl.formatMessage({ id: 'button.delete' })}</DropdownMenuItem>
                                     </ActionAuth>
                                 )}
                                 <ActionAuth action="edit">
@@ -232,19 +219,11 @@ export default function User() {
     return (
         <div className="w-full p-3">
             <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-                onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+                onSave={refetch} />
             <ConfirmDeleteDialog
                 open={deleteTarget.length > 0}
-                onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-                description={deleteTarget.length === 1
-                    ? intl.formatMessage(
-                        { id: 'table.deleteConfirmSingle' },
-                        { name: deleteTarget[0].username },
-                    )
-                    : intl.formatMessage(
-                        { id: 'table.deleteConfirm' },
-                        { count: deleteTarget.length },
-                    )}
+                onOpenChange={(open) => { if (!open) cancelDelete(); }}
+                description={deleteDescription}
                 pending={deleting}
                 onConfirm={confirmDelete}
             />
@@ -264,45 +243,25 @@ export default function User() {
             <div className="flex items-center py-3 gap-4">
                 <GroupTreeSelect
                     className="w-60"
-                    value={params.groupId}
+                    value={params.groupId ?? ''}
                     onChange={(node) => {
-                        setParams(prev => ({ ...prev, groupId: node, page: 1 }))
+                        updateParams({ groupId: node });
                     }}
                 />
                 <Input
                     placeholder={intl.formatMessage({ id: 'page.system.user.searchPlaceholder' })}
-                    value={params.keyword}
+                    value={params.keyword ?? ''}
                     onChange={(event) =>
-                        setParams(prev => ({ ...prev, keyword: event.target.value, page: 1 }))
+                        updateParams({ keyword: event.target.value })
                     }
                     className="max-w-sm"
                 />
-                <Select
-                    value={params.status}
-                    onValueChange={(value) =>
-                        setParams(prev => ({ ...prev, status: value || 'all', page: 1 }))
-                    }
-                >
-                    <SelectTrigger className="flex items-center">
-                        <SelectValue>
-                            {intl.formatMessage({
-                                id: `dict.status.${statusEnum.get(params.status || 'all') || 'all'}`,
-                            })}
-                        </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        {Array.from(statusEnum).map(([key, value]) => (
-                            <SelectItem key={key} value={key}>
-                                {intl.formatMessage({ id: `dict.status.${value}` })}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
                 <div className="ml-auto flex items-center gap-2">
                     <ActionAuth action="add">
                         <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
                     </ActionAuth>
-                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => setParams(prev => ({ ...prev, page: 1 }))} onCreated={(password, username) => setTempPassword({ password, username })} />
+                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => updateParams({}, true)} onCreated={(password, username) => setTempPassword({ password, username })} />
                     <PasswordDialog
                         open={!!tempPassword}
                         onOpenChange={(open) => { if (!open) setTempPassword(null); }}
@@ -310,7 +269,7 @@ export default function User() {
                         username={tempPassword?.username}
                     />
                     <ActionAuth action="delete">
-                        <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
+                        <Button disabled={selectedRows.length === 0} onClick={() => requestDeleteSafe(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
                     </ActionAuth>
                 </div>
             </div>
@@ -321,7 +280,7 @@ export default function User() {
                 total={data.total}
                 page={params.page}
                 size={params.size}
-                onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
+                onPageChange={setPage}
                 getRowId={(row) => row.id}
                 onSelectionChange={setSelectedRows}
                 loading={loading}

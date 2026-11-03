@@ -2,8 +2,10 @@ import * as roleApi from "@/api/system/role";
 import type { Role, RoleQuery } from "@/api/system/role";
 import ActionAuth from "@/components/action-auth";
 import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
-import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import { ResourceTable, StatusSwitch } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
+import { useResourcePage } from "@/components/system/resource-list/use-resource-page";
+import { StatusFilter } from "@/components/system/status-filter";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -16,21 +18,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { formatDateTime } from "@/lib/date-time";
-import { statusEnum } from "@/lib/dict";
-import type { Status } from "@/lib/status";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useIntl } from "react-intl";
-import { toast } from "sonner";
 import AddDialog from "./add-dialog";
 import EditDialog from "./edit-dialog";
 
@@ -38,23 +30,40 @@ type TableParams = ListParams<RoleQuery>;
 
 export default function Role() {
     const intl = useIntl();
-    const [params, setParams] = useState<TableParams>({
-        page: 1,
-        size: 10,
-        id: '',
-        name: '',
-        status: 'all'
-    });
-
-    const { data, loading, error, refetch } = useResourceList<TableParams, Role>({
+    const {
         params,
+        updateParams,
+        setPage,
+        data,
+        loading,
+        error,
+        refetch,
+        selectedRows,
+        setSelectedRows,
+        deleteTarget,
+        deleteDescription,
+        requestDelete,
+        cancelDelete,
+        confirmDelete,
+        deleting,
+        handleStatusChange,
+    } = useResourcePage<Role, TableParams>({
+        initialParams: {
+            page: 1,
+            size: 10,
+            id: '',
+            name: '',
+            status: 'all'
+        },
+        fetcher: roleApi.listRoles,
         errorMessage: intl.formatMessage({ id: 'table.loadError' }),
-        fetcher: (query, signal) => roleApi.listRoles(query, signal),
+        getRowId: (row) => row.id,
+        labelOf: (row) => row.name,
+        deleteRows: roleApi.deleteRoles,
+        updateStatus: (row, status) => roleApi.updateRole(row.id, { status }),
+        paginationMode: "server",
     });
 
-    const [selectedRows, setSelectedRows] = useState<Role[]>([]);
-    const [deleteTarget, setDeleteTarget] = useState<Role[]>([]);
-    const [deleting, setDeleting] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [id, setId] = useState('' as string);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -62,34 +71,6 @@ export default function Role() {
     function handleEdit(row: Role) {
         setId(row.id);
         setIsEditDialogOpen(true);
-    }
-    function requestDelete(rows: Role[]) {
-        if (rows.length === 0) {
-            return;
-        }
-        setDeleteTarget(rows);
-    }
-    async function confirmDelete() {
-        if (deleteTarget.length === 0) {
-            return;
-        }
-        setDeleting(true);
-        try {
-            await roleApi.deleteRoles(deleteTarget.map(item => item.id));
-            const remaining = Math.max(0, data.total - deleteTarget.length);
-            const maxPage = Math.max(1, Math.ceil(remaining / params.size));
-            setParams(prev => ({ ...prev, page: Math.min(prev.page, maxPage) }));
-            setSelectedRows([]);
-            setDeleteTarget([]);
-            toast.success(intl.formatMessage({ id: 'message.success' }));
-        } finally {
-            setDeleting(false);
-        }
-    }
-    function handleStatusChange(row: Role, status: Status) {
-        return roleApi.updateRole(row.id, { status }).then(() => {
-            setParams(prev => ({ ...prev }));
-        })
     }
 
     const columns: ColumnDef<Role>[] = [
@@ -103,7 +84,7 @@ export default function Role() {
                     onClick={() => {
                         const isAsc = column.getIsSorted() === "asc";
                         table.setSorting([{ id: "name", desc: isAsc }]);
-                        setParams(prev => ({ ...prev, direction: isAsc ? "desc" : "asc", sort: 'name', page: 1 }))
+                        updateParams({ direction: isAsc ? "desc" : "asc", sort: 'name' });
                     }}
                 >
                     {intl.formatMessage({ id: 'page.system.role.header.name' })}
@@ -168,19 +149,11 @@ export default function Role() {
     return (
         <div className="w-full p-3">
             <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-                onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+                onSave={refetch} />
             <ConfirmDeleteDialog
                 open={deleteTarget.length > 0}
-                onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-                description={deleteTarget.length === 1
-                    ? intl.formatMessage(
-                        { id: 'table.deleteConfirmSingle' },
-                        { name: deleteTarget[0].name },
-                    )
-                    : intl.formatMessage(
-                        { id: 'table.deleteConfirm' },
-                        { count: deleteTarget.length },
-                    )}
+                onOpenChange={(open) => { if (!open) cancelDelete(); }}
+                description={deleteDescription}
                 pending={deleting}
                 onConfirm={confirmDelete}
             />
@@ -188,36 +161,22 @@ export default function Role() {
             <div className="flex items-center py-3 gap-4">
                 <div className="flex items-center gap-4">
                     <Label className="whitespace-nowrap" htmlFor="roleName">{intl.formatMessage({ id: 'page.system.role.header.name' })}</Label>
-                    <Input id="roleName" type="text" placeholder="" value={params.name} onChange={(e) => setParams(prev => ({ ...prev, name: e.target.value, page: 1 }))} />
+                    <Input id="roleName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} />
                 </div>
                 <div className="flex items-center gap-4">
                     <Label className="whitespace-nowrap" htmlFor="roleId">{intl.formatMessage({ id: 'page.system.role.header.role' })}</Label>
-                    <Input id="roleId" type="text" placeholder="" value={params.id} onChange={(e) => setParams(prev => ({ ...prev, id: e.target.value, page: 1 }))} />
+                    <Input id="roleId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} />
                 </div>
 
                 <div className="flex items-center gap-2">
                     <Label className="whitespace-nowrap">{intl.formatMessage({ id: 'page.system.role.header.status' })}</Label>
-                    <Select
-                        onValueChange={(value) =>
-                            setParams(prev => ({ ...prev, status: value ? value : '', page: 1 }))
-                        } defaultValue={params.status}>
-                        <SelectTrigger className="flex items-center">
-                            <SelectValue placeholder="Status">
-                                {intl.formatMessage({ id: `dict.status.${statusEnum.get(params.status || '') || ''}` })}
-                            </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Array.from(statusEnum).map(([key, value]) => (
-                                <SelectItem key={value} value={key}>{intl.formatMessage({ id: `dict.status.${value}` })}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                     <ActionAuth action="add">
                         <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
                     </ActionAuth>
-                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => updateParams({}, true)} />
                     <ActionAuth action="delete">
                         <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
                     </ActionAuth>
@@ -230,7 +189,7 @@ export default function Role() {
                 total={data.total}
                 page={params.page}
                 size={params.size}
-                onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
+                onPageChange={setPage}
                 getRowId={(row) => row.id}
                 onSelectionChange={setSelectedRows}
                 loading={loading}

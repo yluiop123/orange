@@ -2,8 +2,10 @@ import { deletePermissions, listPermissions, updatePermission } from "@/api/syst
 import type { PermissionQuery } from "@/api/system/permission";
 import ActionAuth from "@/components/action-auth";
 import { ConfirmDeleteDialog } from "@/components/system/confirm-delete-dialog";
-import { ResourceTable, StatusSwitch, useResourceList } from "@/components/system/resource-list";
+import { ResourceTable, StatusSwitch } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
+import { useResourcePage } from "@/components/system/resource-list/use-resource-page";
+import { StatusFilter } from "@/components/system/status-filter";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,13 +26,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDateTime } from "@/lib/date-time";
-import { statusEnum } from "@/lib/dict";
 import type { Status } from "@/lib/status";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useIntl } from "react-intl";
-import { toast } from "sonner";
 import AddChildDialog from "./add-child-dialog";
 import EditDialog from "./edit-dialog";
 
@@ -57,33 +57,57 @@ const PERMISSION_TYPES = [
 
 export default function Permission() {
   const { formatMessage } = useIntl();
-  const [params, setParams] = useState<TableParams>({
-    page: 1,
-    size: 10,
-    id: '',
-    name: '',
-    status: 'all',
-    path: '',
-    type: 'all',
-  });
-
-  const { data, loading, error, refetch } = useResourceList<TableParams, Permission>({
+  const {
     params,
-    errorMessage: formatMessage({ id: 'table.loadError' }),
+    updateParams,
+    setPage,
+    data,
+    loading,
+    error,
+    refetch,
+    selectedRows,
+    setSelectedRows,
+    deleteTarget,
+    deleteDescription,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
+    deleting,
+    handleStatusChange,
+  } = useResourcePage<Permission, TableParams>({
+    initialParams: {
+      page: 1,
+      size: 10,
+      id: '',
+      name: '',
+      status: 'all',
+      path: '',
+      type: 'all',
+    },
     fetcher: (query, signal) =>
       listPermissions(
-        { id: query.id, name: query.name, path: query.path, status: query.status, type: query.type },
+        {
+          id: query.id,
+          name: query.name,
+          path: query.path,
+          status: query.status,
+          type: query.type,
+        },
         signal,
       ),
+    errorMessage: formatMessage({ id: 'table.loadError' }),
     tree: {
       id: (row) => row.id,
       parentId: (row) => row.parentId,
     },
+    getRowId: (row) => row.id,
+    labelOf: (row) => row.name,
+    deleteRows: deletePermissions,
+    updateStatus: (row, status) => updatePermission(row.id, { status }),
+    paginationMode: "client",
+    cascadeDelete: true,
   });
 
-  const [selectedRows, setSelectedRows] = useState<Permission[]>([]);
-  const [deleteTarget, setDeleteTarget] = useState<Permission[]>([]);
-  const [deleting, setDeleting] = useState(false);
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false);
@@ -91,32 +115,6 @@ export default function Permission() {
   function handleEdit(row: Permission) {
     setId(row.id);
     setIsEditDialogOpen(true);
-  }
-  function requestDelete(rows: Permission[]) {
-    if (rows.length === 0) {
-      return;
-    }
-    setDeleteTarget(rows);
-  }
-  async function confirmDelete() {
-    if (deleteTarget.length === 0) {
-      return;
-    }
-    setDeleting(true);
-    try {
-      await deletePermissions(deleteTarget.map((row) => row.id));
-      refetch();
-      setSelectedRows([]);
-      setDeleteTarget([]);
-      toast.success(formatMessage({ id: 'message.success' }));
-    } finally {
-      setDeleting(false);
-    }
-  }
-  function handleStatusChange(row: Permission, status: Status) {
-    return updatePermission(row.id, { status }).then(() => {
-      setParams(prev => ({ ...prev }));
-    })
   }
   function handleAddChild(row: Permission | null) {
     setId(row?.id || '');
@@ -210,15 +208,13 @@ export default function Permission() {
   return (
     <div className="w-full p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
-        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+        onSave={refetch} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
-        onSave={() => setParams(prev => ({ ...prev, page: 1 }))} />
+        onSave={() => updateParams({}, true)} />
       <ConfirmDeleteDialog
         open={deleteTarget.length > 0}
-        onOpenChange={(open) => { if (!open) setDeleteTarget([]); }}
-        description={deleteTarget.length === 1
-          ? formatMessage({ id: 'table.deleteConfirmSingle' }, { name: deleteTarget[0].name })
-          : formatMessage({ id: 'table.deleteConfirm' }, { count: deleteTarget.length })}
+        onOpenChange={(open) => { if (!open) cancelDelete(); }}
+        description={deleteDescription}
         pending={deleting}
         onConfirm={confirmDelete}
       />
@@ -226,21 +222,21 @@ export default function Permission() {
       <div className="flex items-center py-3 gap-4">
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="permissionName">{formatMessage({ id: 'page.system.permission.header.name' })}</Label>
-          <Input id="permissionName" type="text" placeholder="" value={params.name} onChange={(e) => setParams(prev => ({ ...prev, name: e.target.value, page: 1 }))} />
+          <Input id="permissionName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} />
         </div>
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="permissionId">{formatMessage({ id: 'page.system.permission.header.id' })}</Label>
-          <Input id="permissionId" type="text" placeholder="" value={params.id} onChange={(e) => setParams(prev => ({ ...prev, id: e.target.value, page: 1 }))} />
+          <Input id="permissionId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} />
         </div>
         <div className="flex items-center gap-4">
           <Label className="whitespace-nowrap" htmlFor="permissionPath">{formatMessage({ id: 'page.system.permission.header.path' })}</Label>
-          <Input id="permissionPath" type="text" placeholder="" value={params.path} onChange={(e) => setParams(prev => ({ ...prev, path: e.target.value, page: 1 }))} />
+          <Input id="permissionPath" type="text" placeholder="" value={params.path ?? ''} onChange={(e) => updateParams({ path: e.target.value })} />
         </div>
         <div className="flex items-center gap-2">
           <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.type' })}</Label>
           <Select
-            value={params.type}
-            onValueChange={(value) => setParams(prev => ({ ...prev, type: value || 'all', page: 1 }))}
+            value={params.type ?? 'all'}
+            onValueChange={(value) => updateParams({ type: value || 'all' })}
           >
             <SelectTrigger className="flex items-center">
               <SelectValue>
@@ -261,21 +257,7 @@ export default function Permission() {
         </div>
         <div className="flex items-center gap-2">
           <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.status' })}</Label>
-          <Select
-            value={params.status}
-            onValueChange={(value) => setParams(prev => ({ ...prev, status: value || 'all', page: 1 }))}
-          >
-            <SelectTrigger className="flex items-center">
-              <SelectValue placeholder="Status">
-                {formatMessage({ id: `dict.status.${statusEnum.get(params.status || 'all') || 'all'}` })}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from(statusEnum).map(([key, value]) => (
-                <SelectItem key={key} value={key}>{formatMessage({ id: `dict.status.${value}` })}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
         </div>
         <div className="ml-auto flex items-center gap-2">
           <ActionAuth action="add">
@@ -293,7 +275,7 @@ export default function Permission() {
         total={data.total}
         page={params.page}
         size={params.size}
-        onPageChange={(page) => setParams(prev => ({ ...prev, page }))}
+        onPageChange={setPage}
         getRowId={(row) => row.id}
         getSubRows={(row) => row.subRows}
         selectionMode="tree"
