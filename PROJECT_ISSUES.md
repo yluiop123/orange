@@ -254,6 +254,7 @@ pnpm gen:api
 | 权限身份 ADR | `docs/adr/0001-path-as-permission-identity.md` |
 | 菜单树 ADR | `docs/adr/0002-backend-menu-tree.md` |
 | 系统管理审计 | `docs/audits/system-management-2026-11-01.md` |
+| 校验规则总览 | `docs/validation-rules.md` |
 | 前端请求封装 | `vite-shadcn/src/lib/axios.ts` |
 | 前端 API 层 | `vite-shadcn/src/api/` |
 | OpenAPI 快照/生成类型 | `vite-shadcn/openapi.json`、`vite-shadcn/src/api/schema.d.ts` |
