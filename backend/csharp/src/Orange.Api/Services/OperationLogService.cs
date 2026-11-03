@@ -9,10 +9,12 @@ namespace Orange.Api.Services;
 public sealed class OperationLogService
 {
     private readonly OrangeDbContext _db;
+    private readonly SqlDialect _dialect;
 
-    public OperationLogService(OrangeDbContext db)
+    public OperationLogService(OrangeDbContext db, SqlDialect dialect)
     {
         _db = db;
+        _dialect = dialect;
     }
 
     public async Task<PageData<OperationLogBean>> QueryAsync(
@@ -25,12 +27,13 @@ public sealed class OperationLogService
         if (!string.IsNullOrWhiteSpace(request.Username))
         {
             var pattern = QueryUtils.LikeContains(request.Username);
-            query = query.Where(log => log.Username != null && EF.Functions.ILike(log.Username, pattern, "\\"));
+            query = query.Where(log => log.Username != null)
+                .Where(SearchPredicate.Like<OperationLogEntry>(log => log.Username, pattern, _dialect));
         }
         if (!string.IsNullOrWhiteSpace(request.Path))
         {
             var pattern = QueryUtils.LikeContains(request.Path);
-            query = query.Where(log => EF.Functions.ILike(log.Path, pattern, "\\"));
+            query = query.Where(SearchPredicate.Like<OperationLogEntry>(log => log.Path, pattern, _dialect));
         }
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
@@ -86,19 +89,16 @@ public sealed class OperationLogService
 /// </summary>
 public sealed class OperationLogWriter
 {
-    private readonly AppOptions _options;
+    private readonly DbContextOptions<OrangeDbContext> _options;
 
     public OperationLogWriter(AppOptions options)
     {
-        _options = options;
+        _options = DatabaseSetup.BuildOptions(options);
     }
 
     public async Task RecordAsync(OperationLogEntry entry, CancellationToken cancellationToken)
     {
-        var options = new DbContextOptionsBuilder<OrangeDbContext>()
-            .UseNpgsql(_options.ConnectionString)
-            .Options;
-        await using var db = new OrangeDbContext(options);
+        await using var db = new OrangeDbContext(_options);
         db.OperationLogs.Add(entry);
         await db.SaveChangesAsync(cancellationToken);
     }

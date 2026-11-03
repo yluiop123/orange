@@ -24,6 +24,7 @@ public sealed class UserService
     private readonly LoginAttemptService _loginAttempts;
     private readonly CurrentUserAccessor _currentUser;
     private readonly UserLoader _userLoader;
+    private readonly SqlDialect _dialect;
 
     public UserService(
         OrangeDbContext db,
@@ -31,7 +32,8 @@ public sealed class UserService
         GrantGuard grantGuard,
         LoginAttemptService loginAttempts,
         CurrentUserAccessor currentUser,
-        UserLoader userLoader)
+        UserLoader userLoader,
+        SqlDialect dialect)
     {
         _db = db;
         _passwordHasher = passwordHasher;
@@ -39,6 +41,7 @@ public sealed class UserService
         _loginAttempts = loginAttempts;
         _currentUser = currentUser;
         _userLoader = userLoader;
+        _dialect = dialect;
     }
 
     public async Task<PageData<UserBean>> QueryAsync(QueryUserRequest request, CancellationToken cancellationToken)
@@ -49,11 +52,22 @@ public sealed class UserService
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var pattern = QueryUtils.LikePrefix(request.Keyword);
-            query = query.Where(user =>
-                (user.Name != null && EF.Functions.ILike(user.Name, pattern, "\\"))
-                || EF.Functions.ILike(user.Username, pattern, "\\")
-                || (user.Email != null && EF.Functions.ILike(user.Email, pattern, "\\"))
-                || (user.Phone != null && EF.Functions.ILike(user.Phone, pattern, "\\")));
+            if (_dialect.IsPostgres)
+            {
+                query = query.Where(user =>
+                    (user.Name != null && EF.Functions.ILike(user.Name, pattern, "\\"))
+                    || EF.Functions.ILike(user.Username, pattern, "\\")
+                    || (user.Email != null && EF.Functions.ILike(user.Email, pattern, "\\"))
+                    || (user.Phone != null && EF.Functions.ILike(user.Phone, pattern, "\\")));
+            }
+            else
+            {
+                query = query.Where(user =>
+                    (user.Name != null && EF.Functions.Like(user.Name.ToLower(), pattern, "\\"))
+                    || EF.Functions.Like(user.Username.ToLower(), pattern, "\\")
+                    || (user.Email != null && EF.Functions.Like(user.Email.ToLower(), pattern, "\\"))
+                    || (user.Phone != null && EF.Functions.Like(user.Phone.ToLower(), pattern, "\\")));
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.FilterField))
@@ -65,11 +79,14 @@ public sealed class UserService
             var pattern = QueryUtils.LikePrefix(request.FilterValue);
             query = request.FilterField switch
             {
-                "name" => query.Where(user => user.Name != null && EF.Functions.ILike(user.Name, pattern, "\\")),
-                "username" => query.Where(user => EF.Functions.ILike(user.Username, pattern, "\\")),
-                "email" => query.Where(user => user.Email != null && EF.Functions.ILike(user.Email, pattern, "\\")),
-                "phone" => query.Where(user => user.Phone != null && EF.Functions.ILike(user.Phone, pattern, "\\")),
-                _ => query.Where(user => EF.Functions.ILike(user.Status, pattern, "\\"))
+                "name" => query.Where(user => user.Name != null)
+                    .Where(SearchPredicate.Like<User>(user => user.Name, pattern, _dialect)),
+                "username" => query.Where(SearchPredicate.Like<User>(user => user.Username, pattern, _dialect)),
+                "email" => query.Where(user => user.Email != null)
+                    .Where(SearchPredicate.Like<User>(user => user.Email, pattern, _dialect)),
+                "phone" => query.Where(user => user.Phone != null)
+                    .Where(SearchPredicate.Like<User>(user => user.Phone, pattern, _dialect)),
+                _ => query.Where(SearchPredicate.Like<User>(user => user.Status, pattern, _dialect))
             };
         }
 
@@ -80,7 +97,8 @@ public sealed class UserService
         if (!string.IsNullOrEmpty(request.GroupId))
         {
             var pattern = QueryUtils.LikePrefix(request.GroupId);
-            query = query.Where(user => user.GroupId != null && EF.Functions.ILike(user.GroupId, pattern, "\\"));
+            query = query.Where(user => user.GroupId != null)
+                .Where(SearchPredicate.Like<User>(user => user.GroupId, pattern, _dialect));
         }
 
         var (sortBy, ascending) = ResolveSort(request.Sort, request.OrderField, request.Direction, request.OrderValue);

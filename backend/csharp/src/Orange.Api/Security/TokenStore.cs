@@ -8,10 +8,12 @@ namespace Orange.Api.Security;
 public sealed class TokenStore
 {
     private readonly OrangeDbContext _db;
+    private readonly SqlDialect _dialect;
 
-    public TokenStore(OrangeDbContext db)
+    public TokenStore(OrangeDbContext db, SqlDialect dialect)
     {
         _db = db;
+        _dialect = dialect;
     }
 
     public async Task<bool> IsRevokedAsync(string? jti, CancellationToken cancellationToken)
@@ -37,14 +39,43 @@ public sealed class TokenStore
         {
             return false;
         }
+
+        if (_dialect.IsPostgres)
+        {
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"delete from sys_revoked_token where expires_at < {DateTimeOffset.UtcNow}", cancellationToken);
+            var inserted = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                 insert into sys_revoked_token (jti, token_type, expires_at, create_time)
+                 values ({jti}, {tokenType}, {expiresAt}, {DateTimeOffset.UtcNow})
+                 on conflict (jti) do nothing
+                 """, cancellationToken);
+            return inserted > 0;
+        }
+
+        var now = _dialect.ToDbTimestamp(DateTimeOffset.UtcNow);
+        var expires = _dialect.ToDbTimestamp(expiresAt);
         await _db.Database.ExecuteSqlInterpolatedAsync(
-            $"delete from sys_revoked_token where expires_at < {DateTimeOffset.UtcNow}", cancellationToken);
-        var inserted = await _db.Database.ExecuteSqlInterpolatedAsync(
+            $"delete from sys_revoked_token where expires_at < {now}", cancellationToken);
+
+        if (_dialect.IsMySql)
+        {
+            // INSERT IGNORE keeps the primary-key conflict a no-op and returns 0
+            // affected rows, so refresh replay detection stays race-free.
+            var inserted = await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                 insert ignore into sys_revoked_token (jti, token_type, expires_at, create_time)
+                 values ({jti}, {tokenType}, {expires}, {now})
+                 """, cancellationToken);
+            return inserted > 0;
+        }
+
+        var stored = await _db.Database.ExecuteSqlInterpolatedAsync(
             $"""
              insert into sys_revoked_token (jti, token_type, expires_at, create_time)
-             values ({jti}, {tokenType}, {expiresAt}, {DateTimeOffset.UtcNow})
+             values ({jti}, {tokenType}, {expires}, {now})
              on conflict (jti) do nothing
              """, cancellationToken);
-        return inserted > 0;
+        return stored > 0;
     }
 }

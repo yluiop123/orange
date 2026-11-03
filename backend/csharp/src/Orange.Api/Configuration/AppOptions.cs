@@ -1,3 +1,6 @@
+using System.Collections.Specialized;
+using System.Text;
+
 namespace Orange.Api.Configuration;
 
 /// <summary>
@@ -6,11 +9,15 @@ namespace Orange.Api.Configuration;
 /// </summary>
 public sealed class AppOptions
 {
-    public required string DatabaseHost { get; init; }
-    public required int DatabasePort { get; init; }
-    public required string DatabaseName { get; init; }
-    public required string DatabaseUser { get; init; }
-    public required string DatabasePassword { get; init; }
+    /// <summary>Engine selected by <c>DB_DRIVER</c> or inferred from <c>DATABASE_URL</c>.</summary>
+    public DatabaseDriver Driver { get; init; } = DatabaseDriver.Postgres;
+
+    /// <summary>Provider-specific connection string. See <see cref="DatabaseConnection.Resolve"/>.</summary>
+    public required string ConnectionString { get; init; }
+
+    /// <summary>Human-readable description of where the connection came from, for the startup log.</summary>
+    public string DatabaseSource { get; init; } = "DB_*";
+
     public required string JwtSecret { get; init; }
     public required string[] CorsOrigins { get; init; }
     public required int Port { get; init; }
@@ -24,19 +31,14 @@ public sealed class AppOptions
     public string CookieDomain { get; init; } = "";
     public int OperationLogRetentionDays { get; init; } = 90;
 
-    public string ConnectionString =>
-        $"Host={DatabaseHost};Port={DatabasePort};Database={DatabaseName};Username={DatabaseUser};Password={DatabasePassword};" +
-        "Pooling=true;Maximum Pool Size=20;Timeout=30";
-
     public static AppOptions FromEnvironment()
     {
+        var database = DatabaseConnection.Resolve();
         return new AppOptions
         {
-            DatabaseHost = Env("DB_HOST", "localhost"),
-            DatabasePort = EnvInt("DB_PORT", 5432),
-            DatabaseName = Env("DB_NAME", "orange"),
-            DatabaseUser = Env("DB_USER", "postgres"),
-            DatabasePassword = Env("DB_PASSWORD", "postgres"),
+            Driver = database.Driver,
+            ConnectionString = database.ConnectionString,
+            DatabaseSource = database.Source,
             // Development-only default. Production must set JWT_SECRET.
             JwtSecret = Env("JWT_SECRET", "orange-development-secret-change-me-0123456789abcdef"),
             CorsOrigins = Env("CORS_ORIGINS", Env("CORS_ALLOWED_ORIGINS", "http://localhost:5173"))
@@ -70,5 +72,263 @@ public sealed class AppOptions
     {
         var value = Environment.GetEnvironmentVariable(key);
         return bool.TryParse(value, out var parsed) ? parsed : fallback;
+    }
+}
+
+public sealed record DatabaseConnectionSettings(
+    DatabaseDriver Driver,
+    string ConnectionString,
+    string Source);
+
+/// <summary>
+/// Resolves the single connection switch documented in docs/DB-MATRIX.md.
+/// Precedence: <c>DATABASE_URL</c> wins over the discrete <c>DB_*</c> variables.
+/// <c>DB_DRIVER</c> selects the provider; when it is unset the scheme of
+/// <c>DATABASE_URL</c> selects it and PostgreSQL is the default.
+/// </summary>
+public static class DatabaseConnection
+{
+    public static DatabaseConnectionSettings Resolve()
+    {
+        var driverText = Environment.GetEnvironmentVariable("DB_DRIVER");
+        var hasDriver = !string.IsNullOrWhiteSpace(driverText);
+        var driver = DatabaseDriver.Postgres;
+        if (hasDriver && !DatabaseDrivers.TryParse(driverText, out driver))
+        {
+            throw new InvalidOperationException(
+                $"Unsupported DB_DRIVER '{driverText}'. Use postgres, mysql, mariadb or sqlite.");
+        }
+
+        var url = Environment.GetEnvironmentVariable("DATABASE_URL");
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            var trimmed = url.Trim();
+            var schemeDriver = DetectScheme(trimmed, out var hasScheme);
+            if (!hasScheme)
+            {
+                if (hasDriver && driver == DatabaseDriver.Sqlite)
+                {
+                    return new DatabaseConnectionSettings(
+                        DatabaseDriver.Sqlite, SqliteConnectionString(trimmed), "DATABASE_URL");
+                }
+                throw new InvalidOperationException(
+                    "DATABASE_URL must start with postgres://, postgresql://, mysql://, mariadb:// or sqlite: "
+                    + "unless DB_DRIVER=sqlite and the value is a file path.");
+            }
+            if (hasDriver && schemeDriver != driver)
+            {
+                throw new InvalidOperationException(
+                    $"DB_DRIVER={DatabaseDrivers.ToName(driver)} conflicts with DATABASE_URL scheme "
+                    + $"'{DatabaseDrivers.ToName(schemeDriver)}'.");
+            }
+            return new DatabaseConnectionSettings(
+                schemeDriver, FromUrl(schemeDriver, trimmed), "DATABASE_URL");
+        }
+
+        return new DatabaseConnectionSettings(driver, FromDiscrete(driver), "DB_*");
+    }
+
+    private static bool HasScheme(string value, string scheme)
+        => value.StartsWith(scheme, StringComparison.OrdinalIgnoreCase);
+
+    private static DatabaseDriver DetectScheme(string value, out bool hasScheme)
+    {
+        hasScheme = true;
+        if (HasScheme(value, "postgres://") || HasScheme(value, "postgresql://"))
+        {
+            return DatabaseDriver.Postgres;
+        }
+        if (HasScheme(value, "mysql://"))
+        {
+            return DatabaseDriver.MySql;
+        }
+        if (HasScheme(value, "mariadb://"))
+        {
+            return DatabaseDriver.MariaDb;
+        }
+        if (HasScheme(value, "sqlite:") || HasScheme(value, "sqlite3:") || HasScheme(value, "file:"))
+        {
+            return DatabaseDriver.Sqlite;
+        }
+        hasScheme = false;
+        return DatabaseDriver.Postgres;
+    }
+
+    private static string FromUrl(DatabaseDriver driver, string url)
+    {
+        if (driver == DatabaseDriver.Sqlite)
+        {
+            return SqliteConnectionString(StripSqliteScheme(url));
+        }
+
+        var uri = new Uri(url);
+        var userInfo = Uri.UnescapeDataString(uri.UserInfo).Split(':', 2);
+        var user = userInfo.Length > 0 ? userInfo[0] : "";
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var database = Uri.UnescapeDataString(uri.AbsolutePath.Trim('/'));
+        var parameters = ParseQuery(uri.Query);
+        var defaultPort = driver == DatabaseDriver.Postgres ? 5432 : 3306;
+        var port = uri.Port > 0 ? uri.Port : defaultPort;
+
+        return driver == DatabaseDriver.Postgres
+            ? PostgresConnectionString(uri.Host, port, database, user, password, parameters)
+            : MySqlConnectionString(uri.Host, port, database, user, password, parameters);
+    }
+
+    private static string FromDiscrete(DatabaseDriver driver)
+    {
+        if (driver == DatabaseDriver.Sqlite)
+        {
+            var explicitPath = Env("SQLITE_PATH", "");
+            if (!string.IsNullOrWhiteSpace(explicitPath))
+            {
+                return SqliteConnectionString(explicitPath);
+            }
+            var name = Env("DB_NAME", "orange-csharp.db");
+            return SqliteConnectionString(name.EndsWith(".db", StringComparison.OrdinalIgnoreCase)
+                ? name
+                : "orange-csharp.db");
+        }
+
+        var host = Env("DB_HOST", "localhost");
+        var defaultPort = driver == DatabaseDriver.Postgres ? 5432 : 3306;
+        var port = EnvInt("DB_PORT", defaultPort);
+        var database = Env("DB_NAME", "orange");
+        var user = Env("DB_USER", driver == DatabaseDriver.Postgres ? "postgres" : "root");
+        var password = Env("DB_PASSWORD", driver == DatabaseDriver.Postgres ? "postgres" : "root");
+
+        return driver == DatabaseDriver.Postgres
+            ? PostgresConnectionString(host, port, database, user, password, new NameValueCollection())
+            : MySqlConnectionString(host, port, database, user, password, new NameValueCollection());
+    }
+
+    private static string PostgresConnectionString(
+        string host,
+        int port,
+        string database,
+        string user,
+        string password,
+        NameValueCollection parameters)
+    {
+        // Identical to the previous hard-coded PostgreSQL string, so existing
+        // deployments keep their pooling and timeout behavior.
+        var builder = new StringBuilder()
+            .Append($"Host={host};Port={port};Database={database};Username={user};Password={password};")
+            .Append("Pooling=true;Maximum Pool Size=20;Timeout=30");
+        var sslMode = SslMode(parameters, new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["disable"] = "Disable",
+            ["allow"] = "Allow",
+            ["prefer"] = "Prefer",
+            ["require"] = "Require",
+            ["verify-ca"] = "VerifyCA",
+            ["verify-full"] = "VerifyFull"
+        });
+        if (sslMode is not null)
+        {
+            builder.Append($";SSL Mode={sslMode}");
+        }
+        return builder.ToString();
+    }
+
+    private static string MySqlConnectionString(
+        string host,
+        int port,
+        string database,
+        string user,
+        string password,
+        NameValueCollection parameters)
+    {
+        var builder = new StringBuilder()
+            .Append($"Server={host};Port={port};Database={database};User ID={user};Password={password};")
+            .Append("Pooling=true;MaximumPoolSize=20;ConnectionTimeout=30;AllowPublicKeyRetrieval=true");
+        var sslMode = SslMode(parameters, new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["disable"] = "None",
+            ["none"] = "None",
+            ["allow"] = "Preferred",
+            ["prefer"] = "Preferred",
+            ["preferred"] = "Preferred",
+            ["require"] = "Required",
+            ["required"] = "Required",
+            ["verify-ca"] = "VerifyCA",
+            ["verify-full"] = "VerifyFull"
+        });
+        if (sslMode is not null)
+        {
+            builder.Append($";SslMode={sslMode}");
+        }
+        return builder.ToString();
+    }
+
+    private static string SqliteConnectionString(string path)
+        => $"Data Source={path.Trim()};Foreign Keys=True;Pooling=true";
+
+    private static string StripSqliteScheme(string url)
+    {
+        var value = url.Trim();
+        if (HasScheme(value, "sqlite3:"))
+        {
+            value = value["sqlite3:".Length..];
+        }
+        else if (HasScheme(value, "sqlite:"))
+        {
+            value = value["sqlite:".Length..];
+        }
+        else if (HasScheme(value, "file:"))
+        {
+            value = value["file:".Length..];
+        }
+
+        if (value.StartsWith("//", StringComparison.Ordinal))
+        {
+            value = value[2..];
+        }
+        // sqlite:///C:/path and /D:/path both mean an absolute Windows path.
+        if (value.Length >= 3 && value[0] == '/' && char.IsLetter(value[1]) && value[2] == ':')
+        {
+            value = value[1..];
+        }
+        return value.Length == 0 ? "orange-csharp.db" : value;
+    }
+
+    private static NameValueCollection ParseQuery(string query)
+    {
+        var result = new NameValueCollection();
+        var text = query.TrimStart('?');
+        if (text.Length == 0)
+        {
+            return result;
+        }
+        foreach (var pair in text.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = pair.Split('=', 2);
+            var key = Uri.UnescapeDataString(parts[0]);
+            var value = parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : "";
+            result[key] = value;
+        }
+        return result;
+    }
+
+    private static string? SslMode(NameValueCollection parameters, Dictionary<string, string> allowed)
+    {
+        var requested = parameters["sslmode"] ?? parameters["ssl-mode"];
+        if (string.IsNullOrWhiteSpace(requested))
+        {
+            return null;
+        }
+        return allowed.TryGetValue(requested.Trim(), out var mapped) ? mapped : null;
+    }
+
+    private static string Env(string key, string fallback)
+    {
+        var value = Environment.GetEnvironmentVariable(key);
+        return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+    }
+
+    private static int EnvInt(string key, int fallback)
+    {
+        var value = Environment.GetEnvironmentVariable(key);
+        return int.TryParse(value, out var parsed) ? parsed : fallback;
     }
 }

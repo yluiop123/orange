@@ -29,6 +29,11 @@ public static class DotEnv
 
             var key = line[..separator].Trim();
             var value = line[(separator + 1)..].Trim();
+            // Real environment variables win over the generated dev defaults.
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
+            {
+                continue;
+            }
             if (value.Length >= 2 &&
                 ((value.StartsWith('"') && value.EndsWith('"')) ||
                  (value.StartsWith('\'') && value.EndsWith('\''))))

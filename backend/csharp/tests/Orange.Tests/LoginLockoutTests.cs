@@ -101,11 +101,7 @@ public class LoginLockoutTests
     private static LoginAttemptService BuildService(ILoginAttemptStore store)
         => new(store, new AppOptions
         {
-            DatabaseHost = "localhost",
-            DatabasePort = 5432,
-            DatabaseName = "orange",
-            DatabaseUser = "postgres",
-            DatabasePassword = "postgres",
+            ConnectionString = "Host=localhost;Port=5432;Database=orange;Username=postgres;Password=postgres",
             JwtSecret = "test-secret-0123456789",
             CorsOrigins = new[] { "http://localhost:5173" },
             Port = 8082,

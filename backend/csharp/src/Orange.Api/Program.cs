@@ -17,7 +17,8 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{options.Port}");
 builder.Services.AddSingleton(options);
 
 builder.Services.AddDbContext<OrangeDbContext>(dbOptions =>
-    dbOptions.UseNpgsql(options.ConnectionString));
+    DatabaseSetup.Configure(dbOptions, options));
+builder.Services.AddSingleton(new SqlDialect(options.Driver));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ApiResponseFactory>();
@@ -69,6 +70,12 @@ builder.Services.AddCors(cors => cors.AddPolicy("frontend", policy =>
 }));
 
 var app = builder.Build();
+
+app.Logger.LogInformation(
+    "Orange API on port {Port} using database driver {Driver} ({Source})",
+    options.Port,
+    DatabaseDrivers.ToName(options.Driver),
+    options.DatabaseSource);
 
 app.UseMiddleware<TraceIdMiddleware>();
 app.UseCors("frontend");

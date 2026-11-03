@@ -15,11 +15,13 @@ public sealed class RoleService
 
     private readonly OrangeDbContext _db;
     private readonly GrantGuard _grantGuard;
+    private readonly SqlDialect _dialect;
 
-    public RoleService(OrangeDbContext db, GrantGuard grantGuard)
+    public RoleService(OrangeDbContext db, GrantGuard grantGuard, SqlDialect dialect)
     {
         _db = db;
         _grantGuard = grantGuard;
+        _dialect = dialect;
     }
 
     public async Task<PageData<RoleBean>> QueryAsync(QueryRoleRequest request, CancellationToken cancellationToken)
@@ -29,12 +31,13 @@ public sealed class RoleService
         if (!string.IsNullOrEmpty(request.Id))
         {
             var pattern = QueryUtils.LikePrefix(request.Id);
-            query = query.Where(role => EF.Functions.ILike(role.Id, pattern, "\\"));
+            query = query.Where(SearchPredicate.Like<Role>(role => role.Id, pattern, _dialect));
         }
         if (!string.IsNullOrEmpty(request.Name))
         {
             var pattern = QueryUtils.LikePrefix(request.Name);
-            query = query.Where(role => role.Name != null && EF.Functions.ILike(role.Name, pattern, "\\"));
+            query = query.Where(role => role.Name != null)
+                .Where(SearchPredicate.Like<Role>(role => role.Name, pattern, _dialect));
         }
         if (!string.IsNullOrEmpty(request.Status) && request.Status != EffectivePermissions.StatusAll)
         {

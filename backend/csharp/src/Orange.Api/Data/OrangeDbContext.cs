@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Orange.Api.Domain;
 
 namespace Orange.Api.Data;
@@ -152,6 +153,49 @@ public class OrangeDbContext : DbContext
             entity.Property(item => item.Ip).HasColumnName("ip");
             entity.Property(item => item.CreateTime).HasColumnName("create_time");
         });
+
+        ApplyTimestampConversions(modelBuilder);
+    }
+
+    /// <summary>
+    /// PostgreSQL has a native <c>timestamptz</c> and keeps <see cref="DateTimeOffset"/>
+    /// end to end. MySQL/MariaDB use <c>datetime(6)</c> and SQLite stores ISO-8601
+    /// text, neither of which carries an offset: store the UTC wall clock and
+    /// restore the UTC kind on read. The schema files already use these types.
+    /// </summary>
+    private void ApplyTimestampConversions(ModelBuilder modelBuilder)
+    {
+        var providerName = Database.ProviderName ?? "";
+        if (providerName.Contains("Npgsql", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        var timestamp = new ValueConverter<DateTimeOffset, DateTime>(
+            value => DateTime.SpecifyKind(value.UtcDateTime, DateTimeKind.Unspecified),
+            value => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc)));
+        var nullableTimestamp = new ValueConverter<DateTimeOffset?, DateTime?>(
+            value => value.HasValue
+                ? DateTime.SpecifyKind(value.Value.UtcDateTime, DateTimeKind.Unspecified)
+                : (DateTime?)null,
+            value => value.HasValue
+                ? new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc))
+                : (DateTimeOffset?)null);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTimeOffset))
+                {
+                    property.SetValueConverter(timestamp);
+                }
+                else if (property.ClrType == typeof(DateTimeOffset?))
+                {
+                    property.SetValueConverter(nullableTimestamp);
+                }
+            }
+        }
     }
 
     public override int SaveChanges()

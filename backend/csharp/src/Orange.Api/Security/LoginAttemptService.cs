@@ -12,14 +12,16 @@ public interface ILoginAttemptStore
     Task DeleteAsync(string key, CancellationToken cancellationToken = default);
 }
 
-/// <summary>PostgreSQL-backed attempt counters; one row per "ip:" or "user:" key.</summary>
+/// <summary>Login attempt counters persisted in <c>sys_login_attempt</c>; one row per "ip:" or "user:" key.</summary>
 public sealed class LoginAttemptStore : ILoginAttemptStore
 {
     private readonly OrangeDbContext _db;
+    private readonly SqlDialect _dialect;
 
-    public LoginAttemptStore(OrangeDbContext db)
+    public LoginAttemptStore(OrangeDbContext db, SqlDialect dialect)
     {
         _db = db;
+        _dialect = dialect;
     }
 
     public async Task<LoginAttemptState?> FindAsync(string key, CancellationToken cancellationToken = default)
@@ -34,10 +36,45 @@ public sealed class LoginAttemptStore : ILoginAttemptStore
 
     public async Task SaveAsync(LoginAttemptState state, CancellationToken cancellationToken = default)
     {
+        if (_dialect.IsPostgres)
+        {
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                 insert into sys_login_attempt (attempt_key, failures, window_start, locked_until, update_time)
+                 values ({state.Key}, {state.Failures}, {state.WindowStart}, {state.LockedUntil}, {state.UpdateTime})
+                 on conflict (attempt_key) do update set
+                     failures = excluded.failures,
+                     window_start = excluded.window_start,
+                     locked_until = excluded.locked_until,
+                     update_time = excluded.update_time
+                 """, cancellationToken);
+            return;
+        }
+
+        // MySQL/MariaDB have no ON CONFLICT; SQLite accepts the PostgreSQL form.
+        var windowStart = _dialect.ToDbTimestamp(state.WindowStart);
+        var lockedUntil = _dialect.ToDbTimestamp(state.LockedUntil);
+        var updateTime = _dialect.ToDbTimestamp(state.UpdateTime);
+
+        if (_dialect.IsMySql)
+        {
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                 insert into sys_login_attempt (attempt_key, failures, window_start, locked_until, update_time)
+                 values ({state.Key}, {state.Failures}, {windowStart}, {lockedUntil}, {updateTime})
+                 on duplicate key update
+                     failures = values(failures),
+                     window_start = values(window_start),
+                     locked_until = values(locked_until),
+                     update_time = values(update_time)
+                 """, cancellationToken);
+            return;
+        }
+
         await _db.Database.ExecuteSqlInterpolatedAsync(
             $"""
              insert into sys_login_attempt (attempt_key, failures, window_start, locked_until, update_time)
-             values ({state.Key}, {state.Failures}, {state.WindowStart}, {state.LockedUntil}, {state.UpdateTime})
+             values ({state.Key}, {state.Failures}, {windowStart}, {lockedUntil}, {updateTime})
              on conflict (attempt_key) do update set
                  failures = excluded.failures,
                  window_start = excluded.window_start,

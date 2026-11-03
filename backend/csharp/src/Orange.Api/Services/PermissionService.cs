@@ -9,10 +9,12 @@ public sealed class PermissionService
 {
     private static readonly HashSet<string> Types = new(StringComparer.Ordinal) { "menu", "action", "directory" };
     private readonly OrangeDbContext _db;
+    private readonly SqlDialect _dialect;
 
-    public PermissionService(OrangeDbContext db)
+    public PermissionService(OrangeDbContext db, SqlDialect dialect)
     {
         _db = db;
+        _dialect = dialect;
     }
 
     public async Task<List<PermissionBean>> QueryAsync(
@@ -23,17 +25,18 @@ public sealed class PermissionService
         if (!string.IsNullOrEmpty(request.Id))
         {
             var pattern = QueryUtils.LikePrefix(request.Id);
-            query = query.Where(item => EF.Functions.ILike(item.Id, pattern, "\\"));
+            query = query.Where(SearchPredicate.Like<Permission>(item => item.Id, pattern, _dialect));
         }
         if (!string.IsNullOrEmpty(request.Name))
         {
             var pattern = QueryUtils.LikePrefix(request.Name);
-            query = query.Where(item => item.Name != null && EF.Functions.ILike(item.Name, pattern, "\\"));
+            query = query.Where(item => item.Name != null)
+                .Where(SearchPredicate.Like<Permission>(item => item.Name, pattern, _dialect));
         }
         if (!string.IsNullOrEmpty(request.Path))
         {
             var pattern = QueryUtils.LikePrefix(request.Path);
-            query = query.Where(item => EF.Functions.ILike(item.Path, pattern, "\\"));
+            query = query.Where(SearchPredicate.Like<Permission>(item => item.Path, pattern, _dialect));
         }
         if (!string.IsNullOrEmpty(request.Status) && request.Status != EffectivePermissions.StatusAll)
         {

@@ -8,10 +8,12 @@ namespace Orange.Api.Services;
 public sealed class GroupService
 {
     private readonly OrangeDbContext _db;
+    private readonly SqlDialect _dialect;
 
-    public GroupService(OrangeDbContext db)
+    public GroupService(OrangeDbContext db, SqlDialect dialect)
     {
         _db = db;
+        _dialect = dialect;
     }
 
     public async Task<List<GroupBean>> QueryAsync(QueryGroupRequest request, CancellationToken cancellationToken)
@@ -20,12 +22,13 @@ public sealed class GroupService
         if (!string.IsNullOrEmpty(request.Id))
         {
             var pattern = QueryUtils.LikePrefix(request.Id);
-            query = query.Where(group => EF.Functions.ILike(group.Id, pattern, "\\"));
+            query = query.Where(SearchPredicate.Like<Group>(group => group.Id, pattern, _dialect));
         }
         if (!string.IsNullOrEmpty(request.Name))
         {
             var pattern = QueryUtils.LikePrefix(request.Name);
-            query = query.Where(group => group.Name != null && EF.Functions.ILike(group.Name, pattern, "\\"));
+            query = query.Where(group => group.Name != null)
+                .Where(SearchPredicate.Like<Group>(group => group.Name, pattern, _dialect));
         }
         if (!string.IsNullOrEmpty(request.Status) && request.Status != EffectivePermissions.StatusAll)
         {
