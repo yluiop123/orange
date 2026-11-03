@@ -7,6 +7,7 @@ import { containerPaths } from "@/lib/page-routes";
 import { isSamePath } from "@/lib/path";
 import { useMenuStore, useUserStore } from '@/store';
 import { useAccess } from "@/store/access";
+import { useForcedPasswordStore } from "@/store/forced-password";
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from "react-router";
 //根据用户登录信息进行权限控制
@@ -14,10 +15,13 @@ export default function Index() {
     const token = useAccessToken();
     const { userInfo, fetchUser } = useUserStore();
     const access = useAccess();
-    const { loaded: menusLoaded, fetchMenus } = useMenuStore();
+    const { menus, loaded: menusLoaded, fetchMenus } = useMenuStore();
+    const forcedPasswordChange = useForcedPasswordStore((state) => state.required);
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     const hasFetchedRef = useRef(false);
+    // undefined 表示还没拿到 user-info，首次加载不应被当成角色切换
+    const previousRoleRef = useRef<string | undefined>(userInfo?.currentRole);
     useEffect(() => {
         const check = async () => {
             if (token && !userInfo) {
@@ -38,6 +42,9 @@ export default function Index() {
             fetchMenus();
         }
     }, [token, menusLoaded, fetchMenus]);
+    useEffect(() => {
+        previousRoleRef.current = userInfo?.currentRole;
+    }, [userInfo?.currentRole]);
     if (loading) return <div>Loading...</div>;
 
     // 没有登录或没有权限
@@ -49,13 +56,19 @@ export default function Index() {
     // 根路径和菜单父级路径由 MenuRedirect 处理，不直接判定 403
     const isHome = currentPath === "/";
     const isMenuContainer = containerPaths.some(path => isSamePath(path, currentPath));
+    // 40302 或 user-info 任一命中都要求先改密码
+    const mustChangePassword = Boolean(userInfo?.mustChangePassword || forcedPasswordChange);
+    // 切换角色后当前页面可能不再可见，此时落到新角色的第一个可见叶子
+    const isRoleSwitch = previousRoleRef.current !== undefined
+        && previousRoleRef.current !== userInfo?.currentRole;
+    const roleSwitchTarget = isRoleSwitch ? access.firstVisibleLeaf(menus) : null;
 
     // 3. 组合判断
     if (!token) {
         return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
     }
-    if (!isHome && !isMenuContainer && !hasPermission && !userInfo?.mustChangePassword) {
-        return <Navigate to="/forbidden" replace state={{ from: location.pathname + location.search }} />;
+    if (!isHome && !isMenuContainer && !hasPermission && !mustChangePassword) {
+        return <Navigate to={roleSwitchTarget ?? "/forbidden"} replace state={{ from: location.pathname + location.search }} />;
     }
     return (
         <SidebarProvider>
@@ -72,7 +85,7 @@ export default function Index() {
                 </div>
                 </div>
             </SidebarInset>
-            {userInfo?.mustChangePassword && (
+            {mustChangePassword && (
                 <ChangePasswordDialog open onOpenChange={() => {}} forced />
             )}
         </SidebarProvider>

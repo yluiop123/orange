@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw";
 import catalog from "@/config/permissions.json";
-import { STATUS_ENABLED, type Status } from "@/lib/status";
+import { checkPermissionShape } from "@/lib/permission-shape";
+import { STATUS_DISABLED, STATUS_ENABLED, type Status } from "@/lib/status";
 import { checkTreeCode, treeCodeIssueZh } from "@/lib/tree-code-policy";
 
 type Locale = "zh" | "en";
@@ -60,6 +61,36 @@ function nowText() {
 
 function byCode(a: { id: string }, b: { id: string }) {
   return a.id === b.id ? 0 : a.id < b.id ? -1 : 1;
+}
+
+function descendantIds(all: Permission[], id: string): string[] {
+  const ids = new Set<string>();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const item of all) {
+      if (
+        item.parentId
+        && (item.parentId === id || ids.has(item.parentId))
+        && !ids.has(item.id)
+      ) {
+        ids.add(item.id);
+        changed = true;
+      }
+    }
+  }
+  return [...ids];
+}
+
+function hasEnabledDescendant(all: Permission[], id: string): boolean {
+  const descendants = new Set(descendantIds(all, id));
+  return all.some(
+    (item) => descendants.has(item.id) && item.status === STATUS_ENABLED,
+  );
+}
+
+function normalizedAction(action?: string | null): string {
+  return (action ?? "").trim();
 }
 
 export function getPermissionList(locale: string): Permission[] {
@@ -216,14 +247,131 @@ const handlers = [
 
   http.patch<{ id: string }>("/api/v1/system/permissions/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
-    if (!getPermissionList(locale).some((item) => item.id === params.id)) {
+    const all = getPermissionList(locale);
+    const permission = all.find((item) => item.id === params.id);
+    if (!permission) {
       return HttpResponse.json(
         { code: 40401, message: "权限不存在" },
         { status: 404 },
       );
     }
     const body = (await request.clone().json()) as Partial<Permission>;
-    updatePermission(params.id, body);
+    // 权限编码创建后不可变；请求体携带编码时必须是同一个非空编码
+    if (body.id !== undefined) {
+      const nextId = (body.id ?? "").trim();
+      if (!nextId) {
+        return HttpResponse.json(
+          { code: 40001, message: "权限编码不能为空" },
+          { status: 400 },
+        );
+      }
+      if (nextId !== permission.id) {
+        const duplicate = all.some((item) => item.id === nextId);
+        return HttpResponse.json(
+          {
+            code: duplicate ? 40901 : 40001,
+            message: duplicate ? "权限编码已存在" : "权限编码不可修改",
+          },
+          { status: duplicate ? 409 : 400 },
+        );
+      }
+    }
+
+    const type = (body.type ?? permission.type) as Permission["type"];
+    const path = (body.path ?? permission.path ?? "").trim();
+    const action = normalizedAction(
+      body.action !== undefined ? body.action : permission.action,
+    );
+    const parentId = body.parentId !== undefined
+      ? body.parentId || null
+      : permission.parentId || null;
+    const status = body.status ?? permission.status;
+
+    if (parentId) {
+      const parent = all.find((item) => item.id === parentId);
+      if (!parent) {
+        return HttpResponse.json(
+          { code: 40401, message: "父权限不存在" },
+          { status: 404 },
+        );
+      }
+      if (
+        parent.id === permission.id
+        || descendantIds(all, permission.id).includes(parent.id)
+      ) {
+        return HttpResponse.json(
+          { code: 40001, message: "父权限不能是自己或子节点" },
+          { status: 400 },
+        );
+      }
+      if (parent.type === "action") {
+        return HttpResponse.json(
+          { code: 40001, message: "动作权限不能添加子节点" },
+          { status: 400 },
+        );
+      }
+    }
+
+    if (!path) {
+      return HttpResponse.json(
+        { code: 40001, message: "权限路径不能为空" },
+        { status: 400 },
+      );
+    }
+    const codeError = validateCode(permission.id, parentId);
+    if (codeError) {
+      return HttpResponse.json(
+        { code: 40001, message: codeError },
+        { status: 400 },
+      );
+    }
+    const shapeIssue = checkPermissionShape(type, action);
+    if (shapeIssue) {
+      return HttpResponse.json(
+        {
+          code: 40001,
+          message: shapeIssue === "action-required"
+            ? "action 类型的权限必须填写 action"
+            : "menu/directory 类型的权限不能填写 action",
+        },
+        { status: 400 },
+      );
+    }
+    if (
+      all.some(
+        (item) =>
+          item.id !== permission.id
+          && item.type === type
+          && (item.path ?? "") === path
+          && normalizedAction(item.action) === action,
+      )
+    ) {
+      return HttpResponse.json(
+        { code: 40901, message: "权限已存在" },
+        { status: 409 },
+      );
+    }
+    if (status === STATUS_DISABLED && hasEnabledDescendant(all, permission.id)) {
+      return HttpResponse.json(
+        { code: 40901, message: "请先停用全部子权限" },
+        { status: 409 },
+      );
+    }
+    if (type === "action" && all.some((item) => item.parentId === permission.id)) {
+      return HttpResponse.json(
+        { code: 40901, message: "动作权限不能有子节点" },
+        { status: 409 },
+      );
+    }
+
+    updatePermission(params.id, {
+      name: body.name !== undefined ? body.name : permission.name,
+      path,
+      type,
+      action,
+      status,
+      parentId,
+    });
     return HttpResponse.json({
       code: 200,
       message: successMessage[locale] ?? successMessage.zh,

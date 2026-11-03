@@ -1,6 +1,7 @@
 import { sessionHint } from "@/auth/session";
 import { authToken } from "@/auth/token";
 import { notify } from "@/lib/notify";
+import { useForcedPasswordStore } from "@/store/forced-password";
 import { useForbiddenStore } from "@/store/forbidden";
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
@@ -129,8 +130,11 @@ instance.interceptors.response.use(
         | { code?: number; message?: string }
         | undefined;
       if (error.response?.status === 403) {
-        // 40302 是“请先修改初始密码”，由强制改密对话框处理
-        if (data?.code !== 40302) {
+        // 40302 是“请先修改初始密码”，由强制改密对话框处理。
+        // 登录/刷新接口已在上面排除，避免登录请求触发强制改密。
+        if (data?.code === 40302) {
+          useForcedPasswordStore.getState().require();
+        } else {
           useForbiddenStore
             .getState()
             .show(url ?? "", data?.message || "没有执行该操作的权限");

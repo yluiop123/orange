@@ -188,6 +188,8 @@ export default {
     'validate.permissionCode.rootLength': '根权限编码必须是 {length} 位数字。',
     'validate.permissionCode.length': '权限编码必须是 {length} 位数字。',
     'validate.permissionCode.prefix': '权限编码必须以 {parentId} 开头。',
+    'validate.permissionAction.required': '操作类型必须填写操作名称。',
+    'validate.permissionAction.forbidden': '菜单或目录类型不能填写操作名称。',
     'dict.status.all': '全部',
     'dict.status.disabled': '停用',
     'dict.status.enabled': '启用',

@@ -1,6 +1,7 @@
 import { sessionHint } from "@/auth/session";
 import { authToken } from "@/auth/token";
 import axios from "@/lib/axios";
+import { useForcedPasswordStore } from "@/store/forced-password";
 import { ALL_ROLES, computePermissions, type Permission } from "@/store/permission";
 import useMenuStore from "@/store/menu";
 import { create } from "zustand";
@@ -51,6 +52,8 @@ const useUserStore = create<GlobalInfo>()((set, get) => ({
   login: (token: string, expiresIn?: number) => {
     authToken.set(token, expiresIn);
     sessionHint.set();
+    // 新会话以服务端 user-info 为准，清掉上一次会话遗留的强制改密标记
+    useForcedPasswordStore.getState().reset();
   },
   fetchUser: async () => {
     const token = authToken.get();
@@ -93,6 +96,7 @@ const useUserStore = create<GlobalInfo>()((set, get) => ({
     // 先清理本地状态，避免网络异常时卡在已登录界面
     authToken.clear();
     sessionHint.clear();
+    useForcedPasswordStore.getState().reset();
     set({ userInfo: null });
     useMenuStore.getState().clearMenus();
     // 通知后端递增 token 版本并清 refresh Cookie；失败也不影响本地登出
@@ -107,6 +111,7 @@ const useUserStore = create<GlobalInfo>()((set, get) => ({
   clearSession: () => {
     authToken.clear();
     sessionHint.clear();
+    useForcedPasswordStore.getState().reset();
     set({ userInfo: null });
     useMenuStore.getState().clearMenus();
   },

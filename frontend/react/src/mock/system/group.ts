@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { STATUS_ENABLED, type Status } from "@/lib/status";
+import { STATUS_DISABLED, STATUS_ENABLED, type Status } from "@/lib/status";
 import { checkTreeCode, treeCodeIssueZh } from "@/lib/tree-code-policy";
 
 type Group = {
@@ -72,6 +72,32 @@ function nowText() {
 
 function byCode(a: { id: string }, b: { id: string }) {
   return a.id === b.id ? 0 : a.id < b.id ? -1 : 1;
+}
+
+function descendantIds(all: Group[], id: string): string[] {
+  const ids = new Set<string>();
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const item of all) {
+      if (
+        item.parentId
+        && (item.parentId === id || ids.has(item.parentId))
+        && !ids.has(item.id)
+      ) {
+        ids.add(item.id);
+        changed = true;
+      }
+    }
+  }
+  return [...ids];
+}
+
+function hasEnabledDescendant(all: Group[], id: string): boolean {
+  const descendants = new Set(descendantIds(all, id));
+  return all.some(
+    (item) => descendants.has(item.id) && item.status === STATUS_ENABLED,
+  );
 }
 
 export function getGroupList(locale: string): Group[] {
@@ -200,10 +226,17 @@ const handlers = [
 
   http.patch<{ id: string }>("/api/v1/system/groups/:id", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
-    if (!getGroupList(locale).some((item) => item.id === params.id)) {
+    const all = getGroupList(locale);
+    if (!all.some((item) => item.id === params.id)) {
       return HttpResponse.json({ code: 40401, message: "组织不存在" }, { status: 404 });
     }
     const body = (await request.clone().json()) as Partial<Group>;
+    if (body.status === STATUS_DISABLED && hasEnabledDescendant(all, params.id)) {
+      return HttpResponse.json(
+        { code: 40901, message: "请先停用全部子组织" },
+        { status: 409 },
+      );
+    }
     updateGroup(params.id, body);
     return HttpResponse.json({
       code: 200,
@@ -213,10 +246,17 @@ const handlers = [
 
   http.patch<{ id: string }>("/api/v1/system/groups/:id/status", async ({ request, params }) => {
     const locale = request.headers.get("locale") || "zh";
-    if (!getGroupList(locale).some((item) => item.id === params.id)) {
+    const all = getGroupList(locale);
+    if (!all.some((item) => item.id === params.id)) {
       return HttpResponse.json({ code: 40401, message: "组织不存在" }, { status: 404 });
     }
     const body = (await request.clone().json()) as { status?: Status };
+    if (body.status === STATUS_DISABLED && hasEnabledDescendant(all, params.id)) {
+      return HttpResponse.json(
+        { code: 40901, message: "请先停用全部子组织" },
+        { status: 409 },
+      );
+    }
     updateGroup(params.id, { status: body.status });
     return HttpResponse.json({
       code: 200,

@@ -34,6 +34,9 @@ type Field = {
     excludeId?: string;
 };
 
+/** 跨字段校验：返回要挂到哪个字段以及错误文案，null 表示通过。 */
+export type FormIssue = { path: string; message: string };
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DialogForm =  forwardRef<UseFormReturn<any>, {
     open: boolean
@@ -42,13 +45,19 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
     description?: string
     fields: Field[]
     values?: Record<string, unknown>
+    refine?: (values: Record<string, unknown>) => FormIssue | null
     onSubmit: (values: Record<string, unknown>) => void
-}>(({open,setOpen,title,description,fields,values,onSubmit}, ref) => {
+}>(({open,setOpen,title,description,fields,values,refine,onSubmit}, ref) => {
     const schemaShape = fields.reduce((acc, field) => {
         acc[field.name] = field.validate || z.string().optional();
         return acc;
     }, {} as Record<string, z.ZodTypeAny>);
-    const formSchema = z.object(schemaShape);
+    const formSchema = z.object(schemaShape).superRefine((formValues, ctx) => {
+        const issue = refine?.(formValues as Record<string, unknown>);
+        if (issue) {
+            ctx.addIssue({ code: "custom", path: [issue.path], message: issue.message });
+        }
+    });
     const intl = useIntl();
     const [submitting, setSubmitting] = useState(false);
     const form = useForm<z.infer<typeof formSchema>>({

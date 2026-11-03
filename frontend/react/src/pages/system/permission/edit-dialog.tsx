@@ -1,6 +1,10 @@
 import { getPermission, updatePermission } from "@/api/system/permission";
 import DialogForm, { Field } from "@/components/dialog-form";
 import { applyServerFieldErrors } from "@/lib/form-errors";
+import {
+    checkPermissionShape,
+    permissionShapeMessageKey,
+} from "@/lib/permission-shape";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useIntl } from "react-intl";
@@ -101,6 +105,15 @@ function onSubmit(fieldValues: Record<string, unknown>) {
             title={intl.formatMessage({ id: 'button.edit' })}
             fields={fields}
             values={values}
+            refine={(fieldValues) => {
+                const issue = checkPermissionShape(
+                    fieldValues.type as string | undefined,
+                    fieldValues.action as string | undefined,
+                );
+                return issue
+                    ? { path: "action", message: intl.formatMessage({ id: permissionShapeMessageKey(issue) }) }
+                    : null;
+            }}
             onSubmit={onSubmit}>
         </DialogForm>
     )

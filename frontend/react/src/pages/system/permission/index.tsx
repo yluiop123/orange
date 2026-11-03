@@ -191,9 +191,12 @@ export default function Permission() {
               <DropdownMenuGroup>
                 <DropdownMenuLabel>{formatMessage({ id: 'table.actions' })}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <ActionAuth action="add">
-                  <DropdownMenuItem onClick={() => handleAddChild(permission)}>{formatMessage({ id: 'button.addChild' })}</DropdownMenuItem>
-                </ActionAuth>
+                {/* 动作权限不能作为父节点 */}
+                {permission.type !== 'action' && (
+                  <ActionAuth action="add">
+                    <DropdownMenuItem onClick={() => handleAddChild(permission)}>{formatMessage({ id: 'button.addChild' })}</DropdownMenuItem>
+                  </ActionAuth>
+                )}
                 <ActionAuth action="edit">
                   <DropdownMenuItem onClick={() => handleEdit(permission)}>{formatMessage({ id: 'button.edit' })}</DropdownMenuItem>
                 </ActionAuth>

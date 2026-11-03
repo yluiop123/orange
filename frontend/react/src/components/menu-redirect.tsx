@@ -39,7 +39,8 @@ export function MenuRedirect({ nodePath }: { nodePath?: string }) {
 
   const node = nodePath ? findMenuNode(menus, nodePath) : undefined;
   const nodes = nodePath ? (node ? [node] : []) : menus;
-  const target = access.firstVisibleLeaf(nodes);
+  // 节点在新角色视角下不可见时（例如刚切换角色），退回全站第一个可见叶子
+  const target = access.firstVisibleLeaf(nodes) ?? access.firstVisibleLeaf(menus);
 
   return <Navigate to={target ?? "/forbidden"} replace />;
 }

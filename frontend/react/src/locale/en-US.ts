@@ -188,6 +188,8 @@ export default {
     'validate.permissionCode.rootLength': 'Root permission code must be {length} digits.',
     'validate.permissionCode.length': 'Permission code must be {length} digits.',
     'validate.permissionCode.prefix': 'Permission code must start with {parentId}.',
+    'validate.permissionAction.required': 'Action is required for type action.',
+    'validate.permissionAction.forbidden': 'Action is not allowed for menu or directory.',
     'dict.status.all': 'All',
     'dict.status.disabled': 'Disabled',
     'dict.status.enabled': 'Enabled',
