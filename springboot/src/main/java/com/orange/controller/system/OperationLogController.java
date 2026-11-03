@@ -4,7 +4,7 @@ import com.orange.domain.common.PageData;
 import com.orange.domain.common.Response;
 import com.orange.domain.system.operationlog.req.QueryOperationLogReq;
 import com.orange.domain.system.operationlog.resp.OperationLogBean;
-import com.orange.service.system.OperationLogService;
+import com.orange.service.system.OperationLogRecorder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class OperationLogController {
 
     @Autowired
-    private OperationLogService operationLogService;
+    private OperationLogRecorder operationLogRecorder;
 
     @Operation(summary = "查询操作日志", description = "支持按操作人、路径、状态和时间范围过滤")
     @GetMapping
     @PreAuthorize("hasAuthority('menu#/system/operation-log')")
     public Response<PageData<OperationLogBean>> queryOperationLogs(
             @Valid @ModelAttribute QueryOperationLogReq req) {
-        return Response.ok(operationLogService.queryOperationLogs(req));
+        return Response.ok(operationLogRecorder.query(req));
     }
 }

@@ -43,8 +43,8 @@ public class TraceIdFilter extends OncePerRequestFilter {
             if (shouldCacheBody(request)) {
                 ContentCachingRequestWrapper wrapper =
                         new ContentCachingRequestWrapper(request, BODY_CACHE_LIMIT);
-                // 后续 Spring Security 还会再包一层，用属性传递才能让拦截器拿到缓存体
-                request.setAttribute(ContentCachingRequestWrapper.class.getName(), wrapper);
+                // 后续 Spring Security 还会再包一层，用显式上下文传递缓存体
+                OperationLogContext.attachBody(request, wrapper);
                 effectiveRequest = wrapper;
             }
             filterChain.doFilter(effectiveRequest, response);
