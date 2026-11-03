@@ -1,7 +1,8 @@
 # ORANGE backend — Node.js + NestJS
 
 A port of the reference Spring Boot backend to **Node.js LTS + NestJS 11**, with
-TypeORM/PostgreSQL, `@nestjs/jwt`, BCrypt and a rotating HttpOnly refresh cookie.
+TypeORM, `@nestjs/jwt`, BCrypt and a rotating HttpOnly refresh cookie. It runs
+against PostgreSQL, MySQL, MariaDB and SQLite through one connection switch.
 It implements the canonical contract in [`docs/API.md`](../../docs/API.md); the
 deprecated legacy routes are intentionally absent.
 
@@ -17,15 +18,17 @@ deprecated legacy routes are intentionally absent.
 | --- | --- |
 | Node.js | 20 or 22 LTS (developed on Node 24) |
 | pnpm | 9+ (`npm` works too) |
-| PostgreSQL | 13+ |
+| PostgreSQL | 13+ (optional) |
+| MySQL / MariaDB | 8.0.16+ / 10.4+ (optional) |
+| SQLite | bundled through `better-sqlite3` |
 
-`bcrypt` is a native module. With recent pnpm versions its install script must
-be approved once:
+`bcrypt` and `better-sqlite3` are native modules. With recent pnpm versions
+their install scripts must be approved once:
 
 ```bash
 pnpm install          # pnpm 12: build approval is stored in pnpm-workspace.yaml
 # if your pnpm asks:
-pnpm approve-builds bcrypt
+pnpm approve-builds bcrypt better-sqlite3
 ```
 
 With npm, scripts run automatically: `npm install`.
@@ -38,12 +41,14 @@ environment variables only** (it does not parse `.env` by itself).
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `PORT` | `3000` | HTTP port |
-| `DB_HOST` | `localhost` | PostgreSQL host |
-| `DB_PORT` | `5432` | PostgreSQL port |
-| `DB_NAME` | `orange` | Database |
-| `DB_USER` | `postgres` | Database user |
-| `DB_PASSWORD` | `postgres` | Database password |
-| `DB_SSL` | `false` | `true` enables TLS |
+| `DB_DRIVER` | *(from `DATABASE_URL`, else `postgres`)* | `postgres`, `mysql`, `mariadb` or `sqlite` |
+| `DATABASE_URL` | *(unset)* | Full connection URL; wins over the discrete `DB_*` values |
+| `DB_HOST` | `localhost` | Database host |
+| `DB_PORT` | `5432` (PostgreSQL), `3306` (MySQL/MariaDB) | Database port |
+| `DB_NAME` | `orange` (`orange.db` for SQLite) | Database or SQLite file |
+| `DB_USER` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | Database user |
+| `DB_PASSWORD` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | Database password |
+| `DB_SSL` | `false` | `true` enables TLS (PostgreSQL/MySQL) |
 | `JWT_SECRET` | `orange-dev-secret-change-me` | HMAC secret for access/refresh JWTs |
 | `JWT_ACCESS_EXPIRE` | `900` | Access-token lifetime, seconds |
 | `JWT_REFRESH_EXPIRE` | `604800` | Refresh-token lifetime, seconds |
@@ -56,10 +61,36 @@ environment variables only** (it does not parse `.env` by itself).
 | `LOGIN_LOCK_MINUTES` | `15` | Window and lock duration |
 | `OPERATION_LOG_RETENTION_DAYS` | `90` | Operation-log retention |
 
+### Database selection
+
+One switch for every engine, resolved in this order:
+
+1. `DB_DRIVER` when set (`postgres` / `mysql` / `mariadb` / `sqlite`).
+2. Otherwise the `DATABASE_URL` scheme (`postgres://`, `postgresql://`,
+   `mysql://`, `mariadb://`, `sqlite:`, `sqlite3:`, `file:`).
+3. Otherwise `postgres` (the historical default).
+
+`DATABASE_URL` wins over the discrete `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_USER`/
+`DB_PASSWORD` values; the discrete values are the fallback.
+
+| Driver | `DB_DRIVER` | `DATABASE_URL` example |
+| --- | --- | --- |
+| PostgreSQL | `postgres` | `postgres://postgres:postgres@localhost:5432/orange` |
+| MySQL | `mysql` | `mysql://root:root@localhost:3306/orange` |
+| MariaDB | `mariadb` | `mysql://root:root@localhost:3306/orange` |
+| SQLite | `sqlite` | `sqlite:./orange.db` |
+
+MariaDB is served through TypeORM's `mysql` driver and the `mysql2` client, so
+no extra native package is needed; `DB_DRIVER=mariadb` records the target while
+the URL may keep the `mysql://` scheme.
+
 ## Database setup
 
-The schema and seed are owned by the shared `database/postgres` directory and
+The schema and seed are owned by the shared `database/<engine>` directories and
 are loaded manually (there is no migration tool, exactly like the reference).
+TypeORM runs with `synchronize: false`; it never changes the schema.
+
+PostgreSQL:
 
 ```bash
 createdb orange
@@ -67,22 +98,63 @@ psql -U postgres -d orange -v ON_ERROR_STOP=1 -f ../../database/postgres/ddl.sql
 psql -U postgres -d orange -v ON_ERROR_STOP=1 -f ../../database/postgres/dml.sql
 ```
 
-TypeORM runs with `synchronize: false`; it never changes the schema.
+MySQL / MariaDB (`database/mysql` or `database/mariadb`):
+
+```bash
+mysql -h 127.0.0.1 -u root -proot orange < ../../database/mysql/ddl.sql
+mysql -h 127.0.0.1 -u root -proot orange < ../../database/mysql/dml.sql
+```
+
+SQLite (`database/sqlite`):
+
+```bash
+sqlite3 orange.db < ../../database/sqlite/ddl.sql
+sqlite3 orange.db < ../../database/sqlite/dml.sql
+```
+
+The `better-sqlite3` driver enables `PRAGMA foreign_keys = ON` on every
+connection, so `ON DELETE RESTRICT/CASCADE` behaves like PostgreSQL.
+
+### Column portability
+
+The entities keep one set of types for every engine:
+
+| PostgreSQL | MySQL / MariaDB | SQLite |
+| --- | --- | --- |
+| `timestamptz` | `datetime(6)` | `TEXT` (ISO-8601 UTC), TypeORM `datetime` codec |
+| `varchar` | `varchar(255)` | `TEXT` |
+| `boolean` | `tinyint(1)` | `INTEGER` 0/1 |
+| `bigserial` | `bigint AUTO_INCREMENT` | `INTEGER PRIMARY KEY AUTOINCREMENT` |
+
+`src/entities/column-types.ts` picks the timestamp type from `DB_DRIVER`
+(`timestamptz` on PostgreSQL, `datetime` elsewhere), so the PostgreSQL schema
+and behaviour are unchanged.
 
 ## Run
 
 ```bash
 pnpm install
 export JWT_SECRET=change-me
+# PostgreSQL (default)
 pnpm build && pnpm start:prod
-# development:
-pnpm start:dev
+
+# another engine
+export DB_DRIVER=mysql
+export DATABASE_URL=mysql://root:root@localhost:3306/orange
+pnpm start:prod
+
+# SQLite
+export DB_DRIVER=sqlite
+export DATABASE_URL=sqlite:./orange.db
+pnpm start:prod
 ```
 
 PowerShell:
 
 ```powershell
 $env:JWT_SECRET = "change-me"
+$env:DB_DRIVER = "sqlite"
+$env:DATABASE_URL = "sqlite:./orange.db"
 pnpm build
 node dist/main.js
 ```
@@ -111,7 +183,7 @@ need a database.
 
 ### End-to-end smoke test
 
-With PostgreSQL seeded and the API running on port 3000:
+With the target schema seeded and the API running on port 3000:
 
 ```bash
 pnpm smoke
@@ -122,7 +194,7 @@ The script logs in as the seeded `super` user, exercises every resource list,
 refresh rotation/replay, the forced-password-change flow, code/permission/tree
 guards, operation-log redaction, logout revocation and login lockout. It
 creates temporary rows and deletes them again. Current result: **78 checks,
-0 failed** (see `scripts/smoke.mjs`).
+0 failed** on PostgreSQL, MySQL, MariaDB and SQLite (see `scripts/smoke.mjs`).
 
 ## Endpoint coverage
 
@@ -183,7 +255,7 @@ src/
   main.ts                  bootstrap, global prefix, CORS, cookies, trace middleware
   app.module.ts            TypeORM, global guards/interceptors/filter/pipe
   common/                  envelope, errors, trace, validation, tree policies, password
-  config/                  environment-backed AppConfig
+  config/                  environment-backed AppConfig, DB driver + TypeORM options
   auth/                    login/refresh/logout/user-info/change-password, JWT, lockout
   menus/                   /auth/menus tree
   users/ roles/ groups/ permissions/    DTOs, services, controllers
@@ -200,12 +272,19 @@ scripts/smoke.mjs          end-to-end smoke test
   `contracts/openapi.json`.
 - **No migration tool.** The shared DDL/DML must be loaded manually;
   `synchronize` is disabled.
+- **MariaDB uses TypeORM's `mysql` driver** (`mysql2` client) rather than the
+  separate `mariadb` package; query behaviour is the same, but MariaDB-only
+  driver features are not used.
+- **SQLite has no native date type.** `timestamptz` columns are `TEXT`
+  ISO-8601 UTC as the shared DDL declares; rows written by `CURRENT_TIMESTAMP`
+  defaults have second precision while application writes keep microseconds.
+  `varchar(n)` limits and numeric ranges are not enforced by SQLite.
 - **No i18n message bundles.** The `Locale` header is accepted, but messages
   are the reference Chinese strings only.
 - **No email delivery** for the temporary password; it is returned once in the
   response body (`Cache-Control: no-store` on reset).
-- **Unit tests do not boot Nest/PostgreSQL.** Database behavior is verified by
-  `scripts/smoke.mjs`, not by Jest e2e tests.
+- **Unit tests do not boot Nest or a database.** Database behavior is verified
+  by `scripts/smoke.mjs`, not by Jest e2e tests.
 - **In-process maintenance.** Operation-log retention cleanup runs once at boot
   and daily per process; it is idempotent but not a distributed scheduler.
   Expired `sys_login_attempt` rows are ignored but not periodically deleted.

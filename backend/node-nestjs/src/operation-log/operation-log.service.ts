@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
 import { BusinessException } from '../common/business-exception';
 import { PageData, buildPageData, toIso } from '../common/page';
-import { likeContains } from '../common/query.util';
+import { likeContains, LIKE_ESCAPE } from '../common/query.util';
 import { AppConfig } from '../config/app-config';
 import { OperationLog } from '../entities/operation-log.entity';
 import { QueryOperationLogDto } from './operation-log.dto';
@@ -70,12 +70,14 @@ export class OperationLogService implements OnModuleInit, OnModuleDestroy {
 
     const builder = this.logs.createQueryBuilder('log');
     if (isNotBlank(query.username)) {
-      builder.andWhere('LOWER(log.username) LIKE :username', {
+      builder.andWhere(`LOWER(log.username) LIKE :username ${LIKE_ESCAPE}`, {
         username: likeContains(query.username),
       });
     }
     if (isNotBlank(query.path)) {
-      builder.andWhere('LOWER(log.path) LIKE :path', { path: likeContains(query.path) });
+      builder.andWhere(`LOWER(log.path) LIKE :path ${LIKE_ESCAPE}`, {
+        path: likeContains(query.path),
+      });
     }
     if (isNotBlank(query.status)) {
       const status = Number.parseInt(query.status as string, 10);

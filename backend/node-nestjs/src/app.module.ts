@@ -9,7 +9,7 @@ import { FallbackModule } from './common/fallback.module';
 import { ResponseInterceptor } from './common/response.interceptor';
 import { buildValidationPipe } from './common/validation';
 import { AppConfig, AppConfigModule } from './config/app-config';
-import { ENTITIES } from './entities';
+import { buildTypeOrmOptions } from './config/database.options';
 import { GroupsModule } from './groups/groups.module';
 import { MenusModule } from './menus/menus.module';
 import { OperationLogInterceptor } from './operation-log/operation-log.interceptor';
@@ -23,19 +23,7 @@ import { UsersModule } from './users/users.module';
     AppConfigModule,
     TypeOrmModule.forRootAsync({
       inject: [AppConfig],
-      useFactory: (config: AppConfig) => ({
-        type: 'postgres' as const,
-        host: config.db.host,
-        port: config.db.port,
-        username: config.db.user,
-        password: config.db.password,
-        database: config.db.name,
-        entities: ENTITIES,
-        synchronize: false,
-        logging: false,
-        ssl: config.db.ssl ? { rejectUnauthorized: false } : false,
-        extra: { max: 10 },
-      }),
+      useFactory: (config: AppConfig) => buildTypeOrmOptions(config),
     }),
     AuthModule,
     UsersModule,

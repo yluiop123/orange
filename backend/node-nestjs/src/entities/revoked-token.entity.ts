@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryColumn } from 'typeorm';
+import { timestampType } from './column-types';
 
 @Entity('sys_revoked_token')
 export class RevokedToken {
@@ -9,9 +10,9 @@ export class RevokedToken {
   tokenType: string;
 
   @Index()
-  @Column({ name: 'expires_at', type: 'timestamptz' })
+  @Column({ name: 'expires_at', type: timestampType() })
   expiresAt: Date;
 
-  @CreateDateColumn({ name: 'create_time', type: 'timestamptz' })
+  @CreateDateColumn({ name: 'create_time', type: timestampType() })
   createTime: Date;
 }

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { BusinessException } from '../common/business-exception';
 import { STATUS_ALL, STATUS_DISABLE, STATUS_ENABLE } from '../common/constants';
 import { toIso } from '../common/page';
-import { likePrefix } from '../common/query.util';
+import { likePrefix, LIKE_ESCAPE } from '../common/query.util';
 import { TreeCodePolicy, trimToNull } from '../common/tree-code.policy';
 import { TreeIndex } from '../common/tree-index';
 import { Permission } from '../entities/permission.entity';
@@ -53,13 +53,13 @@ export class PermissionsService {
   async list(query: QueryPermissionDto): Promise<PermissionBean[]> {
     const builder = this.permissions.createQueryBuilder('p');
     if (isNotBlank(query.id)) {
-      builder.andWhere('LOWER(p.id) LIKE :id', { id: likePrefix(query.id) });
+      builder.andWhere(`LOWER(p.id) LIKE :id ${LIKE_ESCAPE}`, { id: likePrefix(query.id) });
     }
     if (isNotBlank(query.name)) {
-      builder.andWhere('LOWER(p.name) LIKE :name', { name: likePrefix(query.name) });
+      builder.andWhere(`LOWER(p.name) LIKE :name ${LIKE_ESCAPE}`, { name: likePrefix(query.name) });
     }
     if (isNotBlank(query.path)) {
-      builder.andWhere('LOWER(p.path) LIKE :path', { path: likePrefix(query.path) });
+      builder.andWhere(`LOWER(p.path) LIKE :path ${LIKE_ESCAPE}`, { path: likePrefix(query.path) });
     }
     if (isNotBlank(query.status) && query.status !== STATUS_ALL) {
       builder.andWhere('p.status = :status', { status: query.status });

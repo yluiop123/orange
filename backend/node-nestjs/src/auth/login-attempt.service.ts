@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { isUniqueViolation } from '../common/db-errors';
 import { AppConfig } from '../config/app-config';
 import { LoginAttempt } from '../entities/login-attempt.entity';
 import { ipKey, nextAttemptState, userKey } from './login-attempt.policy';
@@ -47,7 +48,7 @@ export class LoginAttemptService {
       const repository = manager.getRepository(LoginAttempt);
       const existing = await repository.findOne({
         where: { attemptKey: key },
-        lock: { mode: 'pessimistic_write' },
+        lock: this.rowLock(),
       });
       const state = nextAttemptState(existing, now, maxAttempts, this.config.login.lockMinutes);
 
@@ -65,7 +66,7 @@ export class LoginAttemptService {
         }
         const current = await repository.findOne({
           where: { attemptKey: key },
-          lock: { mode: 'pessimistic_write' },
+          lock: this.rowLock(),
         });
         if (current) {
           repository.merge(
@@ -77,12 +78,13 @@ export class LoginAttemptService {
       }
     });
   }
-}
 
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    (error as { driverError?: { code?: string } }).driverError?.code === '23505'
-  );
+  /**
+   * SQLite has no row-level locks and TypeORM throws for `pessimistic_write`
+   * there. Its transactions already serialize writers, and the unique-violation
+   * fallback above keeps the counter correct.
+   */
+  private rowLock(): { mode: 'pessimistic_write' } | undefined {
+    return this.config.db.driver === 'sqlite' ? undefined : { mode: 'pessimistic_write' };
+  }
 }

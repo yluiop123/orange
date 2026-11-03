@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { timestampType } from './column-types';
 
 @Entity('sys_operation_log')
 export class OperationLog {
@@ -35,6 +36,6 @@ export class OperationLog {
   ip: string | null;
 
   @Index()
-  @CreateDateColumn({ name: 'create_time', type: 'timestamptz' })
+  @CreateDateColumn({ name: 'create_time', type: timestampType() })
   createTime: Date;
 }

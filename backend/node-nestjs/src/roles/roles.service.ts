@@ -7,7 +7,7 @@ import { GrantGuard } from '../auth/grant-guard';
 import { BusinessException } from '../common/business-exception';
 import { STATUS_ALL } from '../common/constants';
 import { PageData, buildPageData, toIso } from '../common/page';
-import { likePrefix } from '../common/query.util';
+import { likePrefix, LIKE_ESCAPE } from '../common/query.util';
 import { Permission } from '../entities/permission.entity';
 import { Role } from '../entities/role.entity';
 import { User } from '../entities/user.entity';
@@ -42,10 +42,10 @@ export class RolesService {
 
     const builder = this.roles.createQueryBuilder('r');
     if (isNotBlank(query.id)) {
-      builder.andWhere('LOWER(r.id) LIKE :id', { id: likePrefix(query.id) });
+      builder.andWhere(`LOWER(r.id) LIKE :id ${LIKE_ESCAPE}`, { id: likePrefix(query.id) });
     }
     if (isNotBlank(query.name)) {
-      builder.andWhere('LOWER(r.name) LIKE :name', { name: likePrefix(query.name) });
+      builder.andWhere(`LOWER(r.name) LIKE :name ${LIKE_ESCAPE}`, { name: likePrefix(query.name) });
     }
     if (isNotBlank(query.status) && query.status !== STATUS_ALL) {
       builder.andWhere('r.status = :status', { status: query.status });

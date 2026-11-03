@@ -1,12 +1,13 @@
 /**
- * End-to-end smoke test against a running PostgreSQL-backed instance.
+ * End-to-end smoke test against a running instance of the API.
  *
- *   1. load database/postgres/ddl.sql + dml.sql
- *   2. start the API (pnpm start:prod)
+ *   1. load database/<engine>/ddl.sql + dml.sql
+ *   2. start the API (pnpm start:prod) with DB_DRIVER/DATABASE_URL
  *   3. node scripts/smoke.mjs
  *
+ * Works unchanged on PostgreSQL, MySQL, MariaDB and SQLite.
  * The script creates a few temporary rows and deletes them again. It exits
- * non-zero on the first failed assertion summary.
+ * non-zero on the last failed assertion summary.
  */
 const BASE = process.env.SMOKE_BASE_URL || 'http://localhost:3000/api/v1';
 

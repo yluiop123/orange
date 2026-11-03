@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn, VersionColumn } from 'typeorm';
+import { timestampType } from './column-types';
 
 @Entity('sys_group')
 export class Group {
@@ -14,10 +15,10 @@ export class Group {
   @Column({ name: 'parent_id', type: 'varchar', nullable: true })
   parentId: string | null;
 
-  @CreateDateColumn({ name: 'create_time', type: 'timestamptz', nullable: true })
+  @CreateDateColumn({ name: 'create_time', type: timestampType(), nullable: true })
   createTime: Date | null;
 
-  @UpdateDateColumn({ name: 'update_time', type: 'timestamptz', nullable: true })
+  @UpdateDateColumn({ name: 'update_time', type: timestampType(), nullable: true })
   updateTime: Date | null;
 
   @Column({ name: 'created_by', type: 'varchar', nullable: true })

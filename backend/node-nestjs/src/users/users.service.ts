@@ -9,7 +9,7 @@ import { BusinessException } from '../common/business-exception';
 import { STATUS_ALL, STATUS_DISABLE, STATUS_ENABLE } from '../common/constants';
 import { PageData, buildPageData, toIso } from '../common/page';
 import { generateTempPassword, hashPassword } from '../common/password.util';
-import { likePrefix } from '../common/query.util';
+import { likePrefix, LIKE_ESCAPE } from '../common/query.util';
 import { Group } from '../entities/group.entity';
 import { Permission } from '../entities/permission.entity';
 import { Role } from '../entities/role.entity';
@@ -68,7 +68,7 @@ export class UsersService {
     const builder = this.users.createQueryBuilder('u');
     if (isNotBlank(query.keyword)) {
       builder.andWhere(
-        '(LOWER(u.name) LIKE :keyword OR LOWER(u.username) LIKE :keyword OR LOWER(u.email) LIKE :keyword OR LOWER(u.phone) LIKE :keyword)',
+        `(LOWER(u.name) LIKE :keyword ${LIKE_ESCAPE} OR LOWER(u.username) LIKE :keyword ${LIKE_ESCAPE} OR LOWER(u.email) LIKE :keyword ${LIKE_ESCAPE} OR LOWER(u.phone) LIKE :keyword ${LIKE_ESCAPE})`,
         { keyword: likePrefix(query.keyword) },
       );
     }
@@ -76,7 +76,9 @@ export class UsersService {
       builder.andWhere('u.status = :status', { status: query.status });
     }
     if (isNotBlank(query.groupId)) {
-      builder.andWhere('LOWER(u.groupId) LIKE :groupId', { groupId: likePrefix(query.groupId) });
+      builder.andWhere(`LOWER(u.groupId) LIKE :groupId ${LIKE_ESCAPE}`, {
+        groupId: likePrefix(query.groupId),
+      });
     }
 
     const total = await builder.getCount();

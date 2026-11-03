@@ -9,6 +9,7 @@ import {
   VersionColumn,
 } from 'typeorm';
 import { Permission } from './permission.entity';
+import { timestampType } from './column-types';
 
 @Entity('sys_role')
 export class Role {
@@ -21,10 +22,10 @@ export class Role {
   @Column({ type: 'varchar', default: '1' })
   status: string;
 
-  @CreateDateColumn({ name: 'create_time', type: 'timestamptz', nullable: true })
+  @CreateDateColumn({ name: 'create_time', type: timestampType(), nullable: true })
   createTime: Date | null;
 
-  @UpdateDateColumn({ name: 'update_time', type: 'timestamptz', nullable: true })
+  @UpdateDateColumn({ name: 'update_time', type: timestampType(), nullable: true })
   updateTime: Date | null;
 
   @Column({ name: 'created_by', type: 'varchar', nullable: true })

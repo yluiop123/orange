@@ -4,7 +4,7 @@ import { In, Repository } from 'typeorm';
 import { BusinessException } from '../common/business-exception';
 import { STATUS_ALL, STATUS_DISABLE, STATUS_ENABLE } from '../common/constants';
 import { toIso } from '../common/page';
-import { likePrefix } from '../common/query.util';
+import { likePrefix, LIKE_ESCAPE } from '../common/query.util';
 import { TreeCodePolicy, trimToNull } from '../common/tree-code.policy';
 import { TreeIndex } from '../common/tree-index';
 import { Group } from '../entities/group.entity';
@@ -43,10 +43,10 @@ export class GroupsService {
   async list(query: QueryGroupDto): Promise<GroupBean[]> {
     const builder = this.groups.createQueryBuilder('g');
     if (isNotBlank(query.id)) {
-      builder.andWhere('LOWER(g.id) LIKE :id', { id: likePrefix(query.id) });
+      builder.andWhere(`LOWER(g.id) LIKE :id ${LIKE_ESCAPE}`, { id: likePrefix(query.id) });
     }
     if (isNotBlank(query.name)) {
-      builder.andWhere('LOWER(g.name) LIKE :name', { name: likePrefix(query.name) });
+      builder.andWhere(`LOWER(g.name) LIKE :name ${LIKE_ESCAPE}`, { name: likePrefix(query.name) });
     }
     if (isNotBlank(query.status) && query.status !== STATUS_ALL) {
       builder.andWhere('g.status = :status', { status: query.status });
