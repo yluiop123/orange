@@ -38,7 +38,7 @@ English | [简体中文](./README.zh-CN.md)
 ```bash
 # Clone repository
 git clone https://github.com/yluiop123/orange.git
-cd <project-directory>/vite-shadcn
+cd <project-directory>/frontend/react
 
 # Install dependencies
 pnpm install

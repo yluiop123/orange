@@ -71,6 +71,6 @@ class TreeCodePolicyTest {
     }
 
     private static JsonNode fixture() throws Exception {
-        return JSON.readTree(Path.of("../vite-shadcn/src/config/tree-code-policy.fixture.json").toFile());
+        return JSON.readTree(Path.of("../../frontend/react/src/config/tree-code-policy.fixture.json").toFile());
     }
 }

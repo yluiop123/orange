@@ -64,8 +64,8 @@ class SecurityIntegrationTest {
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.sql.init.mode", () -> "always");
-        registry.add("spring.sql.init.schema-locations", () -> "file:../database/postgres/ddl.sql");
-        registry.add("spring.sql.init.data-locations", () -> "file:../database/postgres/dml.sql");
+        registry.add("spring.sql.init.schema-locations", () -> "file:../../database/postgres/ddl.sql");
+        registry.add("spring.sql.init.data-locations", () -> "file:../../database/postgres/dml.sql");
         registry.add("spring.sql.init.encoding", () -> "UTF-8");
         registry.add("spring.jpa.show-sql", () -> "false");
         registry.add("springdoc.api-docs.enabled", () -> "true");

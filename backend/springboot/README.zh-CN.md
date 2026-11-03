@@ -1,4 +1,4 @@
-# springboot后端项目
+# Spring Boot 后端项目
 
 [English](./README.md) | 简体中文
 
@@ -27,7 +27,7 @@
 ### 克隆项目
 ```bash
 git clone <repository-url>
-cd springboot
+cd backend/springboot
 ```
 
 ### 数据库配置
@@ -79,7 +79,7 @@ jwt:
 ## 项目结构说明
 
 ```
-springboot/
+backend/springboot/
 ├── src/main/java/com/orange/
 │   ├── config/                    # 配置类
 │   ├── controller/               # 控制器层

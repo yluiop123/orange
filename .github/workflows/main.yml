@@ -34,13 +34,13 @@ jobs:
           cache: maven
       - name: Compile
         run: mvn -B -DskipTests compile
-        working-directory: springboot
+        working-directory: backend/springboot
       - name: Security tests
         run: >-
           mvn -B
           -Dtest=JwtUtilTest,PermissionAuthorityBuilderTest,LoginAttemptServiceTest,SecurityResponseWriterTest,SecurityIntegrationTest
           test
-        working-directory: springboot
+        working-directory: backend/springboot
 
   # 单次部署的工作描述
   deploy:
@@ -62,32 +62,32 @@ jobs:
         with:
           node-version: lts/*
           cache: 'pnpm'
-          cache-dependency-path: './vite-shadcn/pnpm-lock.yaml'
+          cache-dependency-path: './frontend/react/pnpm-lock.yaml'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: vite-shadcn
+        working-directory: frontend/react
       - name: Lint
         run: pnpm run lint
-        working-directory: vite-shadcn
+        working-directory: frontend/react
       - name: Type check
         run: pnpm run typecheck
-        working-directory: vite-shadcn
+        working-directory: frontend/react
       - name: Test
         run: pnpm run test
-        working-directory: vite-shadcn
+        working-directory: frontend/react
       - name: Check permission seed
         run: pnpm run db:seed:check
-        working-directory: vite-shadcn
+        working-directory: frontend/react
       - name: Build
         run: pnpm run build:github
-        working-directory: vite-shadcn
+        working-directory: frontend/react
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 上传 dist 文件夹
-          path: './vite-shadcn/dist'
+          # 只部署 React 前端
+          path: './frontend/react/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

@@ -1,7 +1,7 @@
 # ORANGE 项目问题与取舍清单
 
 > 更新日期：2026-11-03
-> 分析范围：`vite-shadcn`（前端）、`springboot`（后端）、`database`（PostgreSQL）
+> 分析范围：`frontend/react`（前端）、`backend/springboot`（后端）、`database`（PostgreSQL）
 > 说明：本文记录**已完成基线、已接受的工程取舍，以及受上游阻塞的升级**。当前没有未决的功能性问题。
 
 ---
@@ -106,10 +106,10 @@
 
 ```bash
 # 需要 Docker（Testcontainers）
-cd springboot
+cd backend/springboot
 mvn -Dtest=SecurityIntegrationTest#openApiSpecIsAvailable \
-  -Dopenapi.snapshot=../vite-shadcn/openapi.json test
-cd ../vite-shadcn
+  -Dopenapi.snapshot=../../contracts/openapi.json test
+cd ../../frontend/react
 pnpm gen:api
 ```
 
@@ -261,35 +261,35 @@ pnpm gen:api
 | 校验分层 ADR | `docs/adr/0004-validation-layering.md` |
 | 系统管理审计 | `docs/audits/system-management-2026-11-01.md` |
 | 校验规则总览 | `docs/validation-rules.md` |
-| 前端请求封装 | `vite-shadcn/src/lib/axios.ts` |
-| 前端 API 层 | `vite-shadcn/src/api/` |
-| OpenAPI 快照/生成类型 | `vite-shadcn/openapi.json`、`vite-shadcn/src/api/schema.d.ts` |
+| 前端请求封装 | `frontend/react/src/lib/axios.ts` |
+| 前端 API 层 | `frontend/react/src/api/` |
+| OpenAPI 快照/生成类型 | `contracts/openapi.json`、`frontend/react/src/api/schema.d.ts` |
 | 操作日志 | `OperationLogInterceptor.java`、`OperationLogController.java`、`src/pages/system/operation-log/` |
-| 前端认证 | `vite-shadcn/src/auth/` |
-| 前端用户状态 | `vite-shadcn/src/store/user.ts` |
-| 前端菜单状态 | `vite-shadcn/src/store/menu.ts` |
-| 前端路由 | `vite-shadcn/src/App.tsx`、`src/lib/page-routes.ts` |
+| 前端认证 | `frontend/react/src/auth/` |
+| 前端用户状态 | `frontend/react/src/store/user.ts` |
+| 前端菜单状态 | `frontend/react/src/store/menu.ts` |
+| 前端路由 | `frontend/react/src/App.tsx`、`src/lib/page-routes.ts` |
 | 前端菜单渲染 | `src/components/menu-redirect.tsx`、`src/components/sidebar-menutree.tsx`、`src/config/menu-icons.ts` |
-| 系统列表模块 | `vite-shadcn/src/components/system/resource-list/` |
-| 权限目录 | `vite-shadcn/src/config/permissions.json` |
+| 系统列表模块 | `frontend/react/src/components/system/resource-list/` |
+| 权限目录 | `frontend/react/src/config/permissions.json` |
 | 权限种子生成 | `scripts/sync-permission-seed.mjs` |
-| 前端测试 | `vite-shadcn/src/config/permissions.test.ts` 等 |
-| 后端安全配置 | `springboot/src/main/java/com/orange/security/SecurityConfig.java` |
-| 后端安全属性 | `springboot/src/main/java/com/orange/security/config/JwtProperties.java`、`AuthProperties.java`、`CorsProperties.java` |
-| 后端 JWT | `springboot/src/main/java/com/orange/security/jwt/JwtUtil.java`、`JwtClaims.java`、`JwtRequestFilter.java` |
-| 后端认证服务 | `springboot/src/main/java/com/orange/security/auth/JwtUserDetailsService.java`、`LoginAttemptService.java`、`TokenBlacklistService.java` |
-| 后端 authority | `springboot/src/main/java/com/orange/security/auth/PermissionAuthorityBuilder.java` |
-| 后端授权守卫 | `springboot/src/main/java/com/orange/security/auth/GrantGuard.java` |
-| 后端查询工具 | `springboot/src/main/java/com/orange/util/QueryUtils.java` |
-| 生产配置 | `springboot/src/main/resources/application-prod.yaml` |
+| 前端测试 | `frontend/react/src/config/permissions.test.ts` 等 |
+| 后端安全配置 | `backend/springboot/src/main/java/com/orange/security/SecurityConfig.java` |
+| 后端安全属性 | `backend/springboot/src/main/java/com/orange/security/config/JwtProperties.java`、`AuthProperties.java`、`CorsProperties.java` |
+| 后端 JWT | `backend/springboot/src/main/java/com/orange/security/jwt/JwtUtil.java`、`JwtClaims.java`、`JwtRequestFilter.java` |
+| 后端认证服务 | `backend/springboot/src/main/java/com/orange/security/auth/JwtUserDetailsService.java`、`LoginAttemptService.java`、`TokenBlacklistService.java` |
+| 后端 authority | `backend/springboot/src/main/java/com/orange/security/auth/PermissionAuthorityBuilder.java` |
+| 后端授权守卫 | `backend/springboot/src/main/java/com/orange/security/auth/GrantGuard.java` |
+| 后端查询工具 | `backend/springboot/src/main/java/com/orange/util/QueryUtils.java` |
+| 生产配置 | `backend/springboot/src/main/resources/application-prod.yaml` |
 | JWT 密钥说明 | `docs/security/jwt-keys.md`、`scripts/generate-jwt-keys.mjs` |
 | 环境变量示例 | `.env.example` |
-| 删除确认弹窗 | `vite-shadcn/src/components/system/confirm-delete-dialog.tsx` |
-| 后端 401/403 输出 | `springboot/src/main/java/com/orange/security/SecurityResponseWriter.java` |
-| 后端登录 | `springboot/src/main/java/com/orange/controller/login/LoginController.java` |
-| 后端菜单 | `springboot/src/main/java/com/orange/controller/login/MenuController.java`、`service/system/impl/MenuServiceImpl.java` |
-| 后端全局异常 | `springboot/src/main/java/com/orange/controller/GlobalExceptionHandler.java` |
-| 后端安全测试 | `springboot/src/test/java/com/orange/security/` |
+| 删除确认弹窗 | `frontend/react/src/components/system/confirm-delete-dialog.tsx` |
+| 后端 401/403 输出 | `backend/springboot/src/main/java/com/orange/security/SecurityResponseWriter.java` |
+| 后端登录 | `backend/springboot/src/main/java/com/orange/controller/login/LoginController.java` |
+| 后端菜单 | `backend/springboot/src/main/java/com/orange/controller/login/MenuController.java`、`service/system/impl/MenuServiceImpl.java` |
+| 后端全局异常 | `backend/springboot/src/main/java/com/orange/controller/GlobalExceptionHandler.java` |
+| 后端安全测试 | `backend/springboot/src/test/java/com/orange/security/` |
 | 数据库 DDL | `database/postgres/ddl.sql` |
 | 数据库 DML | `database/postgres/dml.sql` |
 | CI | `.github/workflows/main.yml` |

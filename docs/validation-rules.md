@@ -339,10 +339,10 @@
 
 | 对象 | 位置 |
 | --- | --- |
-| 编码规则（后端） | `springboot/src/test/java/com/orange/domain/system/tree/TreeCodePolicyTest.java` |
-| 树索引/删除顺序 | `springboot/src/test/java/com/orange/domain/system/tree/TreeIndexTest.java` |
-| 有效权限 | `springboot/src/test/java/com/orange/domain/system/permission/EffectivePermissionsTest.java` |
-| 编码规则（前端） | `vite-shadcn/src/lib/tree-code-policy.test.ts` |
+| 编码规则（后端） | `backend/springboot/src/test/java/com/orange/domain/system/tree/TreeCodePolicyTest.java` |
+| 树索引/删除顺序 | `backend/springboot/src/test/java/com/orange/domain/system/tree/TreeIndexTest.java` |
+| 有效权限 | `backend/springboot/src/test/java/com/orange/domain/system/permission/EffectivePermissionsTest.java` |
+| 编码规则（前端） | `frontend/react/src/lib/tree-code-policy.test.ts` |
 | 权限种子同步 | `scripts/sync-permission-seed.mjs`（`pnpm db:seed:check`） |
-| 接口与授权 | `springboot/src/test/java/com/orange/security/SecurityIntegrationTest.java` |
+| 接口与授权 | `backend/springboot/src/test/java/com/orange/security/SecurityIntegrationTest.java` |
 | 数据库约束（重复身份、空白路径、action 形状） | `SecurityIntegrationTest#databaseEnforcesPermissionIdentityAndShape` |

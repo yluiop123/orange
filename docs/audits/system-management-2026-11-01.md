@@ -1,7 +1,7 @@
 # 系统管理审计报告
 
 > 日期：2026-11-01
-> 范围：`vite-shadcn` 系统管理页面与交互、`springboot` 系统管理 API、`database/postgres`
+> 范围：`frontend/react` 系统管理页面与交互、`backend/springboot` 系统管理 API、`database/postgres`
 > 状态：**主体问题已修复（2026-11-02），剩余项见下方“修复进度”**
 > 相关文档：`PROJECT_ISSUES.md`
 

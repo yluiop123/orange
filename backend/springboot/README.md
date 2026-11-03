@@ -26,7 +26,7 @@ https://yluiop123.github.io/orange/#/swagger
 ### Clone the Project
 ```bash
 git clone <repository-url>
-cd springboot
+cd backend/springboot
 ```
 
 ### Database Configuration
@@ -78,7 +78,7 @@ The default value for local development is `postgres`.
 ## Project Structure
 
 ```
-springboot/
+backend/springboot/
 ├── src/main/java/com/orange/
 │   ├── config/                    # Configuration classes
 │   ├── controller/               # Controller layer

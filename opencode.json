@@ -4,7 +4,7 @@
     "shadcn": {
       "type": "local",
       "command": ["cmd", "/c", "npx", "-y", "shadcn@latest", "mcp"],
-      "cwd": "vite-shadcn",
+      "cwd": "frontend/react",
       "enabled": true,
       "timeout": 30000
     }

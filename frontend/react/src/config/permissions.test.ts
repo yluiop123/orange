@@ -90,7 +90,7 @@ describe("permission catalog", () => {
   });
 
   it("keeps dml.sql permission seed in sync with the catalog", () => {
-    const dmlPath = path.resolve(import.meta.dirname, "../../../database/postgres/dml.sql");
+    const dmlPath = path.resolve(import.meta.dirname, "../../../../database/postgres/dml.sql");
     const dml = fs.readFileSync(dmlPath, "utf8");
     const block = dml.match(
       /-- BEGIN GENERATED PERMISSIONS[\s\S]*?-- END GENERATED PERMISSIONS/,

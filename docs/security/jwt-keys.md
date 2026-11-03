@@ -10,7 +10,7 @@
 node scripts/generate-jwt-keys.mjs
 ```
 
-文件会写到 `springboot/src/main/resources/keys/`，并已被 `.gitignore` 忽略。
+文件会写到 `backend/springboot/src/main/resources/keys/`，并已被 `.gitignore` 忽略。
 
 ## 生产
 
@@ -25,6 +25,6 @@ JWT_PUBLIC_KEY=file:/run/secrets/jwt_public_key.pem
 
 ## 相关配置
 
-- `springboot/src/main/java/com/orange/security/config/JwtProperties.java`
-- `springboot/src/main/java/com/orange/security/jwt/JwtKeyConfig.java`
+- `backend/springboot/src/main/java/com/orange/security/config/JwtProperties.java`
+- `backend/springboot/src/main/java/com/orange/security/jwt/JwtKeyConfig.java`
 - `.env.example`

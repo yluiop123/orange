@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const keyDir = resolve(root, "springboot/src/main/resources/keys");
+const keyDir = resolve(root, "backend/springboot/src/main/resources/keys");
 const privateKeyPath = resolve(keyDir, "private_key.pem");
 const publicKeyPath = resolve(keyDir, "public_key.pem");
 const force = process.argv.includes("--force");

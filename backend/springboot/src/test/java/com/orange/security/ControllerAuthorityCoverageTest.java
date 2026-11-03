@@ -38,7 +38,7 @@ class ControllerAuthorityCoverageTest {
 
         Set<String> catalog = new HashSet<>();
         JsonNode root = JSON.readTree(
-                Path.of("../vite-shadcn/src/config/permissions.json").toFile());
+                Path.of("../../frontend/react/src/config/permissions.json").toFile());
         for (JsonNode permission : root.path("permissions")) {
             String type = permission.path("type").asText();
             String path = permission.path("path").asText();

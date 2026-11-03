@@ -33,7 +33,7 @@ ORANGE 是一个基于 `Shadcn` , `Vite` , `React`,`Zustand`,`React-Router` 等�
 ```bash
 # 克隆项目
 git clone https://github.com/yluiop123/orange.git
-cd <项目目录>/vite-shadcn
+cd <项目目录>/frontend/react
 
 # 安装依赖
 pnpm install   
