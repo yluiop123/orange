@@ -19,10 +19,39 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
+
+# MySQL/MariaDB DATETIME and SQLite have no timezone type: values go in as
+# naive UTC and come back the same way. PostgreSQL timestamptz keeps the offset.
+_NAIVE_DIALECTS = {"mysql", "mariadb", "sqlite"}
 
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+class UTCDateTime(TypeDecorator):
+    """Timezone-aware UTC timestamp that behaves identically on every engine."""
+
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value: datetime | None, dialect) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        value = value.astimezone(timezone.utc)
+        if dialect.name in _NAIVE_DIALECTS:
+            return value.replace(tzinfo=None)
+        return value
+
+    def process_result_value(self, value: datetime | None, dialect) -> datetime | None:
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
 
 
 class Base(DeclarativeBase):
@@ -31,10 +60,10 @@ class Base(DeclarativeBase):
 
 class AuditMixin:
     create_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
     update_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, onupdate=utcnow, nullable=False
     )
     created_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     updated_by: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -169,9 +198,9 @@ class RevokedToken(Base):
 
     jti: Mapped[str] = mapped_column(String(255), primary_key=True)
     token_type: Mapped[str] = mapped_column(String(32), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
     create_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
 
 
@@ -180,12 +209,12 @@ class LoginAttempt(Base):
 
     attempt_key: Mapped[str] = mapped_column(String(255), primary_key=True)
     failures: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    window_start: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
     locked_until: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        UTCDateTime(), nullable=True
     )
     update_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
 
 
@@ -208,5 +237,5 @@ class OperationLog(Base):
     duration_ms: Mapped[int] = mapped_column(BigInteger, nullable=False)
     ip: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     create_time: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow, nullable=False
+        UTCDateTime(), default=utcnow, nullable=False
     )
