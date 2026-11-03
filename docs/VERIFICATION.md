@@ -2,41 +2,48 @@
 
 # Verification
 
-> Date: 2026-11-03
+> Date: 2026-11-04
 > This page records what was actually executed. Anything not listed here is a static review, not a runtime guarantee.
 
 ## 1. Stacks
 
 | Stack | Build | Tests | Runtime smoke |
 | --- | --- | --- | --- |
-| `backend/springboot` | `mvn compile` | 27 unit + 19 Testcontainers integration | PostgreSQL 16 via Testcontainers |
-| `backend/go-gin-gorm` | `go build ./...`, `go vet ./...` | `go test ./...` (domain/auth/http) | PostgreSQL 16: login, 40302, CRUD, 409, guards, audit |
-| `backend/node-nestjs` | `pnpm build` | 25 Jest tests | PostgreSQL 16: 78 HTTP checks |
-| `backend/csharp` | `dotnet build` (0 warnings) | 69 xUnit tests | PostgreSQL 16: auth, RBAC, 409, audit |
-| `backend/rust-axum` | `cargo check`, `cargo build` | 40 unit tests | PostgreSQL 16: login, user-info, 6 menu roots, users |
-| `backend/python-fastapi` | imports + uvicorn start | 67 pytest tests | PostgreSQL 16: full auth/CRUD/audit flow |
-| `frontend/react` | `pnpm build` | `tsc` + 40 Vitest tests | Deployed build; mock and real API |
-| `frontend/angular` | `npm run build` | 19 Vitest tests, lint clean | Playwright: all routes, 0 console errors |
-| `frontend/vue` | `pnpm build` | 20 Vitest tests, lint clean | Playwright: all 33 routes, CRUD, forced password |
+| `backend/springboot` | `mvn compile` | 54 tests (incl. 19 Testcontainers) | PostgreSQL, MySQL, MariaDB, SQLite: login, menus, CRUD, audit |
+| `backend/go-gin-gorm` | `go build ./...`, `go vet ./...` | `go test ./...` | PostgreSQL, MySQL, MariaDB, SQLite: full HTTP smoke |
+| `backend/node-nestjs` | `pnpm build` | 42 Jest tests | PostgreSQL, MySQL, MariaDB, SQLite: 78 HTTP checks each |
+| `backend/csharp` | `dotnet build` (0 warnings) | 69 xUnit tests | PostgreSQL, MySQL, MariaDB, SQLite: auth, RBAC, 409, audit |
+| `backend/rust-axum` | `cargo check`, `cargo build` | 40 unit tests | PostgreSQL, MySQL, MariaDB, SQLite: full CRUD smoke |
+| `backend/python-fastapi` | imports + uvicorn start | 71 pytest tests | PostgreSQL, MySQL, MariaDB, SQLite: auth/CRUD/audit |
+| `frontend/react` | `pnpm build:github` | `tsc` + 43 Vitest tests | Deployed build; mock E2E 14/14 |
+| `frontend/angular` | `npm run build` | 26 Vitest tests, lint clean | Mock E2E 15/15 |
+| `frontend/vue` | `pnpm build` | 20 Vitest tests, lint clean | Mock E2E 15/15 |
 
 Rust on Windows: the machine has no Visual Studio Build Tools. Verification used
-`stable-x86_64-pc-windows-gnu` with the MSYS2 UCRT64 `gcc` linker. On Linux CI,
-the default stable toolchain builds without this workaround.
+`stable-x86_64-pc-windows-gnu` with the MSYS2 UCRT64 `gcc` linker. Linking the
+expanded `sqlx` feature set can exhaust the Windows page file; if linking fails,
+build the test profile without debug info:
+
+```powershell
+$env:CARGO_PROFILE_TEST_DEBUG='0'
+$env:RUSTFLAGS='-C link-arg=-Wl,--no-keep-memory'
+cargo +stable-x86_64-pc-windows-gnu test
+```
 
 ## 2. Databases
 
 | Engine | Verification |
 | --- | --- |
-| PostgreSQL 16 | Integration tests and every backend smoke test |
-| MySQL 8.4 | Docker: load `ddl.sql` + `dml.sql`, constraint probes, seed counts |
-| MariaDB 11.8 | Docker: same checks as MySQL |
-| SQLite 3.49 | Python `sqlite3`: load, seed counts, constraint accept/reject matrix |
-| openGauss | Static compatibility review against 6.0 docs; not executed |
+| PostgreSQL 16 | Every backend: full smoke against `orange_<stack>` |
+| MySQL 8.4 | Every backend: full smoke against `orange_<stack>` |
+| MariaDB 11.8 | Every backend: full smoke against `orange_<stack>` |
+| SQLite 3.49 | Every backend: full smoke against a per-stack file |
+| openGauss | Static compatibility review; not executed |
 | OceanBase | MySQL-compatible scripts; not executed |
 | GoldenDB | MySQL-compatible scripts; not executed |
 
-Seed parity checked on PostgreSQL, MySQL, MariaDB and SQLite: 7 groups, 48
-permissions, 67 role grants.
+The authoritative per-stack result is `docs/DB-MATRIX.md`. Seed parity checked
+on PostgreSQL, MySQL, MariaDB and SQLite: 7 groups, 48 permissions, 67 role grants.
 
 ## 3. Contract and authorization
 
@@ -52,15 +59,33 @@ permissions, 67 role grants.
 - Only `frontend/react/dist` is uploaded to GitHub Pages.
 - Angular and Vue are not deployed and are not part of the CI workflow yet.
 
-## 5. Known unverified items
+## 5. Frontend mock end-to-end
+
+Date: 2026-11-04. Playwright against the three dev servers with mock enabled.
+
+| App | Checks | Result |
+| --- | --- | --- |
+| React | 14 | 14 passed |
+| Vue | 15 | 15 passed |
+| Angular | 15 | 15 passed |
+
+Each run covered: login, session restore after reload, menu navigation, user
+search, all system pages, group create/delete, status toggle and rejected
+disable rollback, permission action validation, zh/en switching, logout and
+protected-route redirect, restricted-role redirect, and forced password change.
+
+Scripts: `scripts/e2e/` (`mock-react.mjs`, `mock-vue.mjs`, `mock-angular.mjs`).
+
+## 6. Known unverified items
 
 - openGauss, OceanBase and GoldenDB were not started; their scripts need a smoke test on the target version.
-- The Rust project has no committed database integration test, only a manual smoke run.
+- The Rust project has no committed database integration test, only a reproducible smoke script (`backend/rust-axum/scripts/smoke-databases.ps1`).
 - Angular Cesium loads runtime assets from the Cesium CDN; offline behaviour falls back to a static globe.
 - The Angular/Vue demo pages use framework-appropriate substitutes for React-only libraries (Recharts, AntV G2, L7).
-- Browser smoke tests are manual; they are not in CI.
+- The three mock E2E scripts are not in CI.
+- Real-backend end-to-end (frontend → backend → database) is recorded as pending in `.scratch/2026-11-04-real-e2e.md`.
 
-## 6. Re-running
+## 7. Re-running
 
 ```bash
 # Java

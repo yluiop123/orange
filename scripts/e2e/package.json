@@ -1,0 +1,13 @@
+{
+  "name": "orange-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "mock:react": "node mock-react.mjs",
+    "mock:vue": "node mock-vue.mjs",
+    "mock:angular": "node mock-angular.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}
