@@ -66,11 +66,11 @@ Rules for the layout:
 | Frontend | Angular + Angular Material | `frontend/angular` | In progress |
 | Frontend | Vue 3 + Vuetify | `frontend/vue` | In progress |
 | Backend | Java 25 + Spring Boot | `backend/springboot` | Implemented with PostgreSQL |
-| Backend | Go + Gin + GORM | `backend/go-gin-gorm` | In progress |
-| Backend | Node.js + NestJS | `backend/node-nestjs` | In progress |
-| Backend | C# + ASP.NET Core | `backend/csharp` | In progress |
-| Backend | Rust + Axum | `backend/rust-axum` | In progress |
-| Backend | Python + FastAPI | `backend/python-fastapi` | In progress |
+| Backend | Go + Gin + GORM | `backend/go-gin-gorm` | Implemented |
+| Backend | Node.js + NestJS | `backend/node-nestjs` | Implemented |
+| Backend | C# + ASP.NET Core | `backend/csharp` | Implemented |
+| Backend | Rust + Axum | `backend/rust-axum` | Implemented, build pending toolchain |
+| Backend | Python + FastAPI | `backend/python-fastapi` | Implemented |
 | Database | PostgreSQL | `database/postgres` | Implemented |
 | Database | MySQL / MariaDB | `database/mysql`, `database/mariadb` | Implemented |
 | Database | SQLite | `database/sqlite` | Implemented |
