@@ -29,9 +29,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("configure JWT: %v", err)
 	}
-	st, err := store.Open(cfg.Database.DSN())
+	dsn, err := cfg.Database.DSN()
 	if err != nil {
-		log.Fatalf("connect database: %v", err)
+		log.Fatalf("configure database: %v", err)
+	}
+	st, err := store.Open(cfg.Database.Driver, dsn)
+	if err != nil {
+		log.Fatalf("connect %s database: %v", cfg.Database.Driver, err)
 	}
 
 	svc := service.New(st, tokens, cfg.Lockout)

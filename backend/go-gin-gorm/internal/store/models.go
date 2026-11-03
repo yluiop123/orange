@@ -11,8 +11,8 @@ type Group struct {
 	Name       string     `gorm:"column:name"`
 	Status     string     `gorm:"column:status"`
 	ParentID   *string    `gorm:"column:parent_id"`
-	CreateTime *time.Time `gorm:"column:create_time"`
-	UpdateTime *time.Time `gorm:"column:update_time"`
+	CreateTime *time.Time `gorm:"column:create_time;serializer:orangetime"`
+	UpdateTime *time.Time `gorm:"column:update_time;serializer:orangetime"`
 	CreatedBy  *string    `gorm:"column:created_by"`
 	UpdatedBy  *string    `gorm:"column:updated_by"`
 	Version    int        `gorm:"column:version"`
@@ -28,8 +28,8 @@ type Permission struct {
 	Type       string     `gorm:"column:type"`
 	Status     string     `gorm:"column:status"`
 	ParentID   *string    `gorm:"column:parent_id"`
-	CreateTime *time.Time `gorm:"column:create_time"`
-	UpdateTime *time.Time `gorm:"column:update_time"`
+	CreateTime *time.Time `gorm:"column:create_time;serializer:orangetime"`
+	UpdateTime *time.Time `gorm:"column:update_time;serializer:orangetime"`
 	CreatedBy  *string    `gorm:"column:created_by"`
 	UpdatedBy  *string    `gorm:"column:updated_by"`
 	Version    int        `gorm:"column:version"`
@@ -51,8 +51,8 @@ type Role struct {
 	ID         string     `gorm:"column:id;primaryKey"`
 	Name       string     `gorm:"column:name"`
 	Status     string     `gorm:"column:status"`
-	CreateTime *time.Time `gorm:"column:create_time"`
-	UpdateTime *time.Time `gorm:"column:update_time"`
+	CreateTime *time.Time `gorm:"column:create_time;serializer:orangetime"`
+	UpdateTime *time.Time `gorm:"column:update_time;serializer:orangetime"`
 	CreatedBy  *string    `gorm:"column:created_by"`
 	UpdatedBy  *string    `gorm:"column:updated_by"`
 	Version    int        `gorm:"column:version"`
@@ -80,8 +80,8 @@ type User struct {
 	MustChangePassword bool       `gorm:"column:must_change_password"`
 	Version            int        `gorm:"column:version"`
 	Password           *string    `gorm:"column:password"`
-	CreateTime         *time.Time `gorm:"column:create_time"`
-	UpdateTime         *time.Time `gorm:"column:update_time"`
+	CreateTime         *time.Time `gorm:"column:create_time;serializer:orangetime"`
+	UpdateTime         *time.Time `gorm:"column:update_time;serializer:orangetime"`
 	CreatedBy          *string    `gorm:"column:created_by"`
 	UpdatedBy          *string    `gorm:"column:updated_by"`
 }
@@ -112,8 +112,8 @@ func (RolePermission) TableName() string { return "sys_role_permission" }
 type RevokedToken struct {
 	JTI        string     `gorm:"column:jti;primaryKey"`
 	TokenType  string     `gorm:"column:token_type"`
-	ExpiresAt  time.Time  `gorm:"column:expires_at"`
-	CreateTime *time.Time `gorm:"column:create_time"`
+	ExpiresAt  time.Time  `gorm:"column:expires_at;serializer:orangetime"`
+	CreateTime *time.Time `gorm:"column:create_time;serializer:orangetime"`
 }
 
 func (RevokedToken) TableName() string { return "sys_revoked_token" }
@@ -121,9 +121,9 @@ func (RevokedToken) TableName() string { return "sys_revoked_token" }
 type LoginAttempt struct {
 	AttemptKey  string     `gorm:"column:attempt_key;primaryKey"`
 	Failures    int        `gorm:"column:failures"`
-	WindowStart time.Time  `gorm:"column:window_start"`
-	LockedUntil *time.Time `gorm:"column:locked_until"`
-	UpdateTime  time.Time  `gorm:"column:update_time"`
+	WindowStart time.Time  `gorm:"column:window_start;serializer:orangetime"`
+	LockedUntil *time.Time `gorm:"column:locked_until;serializer:orangetime"`
+	UpdateTime  time.Time  `gorm:"column:update_time;serializer:orangetime"`
 }
 
 func (LoginAttempt) TableName() string { return "sys_login_attempt" }
@@ -139,7 +139,7 @@ type OperationLog struct {
 	Status      int       `gorm:"column:status"`
 	DurationMs  int64     `gorm:"column:duration_ms"`
 	IP          *string   `gorm:"column:ip"`
-	CreateTime  time.Time `gorm:"column:create_time"`
+	CreateTime  time.Time `gorm:"column:create_time;serializer:orangetime"`
 }
 
 func (OperationLog) TableName() string { return "sys_operation_log" }

@@ -1,9 +1,10 @@
 # ORANGE Backend — Go + Gin + GORM
 
 A port of the ORANGE system-management API to Go. It implements the canonical
-contract in [`docs/API.md`](../../docs/API.md) against the existing PostgreSQL
-schema in [`database/postgres`](../../database/postgres). The Spring Boot
-implementation in `../springboot` is the behavior reference.
+contract in [`docs/API.md`](../../docs/API.md) against the committed schemas in
+[`database/`](../../database). PostgreSQL, MySQL, MariaDB and SQLite are all
+supported through one `DB_DRIVER` switch. The Spring Boot implementation in
+`../springboot` is the behavior reference.
 
 - Base path: `/api/v1`
 - Default port: **8081**
@@ -14,7 +15,10 @@ implementation in `../springboot` is the behavior reference.
 ## Prerequisites
 
 - Go **1.23+** (developed and tested with Go 1.24.3)
-- PostgreSQL 12+ with the project schema and seed loaded
+- One database, seeded with the matching files under `database/`:
+  PostgreSQL 12+, MySQL 8+, MariaDB 10.6+, or SQLite 3.35+
+- SQLite uses `github.com/glebarez/sqlite` (pure Go), so no cgo or C compiler is
+  required and `CGO_ENABLED=0` builds work.
 - No database server is installed by this project; it uses the SQL files that
   already exist in the repository.
 
@@ -37,12 +41,28 @@ those packages directly.
 
 ## Database setup
 
-The schema is not created by the application. Load the committed files once:
+The schema is not created by the application. Load the committed files once for
+the engine you want:
 
 ```powershell
+# PostgreSQL
 psql -U postgres -c "CREATE DATABASE orange;"
 psql -U postgres -d orange -f ../../database/postgres/ddl.sql
 psql -U postgres -d orange -f ../../database/postgres/dml.sql
+
+# MySQL
+mysql -uroot -proot -e "CREATE DATABASE orange DEFAULT CHARACTER SET utf8mb4;"
+mysql -uroot -proot orange < ../../database/mysql/ddl.sql
+mysql -uroot -proot orange < ../../database/mysql/dml.sql
+
+# MariaDB
+mysql -uroot -proot -e "CREATE DATABASE orange DEFAULT CHARACTER SET utf8mb4;"
+mysql -uroot -proot orange < ../../database/mariadb/ddl.sql
+mysql -uroot -proot orange < ../../database/mariadb/dml.sql
+
+# SQLite (no server; the app creates nothing, so run the scripts once)
+sqlite3 orange-go.db ".read ../../database/sqlite/ddl.sql"
+sqlite3 orange-go.db ".read ../../database/sqlite/dml.sql"
 ```
 
 The seed creates the demo accounts `super` / `super`, `admin` / `admin` and
@@ -51,16 +71,46 @@ both prefixed and raw BCrypt hashes and writes prefixed hashes.
 
 ## Environment
 
+Connection strings are selected with one switch:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DB_DRIVER` | `postgres` | `postgres`, `mysql`, `mariadb` or `sqlite`. Also accepts `postgresql`/`pg` and `sqlite3`. |
+| `DATABASE_URL` | — | Full connection string. Overrides every discrete `DB_*` value. |
+| `DB_HOST` | `localhost` | Host for PostgreSQL/MySQL/MariaDB |
+| `DB_PORT` | `5432` (PostgreSQL), `3306` (MySQL/MariaDB) | Port |
+| `DB_NAME` | `orange` | Database name |
+| `DB_USER` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | User |
+| `DB_PASSWORD` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | Password |
+| `DB_SSLMODE` | `disable` | PostgreSQL `sslmode` |
+| `DB_TIMEZONE` | `UTC` | PostgreSQL session time zone |
+| `DB_PATH` | `orange-go.db` | SQLite file (alias `SQLITE_PATH`); ignored by the other drivers |
+
+Precedence: `DATABASE_URL` wins over the discrete `DB_*`/`DB_PATH` values, which
+win over the driver defaults. When `DATABASE_URL` is set without `DB_DRIVER`,
+the driver is inferred from the URL scheme (`postgres://`, `mysql://`,
+`mariadb://`); anything without a scheme is treated as a SQLite file.
+
+Accepted `DATABASE_URL` forms:
+
+```text
+postgres://postgres:postgres@localhost:55432/orange_go?sslmode=disable
+mysql://root:root@localhost:53306/orange_go
+mariadb://root:root@localhost:53307/orange_go
+orange-go.db
+sqlite:orange-go.db
+```
+
+`mysql://` and `mariadb://` URLs are rewritten to go-sql-driver syntax and
+always get `parseTime=true&loc=UTC`. SQLite paths get
+`_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)` on every pooled connection;
+SQLite enforces foreign keys per connection, so this is required.
+
+The remaining settings:
+
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `PORT` | `8081` | HTTP listen port |
-| `DB_HOST` | `localhost` | PostgreSQL host |
-| `DB_PORT` | `5432` | PostgreSQL port |
-| `DB_NAME` | `orange` | Database name |
-| `DB_USER` | `postgres` | Database user |
-| `DB_PASSWORD` | `postgres` | Database password |
-| `DB_SSLMODE` | `disable` | PostgreSQL `sslmode` |
-| `DB_TIMEZONE` | `UTC` | Session time zone |
 | `JWT_SECRET` | dev fallback | HS256 signing secret. Set this outside local development. |
 | `JWT_PRIVATE_KEY_PATH` | — | RSA private key (PKCS#1 or PKCS#8 PEM); enables RS256 |
 | `JWT_PUBLIC_KEY_PATH` | — | RSA public key (PKIX or PKCS#1 PEM) |
@@ -84,8 +134,24 @@ If RSA keys are configured, RS256 is used and `JWT_SECRET` is ignored.
 
 ```powershell
 cd backend/go-gin-gorm
-$env:DB_PASSWORD = "postgres"
 $env:JWT_SECRET = "replace-with-a-long-random-value"
+
+# PostgreSQL (default)
+go run ./cmd/server
+
+# MySQL
+$env:DB_DRIVER = "mysql"
+$env:DATABASE_URL = "mysql://root:root@localhost:3306/orange"
+go run ./cmd/server
+
+# MariaDB
+$env:DB_DRIVER = "mariadb"
+$env:DATABASE_URL = "mariadb://root:root@localhost:3306/orange"
+go run ./cmd/server
+
+# SQLite
+$env:DB_DRIVER = "sqlite"
+$env:DATABASE_URL = "orange-go.db"
 go run ./cmd/server
 ```
 
@@ -93,7 +159,7 @@ The API is then available at `http://localhost:8081/api/v1`.
 `GET /healthz` returns a small liveness response (outside the business
 envelope).
 
-Build a binary:
+Build a binary (set `CGO_ENABLED=0` to prove no cgo is needed):
 
 ```powershell
 go build -o bin/orange-server ./cmd/server
@@ -113,21 +179,35 @@ Unit coverage includes:
 - effective permissions (enabled roles + direct grants − disabled),
 - login lockout thresholds, window reset and expiry,
 - operation-log recording, redaction and truncation,
+- connection precedence and per-driver DSN rendering,
+- timestamp parsing across PostgreSQL, MySQL and SQLite text formats,
 - JWT access/refresh typing and tamper rejection,
 - BCrypt temporary passwords and `{bcrypt}` seed compatibility,
 - router envelope, trace header, CORS preflight and 404/401 behavior.
 
-### Optional PostgreSQL smoke test
+### Optional database smoke test
 
-The smoke test is opt-in and skips automatically when PostgreSQL is not
-reachable:
+The smoke test is opt-in and skips automatically when the configured database is
+not reachable. It works for every driver:
 
 ```powershell
 $env:ORANGE_SMOKE = "1"
-$env:DB_PASSWORD = "postgres"
+
+# PostgreSQL
+$env:DB_DRIVER = "postgres"
+$env:DATABASE_URL = "postgres://postgres:postgres@localhost:55432/orange_go?sslmode=disable"
+
+# MySQL / MariaDB
+$env:DB_DRIVER = "mysql"
+$env:DATABASE_URL = "mysql://root:root@localhost:53306/orange_go"
+
+# SQLite
+$env:DB_DRIVER = "sqlite"
+$env:DATABASE_URL = "orange-go.db"
+
 $env:SMOKE_USERNAME = "super"   # optional
 $env:SMOKE_PASSWORD = "super"   # optional
-go test ./internal/http -run TestSmokeAgainstPostgres -v
+go test ./internal/http -run TestSmokeAgainstConfiguredDatabase -v
 ```
 
 It checks the unauthenticated 401 envelope, login token + HttpOnly refresh
@@ -179,6 +259,14 @@ menu/directory authorities only control visibility.
   reset-password are never stored; other JSON bodies redact
   `password`/`token`/`secret` and truncate to 4000 characters; query strings
   truncate to 500.
+- Queries are dialect-neutral: LIKE filters escape wildcards with `ESCAPE '!'`
+  (backslash is not a portable LIKE escape), token/lockout upserts use GORM
+  `clause.OnConflict` (rendered as `ON CONFLICT` on PostgreSQL/SQLite and
+  `ON DUPLICATE KEY UPDATE` on MySQL/MariaDB), and no raw SQL uses
+  `strpos`, `ILIKE`, `RETURNING` or PostgreSQL casts.
+- Timestamps use a GORM serializer because the SQLite schema stores them as
+  `TEXT`; it accepts `time.Time`, driver text formats and NULL, so the same
+  models read correctly from every engine.
 - CORS allows configured origins with credentials (required for the refresh
   cookie) and supports preflight requests.
 - Logged-in timestamps use the reference bean format
@@ -193,13 +281,22 @@ menu/directory authorities only control visibility.
   detected; the last write wins, unlike Spring Data's `@Version` check.
 - The operation-log retention job is an in-process daily ticker, not an
   external scheduler. Multiple instances each run it.
-- Lockout increments use a row lock for existing keys. Two truly simultaneous
-  first failures for the same key can resolve through `ON CONFLICT DO NOTHING`
-  and lose one increment. Subsequent failures are serialized.
+- Lockout increments use a row lock (`SELECT ... FOR UPDATE`) on
+  PostgreSQL/MySQL/MariaDB. SQLite has no row locks, so it uses one serialized
+  connection instead; two truly simultaneous first failures for the same key
+  can still lose one increment through `ON CONFLICT DO NOTHING`.
+- SQLite runs with `MaxOpenConns(1)` to avoid `SQLITE_BUSY`. It is fine for
+  development and the smoke test, but a high-write deployment should use a
+  server database or a connection pool designed for SQLite.
+- SQLite `TEXT` timestamps are compared lexicographically. Rows written by this
+  service use one format; seed rows written by `CURRENT_TIMESTAMP` have a
+  different precision. Date-range filters remain correct, sub-second ordering
+  between the two formats is not meaningful.
 - `Locale: zh|en` is accepted but messages are Chinese only; no i18n catalog.
-- There is no automatic schema migration. Run `ddl.sql`/`dml.sql` manually.
-- The optional smoke test requires a seeded PostgreSQL database; CI without a
-  database runs only the unit tests.
+- There is no automatic schema migration. Run `ddl.sql`/`dml.sql` manually for
+  the engine you use.
+- The optional smoke test requires a seeded database; CI without a database runs
+  only the unit tests.
 - CORS defaults are development origins. Set `CORS_ORIGINS` explicitly for any
   deployment.
 - JWT verification supports a shared HMAC secret or a single RSA key pair; JWKS

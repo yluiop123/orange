@@ -18,22 +18,26 @@ import (
 	"github.com/orange/backend-go-gin-gorm/internal/store"
 )
 
-// TestSmokeAgainstPostgres is opt-in: set ORANGE_SMOKE=1 and point the DB_*
-// variables at a PostgreSQL database seeded with database/postgres/ddl.sql and
-// dml.sql. It skips (never fails) when the database is unavailable.
-func TestSmokeAgainstPostgres(t *testing.T) {
+// TestSmokeAgainstConfiguredDatabase is opt-in: set ORANGE_SMOKE=1 and point
+// DB_DRIVER/DATABASE_URL (or DB_*) at a database seeded with the matching
+// ddl.sql and dml.sql. It skips (never fails) when the database is unavailable.
+func TestSmokeAgainstConfiguredDatabase(t *testing.T) {
 	if os.Getenv("ORANGE_SMOKE") != "1" {
-		t.Skip("set ORANGE_SMOKE=1 to run the PostgreSQL smoke test")
+		t.Skip("set ORANGE_SMOKE=1 to run the database smoke test")
 	}
 	cfg := config.Load()
-	st, err := store.Open(cfg.Database.DSN())
+	dsn, err := cfg.Database.DSN()
 	if err != nil {
-		t.Skipf("PostgreSQL unavailable: %v", err)
+		t.Skipf("invalid database configuration: %v", err)
+	}
+	st, err := store.Open(cfg.Database.Driver, dsn)
+	if err != nil {
+		t.Skipf("%s unavailable: %v", cfg.Database.Driver, err)
 	}
 	pingCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	if err := st.Ping(pingCtx); err != nil {
-		t.Skipf("PostgreSQL unavailable: %v", err)
+		t.Skipf("%s unavailable: %v", cfg.Database.Driver, err)
 	}
 
 	tokens, err := auth.NewTokenService(cfg.JWT)

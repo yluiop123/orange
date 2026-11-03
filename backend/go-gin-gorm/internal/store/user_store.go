@@ -22,7 +22,7 @@ func (s *Store) ListUsers(ctx context.Context, filter UserListFilter) (int64, []
 	if keyword := strings.TrimSpace(filter.Keyword); keyword != "" {
 		pattern := likePrefix(strings.ToLower(keyword))
 		query = query.Where(
-			"(lower(name) LIKE ? OR lower(username) LIKE ? OR lower(email) LIKE ? OR lower(phone) LIKE ?)",
+			"(LOWER(name) LIKE ? ESCAPE '!' OR LOWER(username) LIKE ? ESCAPE '!' OR LOWER(email) LIKE ? ESCAPE '!' OR LOWER(phone) LIKE ? ESCAPE '!')",
 			pattern, pattern, pattern, pattern,
 		)
 	}
@@ -30,7 +30,7 @@ func (s *Store) ListUsers(ctx context.Context, filter UserListFilter) (int64, []
 		query = query.Where("status = ?", status)
 	}
 	if groupID := strings.TrimSpace(filter.GroupID); groupID != "" {
-		query = query.Where("lower(group_id) LIKE ?", likePrefix(strings.ToLower(groupID)))
+		query = query.Where("LOWER(group_id) LIKE ? ESCAPE '!'", likePrefix(strings.ToLower(groupID)))
 	}
 
 	var total int64

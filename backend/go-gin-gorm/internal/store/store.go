@@ -3,10 +3,13 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/glebarez/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -18,14 +21,29 @@ type Store struct {
 	db *gorm.DB
 }
 
-func Open(dsn string) (*Store, error) {
+// Open connects with the dialect selected by DB_DRIVER:
+// postgres, mysql, mariadb (MySQL protocol) or sqlite (pure Go, no cgo).
+func Open(driver, dsn string) (*Store, error) {
 	gormLogger := logger.New(log.New(os.Stdout, "", log.LstdFlags), logger.Config{
 		SlowThreshold:             500 * time.Millisecond,
 		LogLevel:                  logger.Warn,
 		IgnoreRecordNotFoundError: true,
 		Colorful:                  false,
 	})
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: gormLogger})
+
+	var dialector gorm.Dialector
+	switch driver {
+	case "postgres":
+		dialector = postgres.Open(dsn)
+	case "mysql", "mariadb":
+		dialector = mysql.Open(dsn)
+	case "sqlite":
+		dialector = sqlite.Open(dsn)
+	default:
+		return nil, fmt.Errorf("unsupported database driver %q", driver)
+	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{Logger: gormLogger})
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +51,15 @@ func Open(dsn string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	sqlDB.SetMaxOpenConns(10)
-	sqlDB.SetMaxIdleConns(5)
+	if driver == "sqlite" {
+		// One writer connection avoids SQLITE_BUSY between pooled connections;
+		// SQLite serialises writers anyway.
+		sqlDB.SetMaxOpenConns(1)
+		sqlDB.SetMaxIdleConns(1)
+	} else {
+		sqlDB.SetMaxOpenConns(10)
+		sqlDB.SetMaxIdleConns(5)
+	}
 	if err := sqlDB.Ping(); err != nil {
 		return nil, err
 	}
@@ -59,17 +84,24 @@ func (s *Store) transaction(ctx context.Context, fn func(tx *gorm.DB) error) err
 	return s.db.WithContext(ctx).Transaction(fn)
 }
 
+// escapeLike escapes LIKE wildcards with '!'. Backslash is not portable: it is
+// the default escape in PostgreSQL and MySQL, but SQLite treats it as a
+// literal, so every query specifies ESCAPE '!' explicitly.
 func escapeLike(value string) string {
 	result := make([]byte, 0, len(value)+8)
 	for i := 0; i < len(value); i++ {
 		switch value[i] {
-		case '\\', '%', '_':
-			result = append(result, '\\', value[i])
+		case '!', '%', '_':
+			result = append(result, '!', value[i])
 		default:
 			result = append(result, value[i])
 		}
 	}
-	return string(result) + "%"
+	return string(result)
 }
 
-func likePrefix(value string) string { return escapeLike(value) }
+// likePrefix matches values that start with value.
+func likePrefix(value string) string { return escapeLike(value) + "%" }
+
+// likeContains matches values that contain value anywhere.
+func likeContains(value string) string { return "%" + escapeLike(value) + "%" }

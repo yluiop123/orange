@@ -20,10 +20,10 @@ type RoleListFilter struct {
 func (s *Store) ListRoles(ctx context.Context, filter RoleListFilter) (int64, []Role, error) {
 	query := s.db.WithContext(ctx).Model(&Role{})
 	if id := strings.TrimSpace(filter.ID); id != "" {
-		query = query.Where("lower(id) LIKE ?", likePrefix(strings.ToLower(id)))
+		query = query.Where("LOWER(id) LIKE ? ESCAPE '!'", likePrefix(strings.ToLower(id)))
 	}
 	if name := strings.TrimSpace(filter.Name); name != "" {
-		query = query.Where("lower(name) LIKE ?", likePrefix(strings.ToLower(name)))
+		query = query.Where("LOWER(name) LIKE ? ESCAPE '!'", likePrefix(strings.ToLower(name)))
 	}
 	if status := strings.TrimSpace(filter.Status); status != "" && status != "all" {
 		query = query.Where("status = ?", status)

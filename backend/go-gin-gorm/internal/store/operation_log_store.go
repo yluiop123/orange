@@ -24,10 +24,10 @@ func (s *Store) InsertOperationLog(ctx context.Context, log *OperationLog) error
 func (s *Store) ListOperationLogs(ctx context.Context, filter OperationLogFilter) (int64, []OperationLog, error) {
 	query := s.db.WithContext(ctx).Model(&OperationLog{})
 	if username := strings.TrimSpace(filter.Username); username != "" {
-		query = query.Where("strpos(lower(username), lower(?)) > 0", username)
+		query = query.Where("LOWER(username) LIKE ? ESCAPE '!'", likeContains(strings.ToLower(username)))
 	}
 	if path := strings.TrimSpace(filter.Path); path != "" {
-		query = query.Where("strpos(lower(path), lower(?)) > 0", path)
+		query = query.Where("LOWER(path) LIKE ? ESCAPE '!'", likeContains(strings.ToLower(path)))
 	}
 	if filter.HasStatus {
 		query = query.Where("status = ?", filter.Status)
