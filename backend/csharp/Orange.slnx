@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Orange.Api/Orange.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Orange.Tests/Orange.Tests.csproj" />
+  </Folder>
+</Solution>
