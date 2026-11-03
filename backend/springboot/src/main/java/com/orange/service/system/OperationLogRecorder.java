@@ -4,18 +4,22 @@ import com.orange.domain.common.PageData;
 import com.orange.domain.system.operationlog.OperationLogRecord;
 import com.orange.domain.system.operationlog.req.QueryOperationLogReq;
 import com.orange.domain.system.operationlog.resp.OperationLogBean;
+import com.orange.util.DatabaseValues;
+import com.orange.util.QueryUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 操作日志的唯一读写 module：写入和查询共用同一份列定义。
+ *
+ * <p>SQL 保持 PostgreSQL / MySQL / MariaDB / SQLite 通用：
+ * 不使用 {@code strpos}，时间参数按引擎由 {@link DatabaseValues} 转换。</p>
  */
 @Service
 public class OperationLogRecorder {
@@ -24,10 +28,14 @@ public class OperationLogRecorder {
             "trace_id, username, method, path, query_string, request_body,"
                     + " status, duration_ms, ip, create_time";
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private static final String LIKE_ESCAPE_SQL = " escape '" + QueryUtils.LIKE_ESCAPE + "'";
 
-    public OperationLogRecorder(NamedParameterJdbcTemplate jdbcTemplate) {
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final DatabaseValues databaseValues;
+
+    public OperationLogRecorder(NamedParameterJdbcTemplate jdbcTemplate, DatabaseValues databaseValues) {
         this.jdbcTemplate = jdbcTemplate;
+        this.databaseValues = databaseValues;
     }
 
     @Transactional
@@ -42,7 +50,7 @@ public class OperationLogRecorder {
                 .addValue("status", log.status())
                 .addValue("durationMs", log.durationMs())
                 .addValue("ip", log.ip())
-                .addValue("createTime", log.createTime());
+                .addValue("createTime", databaseValues.timestamp(log.createTime()));
         jdbcTemplate.update(
                 "insert into sys_operation_log (" + COLUMNS + ")"
                         + " values (:traceId, :username, :method, :path, :queryString,"
@@ -58,12 +66,12 @@ public class OperationLogRecorder {
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         if (StringUtils.isNotBlank(req.getUsername())) {
-            conditions.add("strpos(lower(username), lower(:username)) > 0");
-            params.addValue("username", req.getUsername().trim());
+            conditions.add("lower(username) like lower(:username)" + LIKE_ESCAPE_SQL);
+            params.addValue("username", QueryUtils.likeContains(req.getUsername().trim()));
         }
         if (StringUtils.isNotBlank(req.getPath())) {
-            conditions.add("strpos(lower(path), lower(:path)) > 0");
-            params.addValue("path", req.getPath().trim());
+            conditions.add("lower(path) like lower(:path)" + LIKE_ESCAPE_SQL);
+            params.addValue("path", QueryUtils.likeContains(req.getPath().trim()));
         }
         if (StringUtils.isNotBlank(req.getStatus())) {
             conditions.add("status = :status");
@@ -71,11 +79,11 @@ public class OperationLogRecorder {
         }
         if (req.getFrom() != null) {
             conditions.add("create_time >= :from");
-            params.addValue("from", req.getFrom());
+            params.addValue("from", databaseValues.timestamp(req.getFrom()));
         }
         if (req.getTo() != null) {
             conditions.add("create_time <= :to");
-            params.addValue("to", req.getTo());
+            params.addValue("to", databaseValues.timestamp(req.getTo()));
         }
 
         String where = conditions.isEmpty() ? "" : " where " + String.join(" and ", conditions);
@@ -101,7 +109,7 @@ public class OperationLogRecorder {
                     bean.setStatus(rs.getInt("status"));
                     bean.setDurationMs(rs.getLong("duration_ms"));
                     bean.setIp(rs.getString("ip"));
-                    bean.setCreateTime(rs.getObject("create_time", OffsetDateTime.class));
+                    bean.setCreateTime(databaseValues.readTimestamp(rs.getObject("create_time")));
                     return bean;
                 });
 

@@ -101,10 +101,10 @@ public class UserServiceImpl implements UserService {
             if (keyword != null && !keyword.isBlank()) {
                 String pattern = QueryUtils.likePrefix(keyword);
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("name")), pattern, '\\'),
-                        cb.like(cb.lower(root.get("username")), pattern, '\\'),
-                        cb.like(cb.lower(root.get("email")), pattern, '\\'),
-                        cb.like(cb.lower(root.get("phone")), pattern, '\\')
+                        cb.like(cb.lower(root.get("name")), pattern, QueryUtils.LIKE_ESCAPE),
+                        cb.like(cb.lower(root.get("username")), pattern, QueryUtils.LIKE_ESCAPE),
+                        cb.like(cb.lower(root.get("email")), pattern, QueryUtils.LIKE_ESCAPE),
+                        cb.like(cb.lower(root.get("phone")), pattern, QueryUtils.LIKE_ESCAPE)
                 ));
             }
             // 旧版单字段过滤，保留兼容
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
                 }
                 String legacyKeyword = filterValue == null ? "" : filterValue;
                 predicates.add(
-                        cb.like(cb.lower(root.get(filterField)), QueryUtils.likePrefix(legacyKeyword), '\\')
+                        cb.like(cb.lower(root.get(filterField)), QueryUtils.likePrefix(legacyKeyword), QueryUtils.LIKE_ESCAPE)
                 );
             }
             if (req.getStatus() != null && !req.getStatus().isBlank()
@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
             }
             if (req.getGroupId() != null && !req.getGroupId().isEmpty()) {
                 predicates.add(
-                        cb.like(cb.lower(root.get("groupId")), QueryUtils.likePrefix(req.getGroupId()), '\\')
+                        cb.like(cb.lower(root.get("groupId")), QueryUtils.likePrefix(req.getGroupId()), QueryUtils.LIKE_ESCAPE)
                 );
             }
             return cb.and(predicates.toArray(new Predicate[0]));

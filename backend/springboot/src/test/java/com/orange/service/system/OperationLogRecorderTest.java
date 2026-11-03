@@ -1,6 +1,8 @@
 package com.orange.service.system;
 
+import com.orange.config.DbEngine;
 import com.orange.domain.system.operationlog.OperationLogRecord;
+import com.orange.util.DatabaseValues;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +28,8 @@ class OperationLogRecorderTest {
 
     @Test
     void writesEveryRecordedFieldWithOneColumnList() {
-        OperationLogRecorder recorder = new OperationLogRecorder(jdbcTemplate);
+        OperationLogRecorder recorder = new OperationLogRecorder(
+                jdbcTemplate, new DatabaseValues(DbEngine.POSTGRES));
         when(jdbcTemplate.update(anyString(), any(SqlParameterSource.class))).thenReturn(1);
         OffsetDateTime now = OffsetDateTime.parse("2026-11-03T08:00:00Z");
 

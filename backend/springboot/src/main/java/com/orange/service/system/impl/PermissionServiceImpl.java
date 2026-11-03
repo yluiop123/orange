@@ -53,13 +53,13 @@ public class PermissionServiceImpl implements PermissionService {
             String path = req.getPath();
             String status = req.getStatus();
             if (id!=null&&!id.isEmpty()) {
-                predicates.add( cb.like(cb.lower(root.get("id")), QueryUtils.likePrefix(id), '\\'));
+                predicates.add( cb.like(cb.lower(root.get("id")), QueryUtils.likePrefix(id), QueryUtils.LIKE_ESCAPE));
             }
             if (name!=null&&!name.isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("name")), QueryUtils.likePrefix(name), '\\'));
+                predicates.add(cb.like(cb.lower(root.get("name")), QueryUtils.likePrefix(name), QueryUtils.LIKE_ESCAPE));
             }
             if (path!=null&&!path.isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("path")), QueryUtils.likePrefix(path), '\\'));
+                predicates.add(cb.like(cb.lower(root.get("path")), QueryUtils.likePrefix(path), QueryUtils.LIKE_ESCAPE));
             }
             if (status!=null&&!status.isEmpty()&&!STATUS_ALL.equals(status)) {
                 predicates.add(cb.equal(root.get("status"), status));

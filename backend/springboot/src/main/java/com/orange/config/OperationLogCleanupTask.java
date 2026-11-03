@@ -1,5 +1,6 @@
 package com.orange.config;
 
+import com.orange.util.DatabaseValues;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,12 +18,15 @@ import java.time.OffsetDateTime;
 public class OperationLogCleanupTask {
 
     private final JdbcTemplate jdbcTemplate;
+    private final DatabaseValues databaseValues;
     private final int retentionDays;
 
     public OperationLogCleanupTask(
             JdbcTemplate jdbcTemplate,
+            DatabaseValues databaseValues,
             @Value("${app.operation-log.retention-days:90}") int retentionDays) {
         this.jdbcTemplate = jdbcTemplate;
+        this.databaseValues = databaseValues;
         this.retentionDays = Math.max(1, retentionDays);
     }
 
@@ -31,7 +35,7 @@ public class OperationLogCleanupTask {
         try {
             int deleted = jdbcTemplate.update(
                     "delete from sys_operation_log where create_time < ?",
-                    OffsetDateTime.now().minusDays(retentionDays));
+                    databaseValues.timestamp(OffsetDateTime.now().minusDays(retentionDays)));
             if (deleted > 0) {
                 log.info("deleted {} expired operation logs (retention {} days)", deleted, retentionDays);
             }

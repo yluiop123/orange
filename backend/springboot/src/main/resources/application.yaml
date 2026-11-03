@@ -5,11 +5,13 @@ spring:
   application:
     name: ORANGE-BOOT
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:orange}
-    username: ${DB_USER:postgres}
-    # 数据库密码，从环境变量中获取，本地开发取默认值 postgres
-    password: ${DB_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
+    # 连接串优先级：SPRING_DATASOURCE_URL > DB_URL > DB_HOST/DB_PORT/DB_NAME
+    # 引擎由 DB_DRIVER（postgres/mysql/mariadb/sqlite）或 JDBC URL 自动识别。
+    # 未配置时保持 PostgreSQL 默认值，见 DatabaseSettings。
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:}}
+    # 数据库密码，从环境变量中获取；未设置时按引擎取默认值（postgres/postgres、root/root）
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:}}
     # HikariCP 特有配置
     hikari:
       # 连接池中允许的最大连接数（推荐值：CPU核数 * 2 + 1）
@@ -28,7 +30,10 @@ spring:
 #    hibernate:
 #      ddl-auto: update   # 开发用：update / create / validate
     show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    # 方言由 DatabaseConfig 根据 DB_DRIVER/URL 自动注入，不要在此写死。
+    hibernate:
+      # 表结构由 database/<engine>/ddl.sql 管理，应用不建表。
+      ddl-auto: none
   cache:
     type: caffeine
     cache-names:
