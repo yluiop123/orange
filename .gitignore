@@ -33,7 +33,25 @@ lerna-debug.log*
 **/build/
 
 # JWT keys (generate with: node scripts/generate-jwt-keys.mjs)
-springboot/src/main/resources/keys/*.pem
+backend/springboot/src/main/resources/keys/*.pem
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+**/.pytest_cache/
+
+# Go
+backend/go-gin-gorm/bin/
+
+# C#
+backend/csharp/**/bin/
+backend/csharp/**/obj/
+
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3
 
 # Maven wrapper
 .mvn/wrapper/maven-wrapper.jar
