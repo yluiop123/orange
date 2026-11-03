@@ -93,10 +93,10 @@ const PERMISSION_TYPES = ['directory', 'menu', 'action'] as const;
             <mat-form-field appearance="outline">
               <mat-label>{{ 'page.system.permission.header.action' | t }}</mat-label>
               <input matInput formControlName="action" autocomplete="off" placeholder="add" />
-              @if (form.hasError('actionRequired')) {
+              @if (form.controls.action.hasError('actionRequired')) {
                 <mat-error>{{ 'validate.action' | t }}</mat-error>
               }
-              @if (form.hasError('actionForbidden')) {
+              @if (form.controls.action.hasError('actionForbidden')) {
                 <mat-error>{{ 'validate.actionForbidden' | t }}</mat-error>
               }
               @if (serverErrorOf(form.controls.action); as error) {
@@ -171,6 +171,8 @@ export class PermissionDialogComponent {
   );
 
   constructor() {
+    // 把跨字段规则同时挂到 action 控件上，Material 才会在字段下显示错误
+    this.form.controls.action.addValidators(actionFieldPolicy);
     if (this.data.mode === 'edit' && this.data.id) {
       this.loading.set(true);
       this.api.getPermission(this.data.id).subscribe({
@@ -215,6 +217,7 @@ export class PermissionDialogComponent {
     if (this.form.controls.type.value !== 'action') {
       this.form.controls.action.setValue('');
     }
+    this.form.controls.action.updateValueAndValidity();
   }
 
   submit(): void {
@@ -262,6 +265,16 @@ export class PermissionDialogComponent {
 function actionPolicy(group: AbstractControl): ValidationErrors | null {
   const type = group.get('type')?.value;
   const action = String(group.get('action')?.value ?? '').trim();
+  if (type === 'action' && !action) return { actionRequired: true };
+  if (type !== 'action' && action) return { actionForbidden: true };
+  return null;
+}
+
+function actionFieldPolicy(control: AbstractControl): ValidationErrors | null {
+  const parent = control.parent;
+  if (!parent) return null;
+  const type = parent.get('type')?.value;
+  const action = String(control.value ?? '').trim();
   if (type === 'action' && !action) return { actionRequired: true };
   if (type !== 'action' && action) return { actionForbidden: true };
   return null;
