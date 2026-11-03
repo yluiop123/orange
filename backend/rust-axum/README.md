@@ -5,10 +5,11 @@ It serves the canonical API from [`docs/API.md`](../../docs/API.md) under
 `/api/v1` on port **8083** and uses the existing `database/postgres` schema and
 seed (no migrations of its own).
 
-> **Build status — compiled and tested, no live database smoke test.**
+> **Build status — compiled, tested and smoke-tested.**
 > `cargo check`, `cargo build` and `cargo test` pass (40 unit tests) with the
 > `stable-x86_64-pc-windows-gnu` toolchain and the MSYS2 UCRT64 `gcc` linker.
-> The server has **not** been started against PostgreSQL in this environment.
+> A live PostgreSQL 16 smoke test also passed: login, `user-info` (3 roles),
+> 6 menu roots and the user list.
 > Windows users without Visual Studio Build Tools should use the GNU toolchain:
 >
 > ```bash
@@ -164,10 +165,9 @@ backend/rust-axum/
 
 ## Known gaps / risks
 
-- **No live database smoke test.** `cargo check`, `cargo build` and `cargo test`
-  (40 unit tests) pass, but the server was not started against PostgreSQL in
-  this environment. Add `#[ignore]` DB tests or a shell smoke script before
-  relying on the auth/RBAC flows.
+- **No committed database integration test.** A live PostgreSQL smoke test passed
+  (login, user-info, menus, user list), but the checklist's full endpoint matrix
+  is not automated. Add `#[ignore]` DB tests or a shell smoke script.
 - Field-level validation errors are returned as a single `message`; the Java
   backend also puts a `{ field: message }` map in `data` for `@Valid` failures.
 - Deprecated list parameters (`filterField`, `filterValue`, `orderField`,
