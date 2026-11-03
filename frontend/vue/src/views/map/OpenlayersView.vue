@@ -36,7 +36,7 @@ onMounted(() => {
   const pointStyle = new Style({
     image: new CircleStyle({
       radius: 7,
-      fill: new Fill({ color: '#ea580c' }),
+      fill: new Fill({ color: '#f97316' }),
       stroke: new Stroke({ color: '#ffffff', width: 2 }),
     }),
   })

@@ -33,7 +33,7 @@ withDefaults(
 <style scoped>
 .metric-card {
   padding: 16px 18px;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
   background: rgb(var(--v-theme-surface));
 }
 

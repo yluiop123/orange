@@ -23,7 +23,7 @@ defineProps<{
 <style scoped>
 .demo-section {
   padding: 16px 18px;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
 }
 
 .section-head {

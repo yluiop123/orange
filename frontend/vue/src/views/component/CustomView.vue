@@ -97,7 +97,7 @@ const coverage = [
           <span class="trend">+18.4%</span>
         </div>
         <svg viewBox="0 0 260 80" class="spark" role="img" aria-label="Weekly activity trend">
-          <path :d="sparkPath" fill="none" stroke="#ea580c" stroke-width="3" stroke-linecap="round" />
+          <path :d="sparkPath" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" />
           <path :d="`${sparkPath} L 260 80 L 0 80 Z`" fill="rgba(234,88,12,0.12)" />
         </svg>
         <div class="spark-labels">
@@ -158,7 +158,7 @@ const coverage = [
 
 .profile-card {
   overflow: hidden;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
 }
 
 .profile-bg {
@@ -203,7 +203,7 @@ const coverage = [
 
 .custom-card {
   padding: 16px 18px;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
 }
 
 .custom-head {

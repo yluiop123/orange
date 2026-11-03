@@ -16,7 +16,7 @@ const svg = (from: string, to: string, label: string) =>
   )}`
 
 const images = [
-  svg('#ea580c', '#f59e0b', 'ORANGE'),
+  svg('#f97316', '#f59e0b', 'ORANGE'),
   svg('#0ea5e9', '#22d3ee', 'VUE'),
   svg('#16a34a', '#84cc16', 'VUETIFY'),
 ]

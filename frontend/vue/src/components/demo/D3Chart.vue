@@ -18,7 +18,7 @@ const ui = useUiStore()
 const el = ref<SVGSVGElement | null>(null)
 let observer: ResizeObserver | null = null
 
-const palette = ['#ea580c', '#0ea5e9', '#16a34a', '#eab308', '#8b5cf6']
+const palette = ['#f97316', '#0ea5e9', '#22c55e', '#eab308', '#8b5cf6']
 
 function draw() {
   if (!el.value) return
@@ -221,7 +221,7 @@ onUnmounted(() => {
 <style scoped>
 .d3-card {
   padding: 14px 16px;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
   height: 100%;
 }
 

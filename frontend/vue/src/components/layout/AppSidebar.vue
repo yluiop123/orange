@@ -35,7 +35,8 @@ watch(
   <v-navigation-drawer
     :rail="ui.sidebarCollapsed"
     :permanent="true"
-    width="248"
+    width="256"
+    rail-width="48"
     class="app-drawer"
   >
     <div class="brand" :class="{ 'brand--rail': ui.sidebarCollapsed }">
@@ -72,6 +73,12 @@ watch(
   min-height: 76px;
 }
 
+@media (max-width: 600px) {
+  .app-drawer:not(.v-navigation-drawer--rail) {
+    width: var(--orange-sidebar-mobile-width) !important;
+  }
+}
+
 .brand--rail {
   justify-content: center;
   padding-inline: 0;
@@ -80,13 +87,13 @@ watch(
 .brand-mark {
   width: 36px;
   height: 36px;
-  border-radius: 12px;
+  border-radius: var(--orange-radius);
   display: grid;
   place-items: center;
   font-weight: 800;
-  color: #fff;
-  background: linear-gradient(135deg, #fb923c, #ea580c);
-  box-shadow: 0 8px 18px -10px rgba(234, 88, 12, 0.9);
+  color: rgb(var(--v-theme-on-primary));
+  background: linear-gradient(135deg, #fb923c, rgb(var(--v-theme-primary)));
+  box-shadow: 0 8px 18px -10px rgba(249, 115, 22, 0.55);
 }
 
 .brand-text {
@@ -114,5 +121,10 @@ watch(
 
 .menu-list {
   padding-top: 8px;
+}
+
+.menu-list :deep(.v-list-item) {
+  border-radius: 0.5rem;
+  margin-block: 2px;
 }
 </style>

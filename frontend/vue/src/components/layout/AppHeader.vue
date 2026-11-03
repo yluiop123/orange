@@ -70,7 +70,7 @@ async function logout() {
 </script>
 
 <template>
-  <v-app-bar flat height="64" class="app-header">
+  <v-app-bar flat height="48" class="app-header">
     <v-app-bar-nav-icon
       :aria-label="ui.sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
       @click="ui.toggleSidebar()"
@@ -162,8 +162,8 @@ async function logout() {
 
 <style scoped>
 .app-header {
-  border-bottom: 1px solid rgba(var(--v-border-color), 0.5);
-  backdrop-filter: blur(8px);
+  border-bottom: 0;
+  box-shadow: inset 0 -1px 0 rgb(var(--v-border-color));
 }
 
 .header-breadcrumbs {

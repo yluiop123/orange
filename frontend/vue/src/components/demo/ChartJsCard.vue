@@ -72,7 +72,7 @@ onUnmounted(() => {
 <style scoped>
 .chart-card {
   padding: 14px 16px 8px;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
   background: rgb(var(--v-theme-surface));
   height: 100%;
 }

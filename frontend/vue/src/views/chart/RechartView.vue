@@ -46,8 +46,8 @@ const lineData = computed<ChartData<'line'>>(() => ({
     {
       label: 'Revenue',
       data: [320, 380, 350, 440, 470, 520, 560],
-      borderColor: '#ea580c',
-      backgroundColor: 'rgba(234,88,12,0.16)',
+      borderColor: '#f97316',
+      backgroundColor: 'rgba(249,115,22,0.16)',
       fill: true,
       tension: 0.35,
       pointRadius: 2,
@@ -70,7 +70,7 @@ const barData = computed<ChartData<'bar'>>(() => ({
     {
       label: 'Orders',
       data: [420, 360, 290, 210, 380],
-      backgroundColor: ['#ea580c', '#f97316', '#fb923c', '#fdba74', '#fed7aa'],
+      backgroundColor: ['#f97316', '#fb923c', '#fdba74', '#fed7aa', '#ffedd5'],
       borderRadius: 6,
       barThickness: 22,
     },
@@ -82,7 +82,7 @@ const doughnutData = computed<ChartData<'doughnut'>>(() => ({
   datasets: [
     {
       data: [38, 27, 21, 14],
-      backgroundColor: ['#ea580c', '#0ea5e9', '#16a34a', '#eab308'],
+      backgroundColor: ['#f97316', '#0ea5e9', '#22c55e', '#eab308'],
       borderWidth: 0,
       hoverOffset: 6,
     },

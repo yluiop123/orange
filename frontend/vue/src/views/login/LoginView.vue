@@ -96,7 +96,7 @@ async function submit() {
         </div>
       </section>
 
-      <v-card class="login-card" elevation="12">
+      <v-card class="login-card">
         <v-card-title class="text-h5 font-weight-bold">{{ t('page.login.title') }}</v-card-title>
         <v-card-subtitle class="pb-4">{{ t('page.login.desc') }}</v-card-subtitle>
         <v-card-text>
@@ -200,11 +200,11 @@ async function submit() {
 .hero-mark {
   width: 44px;
   height: 44px;
-  border-radius: 14px;
+  border-radius: var(--orange-radius);
   display: grid;
   place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: rgb(var(--v-theme-on-primary));
+  background: linear-gradient(135deg, #fb923c, rgb(var(--v-theme-primary)));
 }
 
 .hero-stats {
@@ -231,7 +231,7 @@ async function submit() {
 }
 
 .login-card {
-  border-radius: 20px;
+  border-radius: var(--orange-radius);
 }
 
 .demo-hint {

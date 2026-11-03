@@ -1,5 +1,12 @@
 :root {
-  --orange-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.55);
+  --orange-radius: 0.65rem;
+  --orange-sidebar-width: 16rem;
+  --orange-sidebar-rail-width: 3rem;
+  --orange-sidebar-mobile-width: 18rem;
+  --orange-header-height: 3rem;
+  --orange-page-padding: 0.75rem;
+  --orange-content-gap: 1rem;
+  --orange-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.35);
 }
 
 * {
@@ -15,14 +22,126 @@ body,
 body {
   margin: 0;
   font-family:
-    'Inter',
-    'PingFang SC',
-    'Microsoft YaHei',
+    ui-sans-serif,
     system-ui,
     -apple-system,
     'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
     sans-serif;
+  background: rgb(var(--v-theme-background));
+  color: rgb(var(--v-theme-on-surface));
   -webkit-font-smoothing: antialiased;
+}
+
+/* Cards, buttons and inputs share the shadcn-style radius (0.65rem). */
+.v-card,
+.v-dialog > .v-overlay__content > .v-card,
+.v-dialog > .v-overlay__content > .v-sheet,
+.v-dialog > .v-overlay__content > form > .v-card,
+.v-dialog > .v-overlay__content > form > .v-sheet {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: var(--orange-radius);
+}
+
+.v-btn {
+  border-radius: var(--orange-radius);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.v-btn.v-btn--size-default {
+  --v-btn-height: 2rem;
+}
+
+.v-btn--icon.v-btn--density-default {
+  width: var(--v-btn-height);
+  height: var(--v-btn-height);
+}
+
+.v-btn:focus-visible,
+a:focus-visible,
+.v-list-item:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 2px;
+}
+
+.v-field {
+  border-radius: var(--orange-radius);
+}
+
+.v-input--density-compact {
+  --v-input-control-height: 2rem;
+}
+
+.v-input:not(.v-textarea) .v-field {
+  --v-input-control-height: 2rem;
+  --v-field-padding-bottom: 0px;
+}
+
+.v-input:not(.v-textarea) .v-field__input {
+  min-height: 2rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.v-field--focused .v-field__outline {
+  color: rgb(var(--v-theme-primary));
+}
+
+/* Tables: muted header, 2.5rem rows, 1px dividers. */
+.v-table,
+.v-table.v-table--density-default,
+.v-table.v-table--density-comfortable,
+.v-table.v-table--density-compact {
+  --v-table-header-height: 2.5rem;
+  --v-table-row-height: 2.5rem;
+  background: transparent;
+}
+
+.v-table .v-table__wrapper > table > thead > tr > th {
+  background: rgb(var(--v-theme-surface-variant));
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.v-table .v-table__wrapper > table > tbody > tr:not(:last-child) > td,
+.v-table .v-table__wrapper > table > tbody > tr:not(:last-child) > th {
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.v-pagination {
+  justify-content: flex-end;
+}
+
+.v-pagination .v-pagination__item--is-active .v-btn {
+  color: rgb(var(--v-theme-primary));
+}
+
+.v-pagination .v-pagination__item--is-active .v-btn__overlay {
+  background: rgb(var(--v-theme-primary));
+  opacity: 0.12;
+}
+
+/* Shell surfaces. */
+.v-navigation-drawer.app-drawer {
+  background: rgb(var(--v-theme-sidebar));
+  border-right: 1px solid rgb(var(--v-border-color));
+}
+
+.v-navigation-drawer .v-list-item--active {
+  color: rgb(var(--v-theme-primary));
+}
+
+.v-navigation-drawer .v-list-item:hover:not(.v-list-item--active) {
+  background: rgb(var(--v-theme-surface-variant));
+}
+
+.v-app-bar.app-header {
+  height: var(--orange-header-height);
+  background: rgb(var(--v-theme-surface));
+  box-shadow: inset 0 -1px 0 rgb(var(--v-border-color));
 }
 
 code {
@@ -47,12 +166,12 @@ code {
 .demo-page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--orange-content-gap);
 }
 
 .demo-grid {
   display: grid;
-  gap: 16px;
+  gap: var(--orange-content-gap);
 }
 
 .demo-grid--2 {
@@ -84,7 +203,7 @@ code {
   height: calc(100vh - 140px);
   min-height: 460px;
   width: 100%;
-  border-radius: 14px;
+  border-radius: var(--orange-radius);
   overflow: hidden;
   position: relative;
 }
@@ -93,7 +212,7 @@ code {
   height: calc(100vh - 140px);
   min-height: 460px;
   width: 100%;
-  border-radius: 14px;
+  border-radius: var(--orange-radius);
   overflow: hidden;
   position: relative;
   background: #0b1020;

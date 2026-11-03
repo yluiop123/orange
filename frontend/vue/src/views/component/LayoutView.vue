@@ -199,7 +199,7 @@ const panel = ref([0])
   min-height: 210px;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
 }
 
 .app-preview__side {

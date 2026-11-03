@@ -143,7 +143,7 @@ onUnmounted(() => {
 }
 
 .swatch--orange {
-  background: #ea580c;
+  background: #f97316;
 }
 
 .swatch--blue {

@@ -121,7 +121,7 @@ const statusColor: Record<string, string> = {
 <style scoped>
 .panel {
   padding: 14px 16px;
-  border: 1px solid rgba(var(--v-border-color), 0.6);
+  border: 1px solid rgb(var(--v-border-color));
 }
 
 .panel-head {

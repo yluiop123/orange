@@ -32,19 +32,17 @@ const forcedOpen = computed({
 
 <style scoped>
 .app-main {
-  background:
-    radial-gradient(circle at 100% 0%, rgba(251, 146, 60, 0.08), transparent 32%),
-    rgb(var(--v-theme-background));
+  background: rgb(var(--v-theme-background));
 }
 
 .page-container {
-  min-height: calc(100vh - 64px);
-  padding: 16px;
+  min-height: calc(100vh - var(--orange-header-height));
+  padding: var(--orange-page-padding);
 }
 
 @media (max-width: 600px) {
   .page-container {
-    padding: 10px;
+    padding: var(--orange-page-padding);
   }
 }
 </style>

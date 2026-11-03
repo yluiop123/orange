@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts'
 
-export const PALETTE = ['#ea580c', '#0ea5e9', '#16a34a', '#eab308', '#8b5cf6', '#ec4899']
+export const PALETTE = ['#f97316', '#0ea5e9', '#22c55e', '#eab308', '#8b5cf6', '#ec4899']
 
 type SeriesInput = { name: string; data: number[]; color?: string }
 

@@ -34,7 +34,7 @@ function init() {
 
   L.polyline(
     cities.map((city) => city.coords),
-    { color: '#ea580c', weight: 2, dashArray: '6 8', opacity: 0.8 },
+    { color: '#f97316', weight: 2, dashArray: '6 8', opacity: 0.8 },
   ).addTo(map)
 
   cities.slice(0, 3).forEach((city, index) => {
