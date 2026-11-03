@@ -6,7 +6,7 @@
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   min-height: 100vh;
-  background: var(--mat-sys-surface, #fff);
+  background: var(--app-background);
 }
 
 .brand-panel {
@@ -16,8 +16,8 @@
   padding: 48px 56px;
   color: #f8fafc;
   background:
-    radial-gradient(900px 600px at 10% 0%, rgba(245, 158, 11, 0.32), transparent 60%),
-    radial-gradient(700px 500px at 90% 100%, rgba(37, 99, 235, 0.25), transparent 60%),
+    radial-gradient(900px 600px at 10% 0%, rgba(249, 115, 22, 0.32), transparent 60%),
+    radial-gradient(700px 500px at 90% 100%, rgba(249, 115, 22, 0.18), transparent 60%),
     #0f141d;
 }
 
@@ -32,8 +32,8 @@
   place-items: center;
   width: 42px;
   height: 42px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  border-radius: var(--app-radius);
+  background: linear-gradient(135deg, #f97316, #ea580c);
   font-weight: 800;
   font-size: 1.25rem;
 }
@@ -75,8 +75,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #f59e0b;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+  background: var(--app-primary);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16);
 }
 
 .brand-foot {
@@ -91,7 +91,7 @@
   align-items: center;
   justify-content: center;
   padding: 32px;
-  background: var(--mat-sys-surface-container-low, #f7f8fa);
+  background: var(--app-muted);
 }
 
 .locale {
@@ -103,7 +103,7 @@
 
 .login-card {
   width: min(420px, 92vw);
-  padding: 10px 6px 4px;
+  padding: 0.5rem 0.25rem 0.125rem;
 }
 
 mat-card-title {
@@ -119,19 +119,19 @@ mat-card-title {
 }
 
 .submit {
-  margin-top: 8px;
-  height: 46px;
+  margin-top: 0.5rem;
+  height: 2rem;
 }
 
 .form-error {
   margin: 0 0 4px;
-  color: var(--mat-sys-error, #b3261e);
+  color: var(--app-destructive);
   font-size: 0.85rem;
 }
 
 .demo-hint {
-  margin: 18px 0 4px;
-  color: var(--mat-sys-on-surface-variant, #5f6368);
+  margin: 1.125rem 0 0.25rem;
+  color: var(--app-muted-foreground);
   font-size: 0.78rem;
 }
 

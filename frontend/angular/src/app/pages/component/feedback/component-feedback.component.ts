@@ -121,7 +121,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog.component
         gap: 10px;
         padding: 10px 14px;
         margin-bottom: 8px;
-        border-radius: 10px;
+        border-radius: var(--app-radius);
         font-size: 0.82rem;
       }
       .banner.info { background: rgba(37, 99, 235, 0.1); color: #1d4ed8; }
@@ -151,7 +151,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog.component
       }
       .skeleton-card {
         height: 110px;
-        border-radius: 12px;
+        border-radius: var(--app-radius);
         background: linear-gradient(90deg, #eef0f3 25%, #f8fafc 50%, #eef0f3 75%);
         background-size: 200% 100%;
         animation: shimmer 1.4s infinite;

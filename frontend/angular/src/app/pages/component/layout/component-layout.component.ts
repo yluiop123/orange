@@ -110,7 +110,7 @@ import { PageHeaderComponent } from '../../../shared/page-header.component';
         display: grid;
         place-items: center;
         min-height: 64px;
-        border-radius: 10px;
+        border-radius: var(--app-radius);
         background: var(--mat-sys-surface-container-low, #f7f8fa);
         border: 1px dashed var(--mat-sys-outline-variant, #d8dce1);
         color: var(--mat-sys-on-surface-variant, #5f6368);

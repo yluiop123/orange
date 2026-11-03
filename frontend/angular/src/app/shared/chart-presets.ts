@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts';
 
-export const PALETTE = ['#f59e0b', '#2563eb', '#14b8a6', '#8b5cf6', '#ef4444', '#22c55e'];
+export const PALETTE = ['#f97316', '#2563eb', '#14b8a6', '#8b5cf6', '#ef4444', '#22c55e'];
 
 const AXIS = {
   axisLine: { lineStyle: { color: '#cbd5e1' } },
@@ -111,7 +111,7 @@ export function gaugeOption(value: number, name: string, dark = false): EChartsO
         endAngle: -30,
         min: 0,
         max: 100,
-        progress: { show: true, width: 12, itemStyle: { color: '#f59e0b' } },
+        progress: { show: true, width: 12, itemStyle: { color: '#f97316' } },
         axisLine: { lineStyle: { width: 12, color: [[1, dark ? '#1e293b' : '#e2e8f0']] } },
         axisTick: { show: false },
         splitLine: { show: false },

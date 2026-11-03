@@ -1,23 +1,25 @@
 :host {
-  --app-sidebar-bg: #12161f;
-  --app-sidebar-fg: #c7cdd8;
-  --app-sidebar-hover: rgba(255, 255, 255, 0.07);
-  --app-sidebar-active: rgba(245, 158, 11, 0.18);
-  --app-sidebar-width: 264px;
   display: block;
   height: 100vh;
 }
 
 .shell {
   height: 100vh;
-  background: var(--mat-sys-surface-container-low, #f7f8fa);
+  background: var(--app-background);
 }
 
 .sidebar {
   width: var(--app-sidebar-width);
   border: 0;
-  background: var(--app-sidebar-bg);
-  color: var(--app-sidebar-fg);
+  border-right: 1px solid var(--app-sidebar-border);
+  background: var(--app-sidebar);
+  color: var(--app-sidebar-foreground);
+}
+
+/* The width token exists so a future collapse toggle only needs to add
+   the class; the current shell keeps the 16rem behaviour. */
+.sidebar.collapsed {
+  width: var(--app-sidebar-collapsed-width);
 }
 
 .sidebar ::ng-deep .mat-drawer-inner-container {
@@ -29,22 +31,22 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 18px 16px;
-  color: #fff;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  color: var(--app-sidebar-foreground);
   text-decoration: none;
 }
 
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--app-radius);
+  background: var(--app-primary);
+  color: var(--app-primary-foreground);
   font-weight: 800;
-  font-size: 1.15rem;
-  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35);
+  font-size: 0.95rem;
 }
 
 .brand-text {
@@ -54,38 +56,38 @@
 }
 
 .brand-text strong {
-  letter-spacing: 0.14em;
-  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  font-size: 0.875rem;
 }
 
 .brand-text small {
-  color: #8b93a3;
-  font-size: 0.72rem;
-  margin-top: 3px;
+  color: var(--app-muted-foreground);
+  font-size: 0.7rem;
+  margin-top: 0.1875rem;
 }
 
 .menu {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 10px 18px;
+  padding: 0.25rem 0.5rem 0.75rem;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: var(--app-border) transparent;
 }
 
 .menu-note {
-  padding: 8px 12px;
+  padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
-  color: #8b93a3;
+  color: var(--app-muted-foreground);
 }
 
 .sidebar-footer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  color: #6f7787;
-  font-size: 0.72rem;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--app-sidebar-border);
+  color: var(--app-muted-foreground);
+  font-size: 0.7rem;
   letter-spacing: 0.04em;
 }
 
@@ -101,16 +103,17 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: var(--app-background);
 }
 
 .topbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 60px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
-  background: var(--mat-sys-surface, #fff);
+  gap: 0.5rem;
+  min-height: var(--app-header-height);
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-background);
   position: relative;
   z-index: 10;
 }
@@ -129,17 +132,17 @@
 }
 
 .crumb {
-  color: var(--mat-sys-on-surface-variant, #5f6368);
+  color: var(--app-muted-foreground);
   text-decoration: none;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .crumb:hover {
-  color: var(--mat-sys-primary, #b45309);
+  color: var(--app-primary);
 }
 
 .crumb.current {
-  color: var(--mat-sys-on-surface, #1f2329);
+  color: var(--app-foreground);
   font-weight: 600;
 }
 
@@ -156,7 +159,7 @@
 }
 
 .sep {
-  color: var(--mat-sys-outline, #9aa0a6);
+  color: var(--app-muted-foreground);
 }
 
 .spacer {
@@ -166,7 +169,7 @@
 .role-select,
 .lang-select {
   width: 132px;
-  font-size: 0.82rem;
+  font-size: 0.8125rem;
 }
 
 .lang-select {
@@ -176,20 +179,20 @@
 .user-button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 0.5rem;
+  padding: 0 0.25rem;
   min-width: 0;
 }
 
 .avatar {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f59e0b, #ea580c);
-  color: #fff;
-  font-size: 0.8rem;
+  background: var(--app-primary);
+  color: var(--app-primary-foreground);
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -198,7 +201,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
 }
 
 .content {
@@ -212,7 +215,7 @@
     display: inline-flex;
   }
   .sidebar {
-    width: min(82vw, 300px);
+    width: min(var(--app-sidebar-mobile-width), 82vw);
   }
   .breadcrumb {
     max-width: 42vw;
@@ -225,7 +228,7 @@
     width: 108px;
   }
   .topbar {
-    padding: 0 10px;
-    gap: 4px;
+    padding: 0 0.5rem;
+    gap: 0.25rem;
   }
 }

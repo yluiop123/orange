@@ -40,7 +40,7 @@ export interface PasswordResultData {
         justify-content: space-between;
         gap: 12px;
         padding: 12px 16px;
-        border-radius: 10px;
+        border-radius: var(--app-radius);
         background: var(--mat-sys-surface-container-high, #f1f3f4);
         font-size: 1.35rem;
         letter-spacing: 0.12em;

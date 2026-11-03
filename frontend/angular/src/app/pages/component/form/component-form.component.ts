@@ -183,7 +183,7 @@ import { PageHeaderComponent } from '../../../shared/page-header.component';
       .json {
         margin: 0;
         padding: 12px;
-        border-radius: 10px;
+        border-radius: var(--app-radius);
         background: var(--mat-sys-surface-container-low, #f7f8fa);
         font-size: 0.72rem;
         white-space: pre-wrap;

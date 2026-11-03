@@ -61,7 +61,7 @@ import type { OperationLog } from '../../../core/models';
         overflow: auto;
         margin: 4px 0 0;
         padding: 10px;
-        border-radius: 8px;
+        border-radius: var(--app-radius);
         background: var(--mat-sys-surface-container-low, #f7f8fa);
         font-size: 0.72rem;
         white-space: pre-wrap;

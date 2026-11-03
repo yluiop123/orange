@@ -37,10 +37,10 @@ import type { PermissionRow } from '../../core/models';
       .picker {
         max-height: 300px;
         overflow: auto;
-        border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
-        border-radius: 10px;
+        border: 1px solid var(--app-border);
+        border-radius: var(--app-radius);
         padding: 6px 0;
-        background: var(--mat-sys-surface, #fff);
+        background: var(--app-card);
       }
       .picker-row {
         display: flex;

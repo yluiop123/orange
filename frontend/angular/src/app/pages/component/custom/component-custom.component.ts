@@ -136,7 +136,7 @@ import { PageHeaderComponent } from '../../../shared/page-header.component';
         justify-content: space-between;
         gap: 24px;
         padding: 30px 34px;
-        border-radius: 18px;
+        border-radius: var(--app-radius);
         background:
           radial-gradient(600px 260px at 88% 20%, rgba(245, 158, 11, 0.4), transparent 60%),
           linear-gradient(120deg, #101827, #1c2638);

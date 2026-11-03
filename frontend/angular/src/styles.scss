@@ -1,17 +1,284 @@
 @use '@angular/material' as mat;
 
+/* ------------------------------------------------------------------
+   Reference tokens (see docs/STYLE-GUIDE.md). React is the visual
+   reference; these values are the hex equivalents of its OKLCH set.
+   ------------------------------------------------------------------ */
+
+$app-font: (
+  system-ui,
+  -apple-system,
+  '"Segoe UI"',
+  Roboto,
+  '"Helvetica Neue"',
+  Arial,
+  sans-serif
+);
+
 html {
   @include mat.theme(
     (
       color: (
         primary: mat.$orange-palette,
-        tertiary: mat.$blue-palette,
+        tertiary: mat.$orange-palette,
       ),
-      typography: Roboto,
+      typography: $app-font,
       density: 0,
     )
   );
   color-scheme: light;
+}
+
+/* App-level tokens. Everything below reads from here so dark mode is
+   a token swap rather than a second set of component rules. */
+:root {
+  --app-radius: 0.65rem;
+  --app-primary: #f97316;
+  --app-primary-foreground: #fff7ed;
+  --app-background: #ffffff;
+  --app-card: #ffffff;
+  --app-foreground: #18181b;
+  --app-muted: #f4f4f5;
+  --app-muted-foreground: #71717a;
+  --app-border: #e4e4e7;
+  --app-input: #e4e4e7;
+  --app-destructive: #ef4444;
+  --app-ring: #f97316;
+  --app-sidebar: #fafafa;
+  --app-sidebar-foreground: #18181b;
+  --app-sidebar-active: rgba(249, 115, 22, 0.14);
+  --app-sidebar-active-foreground: #ea580c;
+  --app-sidebar-hover: #f4f4f5;
+  --app-sidebar-border: #e4e4e7;
+  --app-sidebar-width: 16rem;
+  --app-sidebar-collapsed-width: 3rem;
+  --app-sidebar-mobile-width: 18rem;
+  --app-header-height: 3rem;
+  --app-page-padding: 0.75rem;
+  --app-content-gap: 1rem;
+
+  /* Material system roles mapped onto the same values. */
+  --mat-sys-background: #ffffff;
+  --mat-sys-on-background: #18181b;
+  --mat-sys-surface: #ffffff;
+  --mat-sys-on-surface: #18181b;
+  --mat-sys-surface-variant: #f4f4f5;
+  --mat-sys-on-surface-variant: #71717a;
+  --mat-sys-surface-dim: #f4f4f5;
+  --mat-sys-surface-bright: #ffffff;
+  --mat-sys-surface-container-lowest: #ffffff;
+  --mat-sys-surface-container-low: #fafafa;
+  --mat-sys-surface-container: #f4f4f5;
+  --mat-sys-surface-container-high: #ededef;
+  --mat-sys-surface-container-highest: #e4e4e7;
+  --mat-sys-surface-tint: #f97316;
+  --mat-sys-primary: #f97316;
+  --mat-sys-on-primary: #fff7ed;
+  --mat-sys-primary-container: #ffedd5;
+  --mat-sys-on-primary-container: #7c2d12;
+  --mat-sys-primary-fixed: #ffedd5;
+  --mat-sys-primary-fixed-dim: #fdba74;
+  --mat-sys-on-primary-fixed: #7c2d12;
+  --mat-sys-on-primary-fixed-variant: #9a3412;
+  --mat-sys-secondary: #f4f4f5;
+  --mat-sys-on-secondary: #18181b;
+  --mat-sys-secondary-container: #f4f4f5;
+  --mat-sys-on-secondary-container: #18181b;
+  --mat-sys-secondary-fixed: #f4f4f5;
+  --mat-sys-secondary-fixed-dim: #e4e4e7;
+  --mat-sys-on-secondary-fixed: #18181b;
+  --mat-sys-on-secondary-fixed-variant: #3f3f46;
+  --mat-sys-tertiary: #71717a;
+  --mat-sys-on-tertiary: #ffffff;
+  --mat-sys-tertiary-container: #f4f4f5;
+  --mat-sys-on-tertiary-container: #18181b;
+  --mat-sys-tertiary-fixed: #f4f4f5;
+  --mat-sys-tertiary-fixed-dim: #e4e4e7;
+  --mat-sys-on-tertiary-fixed: #18181b;
+  --mat-sys-on-tertiary-fixed-variant: #3f3f46;
+  --mat-sys-error: #ef4444;
+  --mat-sys-on-error: #ffffff;
+  --mat-sys-error-container: #fee2e2;
+  --mat-sys-on-error-container: #991b1b;
+  --mat-sys-outline: #a1a1aa;
+  --mat-sys-outline-variant: #e4e4e7;
+  --mat-sys-inverse-surface: #27272a;
+  --mat-sys-inverse-on-surface: #fafafa;
+  --mat-sys-inverse-primary: #fb923c;
+  --mat-sys-scrim: #000000;
+  --mat-sys-shadow: #000000;
+  --mat-sys-neutral10: #18181b;
+  --mat-sys-neutral-variant20: #3f3f46;
+  --mat-sys-level0: none;
+  --mat-sys-level1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --mat-sys-level2: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --mat-sys-level3: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --mat-sys-level4: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --mat-sys-level5: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* Shared component geometry. */
+  --mat-sys-corner-extra-small: 0.35rem;
+  --mat-sys-corner-small: 0.5rem;
+  --mat-sys-corner-medium: var(--app-radius);
+  --mat-sys-corner-large: var(--app-radius);
+  --mat-sys-corner-extra-large: var(--app-radius);
+  --mat-sys-corner-extra-large-top: var(--app-radius) var(--app-radius) 0 0;
+  --mat-sys-corner-large-top: var(--app-radius) var(--app-radius) 0 0;
+  --mat-sys-corner-large-start: var(--app-radius) 0 0 var(--app-radius);
+  --mat-sys-corner-large-end: 0 var(--app-radius) var(--app-radius) 0;
+
+  /* Buttons: 2rem tall, 0.65rem radius. */
+  --mat-button-text-container-height: 2rem;
+  --mat-button-filled-container-height: 2rem;
+  --mat-button-protected-container-height: 2rem;
+  --mat-button-tonal-container-height: 2rem;
+  --mat-button-outlined-container-height: 2rem;
+  --mat-button-text-container-shape: var(--app-radius);
+  --mat-button-filled-container-shape: var(--app-radius);
+  --mat-button-protected-container-shape: var(--app-radius);
+  --mat-button-tonal-container-shape: var(--app-radius);
+  --mat-button-outlined-container-shape: var(--app-radius);
+  --mat-button-text-horizontal-padding: 0.75rem;
+  --mat-button-filled-horizontal-padding: 0.75rem;
+  --mat-button-protected-horizontal-padding: 0.75rem;
+  --mat-button-tonal-horizontal-padding: 0.75rem;
+  --mat-button-outlined-horizontal-padding: 0.75rem;
+  --mat-icon-button-state-layer-size: 2rem;
+  --mat-icon-button-icon-size: 1.125rem;
+  --mat-icon-button-container-shape: 0.5rem;
+
+  /* Inputs: 2rem tall, orange focus outline. */
+  --mat-form-field-container-height: 2rem;
+  --mat-form-field-container-vertical-padding: 0.25rem;
+  --mat-form-field-container-text-size: 0.8125rem;
+  --mat-form-field-container-text-line-height: 1.25rem;
+  --mat-form-field-outlined-label-text-size: 0.8125rem;
+  --mat-form-field-outlined-container-shape: var(--app-radius);
+  --mat-form-field-filled-container-shape: var(--app-radius);
+  --mat-form-field-outlined-outline-color: var(--app-input);
+  --mat-form-field-outlined-hover-outline-color: var(--app-muted-foreground);
+  --mat-form-field-outlined-focus-outline-color: var(--app-ring);
+  --mat-form-field-outlined-caret-color: var(--app-primary);
+  --mat-form-field-outlined-focus-label-text-color: var(--app-primary);
+  --mat-form-field-outlined-label-text-color: var(--app-muted-foreground);
+
+  /* Cards, tables, paginator. */
+  --mat-card-outlined-container-shape: var(--app-radius);
+  --mat-card-elevated-container-shape: var(--app-radius);
+  --mat-card-filled-container-shape: var(--app-radius);
+  --mat-card-outlined-container-color: var(--app-card);
+  --mat-card-outlined-outline-color: var(--app-border);
+  --mat-card-elevated-container-color: var(--app-card);
+  --mat-card-filled-container-color: var(--app-muted);
+  --mat-table-background-color: var(--app-card);
+  --mat-table-header-container-height: 2.5rem;
+  --mat-table-row-item-container-height: 2.5rem;
+  --mat-table-header-headline-color: var(--app-muted-foreground);
+  --mat-table-header-headline-size: 0.75rem;
+  --mat-table-header-headline-weight: 600;
+  --mat-table-row-item-label-text-color: var(--app-foreground);
+  --mat-table-row-item-label-text-size: 0.8125rem;
+  --mat-table-row-item-outline-color: var(--app-border);
+  --mat-table-row-item-outline-width: 1px;
+  --mat-paginator-container-background-color: var(--app-card);
+  --mat-paginator-container-size: 2.75rem;
+  --mat-paginator-container-text-color: var(--app-muted-foreground);
+  --mat-paginator-enabled-icon-color: var(--app-foreground);
+  --mat-paginator-disabled-icon-color: var(--app-muted-foreground);
+  --mat-paginator-form-field-container-height: 2rem;
+  --mat-paginator-form-field-container-vertical-padding: 0.25rem;
+
+  --mat-menu-container-shape: var(--app-radius);
+
+  --mat-dialog-container-shape: var(--app-radius);
+}
+
+@mixin dark-tokens {
+  color-scheme: dark;
+
+  --app-background: #18181b;
+  --app-card: #27272a;
+  --app-foreground: #fafafa;
+  --app-muted: #27272a;
+  --app-muted-foreground: #a1a1aa;
+  --app-border: #3f3f46;
+  --app-input: #3f3f46;
+  --app-destructive: #ef4444;
+  --app-ring: #f97316;
+  --app-sidebar: #18181b;
+  --app-sidebar-foreground: #fafafa;
+  --app-sidebar-active: rgba(249, 115, 22, 0.22);
+  --app-sidebar-active-foreground: #fb923c;
+  --app-sidebar-hover: #27272a;
+  --app-sidebar-border: #3f3f46;
+
+  --mat-sys-background: #18181b;
+  --mat-sys-on-background: #fafafa;
+  --mat-sys-surface: #27272a;
+  --mat-sys-on-surface: #fafafa;
+  --mat-sys-surface-variant: #3f3f46;
+  --mat-sys-on-surface-variant: #a1a1aa;
+  --mat-sys-surface-dim: #18181b;
+  --mat-sys-surface-bright: #3f3f46;
+  --mat-sys-surface-container-lowest: #18181b;
+  --mat-sys-surface-container-low: #1f1f23;
+  --mat-sys-surface-container: #27272a;
+  --mat-sys-surface-container-high: #2e2e33;
+  --mat-sys-surface-container-highest: #3f3f46;
+  --mat-sys-surface-tint: #f97316;
+  --mat-sys-primary: #f97316;
+  --mat-sys-on-primary: #fff7ed;
+  --mat-sys-primary-container: #7c2d12;
+  --mat-sys-on-primary-container: #ffedd5;
+  --mat-sys-primary-fixed: #ffedd5;
+  --mat-sys-primary-fixed-dim: #fdba74;
+  --mat-sys-on-primary-fixed: #7c2d12;
+  --mat-sys-on-primary-fixed-variant: #9a3412;
+  --mat-sys-secondary: #27272a;
+  --mat-sys-on-secondary: #fafafa;
+  --mat-sys-secondary-container: #3f3f46;
+  --mat-sys-on-secondary-container: #fafafa;
+  --mat-sys-secondary-fixed: #3f3f46;
+  --mat-sys-secondary-fixed-dim: #52525b;
+  --mat-sys-on-secondary-fixed: #fafafa;
+  --mat-sys-on-secondary-fixed-variant: #e4e4e7;
+  --mat-sys-tertiary: #a1a1aa;
+  --mat-sys-on-tertiary: #18181b;
+  --mat-sys-tertiary-container: #3f3f46;
+  --mat-sys-on-tertiary-container: #fafafa;
+  --mat-sys-tertiary-fixed: #3f3f46;
+  --mat-sys-tertiary-fixed-dim: #52525b;
+  --mat-sys-on-tertiary-fixed: #fafafa;
+  --mat-sys-on-tertiary-fixed-variant: #e4e4e7;
+  --mat-sys-error: #ef4444;
+  --mat-sys-on-error: #ffffff;
+  --mat-sys-error-container: #7f1d1d;
+  --mat-sys-on-error-container: #fee2e2;
+  --mat-sys-outline: #71717a;
+  --mat-sys-outline-variant: #3f3f46;
+  --mat-sys-inverse-surface: #fafafa;
+  --mat-sys-inverse-on-surface: #18181b;
+  --mat-sys-inverse-primary: #ea580c;
+  --mat-sys-neutral10: #fafafa;
+  --mat-sys-neutral-variant20: #3f3f46;
+  --mat-sys-level1: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --mat-sys-level2: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
+  --mat-sys-level3: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+  --mat-sys-level4: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  --mat-sys-level5: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+}
+
+/* Dark tokens follow a `.dark` (or data-theme) switch, and the OS
+   preference when the app has not opted into light explicitly. */
+html.dark,
+html[data-theme='dark'] {
+  @include dark-tokens;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light):not([data-theme='light']) {
+    @include dark-tokens;
+  }
 }
 
 * {
@@ -25,9 +292,9 @@ body {
 
 body {
   margin: 0;
-  font-family: Roboto, 'Helvetica Neue', sans-serif;
-  background: var(--mat-sys-surface-container-low, #f7f8fa);
-  color: var(--mat-sys-on-surface, #1f2329);
+  font-family: $app-font;
+  background: var(--app-background);
+  color: var(--app-foreground);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -39,27 +306,37 @@ p {
   margin-top: 0;
 }
 
+/* Orange focus ring for non-Material controls. Material components use
+   the primary/ring tokens above. */
+:where(a[href], button, [role='button'], [tabindex]):focus-visible {
+  outline: 2px solid var(--app-ring);
+  outline-offset: 2px;
+}
+
 /* ---------- shared page primitives ---------- */
 
 .page {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-content-gap);
+  padding: var(--app-page-padding);
   max-width: 1600px;
   margin: 0 auto;
 }
 
 .panel {
-  background: var(--mat-sys-surface, #fff);
-  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
-  border-radius: 14px;
-  padding: 18px;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1rem;
 }
 
 .panel-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .panel-title h2,
@@ -71,44 +348,43 @@ p {
 
 .grid {
   display: grid;
-  gap: 16px;
+  gap: var(--app-content-gap);
 }
 
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--app-content-gap);
 }
 
 .stat-card {
   position: relative;
   overflow: hidden;
-  padding: 18px;
-  border-radius: 14px;
-  background: var(--mat-sys-surface, #fff);
-  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
+  padding: 1rem;
+  border-radius: var(--app-radius);
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
 }
 
 .stat-card .label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--mat-sys-on-surface-variant, #5f6368);
+  gap: 0.5rem;
+  color: var(--app-muted-foreground);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .stat-card .value {
-  margin-top: 10px;
+  margin-top: 0.5rem;
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .stat-card .delta {
-  margin-top: 6px;
+  margin-top: 0.375rem;
   font-size: 0.78rem;
   color: #15803d;
 }
@@ -119,28 +395,28 @@ p {
 
 .stat-card .glyph {
   position: absolute;
-  right: 14px;
-  top: 14px;
-  width: 38px;
-  height: 38px;
+  right: 0.875rem;
+  top: 0.875rem;
+  width: 2.375rem;
+  height: 2.375rem;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  background: rgba(245, 158, 11, 0.12);
-  color: #c2410c;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--app-primary) 14%, transparent);
+  color: var(--app-primary);
 }
 
 .chart-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 16px;
+  gap: var(--app-content-gap);
 }
 
 .chart-card {
-  background: var(--mat-sys-surface, #fff);
-  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
-  border-radius: 14px;
-  padding: 16px;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  padding: 1rem;
 }
 
 .chart-card h3 {
@@ -150,13 +426,13 @@ p {
 }
 
 .chart-card p {
-  margin: 3px 0 8px;
+  margin: 0.1875rem 0 0.5rem;
   font-size: 0.76rem;
-  color: var(--mat-sys-on-surface-variant, #5f6368);
+  color: var(--app-muted-foreground);
 }
 
 .muted {
-  color: var(--mat-sys-on-surface-variant, #5f6368);
+  color: var(--app-muted-foreground);
 }
 
 .mono {
@@ -167,9 +443,9 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 48px 16px;
-  color: var(--mat-sys-on-surface-variant, #5f6368);
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  color: var(--app-muted-foreground);
   text-align: center;
 }
 
@@ -177,14 +453,14 @@ p {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 0.75rem;
   min-height: 240px;
-  color: var(--mat-sys-on-surface-variant, #5f6368);
+  color: var(--app-muted-foreground);
 }
 
 /* Full-bleed demo pages (maps, 3D) */
 .full-bleed {
-  height: calc(100vh - 60px);
+  height: calc(100vh - var(--app-header-height));
   min-height: 420px;
   position: relative;
   overflow: hidden;
@@ -199,34 +475,34 @@ p {
 .map-overlay {
   position: absolute;
   z-index: 500;
-  top: 16px;
-  left: 16px;
+  top: 1rem;
+  left: 1rem;
   max-width: 320px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.94);
+  padding: 0.875rem 1rem;
+  border-radius: var(--app-radius);
+  background: color-mix(in srgb, var(--app-card) 94%, transparent);
   backdrop-filter: blur(8px);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
   font-size: 0.8rem;
 }
 
 .map-overlay h2 {
-  margin: 0 0 4px;
+  margin: 0 0 0.25rem;
   font-size: 0.95rem;
 }
 
 .map-overlay p {
   margin: 0;
-  color: #475569;
+  color: var(--app-muted-foreground);
 }
 
 .map-legend {
   position: absolute;
   z-index: 500;
-  right: 16px;
-  bottom: 22px;
-  padding: 10px 14px;
-  border-radius: 10px;
+  right: 1rem;
+  bottom: 1.375rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--app-radius);
   background: rgba(15, 23, 42, 0.84);
   color: #e2e8f0;
   font-size: 0.75rem;
@@ -235,7 +511,7 @@ p {
 .legend-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .legend-dot {
@@ -256,9 +532,9 @@ p {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #f59e0b;
+  background: var(--app-primary);
   border: 3px solid #fff;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.28), 0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
 .map-pin.blue {
@@ -288,10 +564,9 @@ p {
   }
 }
 
-
 /* ECharts tooltip readability */
 .echarts-tooltip {
-  font-family: Roboto, sans-serif;
+  font-family: $app-font;
 }
 
 /* Snackbars */
@@ -305,35 +580,97 @@ p {
   background: #92400e !important;
 }
 .snack-info .mdc-snackbar__surface {
-  background: #1e3a8a !important;
+  background: var(--app-primary) !important;
+  color: var(--app-primary-foreground) !important;
 }
 
-/* Dialog/table density */
-.mat-mdc-dialog-content {
-  color: var(--mat-sys-on-surface, #1f2329);
+/* ---------- Material alignment ---------- */
+
+.mat-mdc-card {
+  border-radius: var(--app-radius);
 }
 
+.mat-mdc-dialog-surface {
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+}
+
+.mat-mdc-dialog-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.mat-mdc-menu-panel {
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--mat-sys-level3);
+}
+
+/* Table header uses the muted surface; rows are 2.5rem with dividers. */
 .table-wrap {
   overflow: auto;
-  background: var(--mat-sys-surface, #fff);
-  border: 1px solid var(--mat-sys-outline-variant, #e3e5e8);
-  border-radius: 14px;
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
 }
 
 table.mat-mdc-table {
   width: 100%;
+  background: var(--app-card);
+}
+
+.mat-mdc-header-row {
+  background: var(--app-muted);
+  height: var(--mat-table-header-container-height, 2.5rem);
 }
 
 .mat-mdc-header-cell {
   white-space: nowrap;
 }
 
+.mat-mdc-table .mat-mdc-header-cell {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--app-muted-foreground);
+}
+
+.mat-mdc-row {
+  height: var(--mat-table-row-item-container-height, 2.5rem);
+}
+
+.mat-mdc-table .mat-mdc-cell {
+  font-size: 0.8125rem;
+}
+
+.mat-mdc-table .mat-mdc-header-cell,
+.mat-mdc-table .mat-mdc-cell {
+  padding: 0 0.75rem;
+}
+
+.mat-mdc-paginator {
+  background: var(--app-card);
+  border-top: 1px solid var(--app-border);
+}
+
+.mat-mdc-paginator .mat-mdc-paginator-container {
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  min-height: var(--mat-paginator-container-size, 2.75rem);
+}
+
+.mat-mdc-paginator .mat-mdc-paginator-range-label {
+  margin: 0 0.5rem;
+}
+
 .toolbar-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   flex-wrap: wrap;
-  margin-bottom: 14px;
 }
 
 .toolbar-row .grow {
@@ -342,7 +679,7 @@ table.mat-mdc-table {
 
 @media (max-width: 600px) {
   .page {
-    padding: 12px;
+    padding: var(--app-page-padding);
   }
   .chart-grid {
     grid-template-columns: 1fr;

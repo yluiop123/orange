@@ -93,7 +93,7 @@
 
 .dark-card {
   padding: 16px;
-  border-radius: 14px;
+  border-radius: var(--app-radius);
   background: rgba(15, 23, 42, 0.78);
   border: 1px solid rgba(148, 163, 184, 0.18);
 }

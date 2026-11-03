@@ -50,34 +50,34 @@ import type { MenuNode } from '../core/models';
       .nav-item {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 0.5rem;
         width: 100%;
-        min-height: 42px;
-        padding-right: 12px;
+        min-height: 2rem;
+        padding-right: 0.5rem;
         border: 0;
-        border-radius: 10px;
+        border-radius: 0.5rem;
         background: transparent;
-        color: var(--app-sidebar-fg);
+        color: var(--app-sidebar-foreground);
         text-decoration: none;
         font: inherit;
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
         cursor: pointer;
         transition: background-color 0.15s ease, color 0.15s ease;
       }
       .nav-item:hover {
         background: var(--app-sidebar-hover);
-        color: #fff;
+        color: var(--app-sidebar-foreground);
       }
       .nav-item.active {
         background: var(--app-sidebar-active);
-        color: #fff;
+        color: var(--app-sidebar-active-foreground);
         font-weight: 600;
       }
       .nav-icon {
         flex: none;
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
         opacity: 0.9;
       }
       .nav-label {
@@ -87,10 +87,10 @@ import type { MenuNode } from '../core/models';
       }
       .chevron {
         margin-left: auto;
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        opacity: 0.75;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        opacity: 0.7;
       }
     `,
   ],
