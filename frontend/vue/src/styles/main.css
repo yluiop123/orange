@@ -1,0 +1,139 @@
+:root {
+  --orange-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    'Inter',
+    'PingFang SC',
+    'Microsoft YaHei',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+code {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 130, 0.35);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.demo-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.demo-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.demo-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.demo-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.demo-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.demo-span-2 {
+  grid-column: span 2;
+}
+
+.demo-chart {
+  height: 320px;
+  width: 100%;
+}
+
+.demo-chart--tall {
+  height: 420px;
+}
+
+.demo-map {
+  height: calc(100vh - 140px);
+  min-height: 460px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.demo-3d {
+  height: calc(100vh - 140px);
+  min-height: 460px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  background: #0b1020;
+}
+
+.demo-note {
+  font-size: 12px;
+  color: rgb(var(--v-theme-on-surface-variant));
+}
+
+.demo-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .demo-grid--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .demo-grid--3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .demo-grid--2,
+  .demo-grid--3,
+  .demo-grid--4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .demo-span-2 {
+    grid-column: span 1;
+  }
+}

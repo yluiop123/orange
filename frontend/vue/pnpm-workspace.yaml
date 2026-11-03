@@ -1,0 +1,10 @@
+minimumReleaseAgeExclude:
+  - '@babylonjs/core@9.33.2'
+  - '@cesium/core@0.1.1'
+  - '@cesium/engine@26.5.0'
+  - '@cesium/gltf@0.1.1'
+  - '@cesium/widgets@16.3.1'
+  - '@vitest/mocker@5.1.0'
+  - '@vitest/spy@5.1.0'
+  - cesium@1.147.0
+  - vitest@5.1.0
