@@ -68,7 +68,8 @@ const DialogForm =  forwardRef<UseFormReturn<any>, {
     useEffect(() => {
         if (open) {
             if (values) {
-                form.reset(values);
+                // 合并字段默认值，避免只传部分 values 时其余字段被重置成 undefined
+                form.reset({ ...(form.formState.defaultValues ?? {}), ...values });
             }
         }else{
             form.reset();
