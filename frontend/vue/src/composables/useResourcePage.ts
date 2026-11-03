@@ -90,12 +90,9 @@ export function useResourcePage<TRow, TParams extends PageParams>(options: Optio
 
   async function handleStatusChange(row: TRow, status: Status) {
     if (!options.updateStatus) return
-    try {
-      await options.updateStatus(row, status)
-      refetch()
-    } catch {
-      // The interceptor reports the failure; the switch reverts on its own.
-    }
+    // Let the rejection bubble up: the switch rolls back to the previous value.
+    await options.updateStatus(row, status)
+    refetch()
   }
 
   const deleteDescription = computed(() => {

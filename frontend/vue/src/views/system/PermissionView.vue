@@ -424,7 +424,7 @@ watch(params, () => {
             v-if="canAct(currentPath, 'edit')"
             :initial="row.status ?? '1'"
             :subject-name="row.name"
-            @change="(status) => handleStatusChange(row, status)"
+            :submit="(status) => handleStatusChange(row, status)"
           />
           <v-chip v-else size="small" :color="row.status === '1' ? 'success' : 'default'" variant="tonal">
             {{ row.status === '1' ? t('dict.status.enabled') : t('dict.status.disabled') }}

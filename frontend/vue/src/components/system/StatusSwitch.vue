@@ -1,48 +1,61 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Status } from '@/lib/status'
+import { isStatusEnabled, STATUS_DISABLED, STATUS_ENABLED, type Status } from '@/lib/status'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const props = withDefaults(
   defineProps<{
     initial: string
+    /** Persists the status; a rejection means the write failed and the switch rolls back. */
+    submit: (status: Status) => Promise<unknown> | void
     disabled?: boolean
     subjectName?: string
   }>(),
   { disabled: false, subjectName: '' },
 )
 
-const emit = defineEmits<{
-  change: [status: Status]
-}>()
-
 const { t } = useI18n()
-const enabled = ref(props.initial === '1')
+const enabled = ref(isStatusEnabled(props.initial))
+const pending = ref(false)
 const confirmOpen = ref(false)
 
 watch(
   () => props.initial,
   (value) => {
-    enabled.value = value === '1'
+    enabled.value = isStatusEnabled(value)
   },
 )
 
+/**
+ * Flip the switch first, then persist. A failed write restores the previous
+ * value so the UI never claims a status the server rejected.
+ */
+async function commit(value: boolean) {
+  enabled.value = value
+  pending.value = true
+  try {
+    await props.submit(value ? STATUS_ENABLED : STATUS_DISABLED)
+  } catch {
+    // The axios interceptor already showed the error message.
+    enabled.value = !value
+  } finally {
+    pending.value = false
+  }
+}
+
 function onChange(value: boolean | null) {
   if (value) {
-    enabled.value = true
-    emit('change', '1')
+    void commit(true)
     return
   }
   // Keep the switch on until the user confirms disabling.
-  enabled.value = true
   confirmOpen.value = true
 }
 
 function confirmDisable() {
-  enabled.value = false
   confirmOpen.value = false
-  emit('change', '0')
+  void commit(false)
 }
 </script>
 
@@ -54,7 +67,7 @@ function confirmDisable() {
       density="compact"
       hide-details
       inset
-      :disabled="disabled"
+      :disabled="disabled || pending"
       :aria-label="t('table.toggleStatus')"
       @update:model-value="onChange"
     />
