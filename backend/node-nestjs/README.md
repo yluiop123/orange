@@ -217,5 +217,3 @@ scripts/smoke.mjs          end-to-end smoke test
   with `Date`/dayjs.
 - **Concurrency conflicts** are mapped to `40901`, but there is no automatic
   optimistic-lock retry.
-- `docs/STACKS.md` was not updated because this task is scoped to
-  `backend/node-nestjs` only.

@@ -15,6 +15,8 @@
 
 一条规则如果同时出现在多层，说明它**必须永远成立**；只出现在一层，说明它只是**某个入口的便利**。
 
+> 本表以 Java 参考实现命名具体类。新增的 Go、NestJS、C#、Rust、FastAPI 后端与 Angular、Vue 前端在同一 seam 上有等价实现，位置见 §11。
+
 ## 2. 数据库约束
 
 ### 2.1 组织 `sys_group`
@@ -346,3 +348,23 @@
 | 权限种子同步 | `scripts/sync-permission-seed.mjs`（`pnpm db:seed:check`） |
 | 接口与授权 | `backend/springboot/src/test/java/com/orange/security/SecurityIntegrationTest.java` |
 | 数据库约束（重复身份、空白路径、action 形状） | `SecurityIntegrationTest#databaseEnforcesPermissionIdentityAndShape` |
+
+## 11. 多技术栈位置
+
+同一组策略在每个栈里的入口：
+
+| 规则 | Java | Go | NestJS | C# | Rust | FastAPI |
+| --- | --- | --- | --- | --- | --- | --- |
+| 业务编码 | `TreeCodePolicy` | `internal/domain/code_policy.go` | `src/common/tree-code.policy.ts` | `Domain/CodePolicy.cs` | `src/domain/tree_code.rs` | `app/policies/tree_code.py` |
+| 权限形状 | `PermissionShapePolicy` | `internal/domain/permission_shape.go` | `src/policies/permission-shape.policy.ts` | `Domain/PermissionShapePolicy.cs` | `src/domain/permission_shape.rs` | `app/policies/permission_shape.py` |
+| 有效权限 | `EffectivePermissions` | `internal/domain/effective_permissions.go` | `src/policies/effective-permissions.ts` | `Domain/EffectivePermissions.cs` | `src/domain/effective.rs` | `app/policies/effective_permissions.py` |
+| 操作日志 | `OperationLogPolicy` | `internal/domain/operation_log_policy.go` | `src/operation-log/operation-log.policy.ts` | `Domain/OperationLogPolicy.cs` | `src/operation_log.rs` | `app/services/operation_logs.py` |
+
+前端访问判断：
+
+| 规则 | React | Vue | Angular |
+| --- | --- | --- | --- |
+| 可见性 / 动作 / 菜单树 | `src/lib/access.ts` | `src/lib/access.ts` | `src/app/core/access.ts` |
+| 编码校验 | `src/lib/tree-code-policy.ts` | `src/lib/tree-code-policy.ts` | `src/app/core/tree-code.ts` |
+
+这些实现刻意各自保留一份：每个栈要能独立运行，不共享运行时库。修改规则时，数据库 CHECK、各后端策略和前端校验必须在同一个提交里一起更新。

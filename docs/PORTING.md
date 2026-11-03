@@ -13,7 +13,7 @@ The reference implementations are `backend/springboot` and `frontend/react`. The
 
 - A backend lives in `backend/<stack>/`; a frontend lives in `frontend/<stack>/`.
 - Each stack directory has its own README covering: prerequisites, install, run, test, build, environment variables, and known gaps.
-- Do not modify `contracts/`, `database/`, `docs/`, the root READMEs, or another stack's directory.
+- Do not modify `contracts/`, `database/`, `docs/`, the root READMEs, or another stack's directory when adding a stack. A maintainer changing the shared contract updates those paths in the same commit, with the contract change called out in the commit message.
 - Do not commit secrets, `node_modules`, `target`, `bin`, `obj`, `.venv`, `dist` or generated lockfile noise beyond the stack's own lockfile.
 - Add the stack to `docs/STACKS.md` when it runs.
 

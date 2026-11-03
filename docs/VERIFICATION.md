@@ -10,7 +10,7 @@
 | `backend/springboot` | `mvn compile` | 27 unit + 19 Testcontainers integration | PostgreSQL 16 via Testcontainers |
 | `backend/go-gin-gorm` | `go build ./...`, `go vet ./...` | `go test ./...` (domain/auth/http) | PostgreSQL 16: login, 40302, CRUD, 409, guards, audit |
 | `backend/node-nestjs` | `pnpm build` | 25 Jest tests | PostgreSQL 16: 78 HTTP checks |
-| `backend/csharp` | `dotnet build` (0 warnings) | 66 xUnit tests | PostgreSQL 16: auth, RBAC, 409, audit |
+| `backend/csharp` | `dotnet build` (0 warnings) | 69 xUnit tests | PostgreSQL 16: auth, RBAC, 409, audit |
 | `backend/rust-axum` | `cargo check`, `cargo build` | 40 unit tests | PostgreSQL 16: login, user-info, 6 menu roots, users |
 | `backend/python-fastapi` | imports + uvicorn start | 67 pytest tests | PostgreSQL 16: full auth/CRUD/audit flow |
 | `frontend/react` | `pnpm build` | `tsc` + 40 Vitest tests | Deployed build; mock and real API |

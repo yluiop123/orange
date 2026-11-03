@@ -69,7 +69,7 @@ Guards:
 
 - Refresh rotates the token and revokes the previous `jti`.
 - A replayed refresh token returns 401 and forces a re-login.
-- Logout revokes the current access token and clears the cookie.
+- Logout revokes the refresh token (when present) and increments `token_version`, invalidating every session of the user; the cookie is cleared.
 - Incrementing `token_version` (password change, admin reset) invalidates all sessions for that user.
 
 ### 4.3 System management
@@ -138,4 +138,4 @@ Each frontend may use its own chart/map/3D libraries. Parity means the page exis
 - Tables and dialogs are keyboard accessible; icon-only buttons have accessible names.
 - Destructive actions require confirmation.
 - Empty query filters must be accepted, not rejected.
-- The React app is the only one deployed to GitHub Pages; the others are built and tested in CI.
+- The React app is the only one deployed to GitHub Pages; the others are built and tested locally, but are not in the Pages workflow.

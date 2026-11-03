@@ -45,7 +45,7 @@ English | [简体中文](./README.zh-CN.md)
 │   ├── STACKS.md             # Stack matrix, ports and run commands
 │   ├── validation-rules.md   # Validation rules across layers
 │   ├── adr/                  # Architecture decisions
-│   ├── audit/                # Audits
+│   ├── audits/               # Audits
 │   └── security/             # Security notes
 ├── scripts/                  # Cross-stack scripts (seed sync, JWT keys)
 └── .github/workflows/        # CI: backend tests + React-only Pages deploy

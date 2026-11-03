@@ -20,7 +20,10 @@ public class PermissionShapePolicyTests
     [InlineData("action", "  ")]
     [InlineData("menu", "add")]
     [InlineData("directory", "delete")]
-    public void InvalidShapesAreRejected(string type, string? action)
+    [InlineData("other", null)]
+    [InlineData("", null)]
+    [InlineData(null, null)]
+    public void InvalidShapesAreRejected(string? type, string? action)
         => Assert.Throws<BusinessException>(() => PermissionShapePolicy.Validate(type, action));
 
     [Fact]

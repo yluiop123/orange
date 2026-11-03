@@ -8,6 +8,10 @@ public static class PermissionShapePolicy
 {
     public static void Validate(string? type, string? action)
     {
+        if (type is not ("action" or "menu" or "directory"))
+        {
+            throw new BusinessException("未知的权限类型");
+        }
         if (type == "action")
         {
             if (string.IsNullOrWhiteSpace(action))

@@ -44,6 +44,7 @@ Every response, including errors, uses the same shape:
 | 40401 | 404 | Resource not found |
 | 40501 | 405 | Method not allowed |
 | 40901 | 409 | Conflict (duplicate or referenced data) |
+| 429 | 429 | Too many login attempts; the account/IP is temporarily locked |
 | 50000 | 500 | Unexpected error |
 
 `traceId` must also be returned in the `X-Trace-Id` response header. Error responses carry the same `traceId` as the server log.
@@ -54,7 +55,7 @@ Every response, including errors, uses the same shape:
 | --- | --- | --- | --- |
 | POST | `/api/v1/auth/login` | public | Body `{ "username": "...", "password": "..." }`. Returns `{ token, expiresIn, refreshExpiresIn }` and sets the refresh cookie. |
 | POST | `/api/v1/auth/refresh` | refresh cookie | Rotates the refresh token, returns a new access token. Replaying an old refresh token returns 401. |
-| POST | `/api/v1/auth/logout` | bearer | Revokes the current access token and clears the refresh cookie. |
+| POST | `/api/v1/auth/logout` | bearer | Revokes the refresh token (when present) and increments `token_version`, so every session of the user is invalidated. Clears the refresh cookie. |
 | GET | `/api/v1/auth/user-info` | bearer | Returns the current user, roles and permissions. |
 | POST | `/api/v1/auth/change-password` | bearer | Body `{ "oldPassword": "...", "newPassword": "..." }`. Revokes other sessions. |
 | GET | `/api/v1/auth/menus` | bearer | Returns the enabled menu tree. |
@@ -188,3 +189,7 @@ The backend checks these strings with `@PreAuthorize`/middleware. Menu and direc
 ## 7. Legacy endpoints
 
 The Java backend still exposes deprecated routes (`POST /api/v1/system/*/add`, `POST .../edit`, `POST .../addChild`, `GET .../detail/{id}`). They exist for compatibility only. New implementations should implement the canonical routes above; no new frontend may call the legacy ones.
+
+## 8. Operational endpoints
+
+`GET /healthz` is implemented by the Go backend for container health checks. It sits outside `/api/v1`, is not part of the business contract, and is optional for the other stacks. It returns `200` when the process is up.

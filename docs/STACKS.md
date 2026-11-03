@@ -42,7 +42,7 @@ Per-engine scripts:
 | OceanBase | `database/oceanbase` | Static, MySQL-compatible |
 | GoldenDB | `database/goldendb` | Static, MySQL-compatible |
 
-The Java backend targets PostgreSQL. The other backends use the language's PostgreSQL driver by default; switching to MySQL/SQLite is documented in each backend README where the ORM supports it. openGauss, OceanBase and GoldenDB are reached through their PostgreSQL/MySQL-compatible drivers.
+All six backends currently connect to PostgreSQL only; no MySQL or SQLite driver is wired in yet. The MySQL/SQLite scripts are provided for schema portability and for future runtime support. openGauss, OceanBase and GoldenDB are compatibility targets that would be reached through a PostgreSQL/MySQL-compatible driver; that switch is not implemented.
 
 ## 3. Run commands
 
@@ -123,7 +123,7 @@ Each stack README is the source of truth for its exact commands and environment 
 - `.github/workflows/main.yml` compiles the Java backend, runs its tests, then builds the React app and deploys `frontend/react/dist` to GitHub Pages.
 - Angular and Vue are not deployed and are not yet in the CI workflow. Add their build/test steps when CI capacity allows.
 - The database scripts are not executed in CI except the PostgreSQL schema used by the Java integration tests.
-- New backends should add a CI job that at least compiles the project and runs unit tests.
+- New backends should add a CI job that at least compiles the project and runs unit tests. Until that job exists, the local evidence is recorded in [VERIFICATION.md](./VERIFICATION.md); "Implemented" means locally verified, not CI-covered.
 
 ## 5. Adding a stack
 
