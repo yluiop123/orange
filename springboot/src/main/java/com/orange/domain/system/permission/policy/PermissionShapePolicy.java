@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * 权限 type 与 action 的组合规则。
  * action 权限必须有 action；menu/directory 权限不能有 action。
+ * 空白 action 在这里按「没有动作」处理；持久化前由 service 归一化为 null，
+ * 保证数据库里只有一种表示。
  */
 public final class PermissionShapePolicy {
 

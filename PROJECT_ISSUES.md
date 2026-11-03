@@ -17,9 +17,9 @@
 - **认证**：access token 内存保存，refresh token 走 HttpOnly Cookie；refresh 轮换 + jti 黑名单；tokenVersion 吊销；数据库登录限流；首次登录强制改密；401/40302 统一 `Response` 契约；每个请求只解析一次 JWT。
 - **权限**：权限身份为 `type + path + action`；禁用权限/角色不再下发 authority；应用层重复权限返回 409；角色融合、角色切换仅作为前端视角过滤。
 - **菜单**：`GET /api/v1/auth/menus` 返回启用菜单树；前端删除 `routes.ts`，页面路由由文件系统自动生成；前端只保留 `path → 图标` 映射；面包屑和 `/` 默认跳转使用后端菜单树。
-- **数据库**：主键、外键、索引、`sys_user.username` 唯一约束齐备；审计字段、操作日志、`timestamptz` + `OffsetDateTime` 已落地。
+- **数据库**：主键、外键、索引、`sys_user.username` 与权限身份唯一约束齐备；编码、权限形状由 CHECK 兜底；审计字段、操作日志、`timestamptz` + `OffsetDateTime` 已落地。
 - **前端**：`src/api/` 服务层；`useResourceList` + `ResourceTable` 深模块；系统页优先 shadcn；403 页面和按钮级 403 对话框；请求取消/竞态处理。
-- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；27 个后端单测 + 16 个 Testcontainers 集成测试；lint 0 warning。
+- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；27 个后端单测 + 18 个 Testcontainers 集成测试；lint 0 warning。
 
 ### 0.3 最新验证结果
 
@@ -32,8 +32,8 @@
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
 | 后端单测 | `mvn -Dtest=JwtUtilTest,... test` | 27 passed |
-| 后端集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 16 passed |
-| 后端合计 | 单测 + 集成 | 43 passed |
+| 后端集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 18 passed |
+| 后端合计 | 单测 + 集成 | 45 passed |
 | OpenAPI 快照 | `/api-docs` + `openapi-typescript` | 生成并用于前端 DTO |
 | 操作日志 | 集成测试 | 记录 traceId、请求体、路径和操作人；请求体脱敏并截断 |
 | 日志保留 | 配置检查 | 默认保留 90 天，每天凌晨清理 |
@@ -45,6 +45,8 @@
 | 强制改密 | 后端联调/集成测试 | 其它接口 403 + 40302；user-info/menus 仍可访问 |
 | 菜单树 | 后端联调/集成测试 | 6 个根节点，action 不入树，顺序正确 |
 | 权限/组织级联删除 | 集成测试 | 后代引用返回 409；无引用时显式删除整棵子树 |
+| 权限身份唯一 | 集成测试（直连 SQL） | 重复 `(type,path)` 与 `(type,path,action)` 被唯一索引拒绝 |
+| 权限数据形状 | 集成测试（直连 SQL） | 空白 `path`、`menu` 携带 `action` 被 CHECK 拒绝 |
 | 自删/自禁/最后管理员 | 集成测试 | 当前用户不可禁用；至少保留一个启用的 super |
 | 越权授予/重置超管 | 集成测试 | admin 不能授予 super、不能重置 super 密码 |
 | refresh 并发重放 | 集成测试 | 旧 refresh 重放返回 401 |
@@ -203,7 +205,6 @@ pnpm gen:api
 
 以下不是待办，除非重新打开决策：
 
-- 数据库层不加 `(type, path, action)` 唯一约束，重复由应用层检查并返回 409。
 - 动态路由、数据级权限不在当前权限模型内。
 - 不引入 Flyway，继续直接维护 `database/postgres/ddl.sql`、`dml.sql`；已有数据库需手工同步差异。
 - 菜单标题使用数据库 `name`；英文界面显示中文菜单名。
@@ -253,6 +254,8 @@ pnpm gen:api
 | 领域词汇 | `CONTEXT.md` |
 | 权限身份 ADR | `docs/adr/0001-path-as-permission-identity.md` |
 | 菜单树 ADR | `docs/adr/0002-backend-menu-tree.md` |
+| 业务编码 ADR | `docs/adr/0003-code-as-tree-order.md` |
+| 校验分层 ADR | `docs/adr/0004-validation-layering.md` |
 | 系统管理审计 | `docs/audits/system-management-2026-11-01.md` |
 | 校验规则总览 | `docs/validation-rules.md` |
 | 前端请求封装 | `vite-shadcn/src/lib/axios.ts` |
@@ -304,21 +307,49 @@ CREATE INDEX IF NOT EXISTS idx_sys_operation_log_trace ON public.sys_operation_l
 CREATE INDEX IF NOT EXISTS idx_sys_operation_log_username ON public.sys_operation_log(username);
 ```
 
-- 已有数据库在增加权限 type/action 约束前，先检查并修正非法数据：
+- 已有数据库在增加权限身份约束前，先归一化数据并检查重复：
 
 ```sql
-SELECT id, type, action
+-- 1. 空白 action 统一为 NULL；按实际数据修正缺失的 type/path
+UPDATE public.sys_permission
+SET action = NULL
+WHERE action IS NOT NULL AND btrim(action) = '';
+
+SELECT id FROM public.sys_permission WHERE type IS NULL OR btrim(path) = '';
+
+-- 2. 重复身份必须先处理，否则唯一索引会失败
+SELECT type, path, action, count(*)
 FROM public.sys_permission
-WHERE (type = 'action' AND (action IS NULL OR btrim(action) = ''))
-   OR (type IN ('menu', 'directory') AND action IS NOT NULL AND btrim(action) <> '');
+GROUP BY type, path, action
+HAVING count(*) > 1;
+
+-- 3. 替换旧约束
+ALTER TABLE public.sys_permission
+  DROP CONSTRAINT IF EXISTS ck_sys_permission_status,
+  DROP CONSTRAINT IF EXISTS ck_sys_permission_type,
+  DROP CONSTRAINT IF EXISTS ck_sys_permission_action_shape;
 
 ALTER TABLE public.sys_permission
+  ALTER COLUMN type SET NOT NULL,
+  ALTER COLUMN path SET NOT NULL;
+
+ALTER TABLE public.sys_permission
+  ADD CONSTRAINT ck_sys_permission_status CHECK (status IN ('0', '1')),
+  ADD CONSTRAINT ck_sys_permission_type CHECK (type IN ('menu', 'action', 'directory')),
+  ADD CONSTRAINT ck_sys_permission_path CHECK (btrim(path) <> ''),
   ADD CONSTRAINT ck_sys_permission_action_shape CHECK (
-    type IS NULL
-    OR (type = 'action' AND action IS NOT NULL AND btrim(action) <> '')
-    OR (type IN ('menu', 'directory') AND (action IS NULL OR btrim(action) = ''))
+    (type = 'action' AND action IS NOT NULL AND btrim(action) <> '')
+    OR (type IN ('menu', 'directory') AND action IS NULL)
   );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_sys_permission_identity_action
+  ON public.sys_permission(type, path, action) WHERE action IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS uq_sys_permission_identity_no_action
+  ON public.sys_permission(type, path) WHERE action IS NULL;
 ```
+
+- 组织和角色的 `status` CHECK 只是去掉了永远不会命中的 `IS NULL` 分支，行为不变，已有数据库无需同步。
+- 校验分层与唯一性决策见 `docs/adr/0004-validation-layering.md`。
 
 - `README.zh-CN.md` 的未提交修改属于用户原有工作，未做改动。
 - `AGENTS.md` 和 `docs/agents/*` 是本次 agent 技能 setup 新增的未提交文件。

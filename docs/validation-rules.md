@@ -23,7 +23,7 @@
 | --- | --- | --- | --- |
 | `sys_group_pkey` | PK | `id` | 组织编码即主键 |
 | `ck_sys_group_code` | CHECK | `id ~ '^[0-9]+$'`；根节点 `length(id)=2`；子节点 `length(id)=length(parent_id)+2` 且 `left(id, length(parent_id)) = parent_id` | 编码即同级顺序（ADR 0003） |
-| `ck_sys_group_status` | CHECK | `status IS NULL OR status IN ('0','1')` | 停用值为 `0` |
+| `ck_sys_group_status` | CHECK | `status IN ('0','1')` | 停用值为 `0` |
 | `fk_sys_group_parent` | FK | `parent_id → sys_group(id)`，`ON DELETE RESTRICT` | 有子节点时不能删父节点 |
 | `idx_sys_group_parent` | 索引 | `(parent_id, id)` | 按父节点取子节点 |
 
@@ -35,20 +35,23 @@
 | --- | --- | --- | --- |
 | `sys_permission_pkey` | PK | `id` | 权限编码即主键 |
 | `ck_sys_permission_code` | CHECK | 数字；根节点 4 位；子节点 = 父编码 + 2 位 | 编码即同级顺序 |
-| `ck_sys_permission_status` | CHECK | `status IS NULL OR status IN ('0','1')` | 停用值为 `0` |
-| `ck_sys_permission_type` | CHECK | `type IS NULL OR type IN ('menu','action','directory')` | 三种权限类型 |
-| `ck_sys_permission_action_shape` | CHECK | `type='action'` 时 `action` 非空；`menu/directory` 时 `action` 为空 | `type + path + action` 身份模型 |
+| `ck_sys_permission_status` | CHECK | `status IN ('0','1')` | 停用值为 `0` |
+| `ck_sys_permission_type` | CHECK | `type IN ('menu','action','directory')` | 三种权限类型 |
+| `ck_sys_permission_path` | CHECK | `btrim(path) <> ''` | 路径不能是空白 |
+| `ck_sys_permission_action_shape` | CHECK | `type='action'` 时 `action` 非空；`menu/directory` 时 `action IS NULL` | `type + path + action` 身份模型 |
+| `uq_sys_permission_identity_action` | UNIQUE | `(type, path, action) WHERE action IS NOT NULL` | 动作权限身份唯一 |
+| `uq_sys_permission_identity_no_action` | UNIQUE | `(type, path) WHERE action IS NULL` | 菜单/目录身份唯一 |
 | `fk_sys_permission_parent` | FK | `parent_id → sys_permission(id)`，`ON DELETE RESTRICT` | 有子节点时不能删父节点 |
 | `idx_sys_permission_parent` | 索引 | `(parent_id, id)` | 按父节点取子节点 |
 
-其他列：`name/path/action/type` 可空，`status NOT NULL DEFAULT '1'`。
+其他列：`path NOT NULL`、`type NOT NULL`、`status NOT NULL DEFAULT '1'`；`name/action` 可空。空白 `action` 在服务层归一化为 `NULL`，数据库只存一种「没有动作」的表示。
 
 ### 2.3 角色 `sys_role`
 
 | 约束 | 类型 | 内容 |
 | --- | --- | --- |
 | `sys_role_pkey` | PK | `id` |
-| `ck_sys_role_status` | CHECK | `status IS NULL OR status IN ('0','1')` |
+| `ck_sys_role_status` | CHECK | `status IN ('0','1')` |
 
 其他列：`name` 可空、`status NOT NULL DEFAULT '1'`、`version NOT NULL DEFAULT 0`。
 
@@ -60,7 +63,7 @@
 | --- | --- | --- | --- |
 | `sys_user_pkey` | PK | `id` | 后端生成 UUID |
 | `unique_username` | UNIQUE | `username` | 登录名唯一（区分大小写） |
-| `ck_sys_user_status` | CHECK | `status IS NULL OR status IN ('0','1')` | 停用值为 `0` |
+| `ck_sys_user_status` | CHECK | `status IN ('0','1')` | 停用值为 `0` |
 | `fk_sys_user_group` | FK | `group_id → sys_group(id)`（默认 `NO ACTION`） | 组织必须存在 |
 | `idx_sys_user_group` | 索引 | `(group_id)` | 按组织筛选 |
 
@@ -88,8 +91,7 @@
 
 | 对象 | 数据库允许 | 现在由谁保证 |
 | --- | --- | --- |
-| `sys_permission (type, path, action)` | 重复 | `PermissionServiceImpl.assertUniquePermission`（应用层，无唯一索引） |
-| 权限 `name` / `path` | `NULL`、空串 | 新增时 `@NotBlank`；编辑时 `@Size(min=2)` / `@Size(max=200)`，仍可置空 |
+| 权限 `name` | `NULL`、空串 | 新增时 `@NotBlank`；编辑时 `@Size(2,50)` |
 | 组织 `name` | `NULL`、空串 | `@NotBlank`（新增/编辑） |
 | 角色 `name` | `NULL`、空串 | 新增 `@NotBlank + @Size(2,50)`；编辑只有 `@Size(2,50)` |
 | 组织/权限编码最大深度 | 无上限，每层 +2 位 | `TreeCodePolicy` 同样没有上限 |
@@ -136,7 +138,7 @@
 | | `parentId` | 可选 |
 | `EditPermissionReq` | `id` | 无注解，service 要求非空 |
 | | `name` | `@Size(2,50)` |
-| | `path` | `@Size(max=200)` |
+| | `path` | `@Size(max=200)`；service 拒绝空白 |
 | | `status` | 可选，`^(0\|1)$` |
 | | `type` | 可选，`menu\|action\|directory` |
 | `QueryPermissionReq` | `status` | `^(0\|1\|all)$` |
@@ -187,7 +189,9 @@
 | 父节点必须存在 | 两个 `addChild` | `父组织不存在` / `父权限不存在` |
 | 动作权限不能有子节点 | `PermissionServiceImpl.addChild` | `动作权限不能添加子节点` |
 | 权限形状：`action` 必填、`menu/directory` 禁止 `action` | `PermissionShapePolicy` | 对应提示 |
-| 权限 `(type, path, action)` 唯一（排除自身） | `assertUniquePermission` | `权限已存在` |
+| 空白 `action` 归一化为 `NULL` | `PermissionServiceImpl` + `ck_sys_permission_action_shape` | — |
+| 权限路径不能为空白 | `PermissionServiceImpl.requirePath` + `ck_sys_permission_path` | `权限路径不能为空` |
+| 权限 `(type, path, action)` 唯一（排除自身） | `assertUniquePermission` + 两个部分唯一索引 | `权限已存在`（409） |
 | 组织/权限禁用前必须没有启用的后代 | `assertNoEnabledDescendants` | `请先禁用子组织/子权限` |
 | 删除组织：子树内不能有用户 | `GroupServiceImpl` | `组织或其子组织下有用户，不能删除` |
 | 删除权限：子树不能被子角色/用户引用 | `PermissionServiceImpl` | `权限已被…引用，不能删除` |
@@ -239,7 +243,7 @@
 | | `name` | 最少 2 位 | 后端只要求非空 |
 | 权限新增/编辑 | `id` | `buildTreeCodeSchema("permission")` | 与后端对齐 |
 | | `name` | 最少 2 位 | 后端新增非空、编辑 2–50 |
-| | `path` | `^[a-zA-Z0-9/]{2,}$` | 后端无格式限制，编辑上限 200 |
+| | `path` | `^[a-zA-Z0-9/]{2,}$` | 后端只要求非空白，编辑上限 200 |
 | 修改密码 | `newPassword` | 最少 8 位、两次一致 | 后端还有 64 上限和字母+数字 |
 
 ## 7. 三层对照（关键字段）
@@ -267,9 +271,9 @@
 
 | 层 | 规则 |
 | --- | --- |
-| DB | 可空、无格式、无长度 |
+| DB | `NOT NULL`，且 `btrim(path) <> ''` |
 | 新增 DTO | 非空 |
-| 编辑 DTO | 最长 200，可为空串 |
+| 编辑 DTO | `@Size(max=200)`；service 对空白值报「权限路径不能为空」 |
 | 前端 | `^[a-zA-Z0-9/]{2,}$` |
 
 ### `sys_user.username`
@@ -290,8 +294,6 @@
 | --- | --- | --- | --- |
 | P0 | 组织列表带 `id=` 空串会被后端拒绝 | `QueryGroupReq.id` 为 `^[A-Za-z0-9]+$`；用 MockMvc 验证 `GET /probe?id=&name=&status=all` 返回 400。前端组织页初始参数就是 `id: ''`，开发默认走 Mock 所以未暴露 | 改成 `^$\|^[0-9]+$`，与 `QueryUserReq` 保持一致 |
 | P1 | `QueryGroupReq.status`、`QueryPermissionReq.status/type` 不接受空串 | 正则没有 `^$` 分支 | 与用户查询统一为 `^$\|…` |
-| P1 | 权限 `(type, path, action)` 没有数据库唯一约束 | 只有 `assertUniquePermission`；并发新增或直连 SQL 可重复 | 增加部分唯一索引，或接受并记录为已知取舍 |
-| P1 | 权限 `path` 编辑时允许置空 | `EditPermissionReq.path` 只有 `@Size(max=200)` | 改为 `@Size(min=1, max=200)` 或 `@NotBlank` |
 
 ### 8.2 前后端正则漂移
 
@@ -300,7 +302,7 @@
 | 角色编码 | `^[a-zA-Z0-9]{2,}$` | `^[A-Za-z0-9_-]{2,32}$` |
 | 用户姓名 | 最少 2 位 | 2–50 |
 | 用户名 | 最少 4 位 | 4–50 + 字符集 |
-| 权限路径 | `^[a-zA-Z0-9/]{2,}$` | 无格式，最长 200 |
+| 权限路径 | `^[a-zA-Z0-9/]{2,}$` | 非空白，最长 200 |
 | 新密码 | 最少 8 位 | 8–64 + 字母和数字 |
 
 前端比后端宽松时，用户会先看到「成功」再被后端拒绝；前端比后端严格时，某些合法值无法录入。两边应共享同一份规则，或明确「前端只做最大公约数」。
@@ -312,7 +314,6 @@
 | 编码深度无上限 | 每层增加 2 位，可写出很长的编码；索引和展示都会变差 |
 | `sys_role.id` 无数据库格式约束 | 直连 SQL 可写入任意编码；应用层规则不覆盖导入/修复脚本 |
 | `sys_user.status` 为 `varchar(255)`，其他表为 `varchar` | 仅类型不一致，无功能影响 |
-| 状态 CHECK 允许 `NULL`，但列都是 `NOT NULL` | `status IS NULL` 分支永远不会命中，属于冗余 |
 | `token_type`、`attempt_key` 只有注释 | 直连 SQL 可写入无法解析的值 |
 | `sys_operation_log.status/duration_ms` 无范围 CHECK | 异常值会进入审计数据 |
 | 用户名唯一区分大小写 | `Admin` 与 `admin` 可同时存在，登录时按原样匹配 |
@@ -324,9 +325,17 @@
 1. 修 P0：组织查询的空串参数，并补一个 MockMvc 回归测试。
 2. 统一查询 DTO 的空串约定：所有可空筛选项都用 `^$|…`。
 3. 把前端与后端的共享规则抽成一份可对照的清单：编码、状态、类型、排序方向、密码。至少让文案与边界值一致。
-4. 决定权限 `(type, path, action)` 唯一性放在数据库还是应用层，并写进 ADR。
-5. 给审计表补最小范围 CHECK（`status`、`duration_ms`），给 `token_type` 补枚举 CHECK。
-6. 明确编码最大深度（例如 6 层），同时更新 `TreeCodePolicy`、`tree-code-policy.ts` 和两个 CHECK。
+4. 给审计表补最小范围 CHECK（`status`、`duration_ms`），给 `token_type` 补枚举 CHECK。
+5. 明确编码最大深度（例如 6 层），同时更新 `TreeCodePolicy`、`tree-code-policy.ts` 和两个 CHECK。
+
+已完成的收敛：
+
+- 权限 `(type, path, action)` 唯一性已下沉到数据库，用两个部分唯一索引覆盖「有 action」和「无 action」两种形状。
+- 权限 `type`、`path` 改为 `NOT NULL`，空白路径由数据库拒绝。
+- 空白 `action` 统一归一化为 `NULL`，数据库只存一种「没有动作」的表示。
+- 删除了状态/类型 CHECK 里永远不会命中的 `IS NULL` 分支。SQL 的 CHECK 在表达式为 `NULL` 时视为通过，显式写 `IS NULL` 只会误导读者。
+
+决策背景见 `docs/adr/0004-validation-layering.md`。
 
 ## 10. 相关测试与脚本
 
@@ -338,3 +347,4 @@
 | 编码规则（前端） | `vite-shadcn/src/lib/tree-code-policy.test.ts` |
 | 权限种子同步 | `scripts/sync-permission-seed.mjs`（`pnpm db:seed:check`） |
 | 接口与授权 | `springboot/src/test/java/com/orange/security/SecurityIntegrationTest.java` |
+| 数据库约束（重复身份、空白路径、action 形状） | `SecurityIntegrationTest#databaseEnforcesPermissionIdentityAndShape` |

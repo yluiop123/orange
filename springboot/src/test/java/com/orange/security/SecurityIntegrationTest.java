@@ -2,6 +2,9 @@ package com.orange.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.orange.domain.common.BusinessException;
+import com.orange.domain.system.permission.req.AddChildPermissionReq;
+import com.orange.domain.system.permission.req.EditPermissionReq;
 import com.orange.entity.Group;
 import com.orange.entity.Permission;
 import com.orange.entity.Role;
@@ -18,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -89,6 +94,9 @@ class SecurityIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private String createdUsername;
 
@@ -231,6 +239,66 @@ class SecurityIntegrationTest {
             }
             if (permissionRepository.existsById(rootId)) {
                 permissionService.deletePermissions(List.of(rootId));
+            }
+        }
+    }
+
+    @Test
+    void databaseEnforcesPermissionIdentityAndShape() {
+        String prefix = "/__constraint__/" + UUID.randomUUID();
+        try {
+            jdbcTemplate.update(
+                    "insert into sys_permission (id, name, path, type, status) values ('9890','t',?,'menu','1')",
+                    prefix);
+            assertThatThrownBy(() -> jdbcTemplate.update(
+                    "insert into sys_permission (id, name, path, type, status) values ('9891','t',?,'menu','1')",
+                    prefix))
+                    .isInstanceOf(DataIntegrityViolationException.class);
+
+            jdbcTemplate.update(
+                    "insert into sys_permission (id, name, path, action, type, status) values ('9892','t',?,'add','action','1')",
+                    prefix + "/action");
+            assertThatThrownBy(() -> jdbcTemplate.update(
+                    "insert into sys_permission (id, name, path, action, type, status) values ('9893','t',?,'add','action','1')",
+                    prefix + "/action"))
+                    .isInstanceOf(DataIntegrityViolationException.class);
+
+            assertThatThrownBy(() -> jdbcTemplate.update(
+                    "insert into sys_permission (id, name, path, type, status) values ('9894','t','   ','menu','1')"))
+                    .isInstanceOf(DataIntegrityViolationException.class);
+            assertThatThrownBy(() -> jdbcTemplate.update(
+                    "insert into sys_permission (id, name, path, action, type, status) values ('9895','t',?,'add','menu','1')",
+                    prefix + "/shape"))
+                    .isInstanceOf(DataIntegrityViolationException.class);
+        } finally {
+            jdbcTemplate.update(
+                    "delete from sys_permission where id in ('9890','9891','9892','9893','9894','9895')");
+        }
+    }
+
+    @Test
+    void permissionServiceNormalizesBlankActionAndRejectsBlankPath() {
+        String code = String.format("97%02d", Math.floorMod(UUID.randomUUID().hashCode(), 100));
+        AddChildPermissionReq req = new AddChildPermissionReq();
+        req.setId(code);
+        req.setName("Normalize " + code);
+        req.setPath("/__normalize__/" + code);
+        req.setType("menu");
+        req.setAction("   ");
+        Permission created = permissionService.addChild(req);
+
+        try {
+            assertThat(created.getAction()).isNull();
+
+            EditPermissionReq blankPath = new EditPermissionReq();
+            blankPath.setId(code);
+            blankPath.setPath("   ");
+            assertThatThrownBy(() -> permissionService.editPermission(blankPath))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("权限路径不能为空");
+        } finally {
+            if (permissionRepository.existsById(code)) {
+                permissionService.deletePermissions(List.of(code));
             }
         }
     }

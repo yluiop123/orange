@@ -15,7 +15,7 @@ CREATE TABLE public.sys_group (
 	updated_by varchar NULL, -- 更新人
 	version int4 DEFAULT 0 NOT NULL, -- 乐观锁版本
 	CONSTRAINT sys_group_pkey PRIMARY KEY (id),
-	CONSTRAINT ck_sys_group_status CHECK (status IS NULL OR status IN ('0', '1')),
+	CONSTRAINT ck_sys_group_status CHECK (status IN ('0', '1')),
 	CONSTRAINT ck_sys_group_code CHECK (
 		id ~ '^[0-9]+$'
 		AND (
@@ -47,9 +47,9 @@ COMMENT ON COLUMN public.sys_group.update_time IS '更新时间';
 CREATE TABLE public.sys_permission (
 	id varchar NOT NULL, -- 权限id
 	"name" varchar NULL, -- 权限名
-	"path" varchar NULL, -- 权限路径
-	"action" varchar NULL, -- 权限动作
-	"type" varchar NULL, -- 权限类型
+	"path" varchar NOT NULL, -- 权限路径
+	"action" varchar NULL, -- 权限动作；menu/directory 必须为 NULL
+	"type" varchar NOT NULL, -- 权限类型
 	status varchar NOT NULL DEFAULT '1', -- 权限状态
 	parent_id varchar NULL, -- 父权限id
 	create_time timestamptz DEFAULT now() NULL, -- 创建时间
@@ -58,12 +58,12 @@ CREATE TABLE public.sys_permission (
 	updated_by varchar NULL, -- 更新人
 	version int4 DEFAULT 0 NOT NULL, -- 乐观锁版本
 	CONSTRAINT sys_permission_pkey PRIMARY KEY (id),
-	CONSTRAINT ck_sys_permission_status CHECK (status IS NULL OR status IN ('0', '1')),
-	CONSTRAINT ck_sys_permission_type CHECK (type IS NULL OR type IN ('menu', 'action', 'directory')),
+	CONSTRAINT ck_sys_permission_status CHECK (status IN ('0', '1')),
+	CONSTRAINT ck_sys_permission_type CHECK (type IN ('menu', 'action', 'directory')),
+	CONSTRAINT ck_sys_permission_path CHECK (btrim(path) <> ''),
 	CONSTRAINT ck_sys_permission_action_shape CHECK (
-		type IS NULL
-		OR (type = 'action' AND action IS NOT NULL AND btrim(action) <> '')
-		OR (type IN ('menu', 'directory') AND (action IS NULL OR btrim(action) = ''))
+		(type = 'action' AND action IS NOT NULL AND btrim(action) <> '')
+		OR (type IN ('menu', 'directory') AND action IS NULL)
 	),
 	CONSTRAINT ck_sys_permission_code CHECK (
 		id ~ '^[0-9]+$'
@@ -75,6 +75,11 @@ CREATE TABLE public.sys_permission (
 	CONSTRAINT fk_sys_permission_parent FOREIGN KEY (parent_id) REFERENCES public.sys_permission(id) ON DELETE RESTRICT
 );
 CREATE INDEX idx_sys_permission_parent ON public.sys_permission(parent_id, id);
+-- 权限身份唯一：action 权限按 (type, path, action)，菜单/目录按 (type, path)
+CREATE UNIQUE INDEX uq_sys_permission_identity_action
+	ON public.sys_permission(type, path, action) WHERE action IS NOT NULL;
+CREATE UNIQUE INDEX uq_sys_permission_identity_no_action
+	ON public.sys_permission(type, path) WHERE action IS NULL;
 COMMENT ON TABLE public.sys_permission IS '权限表';
 
 -- Column comments
@@ -106,7 +111,7 @@ CREATE TABLE public.sys_role (
 	updated_by varchar NULL, -- 更新人
 	version int4 DEFAULT 0 NOT NULL, -- 乐观锁版本
 	CONSTRAINT sys_role_pkey PRIMARY KEY (id),
-	CONSTRAINT ck_sys_role_status CHECK (status IS NULL OR status IN ('0', '1'))
+	CONSTRAINT ck_sys_role_status CHECK (status IN ('0', '1'))
 );
 COMMENT ON TABLE public.sys_role IS '角色表';
 
@@ -164,7 +169,7 @@ CREATE TABLE public.sys_user (
 	"password" varchar NULL, -- 用户密码
 	CONSTRAINT sys_user_pkey PRIMARY KEY (id),
 	CONSTRAINT unique_username UNIQUE (username),
-	CONSTRAINT ck_sys_user_status CHECK (status IS NULL OR status IN ('0', '1')),
+	CONSTRAINT ck_sys_user_status CHECK (status IN ('0', '1')),
 	CONSTRAINT fk_sys_user_group FOREIGN KEY (group_id) REFERENCES public.sys_group(id)
 );
 CREATE INDEX idx_sys_user_group ON public.sys_user(group_id);

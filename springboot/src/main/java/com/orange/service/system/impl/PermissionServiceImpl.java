@@ -116,6 +116,8 @@ public class PermissionServiceImpl implements PermissionService {
     public Permission addChild(AddChildPermissionReq req) {
         String id = req.getId();
         String parentId = StringUtils.trimToNull(req.getParentId());
+        String path = requirePath(req.getPath());
+        String action = StringUtils.trimToNull(req.getAction());
         TreeCodePolicy.PERMISSION.validate(id, parentId);
         if (permissionRepository.existsById(id)) {
             throw new BusinessException("权限编码已存在");
@@ -128,13 +130,13 @@ public class PermissionServiceImpl implements PermissionService {
                 throw new BusinessException("动作权限不能添加子节点");
             }
         }
-        assertUniquePermission(req.getType(), req.getPath(), req.getAction(), null);
+        assertUniquePermission(req.getType(), path, action, null);
         Permission permission = new Permission();
         permission.setId(id);
         permission.setName(req.getName());
-        permission.setPath(req.getPath());
+        permission.setPath(path);
         permission.setType(req.getType());
-        permission.setAction(req.getAction());
+        permission.setAction(action);
         permission.setParentId(parent == null ? null : parent.getId());
         return permissionRepository.save(permission);
     }
@@ -151,17 +153,21 @@ public class PermissionServiceImpl implements PermissionService {
         }
         Permission permission = optionalPermission.get();
         String effectiveType = req.getType() != null ? req.getType() : permission.getType();
-        String effectivePath = req.getPath() != null ? req.getPath() : permission.getPath();
-        String effectiveAction = req.getAction() != null ? req.getAction() : permission.getAction();
+        String effectivePath = req.getPath() != null
+                ? requirePath(req.getPath())
+                : requirePath(permission.getPath());
+        String effectiveAction = req.getAction() != null
+                ? StringUtils.trimToNull(req.getAction())
+                : StringUtils.trimToNull(permission.getAction());
         assertUniquePermission(effectiveType, effectivePath, effectiveAction, req.getId());
         if(req.getName()!=null){
             permission.setName(req.getName());
         }
         if(req.getPath()!=null){
-            permission.setPath(req.getPath());
+            permission.setPath(effectivePath);
         }
         if(req.getAction()!=null){
-            permission.setAction(req.getAction());
+            permission.setAction(effectiveAction);
         }
         if(req.getType()!=null){
             permission.setType(req.getType());
@@ -223,14 +229,9 @@ public class PermissionServiceImpl implements PermissionService {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("type"), type));
             predicates.add(cb.equal(root.get("path"), path));
-            if (StringUtils.isBlank(action)) {
-                predicates.add(cb.or(
-                        cb.isNull(root.get("action")),
-                        cb.equal(root.get("action"), "")
-                ));
-            } else {
-                predicates.add(cb.equal(root.get("action"), action));
-            }
+            predicates.add(action == null
+                    ? cb.isNull(root.get("action"))
+                    : cb.equal(root.get("action"), action));
             if (excludeId != null) {
                 predicates.add(cb.notEqual(root.get("id"), excludeId));
             }
@@ -239,5 +240,14 @@ public class PermissionServiceImpl implements PermissionService {
         if (permissionRepository.count(spec) > 0) {
             throw new BusinessException("权限已存在");
         }
+    }
+
+    /** 权限路径参与身份判定，空白路径没有意义。 */
+    private static String requirePath(String path) {
+        String normalized = StringUtils.trimToNull(path);
+        if (normalized == null) {
+            throw new BusinessException("权限路径不能为空");
+        }
+        return normalized;
     }
 }
