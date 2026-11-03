@@ -27,7 +27,7 @@
 |---|---|---|
 | 前端类型检查 | `pnpm exec tsc -b` | 通过 |
 | 前端 lint | `pnpm lint` | 0 errors / 0 warnings |
-| 前端测试 | `pnpm test` | 33 passed |
+| 前端测试 | `pnpm test` | 37 passed |
 | 权限种子一致性 | `pnpm db:seed:check` | 通过 |
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
@@ -153,6 +153,7 @@ pnpm gen:api
 - `application.yaml` 默认关闭 Swagger/OpenAPI，本地通过 `SPRINGDOC_ENABLED=true` 开启；`application-prod.yaml` 继续关闭；
 - 前端树选择器崩溃、角色下拉为空、编辑弹窗串数据、删除确认、状态开关回滚、分页/选择生命周期、防抖、重复提交、mock 墓碑/组织删除等问题；
 - 树构建收敛为 `buildTree` / `buildChildrenTree`；三个选择器和 Mock 菜单复用同一装配逻辑；`TreeSelect` 只接收归一化节点，移除 `fieldNames` 二次映射；参考数据加载收敛为 `useReferenceData`；
+- 前端访问判断收敛为 `createAccess` / `useAccess`；layout、ActionAuth、sidebar、MenuRedirect 共用 `canView` / `canAct` / `visibleMenuTree` / `firstVisibleLeaf`；
 - 用户编辑禁止改用户名，新增用户必须选择组织，用户列表显示禁用组织名称；
 - 禁用父组织/权限前要求先禁用子节点；组织/权限文本筛选返回祖先，保持树层级；权限列表支持按类型筛选；
 - 权限树取消父节点级联选择；停用/动作节点标记为不可选，已选中的停用项仍可移除；角色下拉标记停用角色，组织/权限下拉保留已选停用项；

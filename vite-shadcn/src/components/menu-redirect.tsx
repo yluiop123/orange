@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { firstVisibleLeaf, findMenuNode } from "@/lib/menu";
-import { useMenuStore, useUserStore } from "@/store";
+import { findMenuNode } from "@/lib/menu";
+import { useMenuStore } from "@/store";
+import { useAccess } from "@/store/access";
 import { useIntl } from "react-intl";
 import { Navigate } from "react-router";
 
@@ -14,12 +15,7 @@ export function MenuRedirect({ nodePath }: { nodePath?: string }) {
   const loaded = useMenuStore((state) => state.loaded);
   const error = useMenuStore((state) => state.error);
   const fetchMenus = useMenuStore((state) => state.fetchMenus);
-  const menuPaths = useUserStore(
-    (state) => state.userInfo?.currentMenuPermission,
-  );
-  const directoryPaths = useUserStore(
-    (state) => state.userInfo?.currentDirectoryPermission,
-  );
+  const access = useAccess();
 
   if (!loaded) {
     if (error) {
@@ -43,7 +39,7 @@ export function MenuRedirect({ nodePath }: { nodePath?: string }) {
 
   const node = nodePath ? findMenuNode(menus, nodePath) : undefined;
   const nodes = nodePath ? (node ? [node] : []) : menus;
-  const target = firstVisibleLeaf(nodes, menuPaths ?? [], directoryPaths ?? []);
+  const target = access.firstVisibleLeaf(nodes);
 
   return <Navigate to={target ?? "/forbidden"} replace />;
 }

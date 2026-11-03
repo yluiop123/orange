@@ -4,14 +4,16 @@ import { ChangePasswordDialog } from "@/components/change-password-dialog";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { containerPaths } from "@/lib/page-routes";
-import { isPathWithin, isSamePath } from "@/lib/path";
+import { isSamePath } from "@/lib/path";
 import { useMenuStore, useUserStore } from '@/store';
+import { useAccess } from "@/store/access";
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation } from "react-router";
 //根据用户登录信息进行权限控制
 export default function Index() {
     const token = useAccessToken();
     const { userInfo, fetchUser } = useUserStore();
+    const access = useAccess();
     const { loaded: menusLoaded, fetchMenus } = useMenuStore();
     const location = useLocation();
     const [loading, setLoading] = useState(true);
@@ -43,10 +45,7 @@ export default function Index() {
     const currentPath = location.pathname;
 
     // 2. 判定逻辑
-    const hasMenuPermission = userInfo?.currentMenuPermission?.some(path => isSamePath(path, currentPath));
-    const hasDirectoryPermission = userInfo?.currentDirectoryPermission?.some(dir =>
-        isPathWithin(currentPath, dir)
-    );
+    const hasPermission = access.canView(currentPath);
     // 根路径和菜单父级路径由 MenuRedirect 处理，不直接判定 403
     const isHome = currentPath === "/";
     const isMenuContainer = containerPaths.some(path => isSamePath(path, currentPath));
@@ -55,7 +54,7 @@ export default function Index() {
     if (!token) {
         return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
     }
-    if (!isHome && !isMenuContainer && !hasMenuPermission && !hasDirectoryPermission && !userInfo?.mustChangePassword) {
+    if (!isHome && !isMenuContainer && !hasPermission && !userInfo?.mustChangePassword) {
         return <Navigate to="/forbidden" replace state={{ from: location.pathname + location.search }} />;
     }
     return (

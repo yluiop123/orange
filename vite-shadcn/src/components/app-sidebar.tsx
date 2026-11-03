@@ -15,9 +15,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { filterVisibleMenus } from "@/lib/menu"
 import { cn } from "@/lib/utils"
-import { useMenuStore, useUserStore } from "@/store"
+import { useMenuStore } from "@/store"
+import { useAccess } from "@/store/access"
 import orangeLogo from "@/assets/orange.png"
 import * as React from "react"
 import { useIntl } from "react-intl"
@@ -28,14 +28,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const loading = useMenuStore((state) => state.loading)
   const error = useMenuStore((state) => state.error)
   const fetchMenus = useMenuStore((state) => state.fetchMenus)
-  const menuPaths = useUserStore((state) => state.userInfo?.currentMenuPermission)
-  const directoryPaths = useUserStore(
-    (state) => state.userInfo?.currentDirectoryPermission,
-  )
+  const access = useAccess()
 
   const visibleMenus = React.useMemo(
-    () => filterVisibleMenus(menus, menuPaths ?? [], directoryPaths ?? []),
-    [menus, menuPaths, directoryPaths],
+    () => access.visibleMenuTree(menus),
+    [access, menus],
   )
 
   return (
