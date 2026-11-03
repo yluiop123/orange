@@ -19,7 +19,7 @@
 - **菜单**：`GET /api/v1/auth/menus` 返回启用菜单树；前端删除 `routes.ts`，页面路由由文件系统自动生成；前端只保留 `path → 图标` 映射；面包屑和 `/` 默认跳转使用后端菜单树。
 - **数据库**：主键、外键、索引、`sys_user.username` 与权限身份唯一约束齐备；编码、权限形状由 CHECK 兜底；审计字段、操作日志、`timestamptz` + `OffsetDateTime` 已落地。
 - **前端**：`src/api/` 服务层；`useResourceList` + `ResourceTable` 深模块；系统页优先 shadcn；403 页面和按钮级 403 对话框；请求取消/竞态处理。
-- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；27 个后端单测 + 18 个 Testcontainers 集成测试；lint 0 warning。
+- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；27 个后端单测 + 19 个 Testcontainers 集成测试；lint 0 warning。
 
 ### 0.3 最新验证结果
 
@@ -32,8 +32,8 @@
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
 | 后端单测 | `mvn -Dtest=JwtUtilTest,... test` | 27 passed |
-| 后端集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 18 passed |
-| 后端合计 | 单测 + 集成 | 45 passed |
+| 后端集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 19 passed |
+| 后端合计 | 单测 + 集成 | 46 passed |
 | OpenAPI 快照 | `/api-docs` + `openapi-typescript` | 生成并用于前端 DTO |
 | 操作日志 | 集成测试 | 记录 traceId、请求体、路径和操作人；请求体脱敏并截断 |
 | 日志保留 | 配置检查 | 默认保留 90 天，每天凌晨清理 |
@@ -47,6 +47,7 @@
 | 权限/组织级联删除 | 集成测试 | 后代引用返回 409；无引用时显式删除整棵子树 |
 | 权限身份唯一 | 集成测试（直连 SQL） | 重复 `(type,path)` 与 `(type,path,action)` 被唯一索引拒绝 |
 | 权限数据形状 | 集成测试（直连 SQL） | 空白 `path`、`menu` 携带 `action` 被 CHECK 拒绝 |
+| 空查询参数 | 集成测试 | 组织/权限列表接受空串筛选，返回 200 |
 | 自删/自禁/最后管理员 | 集成测试 | 当前用户不可禁用；至少保留一个启用的 super |
 | 越权授予/重置超管 | 集成测试 | admin 不能授予 super、不能重置 super 密码 |
 | refresh 并发重放 | 集成测试 | 旧 refresh 重放返回 401 |
@@ -164,6 +165,8 @@ pnpm gen:api
 - 禁用父组织/权限前要求先禁用子节点；组织/权限文本筛选返回祖先，保持树层级；权限列表支持按类型筛选；
 - 权限树取消父节点级联选择；停用/动作节点标记为不可选，已选中的停用项仍可移除；角色下拉标记停用角色，组织/权限下拉保留已选停用项；
 - 重置密码/停用增加二次确认；禁止删除或停用当前登录账号；删除后页码夹紧，删除确认显示名称；
+- 组织/权限查询允许空串筛选，组织列表不再因为 `id=` 返回 400；
+- 权限身份唯一性下沉为两个部分唯一索引；`type`/`path` 改为 `NOT NULL`，空白 `action` 归一化为 `NULL`；删除状态/类型 CHECK 中不会命中的 `IS NULL` 分支（ADR 0004）；
 - 移除前端 `/swagger` 静态页和 `swagger-ui-react` 依赖；
 - lint 清零；移除 `src` 内残留构建产物；菜单文案和 `StatusSwitch` 常量收敛。
 

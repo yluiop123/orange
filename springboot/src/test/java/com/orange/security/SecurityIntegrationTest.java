@@ -277,6 +277,25 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void emptyQueryFiltersAreAccepted() throws Exception {
+        Login login = login("super", "super");
+        assertThat(login.status()).isEqualTo(HttpStatus.OK);
+
+        assertThat(authorizedGet(
+                "/api/v1/system/groups?id=&name=&status=all", login.token()).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(authorizedGet(
+                "/api/v1/system/groups?id=&name=&status=", login.token()).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(authorizedGet(
+                "/api/v1/system/permissions?id=&name=&path=&status=all&type=all", login.token()).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+        assertThat(authorizedGet(
+                "/api/v1/system/permissions?status=&type=", login.token()).getStatusCode())
+                .isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
     void permissionServiceNormalizesBlankActionAndRejectsBlankPath() {
         String code = String.format("97%02d", Math.floorMod(UUID.randomUUID().hashCode(), 100));
         AddChildPermissionReq req = new AddChildPermissionReq();

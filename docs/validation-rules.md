@@ -255,7 +255,7 @@
 | DB | 数字；根 2 位；子 = 父 + 2 位 |
 | 新增 DTO | `^[0-9]{2,}$` + `TreeCodePolicy` |
 | 编辑 DTO | `^[A-Za-z0-9]{2,}$`（与 DB 不一致，但编辑不修改编码） |
-| 查询 DTO | `^[A-Za-z0-9]+$`（允许字母，且拒绝空串） |
+| 查询 DTO | `^$\|^[A-Za-z0-9]+$`（允许空串） |
 | 前端 | `checkTreeCode("group")` |
 
 ### `sys_permission.id`
@@ -290,10 +290,9 @@
 
 ### 8.1 已确认的行为问题
 
-| 级别 | 问题 | 证据 | 建议 |
-| --- | --- | --- | --- |
-| P0 | 组织列表带 `id=` 空串会被后端拒绝 | `QueryGroupReq.id` 为 `^[A-Za-z0-9]+$`；用 MockMvc 验证 `GET /probe?id=&name=&status=all` 返回 400。前端组织页初始参数就是 `id: ''`，开发默认走 Mock 所以未暴露 | 改成 `^$\|^[0-9]+$`，与 `QueryUserReq` 保持一致 |
-| P1 | `QueryGroupReq.status`、`QueryPermissionReq.status/type` 不接受空串 | 正则没有 `^$` 分支 | 与用户查询统一为 `^$\|…` |
+当前没有已确认的功能性问题。
+
+组织列表空串筛选导致 400 的问题已修复：`QueryGroupReq.id/status` 与 `QueryPermissionReq.status/type` 都增加了 `^$` 分支，回归测试见 `SecurityIntegrationTest#emptyQueryFiltersAreAccepted`。
 
 ### 8.2 前后端正则漂移
 
@@ -322,14 +321,13 @@
 
 ## 9. 建议的收敛顺序
 
-1. 修 P0：组织查询的空串参数，并补一个 MockMvc 回归测试。
-2. 统一查询 DTO 的空串约定：所有可空筛选项都用 `^$|…`。
-3. 把前端与后端的共享规则抽成一份可对照的清单：编码、状态、类型、排序方向、密码。至少让文案与边界值一致。
-4. 给审计表补最小范围 CHECK（`status`、`duration_ms`），给 `token_type` 补枚举 CHECK。
-5. 明确编码最大深度（例如 6 层），同时更新 `TreeCodePolicy`、`tree-code-policy.ts` 和两个 CHECK。
+1. 把前端与后端的共享规则抽成一份可对照的清单：编码、状态、类型、排序方向、密码。至少让文案与边界值一致。
+2. 给审计表补最小范围 CHECK（`status`、`duration_ms`），给 `token_type` 补枚举 CHECK。
+3. 明确编码最大深度（例如 6 层），同时更新 `TreeCodePolicy`、`tree-code-policy.ts` 和两个 CHECK。
 
 已完成的收敛：
 
+- 组织/权限查询允许空串筛选，组织列表初始加载不再返回 400。
 - 权限 `(type, path, action)` 唯一性已下沉到数据库，用两个部分唯一索引覆盖「有 action」和「无 action」两种形状。
 - 权限 `type`、`path` 改为 `NOT NULL`，空白路径由数据库拒绝。
 - 空白 `action` 统一归一化为 `NULL`，数据库只存一种「没有动作」的表示。
