@@ -5,6 +5,7 @@ import com.orange.domain.common.PageData;
 import com.orange.domain.login.resp.PermissionInfo;
 import com.orange.domain.login.resp.RoleInfo;
 import com.orange.domain.login.resp.UserInfo;
+import com.orange.domain.system.permission.EffectivePermissions;
 import com.orange.domain.system.user.req.AddUserReq;
 import com.orange.domain.system.user.req.EditUserReq;
 import com.orange.domain.system.user.req.QueryUserReq;
@@ -421,36 +422,23 @@ public class UserServiceImpl implements UserService {
         userInfo.setMustChangePassword(Boolean.TRUE.equals(user.getMustChangePassword()));
         userInfo.setCreateTime(user.getCreateTime());
         userInfo.setUpdateTime(user.getUpdateTime());
-        Set<Role> roles = user.getRoles();
-        for (Role role : roles) {
-            if (STATUS_DISABLE.equals(role.getStatus())) {
-                continue;
-            }
+        EffectivePermissions effective = EffectivePermissions.of(user);
+        for (Role role : effective.roles()) {
             RoleInfo roleInfo = new RoleInfo();
             roleInfo.setId(role.getId());
             roleInfo.setName(role.getName());
             userInfo.getRoles().add(roleInfo);
         }
-        for (Role role : roles) {
-            if (STATUS_DISABLE.equals(role.getStatus())) {
-                continue;
-            }
-            for (Permission permission : role.getPermissions()) {
-                if (STATUS_DISABLE.equals(permission.getStatus())) {
-                    continue;
-                }
-                PermissionInfo permissionInfo = new PermissionInfo();
-                permissionInfo.setRole(role.getId());
-                permissionInfo.setType(permission.getType());
-                permissionInfo.setPath(permission.getPath());
-                permissionInfo.setAction(permission.getAction());
-                userInfo.getRolePermissions().add(permissionInfo);
-            }
+        for (EffectivePermissions.RolePermission item : effective.rolePermissions()) {
+            Permission permission = item.permission();
+            PermissionInfo permissionInfo = new PermissionInfo();
+            permissionInfo.setRole(item.roleId());
+            permissionInfo.setType(permission.getType());
+            permissionInfo.setPath(permission.getPath());
+            permissionInfo.setAction(permission.getAction());
+            userInfo.getRolePermissions().add(permissionInfo);
         }
-        for (Permission permission : user.getPermissions()) {
-            if (STATUS_DISABLE.equals(permission.getStatus())) {
-                continue;
-            }
+        for (Permission permission : effective.directPermissions()) {
             PermissionInfo permissionInfo = new PermissionInfo();
             permissionInfo.setType(permission.getType());
             permissionInfo.setPath(permission.getPath());

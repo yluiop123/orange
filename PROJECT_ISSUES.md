@@ -19,7 +19,7 @@
 - **菜单**：`GET /api/v1/auth/menus` 返回启用菜单树；前端删除 `routes.ts`，页面路由由文件系统自动生成；前端只保留 `path → 图标` 映射；面包屑和 `/` 默认跳转使用后端菜单树。
 - **数据库**：主键、外键、索引、`sys_user.username` 唯一约束齐备；审计字段、操作日志、`timestamptz` + `OffsetDateTime` 已落地。
 - **前端**：`src/api/` 服务层；`useResourceList` + `ResourceTable` 深模块；系统页优先 shadcn；403 页面和按钮级 403 对话框；请求取消/竞态处理。
-- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；19 个后端单测 + 16 个 Testcontainers 集成测试；lint 0 warning。
+- **质量**：`security` 包按 `jwt` / `auth` / `config` 拆分；`JwtProperties` / `AuthProperties` / `CorsProperties` 集中配置；22 个后端单测 + 16 个 Testcontainers 集成测试；lint 0 warning。
 
 ### 0.3 最新验证结果
 
@@ -31,8 +31,9 @@
 | 权限种子一致性 | `pnpm db:seed:check` | 通过 |
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
-| 后端单测 | `mvn -Dtest=JwtUtilTest,... test` | 19 passed |
+| 后端单测 | `mvn -Dtest=JwtUtilTest,... test` | 22 passed |
 | 后端集成测试 | Testcontainers + PostgreSQL 16 + 真实 HTTP | 16 passed |
+| 后端合计 | 单测 + 集成 | 38 passed |
 | OpenAPI 快照 | `/api-docs` + `openapi-typescript` | 生成并用于前端 DTO |
 | 操作日志 | 集成测试 | 记录 traceId、请求体、路径和操作人；请求体脱敏并截断 |
 | 日志保留 | 配置检查 | 默认保留 90 天，每天凌晨清理 |
@@ -154,6 +155,7 @@ pnpm gen:api
 - 前端树选择器崩溃、角色下拉为空、编辑弹窗串数据、删除确认、状态开关回滚、分页/选择生命周期、防抖、重复提交、mock 墓碑/组织删除等问题；
 - 树构建收敛为 `buildTree` / `buildChildrenTree`；三个选择器和 Mock 菜单复用同一装配逻辑；`TreeSelect` 只接收归一化节点，移除 `fieldNames` 二次映射；参考数据加载收敛为 `useReferenceData`；
 - 前端访问判断收敛为 `createAccess` / `useAccess`；layout、ActionAuth、sidebar、MenuRedirect 共用 `canView` / `canAct` / `visibleMenuTree` / `firstVisibleLeaf`；
+- 后端有效权限收敛为 `EffectivePermissions`；Spring authorities 与 `/auth/user-info` 同源；新增 `@PreAuthorize` 与 `permissions.json` 的覆盖测试，路径改名会在 CI 失败；
 - 用户编辑禁止改用户名，新增用户必须选择组织，用户列表显示禁用组织名称；
 - 禁用父组织/权限前要求先禁用子节点；组织/权限文本筛选返回祖先，保持树层级；权限列表支持按类型筛选；
 - 权限树取消父节点级联选择；停用/动作节点标记为不可选，已选中的停用项仍可移除；角色下拉标记停用角色，组织/权限下拉保留已选停用项；
