@@ -15,9 +15,9 @@
 | `backend/csharp` | `dotnet build`（0 条警告） | 69 个 xUnit 测试 | PostgreSQL、MySQL、MariaDB、SQLite：认证、RBAC、409、审计 |
 | `backend/rust-axum` | `cargo check`、`cargo build` | 40 个单元测试 | PostgreSQL、MySQL、MariaDB、SQLite：完整 CRUD 冒烟 |
 | `backend/python-fastapi` | 导入 + uvicorn 启动 | 71 个 pytest 测试 | PostgreSQL、MySQL、MariaDB、SQLite：认证/CRUD/审计 |
-| `frontend/react` | `pnpm build:github` | `tsc` + 43 个 Vitest 测试 | 已部署的构建；Mock E2E 14/14 |
-| `frontend/angular` | `npm run build` | 26 个 Vitest 测试，lint 无问题 | Mock E2E 15/15 |
-| `frontend/vue` | `pnpm build` | 20 个 Vitest 测试，lint 无问题 | Mock E2E 15/15 |
+| `frontend/react` | `pnpm build:github` | `tsc` + 43 个 Vitest 测试 | Mock E2E 14/14，真实 E2E 14/14 |
+| `frontend/angular` | `npm run build` | 26 个 Vitest 测试，lint 无问题 | Mock E2E 15/15，真实 E2E 15/15 |
+| `frontend/vue` | `pnpm build` | 20 个 Vitest 测试，lint 无问题 | Mock E2E 15/15，真实 E2E 15/15 |
 
 Windows 上的 Rust：该机器没有 Visual Studio Build Tools。验证使用
 `stable-x86_64-pc-windows-gnu` 配合 MSYS2 UCRT64 的 `gcc` 链接器。`sqlx`
@@ -74,7 +74,31 @@ cargo +stable-x86_64-pc-windows-gnu test
 
 脚本位于 `scripts/e2e/`（`mock-react.mjs`、`mock-vue.mjs`、`mock-angular.mjs`）。
 
-## 6. 已知未验证项
+## 6. 前端真实端到端
+
+日期：2026-11-04。后端：FastAPI（8080），数据库：PostgreSQL `orange_fastapi`。
+关闭 Mock，开发服务器代理把 `/api/v1` 转发到真实后端。
+
+| 应用 | 检查项 | 结果 |
+| --- | --- | --- |
+| React | 14 | 14 通过 |
+| Vue | 15 | 15 通过 |
+| Angular | 15 | 15 通过 |
+
+每轮覆盖：数据库账号登录、刷新后恢复会话、菜单导航、用户搜索、角色/权限/组织页面、
+组织新增/状态/删除、这些写操作产生的真实操作日志、权限动作校验、中英文切换、
+退出登录与受保护路由跳转、受限角色跳转。
+
+脚本：`scripts/e2e/real-react.mjs`、`real-vue.mjs`、`real-angular.mjs`。
+
+本轮发现并修复两个真实缺陷：
+
+- Vue/Angular 菜单标题直接使用后端返回的名称，而后端只返回中文；现在和 React
+  一样按路径从共享权限目录取当前语言名称。
+- Angular 操作日志把空的 `from`/`to` 筛选参数也发给后端，真实后端返回 400；
+  现在只发送非空条件。
+
+## 7. 已知未验证项
 
 - openGauss、OceanBase 和 GoldenDB 未启动；其脚本需要在目标版本上做冒烟测试。
 - Rust 项目没有已提交的数据库集成测试，只有可复现的冒烟脚本
@@ -82,10 +106,10 @@ cargo +stable-x86_64-pc-windows-gnu test
 - Angular 的 Cesium 从 Cesium CDN 加载运行时资源；离线时回退为静态地球。
 - Angular/Vue 的演示页面针对仅限 React 的库（Recharts、AntV G2、L7）使用了适合各自框架的替代方案。
 - 三个 Mock E2E 脚本尚未纳入 CI。
-- 真实后端端到端（前端 → 后端 → 数据库）尚未执行，计划记录在
-  `.scratch/2026-11-04-real-e2e.md`。
+- 真实后端端到端已在 2026-11-04 用 FastAPI + PostgreSQL 执行；其余后端/数据库
+  组合由各栈 HTTP 冒烟覆盖，未跑浏览器联调。
 
-## 7. 重新运行
+## 8. 重新运行
 
 ```bash
 # Java

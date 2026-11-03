@@ -55,9 +55,9 @@
         @for (node of breadcrumb(); track node.id; let last = $last) {
           <mat-icon class="sep">chevron_right</mat-icon>
           @if (last) {
-            <span class="crumb current" aria-current="page">{{ node.name }}</span>
+            <span class="crumb current" aria-current="page">{{ crumbName(node) }}</span>
           } @else {
-            <a class="crumb" [routerLink]="node.path">{{ node.name }}</a>
+            <a class="crumb" [routerLink]="node.path">{{ crumbName(node) }}</a>
           }
         }
       </nav>

@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useMenuStore } from '@/stores/menu'
 import { useUiStore } from '@/stores/ui'
 import { findMenuChain } from '@/lib/menu'
+import { menuTitle } from '@/lib/menu-title'
 import { isSamePath } from '@/lib/path'
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 
@@ -26,7 +27,7 @@ const breadcrumbs = computed(() => {
   const items =
     chain.length > 0
       ? chain.map((node, index) => ({
-          title: node.name,
+          title: menuTitle(node.path, node.name, locale.value),
           to: index === chain.length - 1 ? undefined : node.path,
           disabled: index === chain.length - 1,
         }))

@@ -15,9 +15,9 @@
 | `backend/csharp` | `dotnet build` (0 warnings) | 69 xUnit tests | PostgreSQL, MySQL, MariaDB, SQLite: auth, RBAC, 409, audit |
 | `backend/rust-axum` | `cargo check`, `cargo build` | 40 unit tests | PostgreSQL, MySQL, MariaDB, SQLite: full CRUD smoke |
 | `backend/python-fastapi` | imports + uvicorn start | 71 pytest tests | PostgreSQL, MySQL, MariaDB, SQLite: auth/CRUD/audit |
-| `frontend/react` | `pnpm build:github` | `tsc` + 43 Vitest tests | Deployed build; mock E2E 14/14 |
-| `frontend/angular` | `npm run build` | 26 Vitest tests, lint clean | Mock E2E 15/15 |
-| `frontend/vue` | `pnpm build` | 20 Vitest tests, lint clean | Mock E2E 15/15 |
+| `frontend/react` | `pnpm build:github` | `tsc` + 43 Vitest tests | Mock E2E 14/14, real E2E 14/14 |
+| `frontend/angular` | `npm run build` | 26 Vitest tests, lint clean | Mock E2E 15/15, real E2E 15/15 |
+| `frontend/vue` | `pnpm build` | 20 Vitest tests, lint clean | Mock E2E 15/15, real E2E 15/15 |
 
 Rust on Windows: the machine has no Visual Studio Build Tools. Verification used
 `stable-x86_64-pc-windows-gnu` with the MSYS2 UCRT64 `gcc` linker. Linking the
@@ -76,16 +76,43 @@ protected-route redirect, restricted-role redirect, and forced password change.
 
 Scripts: `scripts/e2e/` (`mock-react.mjs`, `mock-vue.mjs`, `mock-angular.mjs`).
 
-## 6. Known unverified items
+## 6. Frontend real end-to-end
+
+Date: 2026-11-04. Backend: FastAPI on port 8080, database: PostgreSQL `orange_fastapi`.
+Mocks disabled; the dev-server proxies forwarded `/api/v1` to the real backend.
+
+| App | Checks | Result |
+| --- | --- | --- |
+| React | 14 | 14 passed |
+| Vue | 15 | 15 passed |
+| Angular | 15 | 15 passed |
+
+Each run covered: login with the database account, session restore after reload,
+menu navigation, user search, role/permission/group pages, group create/status/delete,
+operation-log rows produced by those writes, permission action validation, zh/en
+switching, logout and protected-route redirect, and restricted-role redirect.
+
+Scripts: `scripts/e2e/real-react.mjs`, `real-vue.mjs`, `real-angular.mjs`.
+
+Two defects were found and fixed by this run:
+
+- Vue and Angular menu titles came from the backend, which returns Chinese names
+  only. They now translate by path from the shared permission catalog, like React.
+- Angular operation-log requests sent empty `from`/`to` filters and the real
+  backend rejected them with 400. Empty filters are now omitted.
+
+## 7. Known unverified items
 
 - openGauss, OceanBase and GoldenDB were not started; their scripts need a smoke test on the target version.
 - The Rust project has no committed database integration test, only a reproducible smoke script (`backend/rust-axum/scripts/smoke-databases.ps1`).
 - Angular Cesium loads runtime assets from the Cesium CDN; offline behaviour falls back to a static globe.
 - The Angular/Vue demo pages use framework-appropriate substitutes for React-only libraries (Recharts, AntV G2, L7).
 - The three mock E2E scripts are not in CI.
-- Real-backend end-to-end (frontend → backend → database) is recorded as pending in `.scratch/2026-11-04-real-e2e.md`.
+- Real-backend end-to-end was executed for FastAPI + PostgreSQL on 2026-11-04;
+  other backend/database combinations are covered by the per-stack HTTP smoke
+  tests, not by the browser run.
 
-## 7. Re-running
+## 8. Re-running
 
 ```bash
 # Java

@@ -1,7 +1,9 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { getMenuIcon } from '@/config/menu-icons'
+import { menuTitle } from '@/lib/menu-title'
 import { isSamePath } from '@/lib/path'
 import type { MenuNode } from '@/lib/access'
 
@@ -9,8 +11,10 @@ defineOptions({ name: 'MenuTreeItem' })
 
 const props = defineProps<{ node: MenuNode }>()
 const route = useRoute()
+const { locale } = useI18n()
 
 const icon = computed(() => getMenuIcon(props.node.path, props.node.type))
+const title = computed(() => menuTitle(props.node.path, props.node.name, locale.value))
 const leafActive = computed(
   () => props.node.children.length === 0 && isSamePath(route.path, props.node.path),
 )
@@ -22,7 +26,7 @@ const leafActive = computed(
       <v-list-item
         v-bind="activatorProps"
         :prepend-icon="icon"
-        :title="node.name"
+        :title="title"
         class="menu-item"
       />
     </template>
@@ -32,7 +36,7 @@ const leafActive = computed(
     v-else
     :to="node.path"
     :prepend-icon="icon"
-    :title="node.name"
+    :title="title"
     :active="leafActive"
     class="menu-item"
   />

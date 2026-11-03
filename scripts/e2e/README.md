@@ -44,8 +44,15 @@ Mock mode must be disabled for the real run:
 - React/Vue: start the dev server with `VITE_MOCK_ENABLE=false`; the Vite proxy forwards `/api/v1` to `http://localhost:8080`.
 - Angular: set `mock: false` in `frontend/angular/src/environments/environment.local.ts` (generated, gitignored) and restart `npm start`.
 
-Known differences to keep in mind when writing the real script:
+Then run:
 
-- The mock-only status guard (`PATCH /groups/:id/status` on a node with enabled children) must be replaced with the equivalent real-data case, or skipped.
-- Mock user ids/roles differ from the database seed; read the real list before asserting names.
-- Operation logs are real rows, so assert on the actions performed in the same run.
+```bash
+node real-react.mjs
+node real-vue.mjs
+node real-angular.mjs
+```
+
+Current result (2026-11-04, FastAPI + PostgreSQL): React 14/14, Vue 15/15, Angular 15/15.
+
+The real scripts reuse the mock flows but assert data from the database, check that
+the performed writes appear in the operation log, and drop mock-only fixtures.

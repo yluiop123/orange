@@ -1,9 +1,11 @@
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
+﻿import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { isPathWithin } from '../core/path';
 import { menuIcon } from '../core/menu-icons';
+import { menuLabel } from '../core/menu-labels';
+import { I18nService } from '../core/i18n.service';
 import { NavigationState } from '../core/navigation-state';
 import type { MenuNode } from '../core/models';
 
@@ -22,7 +24,7 @@ import type { MenuNode } from '../core/models';
         [attr.aria-expanded]="expanded()"
       >
         <mat-icon class="nav-icon">{{ icon() }}</mat-icon>
-        <span class="nav-label">{{ node().name }}</span>
+        <span class="nav-label">{{ label() }}</span>
         <mat-icon class="chevron">{{ expanded() ? 'expand_more' : 'chevron_right' }}</mat-icon>
       </button>
       @if (expanded()) {
@@ -38,7 +40,7 @@ import type { MenuNode } from '../core/models';
         [style.paddingLeft.px]="12 + depth() * 14"
       >
         <mat-icon class="nav-icon">{{ icon() }}</mat-icon>
-        <span class="nav-label">{{ node().name }}</span>
+        <span class="nav-label">{{ label() }}</span>
       </a>
     }
   `,
@@ -100,8 +102,12 @@ export class SidebarItemComponent {
   readonly depth = input(0);
 
   private readonly navigation = inject(NavigationState);
+  private readonly i18n = inject(I18nService);
   readonly expanded = signal(false);
   readonly icon = computed(() => menuIcon(this.node()));
+  readonly label = computed(() =>
+    menuLabel(this.node().path, this.node().name, this.i18n.locale()),
+  );
   readonly isActive = computed(() =>
     isPathWithin(this.navigation.currentUrl().split('?')[0], this.node().path),
   );

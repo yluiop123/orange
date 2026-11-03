@@ -1,5 +1,5 @@
 import type { Group, OperationLog, PermissionRow, Role, User } from '../core/models';
-import { PERMISSION_CATALOG, ROLE_PERMISSIONS } from './permission-catalog';
+import { PERMISSION_CATALOG, ROLE_PERMISSIONS } from '../core/permission-catalog';
 
 export interface MockPermission extends PermissionRow {
   nameEn?: string;

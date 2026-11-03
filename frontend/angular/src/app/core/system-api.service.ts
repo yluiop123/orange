@@ -184,9 +184,12 @@ export class SystemApi {
   }
 
   listOperationLogs(query: OperationLogQuery): Observable<PageResult<OperationLog>> {
-    return this.api.get<PageResult<OperationLog>>(
-      '/system/operation-logs',
-      query as unknown as Record<string, string | number>,
-    );
+    // 空字符串会被后端当成非法的日期/状态条件，只发送真正有值的筛选参数
+    const params = Object.fromEntries(
+      Object.entries(query).filter(
+        ([, value]) => value !== undefined && value !== null && value !== '',
+      ),
+    ) as Record<string, string | number>;
+    return this.api.get<PageResult<OperationLog>>('/system/operation-logs', params);
   }
 }

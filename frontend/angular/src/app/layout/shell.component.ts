@@ -10,6 +10,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ALL_ROLES, AuthService } from '../core/auth.service';
 import { I18nService, Locale } from '../core/i18n.service';
+import { menuLabel } from '../core/menu-labels';
 import { NavigationState } from '../core/navigation-state';
 import { TranslatePipe } from '../core/translate.pipe';
 import { ChangePasswordDialogComponent } from '../shared/change-password-dialog.component';
@@ -95,6 +96,10 @@ export class ShellComponent {
       const target = this.auth.firstVisibleLeaf();
       void this.router.navigateByUrl(target ?? '/forbidden');
     }
+  }
+
+  crumbName(node: MenuNode): string {
+    return menuLabel(node.path, node.name, this.i18n.locale());
   }
 
   changeLocale(locale: Locale): void {
