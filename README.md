@@ -85,6 +85,7 @@ Rules for the layout:
 | [docs/DATABASE.md](./docs/DATABASE.md) | ER model, invariants, dialect matrix |
 | [docs/STACKS.md](./docs/STACKS.md) | Which stack runs on which port, how to start |
 | [docs/VERIFICATION.md](./docs/VERIFICATION.md) | What was built, tested and left unverified |
+| [config/README.md](./config/README.md) | Single-source configuration and generated files |
 | [contracts/openapi.json](./contracts/openapi.json) | Machine-readable API contract |
 | [PROJECT_ISSUES.md](./PROJECT_ISSUES.md) | Decisions, accepted trade-offs, verification log |
 | [CONTEXT.md](./CONTEXT.md) | Domain vocabulary |
@@ -92,13 +93,17 @@ Rules for the layout:
 ## Quick start (React + Spring Boot + PostgreSQL)
 
 ```bash
+# configuration (one source, generates each stack's local config)
+cp config/app.example.env config/app.env
+node scripts/sync-config.mjs
+
 # database
 psql -U postgres -f database/postgres/ddl.sql
 psql -U postgres -f database/postgres/dml.sql
 
 # backend
 cd backend/springboot
-mvn spring-boot:run
+SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 
 # frontend
 cd frontend/react

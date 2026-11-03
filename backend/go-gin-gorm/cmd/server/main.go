@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	"github.com/orange/backend-go-gin-gorm/internal/auth"
 	"github.com/orange/backend-go-gin-gorm/internal/config"
@@ -20,6 +21,8 @@ import (
 )
 
 func main() {
+	// Local generated configuration; absent in containers that inject env vars.
+	_ = godotenv.Load(".env.local")
 	cfg := config.Load()
 
 	tokens, err := auth.NewTokenService(cfg.JWT)

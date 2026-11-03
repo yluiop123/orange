@@ -1,3 +1,5 @@
+> English | [简体中文](./DATABASE.zh-CN.md)
+
 # Database Design
 
 The schema is identical across engines. Only the dialect differs. Per-engine DDL and seed:

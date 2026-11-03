@@ -13,7 +13,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     base,
     // 其他配置...
     server: {
-      port: 3000,
+      port: Number(env.VITE_PORT) || 5173,
       host: "0.0.0.0",
       // 开发环境把 /api 转发到后端，浏览器视角保持同源，无需本地 CORS。
       // 仅 `pnpm dev` 生效；`vite build` 的产物不会包含代理。

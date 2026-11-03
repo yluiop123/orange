@@ -4,7 +4,7 @@
   "description": "ORANGE admin console - Angular + Angular Material port",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 4200",
+    "start": "ng serve --port 4200 --configuration local",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false",

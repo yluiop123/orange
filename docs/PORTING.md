@@ -1,3 +1,5 @@
+> English | [简体中文](./PORTING.zh-CN.md)
+
 # Porting Checklist
 
 This document defines what "the same product in another stack" means. Read it together with:

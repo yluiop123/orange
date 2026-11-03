@@ -1,3 +1,5 @@
+> English | [简体中文](./API.zh-CN.md)
+
 # API Contract
 
 This document is technology-agnostic. It is the contract every backend in `backend/` must implement and every frontend in `frontend/` may rely on.

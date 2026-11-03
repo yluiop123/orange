@@ -34,6 +34,7 @@ export default {
     'menu.system.role': '角色管理',
     'menu.system.permission': '权限管理',
     'menu.system.group': '组织管理',
+    'menu.system.operation-log': '操作日志',
     'sidebar.user.message': '用户信息',
     'sidebar.user.all': '全部',
     'sidebar.user.logout': '退出登录',

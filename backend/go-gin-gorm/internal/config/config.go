@@ -58,10 +58,10 @@ type Config struct {
 }
 
 func Load() Config {
-	accessSeconds := envInt("ACCESS_TOKEN_EXPIRE_SECONDS", 900)
-	refreshSeconds := envInt("REFRESH_TOKEN_EXPIRE_SECONDS", 604800)
+	accessSeconds := envInt("JWT_ACCESS_EXPIRE", envInt("ACCESS_TOKEN_EXPIRE_SECONDS", 900))
+	refreshSeconds := envInt("JWT_REFRESH_EXPIRE", envInt("REFRESH_TOKEN_EXPIRE_SECONDS", 604800))
 	return Config{
-		Port: env("PORT", "8081"),
+		Port: env("APP_PORT", env("PORT", "8081")),
 		Database: Database{
 			Host:     env("DB_HOST", "localhost"),
 			Port:     env("DB_PORT", "5432"),
@@ -81,7 +81,7 @@ func Load() Config {
 			RefreshTTL:     time.Duration(refreshSeconds) * time.Second,
 			Issuer:         env("JWT_ISSUER", "orange"),
 		},
-		CORSOrigins: splitList(env("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")),
+		CORSOrigins: splitList(env("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:4200")),
 		Cookie: Cookie{
 			Secure:   envBool("COOKIE_SECURE", false),
 			SameSite: env("COOKIE_SAME_SITE", "Lax"),
@@ -93,7 +93,7 @@ func Load() Config {
 			IPMaxAttempts: envInt("LOGIN_IP_MAX_ATTEMPTS", 20),
 			LockFor:       time.Duration(envInt("LOGIN_LOCK_MINUTES", 15)) * time.Minute,
 		},
-		OperationLogRetentionDays: envInt("OPERATION_LOG_RETENTION_DAYS", 90),
+		OperationLogRetentionDays: envInt("LOG_RETENTION_DAYS", envInt("OPERATION_LOG_RETENTION_DAYS", 90)),
 	}
 }
 

@@ -1,3 +1,5 @@
+> English | [简体中文](./STACKS.zh-CN.md)
+
 # Stacks
 
 Every stack implements the same product. The contract is [API.md](./API.md); the parity checklist is [PORTING.md](./PORTING.md).
@@ -46,11 +48,18 @@ All six backends currently connect to PostgreSQL only; no MySQL or SQLite driver
 
 ## 3. Run commands
 
+All commands assume `config/app.env` exists and `node scripts/sync-config.mjs` has run:
+
+```bash
+cp config/app.example.env config/app.env
+node scripts/sync-config.mjs
+```
+
 ### Spring Boot
 
 ```bash
 cd backend/springboot
-mvn spring-boot:run
+SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
 ```
 
 ### Go

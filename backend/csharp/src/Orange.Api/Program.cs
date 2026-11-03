@@ -9,6 +9,7 @@ using Orange.Api.Middleware;
 using Orange.Api.Security;
 using Orange.Api.Services;
 
+DotEnv.Load(".env.local");
 var options = AppOptions.FromEnvironment();
 
 var builder = WebApplication.CreateBuilder(args);

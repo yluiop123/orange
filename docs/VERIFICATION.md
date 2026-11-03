@@ -1,3 +1,5 @@
+> English | [简体中文](./VERIFICATION.zh-CN.md)
+
 # Verification
 
 > Date: 2026-11-03

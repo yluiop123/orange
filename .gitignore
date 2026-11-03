@@ -53,6 +53,19 @@ backend/csharp/**/obj/
 *.sqlite
 *.sqlite3
 
+# Generated local configuration (source: config/app.env)
+config/app.env
+.playwright-mcp/
+frontend/react/.env.local
+frontend/vue/.env.local
+frontend/angular/src/environments/environment.local.ts
+backend/springboot/src/main/resources/application-local.yaml
+backend/go-gin-gorm/.env.local
+backend/node-nestjs/.env.local
+backend/rust-axum/.env
+backend/python-fastapi/.env
+backend/csharp/.env.local
+
 # Maven wrapper
 .mvn/wrapper/maven-wrapper.jar
 

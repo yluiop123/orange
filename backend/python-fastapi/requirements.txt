@@ -5,3 +5,4 @@ psycopg[binary]>=3.2,<4.0
 pydantic>=2.9,<3.0
 PyJWT>=2.9,<3.0
 bcrypt>=4.2,<6.0
+python-dotenv>=1.0,<2.0

@@ -17,7 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
-import { findMenuChain } from "@/lib/menu";
+import { findMenuChain, menuTitleKey } from "@/lib/menu";
 import { useLocaleStore, useMenuStore, useThemeStore } from '@/store/index';
 import React from 'react';
 import { useIntl } from 'react-intl';
@@ -28,7 +28,12 @@ export function SiteHeader() {
   const {mode,setMode} = useThemeStore();
   const menus = useMenuStore((state) => state.menus);
   const pathname: string = location.pathname;
-  const titles: string[] = findMenuChain(menus, pathname).map((node) => node.name);
+  const titles: string[] = findMenuChain(menus, pathname).map((node) =>
+    intl.formatMessage({
+      id: menuTitleKey(node.path),
+      defaultMessage: node.name,
+    }),
+  );
   const {locale,setLocale} = useLocaleStore();
   function setLanguage(language:string) {
     setLocale(language as "zh" | "en" );

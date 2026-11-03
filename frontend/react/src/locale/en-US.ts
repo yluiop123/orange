@@ -34,6 +34,7 @@ export default {
     'menu.system.role': 'Role',
     'menu.system.permission': 'Permission',
     'menu.system.group': 'Group',
+    'menu.system.operation-log': 'Operation Log',
     'sidebar.user.message': 'INFO',
     'sidebar.user.all': 'ALL',
     'sidebar.user.logout': 'Log out',

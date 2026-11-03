@@ -45,7 +45,7 @@ impl Config {
 
         let origins = optional_env("CORS_ORIGINS")
             .or_else(|| optional_env("CORS_ALLOWED_ORIGINS"))
-            .unwrap_or_else(|| "http://localhost:5173,http://localhost:3000".to_string());
+            .unwrap_or_else(|| "http://localhost:5173,http://localhost:5174,http://localhost:4200".to_string());
         let cors_origins = origins
             .split(',')
             .map(str::trim)
@@ -57,16 +57,16 @@ impl Config {
             database_url,
             jwt_secret,
             cors_origins,
-            port: parse_env("PORT", 8083u16),
-            access_expire: parse_env("JWT_ACCESS_EXPIRE", 900i64),
-            refresh_expire: parse_env("JWT_REFRESH_EXPIRE", 604_800i64),
+            port: parse_env_any(&["APP_PORT", "PORT"], 8083u16),
+            access_expire: parse_env_any(&["JWT_ACCESS_EXPIRE", "ACCESS_TOKEN_EXPIRE_SECONDS"], 900i64),
+            refresh_expire: parse_env_any(&["JWT_REFRESH_EXPIRE", "REFRESH_TOKEN_EXPIRE_SECONDS"], 604_800i64),
             cookie_secure: parse_env("COOKIE_SECURE", false),
             cookie_same_site: optional_env("COOKIE_SAME_SITE").unwrap_or_else(|| "Lax".to_string()),
             cookie_domain: optional_env("COOKIE_DOMAIN"),
             login_max_attempts: parse_env("LOGIN_MAX_ATTEMPTS", 5i32),
             login_ip_max_attempts: parse_env("LOGIN_IP_MAX_ATTEMPTS", 20i32),
             login_lock_minutes: parse_env("LOGIN_LOCK_MINUTES", 15i64),
-            operation_log_retention_days: parse_env("OPERATION_LOG_RETENTION_DAYS", 90i64),
+            operation_log_retention_days: parse_env_any(&["LOG_RETENTION_DAYS", "OPERATION_LOG_RETENTION_DAYS"], 90i64),
         }
     }
 }
@@ -96,4 +96,16 @@ where
         },
         None => default,
     }
+}
+
+fn parse_env_any<T>(keys: &[&str], default: T) -> T
+where
+    T: FromStr + Copy,
+{
+    for key in keys {
+        if optional_env(key).is_some() {
+            return parse_env(key, default);
+        }
+    }
+    default
 }

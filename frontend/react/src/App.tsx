@@ -6,7 +6,6 @@ import { useLocaleStore } from "@/store/index";
 import { lazy, Suspense } from 'react';
 import { IntlProvider } from 'react-intl';
 import {
-    BrowserRouter,
     HashRouter,
     Route,
     Routes
@@ -30,8 +29,7 @@ const getLazyComponent = (path: string) => {
     return pageComponentCache.get(path)!;
 };
 
-const isHashRouter = import.meta.env.VITE_ROUTE === 'hashRouter';
-const Router = isHashRouter ? HashRouter : BrowserRouter;
+const Router = HashRouter;
 
 export default function Index() {
     const { locale, messages } = useLocaleStore();

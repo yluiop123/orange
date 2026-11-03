@@ -6,19 +6,28 @@ import {
   SidebarMenuSub
 } from "@/components/ui/sidebar"
 import { getMenuIcon } from "@/config/menu-icons"
+import { menuTitleKey } from "@/lib/menu"
 import { isPathWithin, isSamePath } from "@/lib/path"
 import { cn } from "@/lib/utils"
 import type { MenuNode } from "@/types/menu"
 import { ChevronRight } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Link, useLocation } from "react-router"
+import { useIntl } from "react-intl"
+import { useLocation, useNavigate } from "react-router"
 
 export function SidebarMenuTree({ item }: { item: MenuNode }) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const intl = useIntl()
   const Icon = getMenuIcon(item.path, item.type)
   const hasChildren = item.children.length > 0
   const defaultOpen = isPathWithin(location.pathname, item.path)
   const [open, setOpen] = useState(defaultOpen)
+  // 数据库 name 是兜底；有对应 i18n key 时随语言切换
+  const title = intl.formatMessage({
+    id: menuTitleKey(item.path),
+    defaultMessage: item.name,
+  })
 
   // 路由变化时自动展开当前路径上的父节点
   useEffect(() => {
@@ -29,7 +38,7 @@ export function SidebarMenuTree({ item }: { item: MenuNode }) {
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
-          tooltip={item.name}
+          tooltip={title}
           onClick={() => setOpen((value) => !value)}
           className={cn(
             "px-4 py-2 flex items-center",
@@ -40,7 +49,7 @@ export function SidebarMenuTree({ item }: { item: MenuNode }) {
           )}
         >
           <Icon />
-          <span>{item.name}</span>
+          <span>{title}</span>
           <ChevronRight
             className={cn(
               "ml-auto transition-transform duration-200",
@@ -64,8 +73,9 @@ export function SidebarMenuTree({ item }: { item: MenuNode }) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
-        tooltip={item.name}
-        render={<Link to={{ pathname: item.path }} />}
+        tooltip={title}
+        onClick={() => navigate(item.path)}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "px-4 py-2 flex items-center",
           active
@@ -74,7 +84,7 @@ export function SidebarMenuTree({ item }: { item: MenuNode }) {
         )}
       >
         <Icon />
-        <span>{item.name}</span>
+        <span>{title}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   )

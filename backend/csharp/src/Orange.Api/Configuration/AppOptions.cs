@@ -41,16 +41,16 @@ public sealed class AppOptions
             JwtSecret = Env("JWT_SECRET", "orange-development-secret-change-me-0123456789abcdef"),
             CorsOrigins = Env("CORS_ORIGINS", Env("CORS_ALLOWED_ORIGINS", "http://localhost:5173"))
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
-            Port = EnvInt("PORT", 8082),
-            AccessTokenSeconds = EnvInt("ACCESS_TOKEN_SECONDS", 900),
-            RefreshTokenSeconds = EnvInt("REFRESH_TOKEN_SECONDS", 604800),
+            Port = EnvInt("APP_PORT", EnvInt("PORT", 8082)),
+            AccessTokenSeconds = EnvInt("JWT_ACCESS_EXPIRE", EnvInt("ACCESS_TOKEN_SECONDS", 900)),
+            RefreshTokenSeconds = EnvInt("JWT_REFRESH_EXPIRE", 604800),
             LoginMaxAttempts = EnvInt("LOGIN_MAX_ATTEMPTS", 5),
             LoginIpMaxAttempts = EnvInt("LOGIN_IP_MAX_ATTEMPTS", 20),
             LoginLockMinutes = EnvInt("LOGIN_LOCK_MINUTES", 15),
             CookieSecure = EnvBool("COOKIE_SECURE", false),
             CookieSameSite = Env("COOKIE_SAME_SITE", "Lax"),
             CookieDomain = Env("COOKIE_DOMAIN", ""),
-            OperationLogRetentionDays = EnvInt("OPERATION_LOG_RETENTION_DAYS", 90)
+            OperationLogRetentionDays = EnvInt("LOG_RETENTION_DAYS", EnvInt("OPERATION_LOG_RETENTION_DAYS", 90))
         };
     }
 
