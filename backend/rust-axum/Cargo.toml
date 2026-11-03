@@ -1,0 +1,31 @@
+[package]
+name = "orange-rust-axum"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "ORANGE backend - Rust + Axum port"
+license = "MIT"
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", default-features = false, features = [
+    "runtime-tokio-rustls",
+    "postgres",
+    "chrono",
+    "uuid",
+    "macros",
+    "derive",
+] }
+jsonwebtoken = "9"
+bcrypt = { version = "0.15", features = ["getrandom"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+rand = "0.8"
+regex = "1"
+dotenvy = "0.15"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
