@@ -50,7 +50,7 @@ Each stack loads its local file automatically:
 | `<STACK>_PORT` | Per-stack port; the generator writes it as `APP_PORT` |
 | `API_BASE` / `*_API_BASE` | API prefix per frontend |
 | `*_PROXY_TARGET` | Vite dev proxy target |
-| `*_MOCK_ENABLE` | MSW mock switch (React/Vue) |
+| `*_MOCK_ENABLE` | In-browser mock switch (React/Vue/Angular) |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_SSLMODE` | PostgreSQL connection |
 | `JWT_SECRET` | HS256 secret used by Go/Nest/C#/Rust/FastAPI |
 | `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` | Spring Boot RSA keys; empty uses the classpath PEMs |

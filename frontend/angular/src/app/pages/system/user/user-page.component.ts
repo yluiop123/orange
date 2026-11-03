@@ -151,6 +151,10 @@ export class UserPageComponent {
   }
 
   changeStatus(user: User, status: string): void {
+    if (this.isSelf(user)) {
+      this.notify.warning(this.i18n.t('message.cannotDisableSelf'));
+      return;
+    }
     this.api.updateUserStatus(user.id, status as '0' | '1').subscribe({
       next: () => {
         this.notify.success(this.i18n.t('message.success'));

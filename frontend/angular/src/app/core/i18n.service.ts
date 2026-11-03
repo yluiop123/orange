@@ -93,6 +93,7 @@ const EN: Dict = {
 
   'message.success': 'Done',
   'message.cannotDeleteSelf': 'You cannot delete the signed-in account.',
+  'message.cannotDisableSelf': 'You cannot disable the signed-in account.',
 
   'password.dialog.title': 'Temporary password',
   'password.dialog.desc':
@@ -377,6 +378,7 @@ const ZH: Dict = {
 
   'message.success': '操作成功',
   'message.cannotDeleteSelf': '不能删除当前登录账号。',
+  'message.cannotDisableSelf': '不能停用当前登录账号。',
 
   'password.dialog.title': '临时密码',
   'password.dialog.desc': '请把以下密码交给用户 {username}，关闭后将无法再次查看。',

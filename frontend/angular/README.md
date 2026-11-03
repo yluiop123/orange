@@ -47,10 +47,27 @@ The API base is configured in:
 
 - `src/environments/environment.ts` (production, default `/api/v1`)
 - `src/environments/environment.development.ts` (development, default `/api/v1`)
+- `src/environments/environment.local.ts` (generated from `config/app.env` for `npm start`)
 
 `environment.apiBase` is used by the HTTP interceptor, the login/refresh/logout
 calls and `ApiService`. Trailing slashes are normalized. Requests send
 `Locale: zh|en`; the refresh cookie is sent with `credentials: 'include'`.
+
+## Mock mode
+
+Set `ANGULAR_MOCK_ENABLE=true` in `config/app.env`, then run
+`node scripts/sync-config.mjs`. `npm start` uses the generated
+`environment.local.ts`, so the app signs in and manages data without a backend.
+`environment.development.ts` also enables mock mode by default.
+
+You can also open any build with `?mock=1`; the flag is persisted in
+`localStorage` (`orange.mock.enabled`). Use `?mock=0` to clear it when
+`environment.mock` is `false`.
+
+Seeded accounts: `super / super`, `admin / admin`, `user / user`,
+`auditor / auditor`, and `newbie / newbie` (temporary password flow). The mock
+covers login, refresh, menus, user/role/group/permission CRUD, operation logs,
+permission-denied `403`, and `40302`.
 
 ## Commands
 
@@ -148,15 +165,17 @@ Type-checking is part of both `ng build` and `ng test` (strict templates).
 Chinese and English dictionaries live in `src/app/core/i18n.service.ts`.
 The language selector persists `locale` in `localStorage` and sends the
 `Locale` header. Menu names, user content and backend messages are rendered as
-returned by the server.
+returned by the server; after a language switch the app refetches menus and
+user-info so the sidebar and breadcrumb update immediately.
 
 ## Project layout
 
 ```
 src/
-  environments/            apiBase per build
+  environments/            apiBase + mock per build
   app/core/                auth, interceptor, access, menu, list controller,
                            tree-code policy, page clamp, i18n, models
+  app/mock/                in-memory backend, seeded data, mock interceptor
   app/layout/              shell, sidebar items, menu redirect
   app/shared/              dialogs, ECharts wrapper, pickers, chart presets
   app/pages/               login, system, dashboards, charts, maps, 3D, components
@@ -173,7 +192,9 @@ The suite covers:
 - access filtering: exact menu, directory prefix, action permissions,
   `visibleMenuTree`, `firstVisibleLeaf`, empty permissions;
 - business-code validation: root lengths, digits, blank, child length and prefix;
-- page clamping after single/multi deletion and invalid page sizes.
+- page clamping after single/multi deletion and invalid page sizes;
+- mock backend: login/refresh, localized menus, `403`, `40302`, self-disable,
+  paged users and operation logs.
 
 ## Known gaps
 
@@ -197,6 +218,6 @@ The suite covers:
   the security/military/3D/map pages use their own dark surfaces.
 - **Google Fonts/Material Icons are CDN assets.** Icons may not render offline;
   layout and functionality still work.
-- **No E2E suite and no mock API mode.** Authentication and system pages need a
-  running backend; only the demo pages and login screen render without one.
+- **No E2E suite.** The Vitest suite covers access, tree-code validation, page
+  clamping and the in-memory mock backend.
 - **No GitHub Pages workflow** for this stack, as required by the porting rules.

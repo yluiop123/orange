@@ -15,6 +15,7 @@ import type { Status } from '../../core/models';
   template: `
     <mat-slide-toggle
       [checked]="status() === '1'"
+      [disabled]="disabled()"
       [attr.aria-label]="'table.toggleStatus' | t"
       (change)="onChange($event)"
     />
@@ -23,6 +24,7 @@ import type { Status } from '../../core/models';
 export class StatusToggleComponent {
   readonly status = input.required<Status | string | undefined>();
   readonly name = input('');
+  readonly disabled = input(false);
   readonly changed = output<Status>();
 
   private readonly dialog = inject(MatDialog);

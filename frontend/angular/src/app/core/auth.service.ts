@@ -8,6 +8,7 @@ import { TokenStore } from './token.store';
 import { sessionHint } from './session-hint';
 import { I18nService } from './i18n.service';
 import { findMenuChain } from './menu';
+import { MockBackend } from '../mock/mock-backend';
 import type { Envelope, MenuNode, Permission, TokenResponse, UserInfo } from './models';
 
 export const ALL_ROLES = 'all';
@@ -20,6 +21,7 @@ export class AuthService {
   private readonly tokens = inject(TokenStore);
   private readonly refreshService = inject(RefreshService);
   private readonly i18n = inject(I18nService);
+  private readonly mock = inject(MockBackend);
 
   private readonly _user = signal<UserInfo | null>(null);
   private readonly _menus = signal<MenuNode[]>([]);
@@ -96,25 +98,17 @@ export class AuthService {
   }
 
   async login(username: string, password: string): Promise<UserInfo> {
-    const response = await fetch(`${baseUrl()}/auth/login`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        Locale: this.i18n.locale(),
-      },
-      body: JSON.stringify({ username, password }),
-    });
-
-    const body = (await response.json().catch(() => null)) as Envelope<TokenResponse> | null;
+    const body = this.mock.enabled
+      ? this.mock.login(username, password, this.i18n.locale())
+      : await this.requestLogin(username, password);
 
     const token = body?.data?.token;
-    if (!response.ok || body?.code !== 200 || !token) {
+    if (body?.code !== 200 || !token) {
       throw {
-        code: body?.code ?? response.status,
+        code: body?.code ?? 401,
         message: body?.message || this.i18n.t('login.failed'),
         data: body?.data,
-        status: response.status,
+        status: body?.code === 200 ? 401 : body?.code,
         traceId: body?.traceId,
       };
     }
@@ -131,6 +125,34 @@ export class AuthService {
       };
     }
     return user;
+  }
+
+  private async requestLogin(
+    username: string,
+    password: string,
+  ): Promise<Envelope<TokenResponse> | null> {
+    const response = await fetch(`${baseUrl()}/auth/login`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Locale: this.i18n.locale(),
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const body = (await response.json().catch(() => null)) as Envelope<TokenResponse> | null;
+    if (!body) {
+      return {
+        code: response.status,
+        message: response.statusText || 'Request failed',
+        data: null as unknown as TokenResponse,
+      };
+    }
+    if (!response.ok && body.code === 200) {
+      return { ...body, code: response.status };
+    }
+    return body;
   }
 
   async loadIdentity(): Promise<UserInfo | null> {
@@ -182,6 +204,11 @@ export class AuthService {
     }));
   }
 
+  /** Menu and role names are localized by the backend, so refetch after a locale switch. */
+  async refreshLocalized(): Promise<void> {
+    await Promise.all([this.loadMenus(), this.loadUser().catch(() => null)]);
+  }
+
   switchRole(role: string): void {
     this._currentRole.set(role);
     const username = this._user()?.username;
@@ -214,11 +241,16 @@ export class AuthService {
     this.tokens.clear();
     sessionHint.clear();
     localStorage.removeItem('token');
+    this.mock.logout();
   }
 
   async logout(): Promise<void> {
     const token = this.tokens.get();
     this.clearSession();
+    if (this.mock.enabled) {
+      this.mock.logout();
+      return;
+    }
     try {
       await fetch(`${baseUrl()}/auth/logout`, {
         method: 'POST',

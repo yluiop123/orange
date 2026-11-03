@@ -98,7 +98,10 @@ export class ShellComponent {
   }
 
   changeLocale(locale: Locale): void {
+    if (locale === this.i18n.locale()) return;
     this.i18n.setLocale(locale);
+    // Backend menu and role names are localized by the Locale header.
+    void this.auth.refreshLocalized();
   }
 
   openChangePassword(): void {

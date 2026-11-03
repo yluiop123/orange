@@ -111,6 +111,7 @@ write(
   `export const environment = {\n` +
     `  production: false,\n` +
     `  apiBase: ${JSON.stringify(need("ANGULAR_API_BASE", "/api/v1"))},\n` +
+    `  mock: ${need("ANGULAR_MOCK_ENABLE", "true") === "true"},\n` +
     `};\n`,
   "//",
 );

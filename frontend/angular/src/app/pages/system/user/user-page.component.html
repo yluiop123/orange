@@ -104,6 +104,7 @@
             <app-status-toggle
               [status]="user.status"
               [name]="user.username"
+              [disabled]="isSelf(user)"
               (changed)="changeStatus(user, $event)"
             />
           } @else {

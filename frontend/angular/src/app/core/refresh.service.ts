@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { TokenStore } from './token.store';
 import { sessionHint } from './session-hint';
+import { MockBackend } from '../mock/mock-backend';
 import type { Envelope, TokenResponse } from './models';
 
 /**
@@ -12,6 +13,7 @@ import type { Envelope, TokenResponse } from './models';
 @Injectable({ providedIn: 'root' })
 export class RefreshService {
   private readonly tokens = inject(TokenStore);
+  private readonly mock = inject(MockBackend);
   private inFlight: Promise<string | null> | null = null;
 
   refresh(): Promise<string | null> {
@@ -24,6 +26,17 @@ export class RefreshService {
   }
 
   private async performRefresh(): Promise<string | null> {
+    if (this.mock.enabled) {
+      const body = this.mock.refresh();
+      const token = body?.data?.token ?? null;
+      if (body?.code !== 200 || !token) {
+        this.tokens.clear();
+        sessionHint.clear();
+        return null;
+      }
+      this.tokens.set(token, body.data.expiresIn);
+      return token;
+    }
     try {
       const response = await fetch(`${baseUrl()}/auth/refresh`, {
         method: 'POST',

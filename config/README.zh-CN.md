@@ -50,7 +50,7 @@ node scripts/sync-config.mjs               # 每次修改后运行
 | `<STACK>_PORT` | 各栈端口；生成器写成 `APP_PORT` |
 | `API_BASE` / `*_API_BASE` | 各前端 API 前缀 |
 | `*_PROXY_TARGET` | Vite 开发代理目标 |
-| `*_MOCK_ENABLE` | MSW Mock 开关（React/Vue） |
+| `*_MOCK_ENABLE` | 浏览器内 Mock 开关（React/Vue/Angular） |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_SSLMODE` | PostgreSQL 连接 |
 | `JWT_SECRET` | Go/Nest/C#/Rust/FastAPI 使用的 HS256 密钥 |
 | `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` | Spring Boot 的 RSA 密钥；留空使用 classpath PEM |

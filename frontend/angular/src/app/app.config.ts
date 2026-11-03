@@ -13,6 +13,7 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/auth.interceptor';
 import { AuthService } from './core/auth.service';
 import { LocalizedPaginatorIntl } from './core/paginator-intl.service';
+import { mockInterceptor } from './mock/mock.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,7 +22,7 @@ export const appConfig: ApplicationConfig = {
       routes,
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }),
     ),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, mockInterceptor])),
     provideAnimationsAsync(),
     provideNativeDateAdapter(),
     { provide: MatPaginatorIntl, useClass: LocalizedPaginatorIntl },
