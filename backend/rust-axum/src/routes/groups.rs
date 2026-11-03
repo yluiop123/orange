@@ -65,7 +65,7 @@ pub async fn edit(
         return Err(crate::error::AppError::param("组织名称不能为空"));
     }
     group_service::edit(&state.pool, &group_id, &req).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn update_status(
@@ -81,7 +81,7 @@ pub async fn update_status(
         status: Some(status),
     };
     group_service::edit(&state.pool, &group_id, &req).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn delete_one(
@@ -91,7 +91,7 @@ pub async fn delete_one(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/group:delete")?;
     group_service::delete(&state.pool, &[group_id]).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn delete_many(
@@ -102,5 +102,5 @@ pub async fn delete_many(
     require(&auth, "action#/system/group:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
     group_service::delete(&state.pool, &ids).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }

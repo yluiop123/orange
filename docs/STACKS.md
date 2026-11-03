@@ -13,7 +13,7 @@ Every stack implements the same product. The contract is [API.md](./API.md); the
 | Backend | Go + Gin + GORM | `backend/go-gin-gorm` | 8081 | Implemented |
 | Backend | Node.js + NestJS | `backend/node-nestjs` | 3000 | Implemented |
 | Backend | C# + ASP.NET Core | `backend/csharp` | 8082 | Implemented |
-| Backend | Rust + Axum | `backend/rust-axum` | 8083 | Implemented, build pending toolchain |
+| Backend | Rust + Axum | `backend/rust-axum` | 8083 | Implemented, 40 tests pass |
 | Backend | Python + FastAPI | `backend/python-fastapi` | 8000 | Implemented |
 
 Only `frontend/react` is deployed. CI builds and tests the other frontends but does not publish them.

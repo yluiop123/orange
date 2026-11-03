@@ -56,7 +56,7 @@ pub async fn edit(
     require(&auth, "action#/system/permission:edit")?;
     let req = parse_json(payload)?;
     permission_service::edit(&state.pool, &permission_id, &req).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn delete_one(
@@ -66,7 +66,7 @@ pub async fn delete_one(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/permission:delete")?;
     permission_service::delete(&state.pool, &[permission_id]).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn delete_many(
@@ -77,5 +77,5 @@ pub async fn delete_many(
     require(&auth, "action#/system/permission:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
     permission_service::delete(&state.pool, &ids).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }

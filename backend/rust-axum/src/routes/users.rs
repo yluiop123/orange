@@ -58,7 +58,7 @@ pub async fn edit(
     require(&auth, "action#/system/user:edit")?;
     let req = parse_json(payload)?;
     user_service::edit(&state.pool, &auth, &user_id, &req).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn update_status(
@@ -70,7 +70,7 @@ pub async fn update_status(
     require(&auth, "action#/system/user:edit")?;
     let status = status_from_body(parse_json(payload)?)?;
     user_service::edit_status(&state.pool, &auth, &user_id, &status).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn reset_password(
@@ -95,7 +95,7 @@ pub async fn delete_one(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/user:delete")?;
     user_service::delete(&state.pool, &auth, &[user_id]).await?;
-    Ok(Json(ApiResponse::message("删除成功", "删除成功")))
+    Ok(Json(ApiResponse::ok_text("删除成功")))
 }
 
 pub async fn delete_many(
@@ -106,5 +106,5 @@ pub async fn delete_many(
     require(&auth, "action#/system/user:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
     user_service::delete(&state.pool, &auth, &ids).await?;
-    Ok(Json(ApiResponse::message("删除成功", "删除成功")))
+    Ok(Json(ApiResponse::ok_text("删除成功")))
 }

@@ -69,7 +69,7 @@ Rules for the layout:
 | Backend | Go + Gin + GORM | `backend/go-gin-gorm` | Implemented |
 | Backend | Node.js + NestJS | `backend/node-nestjs` | Implemented |
 | Backend | C# + ASP.NET Core | `backend/csharp` | Implemented |
-| Backend | Rust + Axum | `backend/rust-axum` | Implemented, build pending toolchain |
+| Backend | Rust + Axum | `backend/rust-axum` | Implemented, 40 tests pass |
 | Backend | Python + FastAPI | `backend/python-fastapi` | Implemented |
 | Database | PostgreSQL | `database/postgres` | Implemented |
 | Database | MySQL / MariaDB | `database/mysql`, `database/mariadb` | Implemented |

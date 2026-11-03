@@ -54,7 +54,7 @@ pub async fn edit(
     require(&auth, "action#/system/role:edit")?;
     let req = parse_json(payload)?;
     role_service::edit(&state.pool, &auth, &role_id, &req).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn delete_one(
@@ -64,7 +64,7 @@ pub async fn delete_one(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/role:delete")?;
     role_service::delete(&state.pool, &[role_id]).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
 pub async fn delete_many(
@@ -75,5 +75,5 @@ pub async fn delete_many(
     require(&auth, "action#/system/role:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
     role_service::delete(&state.pool, &ids).await?;
-    Ok(Json(ApiResponse::message("操作成功", "操作成功")))
+    Ok(Json(ApiResponse::ok_text("操作成功")))
 }

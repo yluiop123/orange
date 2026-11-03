@@ -5,12 +5,16 @@ It serves the canonical API from [`docs/API.md`](../../docs/API.md) under
 `/api/v1` on port **8083** and uses the existing `database/postgres` schema and
 seed (no migrations of its own).
 
-> **Build status — unverified.** `cargo` and `rustc` are not installed on the
-> machine where this port was written. The project has **not** been compiled,
-> `cargo test` has **not** been run, and it has **not** been started against
-> PostgreSQL. All checks were static (Cargo.toml parsing, module/file
-> resolution, brace balance, use-path review). Treat the first `cargo check` as
-> part of finishing the port.
+> **Build status — compiled and tested, no live database smoke test.**
+> `cargo check`, `cargo build` and `cargo test` pass (40 unit tests) with the
+> `stable-x86_64-pc-windows-gnu` toolchain and the MSYS2 UCRT64 `gcc` linker.
+> The server has **not** been started against PostgreSQL in this environment.
+> Windows users without Visual Studio Build Tools should use the GNU toolchain:
+>
+> ```bash
+> rustup toolchain install stable-x86_64-pc-windows-gnu
+> cargo +stable-x86_64-pc-windows-gnu build
+> ```
 
 ## What is implemented
 
@@ -160,11 +164,10 @@ backend/rust-axum/
 
 ## Known gaps / risks
 
-- **Not built or run** (`cargo` unavailable). Compile errors are possible and
-  must be fixed on the first `cargo check`; this is the main risk.
-- No integration/smoke test against PostgreSQL (the checklist asks for one; it
-  could not be executed here). Add `#[ignore]` DB tests or a shell smoke script
-  once a toolchain is available.
+- **No live database smoke test.** `cargo check`, `cargo build` and `cargo test`
+  (40 unit tests) pass, but the server was not started against PostgreSQL in
+  this environment. Add `#[ignore]` DB tests or a shell smoke script before
+  relying on the auth/RBAC flows.
 - Field-level validation errors are returned as a single `message`; the Java
   backend also puts a `{ field: message }` map in `data` for `@Valid` failures.
 - Deprecated list parameters (`filterField`, `filterValue`, `orderField`,

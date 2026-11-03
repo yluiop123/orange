@@ -94,7 +94,7 @@ pub async fn logout(State(state): State<AppState>, req: Request) -> Response {
 
     match auth_service::logout(&state, refresh_token, access.as_ref()).await {
         Ok(()) => {
-            let body = Json(ApiResponse::message("ok", "ok")).into_response();
+            let body = Json(ApiResponse::ok_text("ok")).into_response();
             with_set_cookie(body, cookies::clear(&state.config))
         }
         Err(error) => error_with_clear(&state, error),

@@ -72,3 +72,17 @@ impl<T> ApiResponse<T> {
         }
     }
 }
+
+impl ApiResponse<String> {
+    /// Java's `Response.ok(String)` puts the same text in `message` and `data`.
+    pub fn ok_text(text: impl Into<String>) -> Self {
+        let text = text.into();
+        Self {
+            code: 200,
+            message: text.clone(),
+            data: text,
+            timestamp: now_millis(),
+            trace_id: current_trace_id(),
+        }
+    }
+}
