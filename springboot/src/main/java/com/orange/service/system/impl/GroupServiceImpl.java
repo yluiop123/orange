@@ -3,6 +3,7 @@ package com.orange.service.system.impl;
 import com.orange.domain.common.BusinessException;
 import com.orange.domain.system.group.req.*;
 import com.orange.domain.system.tree.TreeCodePolicy;
+import com.orange.domain.system.tree.TreeIndex;
 import com.orange.entity.Group;
 import com.orange.repository.system.GroupRepository;
 import com.orange.repository.system.UserRepository;
@@ -18,17 +19,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.orange.config.Constanst.STATUS_ALL;
 import static com.orange.config.Constanst.STATUS_DISABLE;
@@ -73,40 +70,23 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public void deleteGroups(List<String> ids) {
         List<Group> all = groupRepository.findAll();
-        Map<String, Group> byId = all.stream()
-                .collect(Collectors.toMap(Group::getId, group -> group));
+        TreeIndex<Group> index = TreeIndex.of(all, Group::getId, Group::getParentId);
         Set<String> requestedIds = new LinkedHashSet<>(ids);
         List<Group> selected = requestedIds.stream()
-                .map(byId::get)
+                .map(index::get)
                 .filter(Objects::nonNull)
                 .toList();
         if (selected.size() != requestedIds.size()) {
             throw new BusinessException("组织不存在");
         }
 
-        Map<String, List<Group>> childrenByParent = all.stream()
-                .filter(group -> group.getParentId() != null)
-                .collect(Collectors.groupingBy(Group::getParentId));
-        Set<String> subtreeIds = new LinkedHashSet<>();
-        Deque<String> queue = new ArrayDeque<>(requestedIds);
-        while (!queue.isEmpty()) {
-            String id = queue.poll();
-            if (subtreeIds.add(id)) {
-                childrenByParent.getOrDefault(id, List.of())
-                        .forEach(child -> queue.add(child.getId()));
-            }
-        }
-
+        Set<String> subtreeIds = index.subtreeIds(requestedIds);
         if (userRepository.existsByGroupIdIn(new ArrayList<>(subtreeIds))) {
             throw new BusinessException("组织或其子组织下有用户，不能删除");
         }
 
         // 先删深层节点，避免父子同时选中时父节点先删导致子节点找不到
-        List<Group> toDelete = all.stream()
-                .filter(group -> subtreeIds.contains(group.getId()))
-                .sorted(Comparator.comparingInt((Group group) -> group.getId().length()).reversed())
-                .toList();
-        for (Group group : toDelete) {
+        for (Group group : index.deleteOrder(subtreeIds)) {
             if (groupRepository.existsById(group.getId())) {
                 groupRepository.delete(group);
                 groupRepository.flush();
@@ -186,44 +166,17 @@ public class GroupServiceImpl implements GroupService {
      * 禁用父节点前要求先禁用子节点，避免“父节点隐藏、子节点仍然生效”的中间状态。
      */
     private void assertNoEnabledDescendants(String id) {
-        List<Group> all = groupRepository.findAll();
-        Map<String, Group> byId = all.stream()
-                .collect(Collectors.toMap(Group::getId, group -> group));
-        Map<String, List<Group>> childrenByParent = all.stream()
-                .filter(group -> group.getParentId() != null)
-                .collect(Collectors.groupingBy(Group::getParentId));
-        Deque<String> queue = new ArrayDeque<>();
-        childrenByParent.getOrDefault(id, List.of())
-                .forEach(child -> queue.add(child.getId()));
-        Set<String> seen = new LinkedHashSet<>();
-        while (!queue.isEmpty()) {
-            String childId = queue.poll();
-            if (!seen.add(childId)) {
-                continue;
-            }
-            Group child = byId.get(childId);
-            if (child != null && STATUS_ENABLE.equals(child.getStatus())) {
-                throw new BusinessException("请先禁用子组织");
-            }
-            childrenByParent.getOrDefault(childId, List.of())
-                    .forEach(item -> queue.add(item.getId()));
+        TreeIndex<Group> index = TreeIndex.of(
+                groupRepository.findAll(), Group::getId, Group::getParentId);
+        if (index.hasEnabledDescendant(id, group -> STATUS_ENABLE.equals(group.getStatus()))) {
+            throw new BusinessException("请先禁用子组织");
         }
     }
 
     /** 文本筛选时把祖先一并返回，前端才能保持树的层级。 */
     private List<Group> includeAncestors(List<Group> matched, List<Group> all) {
-        Map<String, Group> byId = all.stream()
-                .collect(Collectors.toMap(Group::getId, group -> group));
-        Set<String> ids = matched.stream()
-                .map(Group::getId)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        for (Group group : matched) {
-            String parentId = group.getParentId();
-            while (parentId != null && ids.add(parentId)) {
-                Group parent = byId.get(parentId);
-                parentId = parent == null ? null : parent.getParentId();
-            }
-        }
+        TreeIndex<Group> index = TreeIndex.of(all, Group::getId, Group::getParentId);
+        Set<String> ids = index.withAncestorIds(matched);
         return all.stream()
                 .filter(group -> ids.contains(group.getId()))
                 .sorted(Comparator.comparing(Group::getId))
