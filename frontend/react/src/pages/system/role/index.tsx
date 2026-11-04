@@ -147,7 +147,7 @@ export default function Role() {
     ]
 
     return (
-        <div className="w-full p-3">
+        <div className="flex h-[calc(100svh-4rem)] w-full flex-col p-3">
             <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
                 onSave={refetch} />
             <ConfirmDeleteDialog
@@ -157,31 +157,6 @@ export default function Role() {
                 pending={deleting}
                 onConfirm={confirmDelete}
             />
-
-            <div className="flex items-center py-3 gap-4">
-                <div className="flex items-center gap-4">
-                    <Label className="whitespace-nowrap" htmlFor="roleName">{intl.formatMessage({ id: 'page.system.role.header.name' })}</Label>
-                    <Input id="roleName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} />
-                </div>
-                <div className="flex items-center gap-4">
-                    <Label className="whitespace-nowrap" htmlFor="roleId">{intl.formatMessage({ id: 'page.system.role.header.role' })}</Label>
-                    <Input id="roleId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} />
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <Label className="whitespace-nowrap">{intl.formatMessage({ id: 'page.system.role.header.status' })}</Label>
-                    <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
-                </div>
-                <div className="ml-auto flex items-center gap-2">
-                    <ActionAuth action="add">
-                        <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
-                    </ActionAuth>
-                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => updateParams({}, true)} />
-                    <ActionAuth action="delete">
-                        <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
-                    </ActionAuth>
-                </div>
-            </div>
 
             <ResourceTable
                 data={data.list}
@@ -195,6 +170,31 @@ export default function Role() {
                 loading={loading}
                 error={error}
                 onRetry={refetch}
+                toolbar={(
+                    <>
+                        <div className="flex items-center gap-2">
+                            <Label className="whitespace-nowrap" htmlFor="roleName">{intl.formatMessage({ id: 'page.system.role.header.name' })}</Label>
+                            <Input id="roleName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Label className="whitespace-nowrap" htmlFor="roleId">{intl.formatMessage({ id: 'page.system.role.header.role' })}</Label>
+                            <Input id="roleId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Label className="whitespace-nowrap">{intl.formatMessage({ id: 'page.system.role.header.status' })}</Label>
+                            <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
+                        </div>
+                        <div className="ml-auto flex items-center gap-2">
+                            <ActionAuth action="add">
+                                <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
+                            </ActionAuth>
+                            <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => updateParams({}, true)} />
+                            <ActionAuth action="delete">
+                                <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
+                            </ActionAuth>
+                        </div>
+                    </>
+                )}
             />
         </div>
     )

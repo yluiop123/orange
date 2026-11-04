@@ -162,7 +162,7 @@ export class GroupsService {
     const all = await this.groups.find();
     const index = new TreeIndex(all, (group) => group.id, (group) => group.parentId);
     if (index.hasEnabledDescendant(id, (group) => group.status === STATUS_ENABLE)) {
-      throw BusinessException.validate('请先禁用子组织');
+      throw BusinessException.conflict('请先禁用子组织');
     }
   }
 }

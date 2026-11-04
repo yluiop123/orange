@@ -139,7 +139,7 @@ public sealed class GroupService
         var index = TreeIndex<Group>.Of(all, group => group.Id, group => group.ParentId);
         if (index.HasEnabledDescendant(id, group => group.Status == EffectivePermissions.StatusEnabled))
         {
-            throw new BusinessException("请先禁用子组织");
+            throw new BusinessException("请先禁用子组织", ErrorCodes.Conflict);
         }
     }
 

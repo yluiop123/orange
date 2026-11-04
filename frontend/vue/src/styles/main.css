@@ -3,7 +3,7 @@
   --orange-sidebar-width: 16rem;
   --orange-sidebar-rail-width: 3rem;
   --orange-sidebar-mobile-width: 18rem;
-  --orange-header-height: 3rem;
+  --orange-header-height: 4rem;
   --orange-page-padding: 0.75rem;
   --orange-content-gap: 1rem;
   --orange-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.35);
@@ -32,6 +32,10 @@ body {
   background: rgb(var(--v-theme-background));
   color: rgb(var(--v-theme-on-surface));
   -webkit-font-smoothing: antialiased;
+}
+
+.v-application {
+  font-family: inherit;
 }
 
 /* Cards, buttons and inputs share the shadcn-style radius (0.65rem). */
@@ -127,21 +131,31 @@ a:focus-visible,
 /* Shell surfaces. */
 .v-navigation-drawer.app-drawer {
   background: rgb(var(--v-theme-sidebar));
-  border-right: 1px solid rgb(var(--v-border-color));
+  border-right: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 .v-navigation-drawer .v-list-item--active {
-  color: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-surface));
+  background: rgb(var(--v-theme-surface-variant));
+}
+
+.v-navigation-drawer .v-list-item--active > .v-list-item__overlay {
+  opacity: 0;
+}
+
+.v-navigation-drawer .v-list-item--active .v-icon {
+  color: inherit;
 }
 
 .v-navigation-drawer .v-list-item:hover:not(.v-list-item--active) {
-  background: rgb(var(--v-theme-surface-variant));
+  background: rgb(var(--v-theme-surface-variant) / 0.6);
 }
 
 .v-app-bar.app-header {
   height: var(--orange-header-height);
-  background: rgb(var(--v-theme-surface));
-  box-shadow: inset 0 -1px 0 rgb(var(--v-border-color));
+  min-height: var(--orange-header-height);
+  background: rgb(var(--v-theme-background));
+  box-shadow: inset 0 -1px 0 rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
 code {

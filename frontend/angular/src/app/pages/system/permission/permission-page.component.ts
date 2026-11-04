@@ -4,13 +4,8 @@ import { map } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../../core/auth.service';
 import { formatDateTime } from '../../../core/date-time';
@@ -19,7 +14,6 @@ import { ListController } from '../../../core/list-controller';
 import { NotificationService } from '../../../core/notification.service';
 import { SystemApi } from '../../../core/system-api.service';
 import { TranslatePipe } from '../../../core/translate.pipe';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 import { StatusFilterComponent } from '../../../shared/system/status-filter.component';
 import { StatusToggleComponent } from '../../../shared/system/status-toggle.component';
 import { SystemDialogService } from '../../../shared/system/system-dialog.service';
@@ -37,13 +31,7 @@ import type { PermissionRow } from '../../../core/models';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
     TranslatePipe,
-    PageHeaderComponent,
     StatusFilterComponent,
     StatusToggleComponent,
   ],
@@ -60,9 +48,25 @@ export class PermissionPageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly formatDateTime = formatDateTime;
-  readonly columns = ['select', 'name', 'id', 'path', 'type', 'action', 'status', 'createTime', 'actions'];
   readonly path = '/system/permission';
   readonly types = ['all', 'directory', 'menu', 'action'];
+
+  readonly columnDefs = [
+    { key: 'name', labelKey: 'page.system.permission.header.name', hideable: false },
+    { key: 'id', labelKey: 'page.system.permission.header.id', hideable: true },
+    { key: 'path', labelKey: 'page.system.permission.header.path', hideable: true },
+    { key: 'type', labelKey: 'page.system.permission.header.type', hideable: true },
+    { key: 'action', labelKey: 'page.system.permission.header.action', hideable: true },
+    { key: 'status', labelKey: 'page.system.permission.header.status', hideable: true },
+    { key: 'createTime', labelKey: 'page.system.permission.header.createTime', hideable: true },
+  ];
+  readonly hiddenColumns = signal<ReadonlySet<string>>(new Set<string>());
+  readonly visibleColumns = computed(() => [
+    'select',
+    'expand',
+    ...this.columnDefs.filter((column) => !this.hiddenColumns().has(column.key)).map((column) => column.key),
+    'actions',
+  ]);
 
   readonly lists = new ListController<PermissionRow>(
     (params) =>
@@ -91,29 +95,46 @@ export class PermissionPageComponent {
     ),
   );
   readonly rootsTotal = computed(() => this.fullTree().length);
-  readonly pagedRoots = computed(() => {
-    const start = (this.page() - 1) * this.size();
-    return this.fullTree().slice(start, start + this.size());
-  });
-  readonly flatRows = computed(() =>
+  readonly allFlatRows = computed(() =>
     flattenTree(
-      this.pagedRoots(),
+      this.fullTree(),
       (permission) => permission.children ?? [],
       this.expanded(),
       (permission) => permission.id,
     ),
   );
+  readonly flatRows = computed(() => {
+    const start = (this.page() - 1) * this.size();
+    return this.allFlatRows().slice(start, start + this.size());
+  });
+  readonly visibleRowCount = computed(() => this.allFlatRows().length);
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.visibleRowCount() / this.size())),
+  );
+  readonly allExpanded = computed(() => {
+    const expandableIds = this.expandableIds();
+    return expandableIds.length > 0 && expandableIds.every((id) => this.expanded().has(id));
+  });
   readonly visibleIds = computed(() => this.flatRows().map((row) => row.node.id));
   readonly allSelected = computed(() => {
     const ids = this.visibleIds();
     return ids.length > 0 && ids.every((id) => this.lists.selected().has(id));
   });
   readonly someSelected = computed(() => this.lists.selected().size > 0 && !this.allSelected());
+  readonly selectedCount = computed(() => this.lists.selected().size);
   readonly nameValue = computed(() => String(this.lists.params()['name'] ?? ''));
   readonly idValue = computed(() => String(this.lists.params()['id'] ?? ''));
   readonly pathValue = computed(() => String(this.lists.params()['path'] ?? ''));
   readonly statusValue = computed(() => String(this.lists.params()['status'] ?? 'all'));
   readonly typeValue = computed(() => String(this.lists.params()['type'] ?? 'all'));
+
+  private readonly expandableIds = computed(() =>
+    allNodeIds(
+      this.fullTree().filter((permission) => (permission.children ?? []).length > 0),
+      (permission) => permission.children ?? [],
+      (permission) => permission.id,
+    ),
+  );
 
   readonly nodeMap = computed(() => {
     const map = new Map<string, PermissionRow>();
@@ -127,17 +148,11 @@ export class PermissionPageComponent {
     return map;
   });
 
-  private initialized = false;
-
   constructor() {
+    // Keep the page inside range when collapsing the tree shrinks the row count.
     effect(() => {
-      const roots = this.fullTree();
-      if (!this.initialized && roots.length > 0) {
-        this.initialized = true;
-        this.expanded.set(
-          new Set(allNodeIds(roots, (node) => node.children ?? [], (node) => node.id)),
-        );
-      }
+      const totalPages = Math.max(1, Math.ceil(this.allFlatRows().length / this.size()));
+      if (this.page() > totalPages) this.page.set(totalPages);
     });
   }
 
@@ -166,13 +181,8 @@ export class PermissionPageComponent {
     this.lists.updateParams({ type });
   }
 
-  onPage(event: PageEvent): void {
-    if (event.pageSize !== this.size()) {
-      this.size.set(event.pageSize);
-      this.page.set(1);
-    } else {
-      this.page.set(event.pageIndex + 1);
-    }
+  onTypeChange(event: Event): void {
+    this.onType((event.target as HTMLSelectElement).value);
   }
 
   toggle(id: string): void {
@@ -182,14 +192,31 @@ export class PermissionPageComponent {
     this.expanded.set(next);
   }
 
-  expandAll(): void {
+  toggleExpandAll(): void {
     this.expanded.set(
-      new Set(allNodeIds(this.fullTree(), (node) => node.children ?? [], (node) => node.id)),
+      this.allExpanded()
+        ? new Set<string>()
+        : new Set(this.expandableIds()),
     );
   }
 
-  collapseAll(): void {
-    this.expanded.set(new Set());
+  isColumnHidden(key: string): boolean {
+    return this.hiddenColumns().has(key);
+  }
+
+  toggleColumn(key: string): void {
+    const next = new Set(this.hiddenColumns());
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this.hiddenColumns.set(next);
+  }
+
+  previousPage(): void {
+    if (this.page() > 1) this.page.set(this.page() - 1);
+  }
+
+  nextPage(): void {
+    if (this.page() < this.totalPages()) this.page.set(this.page() + 1);
   }
 
   toggleAll(event: MatCheckboxChange): void {

@@ -169,7 +169,7 @@ func (s *Service) assertNoEnabledGroupDescendants(ctx context.Context, id string
 	}
 	enabled := func(group store.Group) bool { return group.Status == domain.StatusEnabled }
 	if groupIndex(all).HasEnabledDescendant(id, enabled) {
-		return domain.Validation("请先禁用子组织")
+		return domain.Conflict("请先禁用子组织")
 	}
 	return nil
 }

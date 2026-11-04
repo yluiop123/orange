@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 
 const auth = useAuthStore()
+const route = useRoute()
+
+// System pages own their 12px padding and fill the viewport below the header.
+const flush = computed(() => route.path.startsWith('/system'))
 
 const forcedOpen = computed({
   get: () => auth.mustChangePassword,
@@ -20,7 +25,7 @@ const forcedOpen = computed({
     <AppSidebar />
     <AppHeader />
     <v-main class="app-main">
-      <div class="page-container">
+      <div class="page-container" :class="{ 'page-container--flush': flush }">
         <router-view v-slot="{ Component }">
           <component :is="Component" />
         </router-view>
@@ -38,6 +43,11 @@ const forcedOpen = computed({
 .page-container {
   min-height: calc(100vh - var(--orange-header-height));
   padding: var(--orange-page-padding);
+}
+
+.page-container--flush {
+  min-height: calc(100svh - var(--orange-header-height));
+  padding: 0;
 }
 
 @media (max-width: 600px) {

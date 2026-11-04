@@ -209,7 +209,7 @@ export default function Permission() {
   ]
 
   return (
-    <div className="w-full p-3">
+    <div className="flex h-[calc(100svh-4rem)] w-full flex-col p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
         onSave={refetch} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
@@ -221,56 +221,6 @@ export default function Permission() {
         pending={deleting}
         onConfirm={confirmDelete}
       />
-
-      <div className="flex items-center py-3 gap-4">
-        <div className="flex items-center gap-4">
-          <Label className="whitespace-nowrap" htmlFor="permissionName">{formatMessage({ id: 'page.system.permission.header.name' })}</Label>
-          <Input id="permissionName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} />
-        </div>
-        <div className="flex items-center gap-4">
-          <Label className="whitespace-nowrap" htmlFor="permissionId">{formatMessage({ id: 'page.system.permission.header.id' })}</Label>
-          <Input id="permissionId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} />
-        </div>
-        <div className="flex items-center gap-4">
-          <Label className="whitespace-nowrap" htmlFor="permissionPath">{formatMessage({ id: 'page.system.permission.header.path' })}</Label>
-          <Input id="permissionPath" type="text" placeholder="" value={params.path ?? ''} onChange={(e) => updateParams({ path: e.target.value })} />
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.type' })}</Label>
-          <Select
-            value={params.type ?? 'all'}
-            onValueChange={(value) => updateParams({ type: value || 'all' })}
-          >
-            <SelectTrigger className="flex items-center">
-              <SelectValue>
-                {formatMessage({
-                  id: PERMISSION_TYPES.find((item) => item.value === params.type)?.label
-                    ?? 'dict.status.all',
-                })}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {PERMISSION_TYPES.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {formatMessage({ id: item.label })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.status' })}</Label>
-          <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <ActionAuth action="add">
-            <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
-          </ActionAuth>
-          <ActionAuth action="delete">
-            <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
-          </ActionAuth>
-        </div>
-      </div>
 
       <ResourceTable
         data={data.list}
@@ -287,6 +237,57 @@ export default function Permission() {
         loading={loading}
         error={error}
         onRetry={refetch}
+        toolbar={(
+          <>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap" htmlFor="permissionName">{formatMessage({ id: 'page.system.permission.header.name' })}</Label>
+              <Input id="permissionName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} className="w-36" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap" htmlFor="permissionId">{formatMessage({ id: 'page.system.permission.header.id' })}</Label>
+              <Input id="permissionId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} className="w-28" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap" htmlFor="permissionPath">{formatMessage({ id: 'page.system.permission.header.path' })}</Label>
+              <Input id="permissionPath" type="text" placeholder="" value={params.path ?? ''} onChange={(e) => updateParams({ path: e.target.value })} className="w-36" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.type' })}</Label>
+              <Select
+                value={params.type ?? 'all'}
+                onValueChange={(value) => updateParams({ type: value || 'all' })}
+              >
+                <SelectTrigger className="flex items-center">
+                  <SelectValue>
+                    {formatMessage({
+                      id: PERMISSION_TYPES.find((item) => item.value === params.type)?.label
+                        ?? 'dict.status.all',
+                    })}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {PERMISSION_TYPES.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {formatMessage({ id: item.label })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.permission.header.status' })}</Label>
+              <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <ActionAuth action="add">
+                <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
+              </ActionAuth>
+              <ActionAuth action="delete">
+                <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
+              </ActionAuth>
+            </div>
+          </>
+        )}
       />
     </div>
   )

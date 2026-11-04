@@ -33,3 +33,32 @@ Requirements:
 
 Each engine is reset and seeded from `database/<engine>/`, then the server is
 started on `APP_PORT=8080` and removed after the smoke run.
+
+## `contract-test.mjs`
+
+Full cross-stack acceptance suite. It mutates data, so point it at a disposable
+database:
+
+```bash
+node scripts/ci/contract-test.mjs http://127.0.0.1:18080/api/v1
+```
+
+It checks the response envelope and `X-Trace-Id` header, login/refresh/logout
+rotation, forced password change, all user/role/group/permission CRUD paths,
+validation and conflict codes, permission enforcement, sorting/filtering,
+operation logs and CORS. One run currently performs 327 assertions.
+
+## `run-contract.mjs`
+
+Starts one or more built stacks on SQLite and runs `contract-test.mjs` against
+each fresh database:
+
+```bash
+node scripts/ci/run-contract.mjs            # all six stacks
+node scripts/ci/run-contract.mjs spring go  # selected stacks
+```
+
+The stack binaries must already be built. The script seeds SQLite with
+`python3`, starts the server on `CONTRACT_PORT` (default `18080`), runs the
+suite, then stops the process. On Windows, set `JAVA_HOME` so the Spring jar runs
+with the JDK it was compiled against.

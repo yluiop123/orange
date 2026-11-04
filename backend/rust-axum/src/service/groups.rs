@@ -121,7 +121,7 @@ pub async fn edit(pool: &Db, id: &str, req: &EditGroupReq) -> Result<(), AppErro
             if group.status != "0" && value == "0" {
                 let all = group_repo::all(pool).await?;
                 if has_enabled_descendant(&all, &group.id, |node| node.status == "1") {
-                    return Err(AppError::business("请先禁用子组织"));
+                    return Err(AppError::conflict("请先禁用子组织"));
                 }
             }
             value.to_string()

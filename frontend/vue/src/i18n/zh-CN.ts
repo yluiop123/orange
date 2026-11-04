@@ -136,6 +136,8 @@ export default {
   'page.system.operationLog.header.traceId': 'Trace ID',
   'page.system.operationLog.header.from': '开始时间',
   'page.system.operationLog.header.to': '结束时间',
+  'page.system.operationLog.dateRange': '日期范围',
+  'page.system.operationLog.today': '今天',
   'page.system.operationLog.queryString': '查询参数',
   'page.system.operationLog.requestBody': '请求体',
   'page.title.user': '用户管理',

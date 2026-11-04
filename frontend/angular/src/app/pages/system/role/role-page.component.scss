@@ -1,49 +1,7 @@
-.filter {
-  width: 180px;
+.role-name {
+  width: 11rem;
 }
 
-.sort-button {
-  padding: 0 4px;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface, #1f2329);
-}
-
-.sort-button mat-icon {
-  font-size: 15px;
-  width: 15px;
-  height: 15px;
-  opacity: 0.55;
-}
-
-.select-cell {
-  width: 52px;
-}
-
-.actions-cell {
-  width: 64px;
-  text-align: right;
-}
-
-.nowrap {
-  white-space: nowrap;
-}
-
-.status-pill {
-  display: inline-flex;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: rgba(21, 128, 61, 0.12);
-  color: #15803d;
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-.status-pill.off {
-  background: rgba(185, 28, 28, 0.1);
-  color: #b91c1c;
-}
-
-.count-note {
-  margin: 10px 2px 0;
-  font-size: 0.78rem;
+.role-code {
+  width: 9rem;
 }

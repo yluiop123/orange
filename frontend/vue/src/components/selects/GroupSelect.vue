@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { listGroups } from '@/api/group'
 import type { Group } from '@/api/types'
 import { buildTree, allTreeIds, flattenTree } from '@/lib/tree'
@@ -11,12 +10,12 @@ withDefaults(
     disabled?: boolean
     clearable?: boolean
     label?: string
+    placeholder?: string
   }>(),
-  { modelValue: '', disabled: false, clearable: false, label: '' },
+  { modelValue: '', disabled: false, clearable: false, label: '', placeholder: '' },
 )
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
-const { t } = useI18n()
 const groups = ref<Group[]>([])
 const loading = ref(false)
 
@@ -47,7 +46,8 @@ onMounted(async () => {
     :items="items"
     item-title="title"
     item-value="value"
-    :label="label || t('page.system.user.header.groupName')"
+    :label="label || undefined"
+    :placeholder="placeholder"
     :disabled="disabled"
     :clearable="clearable"
     :loading="loading"

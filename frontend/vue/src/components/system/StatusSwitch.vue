@@ -44,12 +44,14 @@ async function commit(value: boolean) {
   }
 }
 
-function onChange(value: boolean | null) {
-  if (value) {
+function onChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.checked) {
     void commit(true)
     return
   }
-  // Keep the switch on until the user confirms disabling.
+  // Keep the switch visually on until the user confirms disabling.
+  input.checked = true
   confirmOpen.value = true
 }
 
@@ -61,16 +63,19 @@ function confirmDisable() {
 
 <template>
   <div class="status-switch">
-    <v-switch
-      :model-value="enabled"
-      color="success"
-      density="compact"
-      hide-details
-      inset
-      :disabled="disabled || pending"
-      :aria-label="t('table.toggleStatus')"
-      @update:model-value="onChange"
-    />
+    <label class="system-switch">
+      <input
+        class="system-switch__input"
+        type="checkbox"
+        :checked="enabled"
+        :disabled="disabled || pending"
+        :aria-label="t('table.toggleStatus')"
+        @change="onChange"
+      />
+      <span class="system-switch__track" aria-hidden="true">
+        <span class="system-switch__thumb" />
+      </span>
+    </label>
     <ConfirmDialog
       v-model="confirmOpen"
       :title="t('table.disableTitle')"

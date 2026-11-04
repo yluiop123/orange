@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -32,7 +31,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { collectTreeIds } from "./tree";
 
@@ -53,6 +52,8 @@ type ResourceTableProps<TData> = {
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  /** 页面筛选与操作区；与列显隐按钮放在同一行，避免额外占一行。 */
+  toolbar?: ReactNode;
 };
 
 function toggleTreeRow<TData>(
@@ -98,6 +99,7 @@ export function ResourceTable<TData>({
   loading = false,
   error = null,
   onRetry,
+  toolbar,
 }: ResourceTableProps<TData>) {
   const intl = useIntl();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -246,15 +248,18 @@ export function ResourceTable<TData>({
 
   useEffect(() => {
     if (!isClientPagination) return;
-    const maxPageIndex = Math.max(0, Math.ceil(data.length / size) - 1);
+    // 树形展开后行数会增加，夹紧页码必须基于展开后的可见行数。
+    const rowCount = tableRef.current.getPrePaginationRowModel().rows.length;
+    const maxPageIndex = Math.max(0, Math.ceil(rowCount / size) - 1);
     setPagination((previous) =>
       previous.pageIndex > maxPageIndex
         ? { ...previous, pageIndex: maxPageIndex }
         : previous,
     );
-  }, [data.length, size, isClientPagination]);
+  }, [data.length, size, isClientPagination, expanded]);
 
-  const pageTotal = paginationMode === "client" ? data.length : total;
+  const clientRowCount = table.getPrePaginationRowModel().rows.length;
+  const pageTotal = paginationMode === "client" ? clientRowCount : total;
   const totalPages = Math.max(1, Math.ceil(pageTotal / size));
   const displayPage = isClientPagination ? pagination.pageIndex + 1 : page;
   const selectedCount = table.getSelectedRowModel().flatRows.length;
@@ -285,17 +290,14 @@ export function ResourceTable<TData>({
   }
 
   return (
-    <div className="space-y-2">
-      {loading && (
-        <p className="px-1 text-sm text-muted-foreground">
-          {intl.formatMessage({ id: "table.loading" })}
-        </p>
-      )}
-
-      <div className="flex justify-end">
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+          {toolbar}
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="outline" size="sm" className="ml-auto" />}
+            render={<Button variant="outline" size="sm" />}
           >
             {intl.formatMessage({ id: "table.columns" })} <ChevronDown />
           </DropdownMenuTrigger>
@@ -317,9 +319,9 @@ export function ResourceTable<TData>({
         </DropdownMenu>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="min-h-0 flex-1 overflow-auto rounded-md border">
+        <table className="w-full caption-bottom text-sm">
+          <TableHeader className="sticky top-0 z-10 bg-background">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -362,18 +364,22 @@ export function ResourceTable<TData>({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </table>
       </div>
 
-      <div className="flex items-center justify-end space-x-2 py-2">
+      <div className="flex items-center justify-end gap-2 py-1">
         <div className="text-muted-foreground flex-1 text-sm">
-          {intl.formatMessage(
-            { id: "table.selectedCount" },
-            { selected: selectedCount, total },
-          )}
+          {loading
+            ? intl.formatMessage({ id: "table.loading" })
+            : intl.formatMessage(
+                { id: "table.selectedCount" },
+                { selected: selectedCount, total: pageTotal },
+              )}
         </div>
-        <div className="space-x-2">
-          {displayPage} / {totalPages}
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-sm">
+            {displayPage} / {totalPages}
+          </span>
           <Button
             variant="outline"
             size="sm"

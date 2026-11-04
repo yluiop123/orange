@@ -217,7 +217,7 @@ export default function User() {
     ]
 
     return (
-        <div className="w-full p-3">
+        <div className="flex h-[calc(100svh-4rem)] w-full flex-col p-3">
             <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
                 onSave={refetch} />
             <ConfirmDeleteDialog
@@ -240,40 +240,6 @@ export default function User() {
                 onConfirm={confirmReset}
             />
 
-            <div className="flex items-center py-3 gap-4">
-                <GroupTreeSelect
-                    className="w-60"
-                    value={params.groupId ?? ''}
-                    onChange={(node) => {
-                        updateParams({ groupId: node });
-                    }}
-                />
-                <Input
-                    placeholder={intl.formatMessage({ id: 'page.system.user.searchPlaceholder' })}
-                    value={params.keyword ?? ''}
-                    onChange={(event) =>
-                        updateParams({ keyword: event.target.value })
-                    }
-                    className="max-w-sm"
-                />
-                <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
-                <div className="ml-auto flex items-center gap-2">
-                    <ActionAuth action="add">
-                        <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
-                    </ActionAuth>
-                    <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => updateParams({}, true)} onCreated={(password, username) => setTempPassword({ password, username })} />
-                    <PasswordDialog
-                        open={!!tempPassword}
-                        onOpenChange={(open) => { if (!open) setTempPassword(null); }}
-                        password={tempPassword?.password ?? ""}
-                        username={tempPassword?.username}
-                    />
-                    <ActionAuth action="delete">
-                        <Button disabled={selectedRows.length === 0} onClick={() => requestDeleteSafe(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
-                    </ActionAuth>
-                </div>
-            </div>
-
             <ResourceTable
                 data={data.list}
                 columns={columns}
@@ -286,6 +252,41 @@ export default function User() {
                 loading={loading}
                 error={error}
                 onRetry={refetch}
+                toolbar={(
+                    <>
+                        <GroupTreeSelect
+                            className="w-60"
+                            value={params.groupId ?? ''}
+                            onChange={(node) => {
+                                updateParams({ groupId: node });
+                            }}
+                        />
+                        <Input
+                            placeholder={intl.formatMessage({ id: 'page.system.user.searchPlaceholder' })}
+                            value={params.keyword ?? ''}
+                            onChange={(event) =>
+                                updateParams({ keyword: event.target.value })
+                            }
+                            className="max-w-sm"
+                        />
+                        <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
+                        <div className="ml-auto flex items-center gap-2">
+                            <ActionAuth action="add">
+                                <Button onClick={() => setIsAddDialogOpen(true)}>{intl.formatMessage({ id: 'button.add' })}</Button>
+                            </ActionAuth>
+                            <AddDialog open={isAddDialogOpen} setOpen={setIsAddDialogOpen} onSave={() => updateParams({}, true)} onCreated={(password, username) => setTempPassword({ password, username })} />
+                            <PasswordDialog
+                                open={!!tempPassword}
+                                onOpenChange={(open) => { if (!open) setTempPassword(null); }}
+                                password={tempPassword?.password ?? ""}
+                                username={tempPassword?.username}
+                            />
+                            <ActionAuth action="delete">
+                                <Button disabled={selectedRows.length === 0} onClick={() => requestDeleteSafe(selectedRows)}>{intl.formatMessage({ id: 'button.delete' })}</Button>
+                            </ActionAuth>
+                        </div>
+                    </>
+                )}
             />
         </div>
     )

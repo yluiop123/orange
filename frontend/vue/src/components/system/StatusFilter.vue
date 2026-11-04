@@ -7,7 +7,7 @@ const props = withDefaults(
     modelValue: string
     width?: number
   }>(),
-  { width: 150 },
+  { width: 112 },
 )
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()

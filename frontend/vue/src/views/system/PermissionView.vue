@@ -3,16 +3,14 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as permissionApi from '@/api/permission'
 import type { Permission, PermissionQuery, PermissionTypeValue } from '@/api/types'
-import { usePageTitle } from '@/composables/usePageTitle'
 import { useResourcePage } from '@/composables/useResourcePage'
 import { useAccess } from '@/composables/useAccess'
 import { useUiStore } from '@/stores/ui'
 import { formatDateTime } from '@/lib/date-time'
-import { allTreeIds, collectTreeIds, flattenTree, type FlatTreeRow } from '@/lib/tree'
+import { collectTreeIds, flattenTree, type FlatTreeRow } from '@/lib/tree'
 import { permissionActionRule, permissionPathRule, treeCodeRule } from '@/lib/validation'
 import type { FormField } from '@/components/form-types'
 import type { RowMeta, TableColumn } from '@/components/system/resource-table-types'
-import PageHeader from '@/components/PageHeader.vue'
 import ActionAuth from '@/components/ActionAuth.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import FormDialog from '@/components/FormDialog.vue'
@@ -24,7 +22,6 @@ type PermissionNode = Permission & { subRows?: PermissionNode[] }
 type PermissionParams = PermissionQuery & { page: number; size: number }
 
 const { t } = useI18n()
-const title = usePageTitle('page.title.permission')
 const ui = useUiStore()
 const { canAct } = useAccess()
 const currentPath = '/system/permission'
@@ -39,10 +36,6 @@ const filterTypeOptions = computed(() => [
   { title: t('dict.status.all'), value: 'all' },
   ...typeOptions.value,
 ])
-
-function typeLabel(type?: string) {
-  return type ? t(`dict.permissionType.${type}`) : ''
-}
 
 const {
   params,
@@ -92,18 +85,6 @@ const {
 })
 
 const expanded = ref<Set<string>>(new Set())
-const initialized = ref(false)
-
-watch(
-  list,
-  () => {
-    if (!initialized.value && list.value.length > 0) {
-      expanded.value = new Set(allTreeIds(list.value as PermissionNode[]))
-      initialized.value = true
-    }
-  },
-  { immediate: true },
-)
 
 const flatRows = computed(() => flattenTree(list.value as PermissionNode[], expanded.value))
 const pageRows = computed(() =>
@@ -132,22 +113,22 @@ function toggleExpand(item: FlatTreeRow<PermissionNode>) {
   expanded.value = next
 }
 
-function expandAll() {
-  expanded.value = new Set(allTreeIds(list.value as PermissionNode[]))
-}
-
-function collapseAll() {
-  expanded.value = new Set()
-}
+watch(
+  () => [flatRows.value.length, params.value.size],
+  () => {
+    const maxPage = Math.max(1, Math.ceil(flatRows.value.length / params.value.size))
+    if (params.value.page > maxPage) setPage(maxPage)
+  },
+)
 
 const columns = computed<TableColumn[]>(() => [
-  { key: 'name', title: t('page.system.permission.header.name') },
-  { key: 'id', title: t('page.system.permission.header.id'), width: '130px' },
+  { key: 'name', title: t('page.system.permission.header.name'), fixed: true },
+  { key: 'id', title: t('page.system.permission.header.id') },
   { key: 'path', title: t('page.system.permission.header.path') },
-  { key: 'type', title: t('page.system.permission.header.type'), width: '100px' },
-  { key: 'action', title: t('page.system.permission.header.action'), width: '100px' },
-  { key: 'status', title: t('page.system.permission.header.status'), width: '100px' },
-  { key: 'createTime', title: t('page.system.permission.header.createTime'), width: '165px' },
+  { key: 'type', title: t('page.system.permission.header.type') },
+  { key: 'action', title: t('page.system.permission.header.action') },
+  { key: 'status', title: t('page.system.permission.header.status') },
+  { key: 'createTime', title: t('page.system.permission.header.createTime') },
 ])
 
 const addOpen = ref(false)
@@ -309,160 +290,151 @@ watch(params, () => {
 </script>
 
 <template>
-  <div class="demo-page">
-    <PageHeader :title="title" :subtitle="t('page.system.subtitle')" />
-
-    <v-card class="filter-card">
-      <div class="filters">
+  <div class="system-page">
+    <ResourceTable
+      :rows="pageRows.map((item) => item.row)"
+      :columns="columns"
+      :row-key="(row) => row.id"
+      :total="flatRows.length"
+      :page="params.page"
+      :size="params.size"
+      :loading="loading"
+      :error="error"
+      selectable
+      :selection="selectedRows.map((row) => row.id)"
+      :row-meta="rowMeta"
+      :descendant-ids="descendantIds"
+      @update:page="setPage"
+      @update:selection="onSelection"
+      @retry="refetch"
+    >
+      <template #toolbar>
+        <label class="system-label" for="permission-filter-name">
+          {{ t('page.system.permission.header.name') }}
+        </label>
         <v-text-field
+          id="permission-filter-name"
           :model-value="params.name ?? ''"
-          :label="t('page.system.permission.header.name')"
           density="compact"
           variant="outlined"
           hide-details
-          clearable
-          class="filter-input"
+          class="system-input--md"
           @update:model-value="(value) => updateParams({ name: value ?? '' })"
         />
+        <label class="system-label" for="permission-filter-id">
+          {{ t('page.system.permission.header.id') }}
+        </label>
         <v-text-field
+          id="permission-filter-id"
           :model-value="params.id ?? ''"
-          :label="t('page.system.permission.header.id')"
           density="compact"
           variant="outlined"
           hide-details
-          clearable
-          class="filter-input filter-input--sm"
+          class="system-input--sm"
           @update:model-value="(value) => updateParams({ id: value ?? '' })"
         />
+        <label class="system-label" for="permission-filter-path">
+          {{ t('page.system.permission.header.path') }}
+        </label>
         <v-text-field
+          id="permission-filter-path"
           :model-value="params.path ?? ''"
-          :label="t('page.system.permission.header.path')"
           density="compact"
           variant="outlined"
           hide-details
-          clearable
-          class="filter-input"
+          class="system-input--md"
           @update:model-value="(value) => updateParams({ path: value ?? '' })"
         />
+        <label class="system-label">{{ t('page.system.permission.header.type') }}</label>
         <v-select
           :model-value="params.type ?? 'all'"
           :items="filterTypeOptions"
-          :label="t('page.system.permission.header.type')"
           density="compact"
           variant="outlined"
           hide-details
-          style="width: 150px"
+          class="system-input--sm"
           @update:model-value="(value) => updateParams({ type: value || 'all' })"
         />
+        <label class="system-label">{{ t('page.system.permission.header.status') }}</label>
         <StatusFilter
           :model-value="params.status ?? 'all'"
           @update:model-value="(value) => updateParams({ status: value })"
         />
-        <v-btn variant="text" prepend-icon="mdi-unfold-more-horizontal" @click="expandAll">
-          {{ t('button.expandAll') }}
-        </v-btn>
-        <v-btn variant="text" prepend-icon="mdi-unfold-less-horizontal" @click="collapseAll">
-          {{ t('button.collapseAll') }}
-        </v-btn>
-        <v-spacer />
-        <ActionAuth action="add">
-          <v-btn color="primary" prepend-icon="mdi-plus" @click="openAddChild(null)">
-            {{ t('button.add') }}
-          </v-btn>
-        </ActionAuth>
-        <ActionAuth action="delete">
-          <v-btn
-            variant="outlined"
-            color="error"
-            prepend-icon="mdi-delete-outline"
-            :disabled="selectedRows.length === 0"
-            @click="requestDelete(selectedRows)"
-          >
-            {{ t('button.delete') }}
-          </v-btn>
-        </ActionAuth>
-      </div>
-    </v-card>
+        <div class="system-toolbar__actions">
+          <ActionAuth action="add">
+            <v-btn variant="flat" color="primary" @click="openAddChild(null)">
+              {{ t('button.add') }}
+            </v-btn>
+          </ActionAuth>
+          <ActionAuth action="delete">
+            <v-btn
+              variant="flat"
+              color="primary"
+              :disabled="selectedRows.length === 0"
+              @click="requestDelete(selectedRows)"
+            >
+              {{ t('button.delete') }}
+            </v-btn>
+          </ActionAuth>
+        </div>
+      </template>
 
-    <v-card>
-      <ResourceTable
-        :rows="pageRows.map((item) => item.row)"
-        :columns="columns"
-        :row-key="(row) => row.id"
-        :total="flatRows.length"
-        :page="params.page"
-        :size="params.size"
-        :loading="loading"
-        :error="error"
-        selectable
-        :selection="selectedRows.map((row) => row.id)"
-        :row-meta="rowMeta"
-        :descendant-ids="descendantIds"
-        @update:page="setPage"
-        @update:size="(size) => updateParams({ size }, true)"
-        @update:selection="onSelection"
-        @retry="refetch"
-      >
-        <template #cell-id="{ value }">
-          <code class="mono">{{ value }}</code>
-        </template>
-        <template #cell-path="{ value }">
-          <code class="mono">{{ value }}</code>
-        </template>
-        <template #cell-type="{ value }">
-          <v-chip size="small" variant="tonal" color="primary">{{ typeLabel(value as string) }}</v-chip>
-        </template>
-        <template #cell-action="{ value }">
-          <code v-if="value" class="mono">{{ value }}</code>
-          <span v-else>—</span>
-        </template>
-        <template #cell-createTime="{ value }">
-          <span class="text-no-wrap">{{ formatDateTime(value as string) }}</span>
-        </template>
-        <template #cell-status="{ row }">
-          <StatusSwitch
-            v-if="canAct(currentPath, 'edit')"
-            :initial="row.status ?? '1'"
-            :subject-name="row.name"
-            :submit="(status) => handleStatusChange(row, status)"
-          />
-          <v-chip v-else size="small" :color="row.status === '1' ? 'success' : 'default'" variant="tonal">
-            {{ row.status === '1' ? t('dict.status.enabled') : t('dict.status.disabled') }}
-          </v-chip>
-        </template>
-        <template #actions="{ row }">
-          <v-menu
-            v-if="canAct(currentPath, 'add') || canAct(currentPath, 'edit')"
-            location="bottom end"
-          >
-            <template #activator="{ props: activatorProps }">
-              <v-btn
-                v-bind="activatorProps"
-                icon
-                size="small"
-                variant="text"
-                :aria-label="t('table.openMenu')"
-              >
-                <v-icon>mdi-dots-horizontal</v-icon>
-              </v-btn>
-            </template>
-            <v-list density="compact" min-width="180">
-              <v-list-subheader>{{ t('table.actions') }}</v-list-subheader>
-              <ActionAuth v-if="row.type !== 'action'" action="add">
-                <v-list-item
-                  prepend-icon="mdi-plus-box-outline"
-                  :title="t('button.addChild')"
-                  @click="openAddChild(row)"
-                />
-              </ActionAuth>
-              <ActionAuth action="edit">
-                <v-list-item prepend-icon="mdi-pencil-outline" :title="t('button.edit')" @click="openEdit(row)" />
-              </ActionAuth>
-            </v-list>
-          </v-menu>
-        </template>
-      </ResourceTable>
-    </v-card>
+      <template #cell-id="{ value }">
+        <span>{{ value }}</span>
+      </template>
+      <template #cell-path="{ value }">
+        <span>{{ value }}</span>
+      </template>
+      <template #cell-type="{ value }">
+        <span>{{ value }}</span>
+      </template>
+      <template #cell-action="{ value }">
+        <span>{{ value || '' }}</span>
+      </template>
+      <template #cell-createTime="{ value }">
+        <span>{{ formatDateTime(value as string) }}</span>
+      </template>
+      <template #cell-status="{ row }">
+        <StatusSwitch
+          v-if="canAct(currentPath, 'edit')"
+          :initial="row.status ?? '1'"
+          :subject-name="row.name"
+          :submit="(status) => handleStatusChange(row, status)"
+        />
+        <span v-else class="system-cell--muted">
+          {{ row.status === '1' ? t('dict.status.enabled') : t('dict.status.disabled') }}
+        </span>
+      </template>
+      <template #actions="{ row }">
+        <v-menu
+          v-if="canAct(currentPath, 'add') || canAct(currentPath, 'edit')"
+          location="bottom end"
+        >
+          <template #activator="{ props: activatorProps }">
+            <v-btn
+              v-bind="activatorProps"
+              icon
+              size="small"
+              variant="text"
+              class="system-row-action"
+              :aria-label="t('table.openMenu')"
+            >
+              <v-icon icon="mdi-dots-horizontal" />
+            </v-btn>
+          </template>
+          <v-list density="compact" class="system-column-menu">
+            <v-list-subheader>{{ t('table.actions') }}</v-list-subheader>
+            <v-divider />
+            <ActionAuth v-if="row.type !== 'action'" action="add">
+              <v-list-item :title="t('button.addChild')" @click="openAddChild(row)" />
+            </ActionAuth>
+            <ActionAuth action="edit">
+              <v-list-item :title="t('button.edit')" @click="openEdit(row)" />
+            </ActionAuth>
+          </v-list>
+        </v-menu>
+      </template>
+    </ResourceTable>
 
     <FormDialog
       v-model="addOpen"
@@ -489,26 +461,3 @@ watch(params, () => {
     />
   </div>
 </template>
-
-<style scoped>
-.filter-card {
-  padding: 12px;
-}
-
-.filters {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.filter-input {
-  max-width: 220px;
-  min-width: 160px;
-}
-
-.filter-input--sm {
-  max-width: 150px;
-  min-width: 130px;
-}
-</style>

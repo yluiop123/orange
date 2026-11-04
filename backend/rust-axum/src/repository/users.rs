@@ -126,8 +126,8 @@ macro_rules! users_repository {
                     let email = D.placeholder(binds.len() + 3);
                     let phone = D.placeholder(binds.len() + 4);
                     clause.push_str(&format!(
-                        " AND (lower({}) LIKE {name} OR lower(username) LIKE {username} \
-                         OR lower(email) LIKE {email} OR lower(phone) LIKE {phone})",
+                        " AND (lower({}) LIKE {name} ESCAPE '\\' OR lower(username) LIKE {username} ESCAPE '\\' \
+                         OR lower(email) LIKE {email} ESCAPE '\\' OR lower(phone) LIKE {phone} ESCAPE '\\')",
                         D.quote("name")
                     ));
                     for _ in 0..4 {
@@ -143,7 +143,7 @@ macro_rules! users_repository {
                 }
                 if let Some(group_id) = &params.group_id {
                     clause.push_str(&format!(
-                        " AND lower(group_id) LIKE {}",
+                        " AND lower(group_id) LIKE {} ESCAPE '\\'",
                         D.placeholder(binds.len() + 1)
                     ));
                     binds.push(Some(group_id.clone()));

@@ -97,6 +97,8 @@ export default {
     'page.system.operationLog.header.traceId':'Trace ID',
     'page.system.operationLog.header.from':'From',
     'page.system.operationLog.header.to':'To',
+    'page.system.operationLog.dateRange':'Time range',
+    'page.system.operationLog.today':'Today',
     'page.system.operationLog.queryString':'Query String',
     'page.system.operationLog.requestBody':'Request Body',
     'button.refresh':'Refresh',

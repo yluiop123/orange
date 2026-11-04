@@ -1,16 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DestroyRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../core/auth.service';
 import { formatDateTime } from '../../../core/date-time';
 import { I18nService } from '../../../core/i18n.service';
@@ -18,7 +13,6 @@ import { ListController } from '../../../core/list-controller';
 import { NotificationService } from '../../../core/notification.service';
 import { SystemApi } from '../../../core/system-api.service';
 import { TranslatePipe } from '../../../core/translate.pipe';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 import { StatusFilterComponent } from '../../../shared/system/status-filter.component';
 import { StatusToggleComponent } from '../../../shared/system/status-toggle.component';
 import { GroupSelectComponent } from '../../../shared/system/group-select.component';
@@ -35,13 +29,7 @@ import type { User } from '../../../core/models';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
-    MatTooltipModule,
     TranslatePipe,
-    PageHeaderComponent,
     StatusFilterComponent,
     StatusToggleComponent,
     GroupSelectComponent,
@@ -59,8 +47,23 @@ export class UserPageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly formatDateTime = formatDateTime;
-  readonly columns = ['select', 'name', 'username', 'email', 'phone', 'groupName', 'createTime', 'status', 'actions'];
   readonly path = '/system/user';
+
+  readonly columnDefs = [
+    { key: 'name', labelKey: 'page.system.user.header.name', hideable: false },
+    { key: 'username', labelKey: 'page.system.user.header.userName', hideable: true },
+    { key: 'email', labelKey: 'page.system.user.header.email', hideable: true },
+    { key: 'phone', labelKey: 'page.system.user.header.phone', hideable: true },
+    { key: 'groupName', labelKey: 'page.system.user.header.groupName', hideable: true },
+    { key: 'createTime', labelKey: 'page.system.user.header.createTime', hideable: true },
+    { key: 'status', labelKey: 'page.system.user.header.status', hideable: true },
+  ];
+  readonly hiddenColumns = signal<ReadonlySet<string>>(new Set<string>());
+  readonly visibleColumns = computed(() => [
+    'select',
+    ...this.columnDefs.filter((column) => !this.hiddenColumns().has(column.key)).map((column) => column.key),
+    'actions',
+  ]);
 
   readonly lists = new ListController<User>(
     (params) =>
@@ -90,6 +93,10 @@ export class UserPageComponent {
   readonly someSelected = computed(
     () => this.lists.selected().size > 0 && !this.allSelected(),
   );
+  readonly selectedCount = computed(() => this.lists.selected().size);
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.lists.total() / this.size())),
+  );
 
   isSelf(user: User): boolean {
     return !!this.auth.user()?.username && user.username === this.auth.user()?.username;
@@ -111,12 +118,23 @@ export class UserPageComponent {
     this.lists.toggleAll(this.pageIds(), event.checked);
   }
 
-  onPage(event: PageEvent): void {
-    if (event.pageSize !== this.size()) {
-      this.lists.setSize(event.pageSize);
-    } else {
-      this.lists.setPage(event.pageIndex + 1);
-    }
+  isColumnHidden(key: string): boolean {
+    return this.hiddenColumns().has(key);
+  }
+
+  toggleColumn(key: string): void {
+    const next = new Set(this.hiddenColumns());
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this.hiddenColumns.set(next);
+  }
+
+  previousPage(): void {
+    if (this.page() > 1) this.lists.setPage(this.page() - 1);
+  }
+
+  nextPage(): void {
+    if (this.page() < this.totalPages()) this.lists.setPage(this.page() + 1);
   }
 
   sortByName(): void {

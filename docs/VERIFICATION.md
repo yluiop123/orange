@@ -52,6 +52,36 @@ on PostgreSQL, MySQL, MariaDB and SQLite: 7 groups, 48 permissions, 67 role gran
 - `ControllerAuthorityCoverageTest` keeps `@PreAuthorize` authorities aligned with `permissions.json`.
 - Every frontend keeps the access token in memory and restores the session through the HttpOnly refresh cookie.
 
+### 3.1 Cross-stack contract acceptance
+
+`scripts/ci/contract-test.mjs` exercises the complete documented API against a
+fresh SQLite database. One run performs **327 assertions** per backend.
+
+| Backend | Result | Notable checks |
+| --- | --- | --- |
+| Spring Boot | 327/327 | envelope + `X-Trace-Id` header, refresh rotation, forced password change, all CRUD, RBAC, logs, CORS |
+| Go | 327/327 | same suite |
+| NestJS | 327/327 | same suite |
+| C# | 327/327 | same suite |
+| Rust | 327/327 | same suite |
+| FastAPI | 327/327 | same suite |
+
+Run all six with `node scripts/ci/run-contract.mjs` (uses port `18080` and a
+throwaway SQLite file per stack). The CI `backend` matrix runs the same script on
+pushes.
+
+Inconsistencies found and fixed by this suite:
+
+- Go, NestJS, Rust and Spring Boot returned `40001` for request-body validation;
+  they now return `40002` like FastAPI and C#.
+- Spring Boot returned the trace id only in the body and as `X-Request-Id`; it
+  now also returns the documented `X-Trace-Id` header and puts the trace id in
+  success envelopes.
+- Vue, NestJS, C# and Spring Boot returned `40002` when disabling a group with
+  enabled children; all six now return `40901` (conflict), matching the mock API.
+- Rust LIKE filters did not declare `ESCAPE '\'`, so usernames and role codes
+  containing `_` were invisible to `keyword`/`id` filters on SQLite/PostgreSQL.
+
 ## 4. CI and deployment
 
 `.github/workflows/main.yml` runs on pushes and pull requests to `main`:
@@ -59,7 +89,8 @@ on PostgreSQL, MySQL, MariaDB and SQLite: 7 groups, 48 permissions, 67 role gran
 - `frontend-react`, `frontend-angular`, `frontend-vue`: lint, type-check, test, build.
 - `backend` matrix (`spring`, `go`, `nest`, `csharp`, `rust`, `fastapi`): each stack's
   tests and build, then — on push — an HTTP smoke against PostgreSQL, MySQL, MariaDB
-  and SQLite using `scripts/ci/run-db-matrix.mjs`.
+  and SQLite using `scripts/ci/run-db-matrix.mjs`, followed by the full contract
+  acceptance suite on SQLite (`scripts/ci/run-contract.mjs`).
 - Pull requests skip the four-engine matrix to keep feedback fast; unit tests still run.
 - Only `frontend/react/dist` is uploaded to GitHub Pages, after the React job passes.
 
@@ -110,7 +141,34 @@ Defects found and fixed by this run:
 - Spring Boot's CORS default allowed only `localhost:5173`; it now matches the
   other stacks and allows 5173, 5174 and 4200.
 
-## 7. Known unverified items
+## 7. UI parity
+
+The React implementation is the visual baseline. All three frontends now use the
+same system-page shell:
+
+- no page title or filter card; one toolbar row with filters, actions and the
+  column-visibility menu;
+- page height locked below the 4rem header, so only the table body scrolls;
+- one bordered table with a sticky 40px header, 40px rows and plain text cells;
+- footer with selected count on the left and `page / totalPages` plus
+  previous/next on the right;
+- compact status switch (32×18), 8px control radius and 14px table text.
+
+React-specific fixes:
+
+- user/permission/group/role pages no longer scroll their toolbars;
+- the column selector moved into the toolbar row;
+- permission/group pagination counts expanded tree rows, so expanding a node can
+  create additional pages;
+- operation logs use one paired date-time range control, defaulting to today
+  00:00–23:59.
+
+Vue and Angular column sets, status rendering and footer now match React. Known
+remaining shell differences: the sidebar brand block, top-right role/language/user
+controls and brand accent are framework-specific; Angular uses a single-month
+Material range calendar instead of React's two-month calendar.
+
+## 8. Known unverified items
 
 - openGauss, OceanBase and GoldenDB were not started; their scripts need a smoke test on the target version.
 - The Rust project has no committed database integration test, only a reproducible smoke script (`backend/rust-axum/scripts/smoke-databases.ps1`).
@@ -121,7 +179,7 @@ Defects found and fixed by this run:
   Go+SQLite. The remaining backend/database combinations are covered by the
   per-stack HTTP smoke tests and the CI database matrix, not by a browser run.
 
-## 8. Re-running
+## 9. Re-running
 
 ```bash
 # Java

@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as userApi from '@/api/user'
 import type { User, UserPayload, UserQuery } from '@/api/types'
-import { usePageTitle } from '@/composables/usePageTitle'
 import { useResourcePage } from '@/composables/useResourcePage'
 import { useAccess } from '@/composables/useAccess'
 import { useAuthStore } from '@/stores/auth'
@@ -12,7 +11,6 @@ import { formatDateTime } from '@/lib/date-time'
 import type { FormField } from '@/components/form-types'
 import type { SortState, TableColumn } from '@/components/system/resource-table-types'
 import { emailRule, nameRule, phoneRule, requiredRule, usernameRule } from '@/lib/validation'
-import PageHeader from '@/components/PageHeader.vue'
 import ActionAuth from '@/components/ActionAuth.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import FormDialog from '@/components/FormDialog.vue'
@@ -23,7 +21,6 @@ import StatusFilter from '@/components/system/StatusFilter.vue'
 import StatusSwitch from '@/components/system/StatusSwitch.vue'
 
 const { t } = useI18n()
-const title = usePageTitle('page.title.user')
 const auth = useAuthStore()
 const ui = useUiStore()
 const { canAct } = useAccess()
@@ -59,13 +56,13 @@ const {
 })
 
 const columns = computed<TableColumn[]>(() => [
-  { key: 'name', title: t('page.system.user.header.name'), sortable: true },
+  { key: 'name', title: t('page.system.user.header.name'), sortable: true, fixed: true },
   { key: 'username', title: t('page.system.user.header.userName') },
   { key: 'email', title: t('page.system.user.header.email') },
   { key: 'phone', title: t('page.system.user.header.phone') },
   { key: 'groupName', title: t('page.system.user.header.groupName') },
-  { key: 'createTime', title: t('page.system.user.header.createTime'), width: '170px' },
-  { key: 'status', title: t('page.system.user.header.status'), width: '110px' },
+  { key: 'createTime', title: t('page.system.user.header.createTime') },
+  { key: 'status', title: t('page.system.user.header.status') },
 ])
 
 const addOpen = ref(false)
@@ -197,134 +194,114 @@ function onSort(sort: SortState) {
 </script>
 
 <template>
-  <div class="demo-page">
-    <PageHeader :title="title" :subtitle="t('page.system.subtitle')" />
-
-    <v-card class="filter-card">
-      <div class="filters">
+  <div class="system-page">
+    <ResourceTable
+      :rows="list"
+      :columns="columns"
+      :row-key="(row) => row.id"
+      :total="total"
+      :page="params.page"
+      :size="params.size"
+      :loading="loading"
+      :error="error"
+      selectable
+      :selection="selectedRows.map((row) => row.id)"
+      :sort-key="params.sort"
+      :sort-direction="params.direction"
+      @update:page="setPage"
+      @update:selection="onSelection"
+      @update:sort="onSort"
+      @retry="refetch"
+    >
+      <template #toolbar>
         <GroupSelect
           :model-value="params.groupId ?? ''"
-          clearable
-          class="group-filter"
-          :label="t('page.system.user.header.groupName')"
+          class="system-group-select"
           @update:model-value="(value) => updateParams({ groupId: value })"
         />
         <v-text-field
           :model-value="params.keyword ?? ''"
           :placeholder="t('page.system.user.searchPlaceholder')"
-          prepend-inner-icon="mdi-magnify"
           density="compact"
           variant="outlined"
           hide-details
-          clearable
-          class="keyword-filter"
+          class="system-input--search"
           @update:model-value="(value) => updateParams({ keyword: value ?? '' })"
         />
         <StatusFilter
           :model-value="params.status ?? 'all'"
           @update:model-value="(value) => updateParams({ status: value })"
         />
-        <v-spacer />
-        <ActionAuth action="add">
-          <v-btn color="primary" prepend-icon="mdi-plus" @click="addOpen = true">
-            {{ t('button.add') }}
-          </v-btn>
-        </ActionAuth>
-        <ActionAuth action="delete">
-          <v-btn
-            variant="outlined"
-            color="error"
-            prepend-icon="mdi-delete-outline"
-            :disabled="selectedRows.length === 0"
-            @click="requestDeleteSafe(selectedRows)"
-          >
-            {{ t('button.delete') }}
-          </v-btn>
-        </ActionAuth>
-      </div>
-    </v-card>
+        <div class="system-toolbar__actions">
+          <ActionAuth action="add">
+            <v-btn variant="flat" color="primary" @click="addOpen = true">
+              {{ t('button.add') }}
+            </v-btn>
+          </ActionAuth>
+          <ActionAuth action="delete">
+            <v-btn
+              variant="flat"
+              color="primary"
+              :disabled="selectedRows.length === 0"
+              @click="requestDeleteSafe(selectedRows)"
+            >
+              {{ t('button.delete') }}
+            </v-btn>
+          </ActionAuth>
+        </div>
+      </template>
 
-    <v-card>
-      <ResourceTable
-        :rows="list"
-        :columns="columns"
-        :row-key="(row) => row.id"
-        :total="total"
-        :page="params.page"
-        :size="params.size"
-        :loading="loading"
-        :error="error"
-        selectable
-        :selection="selectedRows.map((row) => row.id)"
-        :sort-key="params.sort"
-        :sort-direction="params.direction"
-        @update:page="setPage"
-        @update:size="(size) => updateParams({ size }, true)"
-        @update:selection="onSelection"
-        @update:sort="onSort"
-        @retry="refetch"
-      >
-        <template #cell-name="{ row }">
-          <div class="name-cell">
-            <v-avatar size="28" color="primary" variant="tonal">
-              <span class="text-caption">{{ row.name.slice(0, 1) }}</span>
-            </v-avatar>
-            <span>{{ row.name }}</span>
-          </div>
-        </template>
-        <template #cell-createTime="{ value }">
-          <span class="text-no-wrap">{{ formatDateTime(value as string) }}</span>
-        </template>
-        <template #cell-status="{ row }">
-          <StatusSwitch
-            v-if="canAct(currentPath, 'edit')"
-            :initial="row.status"
-            :disabled="isSelf(row)"
-            :subject-name="row.username"
-            :submit="(status) => handleStatusChange(row, status)"
-          />
-          <v-chip v-else size="small" :color="row.status === '1' ? 'success' : 'default'" variant="tonal">
-            {{ row.status === '1' ? t('dict.status.enabled') : t('dict.status.disabled') }}
-          </v-chip>
-        </template>
-        <template #actions="{ row }">
-          <v-menu v-if="canAct(currentPath, 'edit') || canAct(currentPath, 'delete')" location="bottom end">
-            <template #activator="{ props: activatorProps }">
-              <v-btn
-                v-bind="activatorProps"
-                icon
-                size="small"
-                variant="text"
-                :aria-label="t('table.openMenu')"
-              >
-                <v-icon>mdi-dots-horizontal</v-icon>
-              </v-btn>
-            </template>
-            <v-list density="compact" min-width="180">
-              <v-list-subheader>{{ t('table.actions') }}</v-list-subheader>
-              <ActionAuth action="edit">
-                <v-list-item prepend-icon="mdi-pencil-outline" :title="t('button.edit')" @click="openEdit(row)" />
-              </ActionAuth>
-              <ActionAuth action="edit">
-                <v-list-item
-                  prepend-icon="mdi-lock-reset"
-                  :title="t('button.reset.password')"
-                  @click="confirmResetPrompt(row)"
-                />
-              </ActionAuth>
-              <ActionAuth v-if="!isSelf(row)" action="delete">
-                <v-list-item
-                  prepend-icon="mdi-delete-outline"
-                  :title="t('button.delete')"
-                  base-color="error"
-                  @click="requestDeleteSafe([row])"
-                />
-              </ActionAuth>
-            </v-list>
-          </v-menu>
-        </template>
-      </ResourceTable>
-    </v-card>
+      <template #cell-createTime="{ value }">
+        <span>{{ formatDateTime(value as string) }}</span>
+      </template>
+      <template #cell-status="{ row }">
+        <StatusSwitch
+          v-if="canAct(currentPath, 'edit')"
+          :initial="row.status"
+          :disabled="isSelf(row)"
+          :subject-name="row.username"
+          :submit="(status) => handleStatusChange(row, status)"
+        />
+        <span v-else class="system-cell--muted">
+          {{ row.status === '1' ? t('dict.status.enabled') : t('dict.status.disabled') }}
+        </span>
+      </template>
+      <template #actions="{ row }">
+        <v-menu
+          v-if="canAct(currentPath, 'edit') || canAct(currentPath, 'delete')"
+          location="bottom end"
+        >
+          <template #activator="{ props: activatorProps }">
+            <v-btn
+              v-bind="activatorProps"
+              icon
+              size="small"
+              variant="text"
+              class="system-row-action"
+              :aria-label="t('table.openMenu')"
+            >
+              <v-icon icon="mdi-dots-horizontal" />
+            </v-btn>
+          </template>
+          <v-list density="compact" class="system-column-menu">
+            <v-list-subheader>{{ t('table.actions') }}</v-list-subheader>
+            <v-divider />
+            <ActionAuth action="edit">
+              <v-list-item :title="t('button.edit')" @click="openEdit(row)" />
+            </ActionAuth>
+            <ActionAuth action="edit">
+              <v-list-item
+                :title="t('button.reset.password')"
+                @click="confirmResetPrompt(row)"
+              />
+            </ActionAuth>
+            <ActionAuth v-if="!isSelf(row)" action="delete">
+              <v-list-item :title="t('button.delete')" @click="requestDeleteSafe([row])" />
+            </ActionAuth>
+          </v-list>
+        </v-menu>
+      </template>
+    </ResourceTable>
 
     <FormDialog
       v-model="addOpen"
@@ -364,31 +341,3 @@ function onSort(sort: SortState) {
     />
   </div>
 </template>
-
-<style scoped>
-.filter-card {
-  padding: 12px;
-}
-
-.filters {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.group-filter {
-  width: 230px;
-}
-
-.keyword-filter {
-  max-width: 320px;
-  min-width: 220px;
-}
-
-.name-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-</style>

@@ -236,6 +236,10 @@ jobs:
         if: github.event_name != 'pull_request'
         run: node scripts/ci/run-db-matrix.mjs ${{ matrix.stack }}
 
+      - name: Contract acceptance (SQLite)
+        if: github.event_name != 'pull_request'
+        run: node scripts/ci/run-contract.mjs ${{ matrix.stack }}
+
   deploy:
     if: github.event_name == 'push'
     needs: frontend-react

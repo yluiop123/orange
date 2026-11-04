@@ -27,13 +27,13 @@ public class Response<T> {
 
     public static <T> Response<T> ok(T data) {
         if (data instanceof String) {
-            return new Response<>(SUCCESS.getCode(), (String) data, data, System.currentTimeMillis(), null);
+            return new Response<>(SUCCESS.getCode(), (String) data, data, System.currentTimeMillis(), newTraceId());
         }
-        return new Response<>(SUCCESS.getCode(), "", data, System.currentTimeMillis(), null);
+        return new Response<>(SUCCESS.getCode(), "", data, System.currentTimeMillis(), newTraceId());
     }
 
     public static <T> Response<T> ok(String message, T data) {
-        return new Response<>(SUCCESS.getCode(), message, data, System.currentTimeMillis(), null);
+        return new Response<>(SUCCESS.getCode(), message, data, System.currentTimeMillis(), newTraceId());
     }
 
     public static <T> Response<T> error(int code, String message) {

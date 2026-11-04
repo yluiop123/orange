@@ -71,7 +71,7 @@ async function logout() {
 </script>
 
 <template>
-  <v-app-bar flat height="48" class="app-header">
+  <v-app-bar flat height="64" class="app-header">
     <v-app-bar-nav-icon
       :aria-label="ui.sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')"
       @click="ui.toggleSidebar()"

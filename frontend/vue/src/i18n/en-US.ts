@@ -136,6 +136,8 @@ export default {
   'page.system.operationLog.header.traceId': 'Trace ID',
   'page.system.operationLog.header.from': 'From',
   'page.system.operationLog.header.to': 'To',
+  'page.system.operationLog.dateRange': 'Date range',
+  'page.system.operationLog.today': 'Today',
   'page.system.operationLog.queryString': 'Query string',
   'page.system.operationLog.requestBody': 'Request body',
   'page.title.user': 'Users',

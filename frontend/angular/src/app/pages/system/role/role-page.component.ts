@@ -1,14 +1,10 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DestroyRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxChange, MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../../core/auth.service';
 import { formatDateTime } from '../../../core/date-time';
@@ -17,7 +13,6 @@ import { ListController } from '../../../core/list-controller';
 import { NotificationService } from '../../../core/notification.service';
 import { SystemApi } from '../../../core/system-api.service';
 import { TranslatePipe } from '../../../core/translate.pipe';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 import { StatusFilterComponent } from '../../../shared/system/status-filter.component';
 import { StatusToggleComponent } from '../../../shared/system/status-toggle.component';
 import { SystemDialogService } from '../../../shared/system/system-dialog.service';
@@ -33,12 +28,7 @@ import type { Role } from '../../../core/models';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
     TranslatePipe,
-    PageHeaderComponent,
     StatusFilterComponent,
     StatusToggleComponent,
   ],
@@ -55,8 +45,20 @@ export class RolePageComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly formatDateTime = formatDateTime;
-  readonly columns = ['select', 'name', 'id', 'createTime', 'status', 'actions'];
   readonly path = '/system/role';
+
+  readonly columnDefs = [
+    { key: 'name', labelKey: 'page.system.role.header.name', hideable: false },
+    { key: 'id', labelKey: 'page.system.role.header.role', hideable: true },
+    { key: 'createTime', labelKey: 'page.system.role.header.createTime', hideable: true },
+    { key: 'status', labelKey: 'page.system.role.header.status', hideable: true },
+  ];
+  readonly hiddenColumns = signal<ReadonlySet<string>>(new Set<string>());
+  readonly visibleColumns = computed(() => [
+    'select',
+    ...this.columnDefs.filter((column) => !this.hiddenColumns().has(column.key)).map((column) => column.key),
+    'actions',
+  ]);
 
   readonly lists = new ListController<Role>(
     (params) =>
@@ -84,6 +86,10 @@ export class RolePageComponent {
     return ids.length > 0 && ids.every((id) => this.lists.selected().has(id));
   });
   readonly someSelected = computed(() => this.lists.selected().size > 0 && !this.allSelected());
+  readonly selectedCount = computed(() => this.lists.selected().size);
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.lists.total() / this.size())),
+  );
 
   onName(event: Event): void {
     this.lists.updateParams({ name: (event.target as HTMLInputElement).value });
@@ -101,9 +107,23 @@ export class RolePageComponent {
     this.lists.toggleAll(this.pageIds(), event.checked);
   }
 
-  onPage(event: PageEvent): void {
-    if (event.pageSize !== this.size()) this.lists.setSize(event.pageSize);
-    else this.lists.setPage(event.pageIndex + 1);
+  isColumnHidden(key: string): boolean {
+    return this.hiddenColumns().has(key);
+  }
+
+  toggleColumn(key: string): void {
+    const next = new Set(this.hiddenColumns());
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    this.hiddenColumns.set(next);
+  }
+
+  previousPage(): void {
+    if (this.page() > 1) this.lists.setPage(this.page() - 1);
+  }
+
+  nextPage(): void {
+    if (this.page() < this.totalPages()) this.lists.setPage(this.page() + 1);
   }
 
   sortByName(): void {

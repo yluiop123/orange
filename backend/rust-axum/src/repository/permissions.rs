@@ -46,14 +46,14 @@ macro_rules! permissions_repository {
                 let mut binds: Vec<Option<String>> = Vec::new();
                 if params.id.is_some() {
                     clause.push_str(&format!(
-                        " AND lower(id) LIKE {}",
+                        " AND lower(id) LIKE {} ESCAPE '\\'",
                         D.placeholder(binds.len() + 1)
                     ));
                     binds.push(params.id.clone());
                 }
                 if params.name.is_some() {
                     clause.push_str(&format!(
-                        " AND lower({}) LIKE {}",
+                        " AND lower({}) LIKE {} ESCAPE '\\'",
                         D.quote("name"),
                         D.placeholder(binds.len() + 1)
                     ));
@@ -61,7 +61,7 @@ macro_rules! permissions_repository {
                 }
                 if params.path.is_some() {
                     clause.push_str(&format!(
-                        " AND lower(path) LIKE {}",
+                        " AND lower(path) LIKE {} ESCAPE '\\'",
                         D.placeholder(binds.len() + 1)
                     ));
                     binds.push(params.path.clone());

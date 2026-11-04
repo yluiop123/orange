@@ -53,8 +53,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
   } {
     if (exception instanceof ValidationException) {
       return {
-        code: BusinessCode.PARAM_ERROR,
-        message: DEFAULT_MESSAGES[BusinessCode.PARAM_ERROR],
+        code: BusinessCode.VALIDATE_ERROR,
+        message: DEFAULT_MESSAGES[BusinessCode.VALIDATE_ERROR],
         status: 400,
         data: exception.fieldErrors,
       };

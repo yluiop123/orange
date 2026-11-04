@@ -1,44 +1,22 @@
-.filter {
-  width: 156px;
+.log-username {
+  width: 8rem;
 }
 
-.filter-sm {
-  width: 104px;
+.log-path {
+  width: 10rem;
 }
 
-.filter-date {
-  width: 198px;
-}
-
-.actions-cell {
-  width: 60px;
-  text-align: right;
-}
-
-.nowrap {
-  white-space: nowrap;
-}
-
-.path-cell {
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.log-status {
+  width: 7rem;
 }
 
 .trace-cell {
-  max-width: 150px;
+  max-width: 10rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .error {
-  color: #b91c1c;
-  font-weight: 600;
-}
-
-.count-note {
-  margin: 10px 2px 0;
-  font-size: 0.78rem;
+  color: var(--app-destructive);
 }

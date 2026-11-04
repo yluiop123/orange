@@ -1,150 +1,203 @@
-<div class="page">
-  <app-page-header titleKey="page.system.role.title" descKey="page.system.role.desc" />
+<div class="system-page">
+  <div class="system-toolbar">
+    <div class="system-field">
+      <label class="system-label" for="roleName">{{ 'page.system.role.header.name' | t }}</label>
+      <input
+        id="roleName"
+        class="system-input role-name"
+        type="text"
+        autocomplete="off"
+        [value]="nameValue()"
+        (input)="onName($event)"
+      />
+    </div>
+    <div class="system-field">
+      <label class="system-label" for="roleId">{{ 'page.system.role.header.role' | t }}</label>
+      <input
+        id="roleId"
+        class="system-input role-code"
+        type="text"
+        autocomplete="off"
+        [value]="idValue()"
+        (input)="onId($event)"
+      />
+    </div>
+    <div class="system-field">
+      <span class="system-label">{{ 'page.system.role.header.status' | t }}</span>
+      <app-status-filter
+        [value]="statusValue()"
+        [label]="'page.system.role.header.status'"
+        (valueChange)="onStatus($event)"
+      />
+    </div>
 
-  <div class="toolbar-row">
-    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
-      <mat-label>{{ 'page.system.role.header.name' | t }}</mat-label>
-      <input matInput [value]="nameValue()" (input)="onName($event)" autocomplete="off" />
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
-      <mat-label>{{ 'page.system.role.header.role' | t }}</mat-label>
-      <input matInput [value]="idValue()" (input)="onId($event)" autocomplete="off" />
-    </mat-form-field>
-    <app-status-filter
-      [value]="statusValue()"
-      [label]="'page.system.role.header.status'"
-      (valueChange)="onStatus($event)"
-    />
-    <span class="grow"></span>
-    @if (auth.canAct(path, 'add')) {
-      <button mat-flat-button type="button" (click)="openAdd()">
-        <mat-icon>add</mat-icon>
-        {{ 'button.add' | t }}
-      </button>
-    }
-    @if (auth.canAct(path, 'delete')) {
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="lists.selected().size === 0"
-        (click)="deleteSelected()"
-      >
-        <mat-icon>delete</mat-icon>
-        {{ 'button.delete' | t }}
-      </button>
-    }
+    <div class="system-toolbar-actions">
+      @if (auth.canAct(path, 'add')) {
+        <button class="system-button primary" type="button" (click)="openAdd()">
+          {{ 'button.add' | t }}
+        </button>
+      }
+      @if (auth.canAct(path, 'delete')) {
+        <button
+          class="system-button"
+          type="button"
+          [disabled]="lists.selected().size === 0"
+          (click)="deleteSelected()"
+        >
+          {{ 'button.delete' | t }}
+        </button>
+      }
+    </div>
+
+    <button class="system-button small" type="button" [matMenuTriggerFor]="columnsMenu">
+      {{ 'table.columns' | t }}
+      <mat-icon class="system-caret">expand_more</mat-icon>
+    </button>
+    <mat-menu #columnsMenu="matMenu" xPosition="before" class="system-columns-menu">
+      @for (column of columnDefs; track column.key) {
+        @if (column.hideable) {
+          <button mat-menu-item type="button" (click)="toggleColumn(column.key)">
+            <mat-icon>{{ isColumnHidden(column.key) ? 'check_box_outline_blank' : 'check_box' }}</mat-icon>
+            <span>{{ column.labelKey | t }}</span>
+          </button>
+        }
+      }
+    </mat-menu>
   </div>
 
-  <div class="table-wrap">
-    @if (lists.loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-    <table mat-table [dataSource]="lists.rows()">
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef class="select-cell">
-          <mat-checkbox
-            [checked]="allSelected()"
-            [indeterminate]="someSelected()"
-            [attr.aria-label]="'button.selectAll' | t"
-            (change)="toggleAll($event)"
-          />
-        </th>
-        <td mat-cell *matCellDef="let role" class="select-cell">
-          <mat-checkbox
-            [checked]="lists.isSelected(role.id)"
-            [attr.aria-label]="'table.selectRow' | t"
-            (change)="lists.toggleRow(role.id)"
-          />
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>
-          <button mat-button type="button" class="sort-button" (click)="sortByName()">
-            {{ 'page.system.role.header.name' | t }}
-            <mat-icon>arrow_upward</mat-icon>
-          </button>
-        </th>
-        <td mat-cell *matCellDef="let role">{{ role.name }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.role.header.role' | t }}</th>
-        <td mat-cell *matCellDef="let role" class="mono">{{ role.id }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="createTime">
-        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.role.header.createTime' | t }}</th>
-        <td mat-cell *matCellDef="let role" class="nowrap">{{ formatDateTime(role.createTime) }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.role.header.status' | t }}</th>
-        <td mat-cell *matCellDef="let role">
-          @if (auth.canAct(path, 'edit')) {
-            <app-status-toggle [status]="role.status" [name]="role.name" (changed)="changeStatus(role, $event)" />
-          } @else {
-            <span class="status-pill" [class.off]="role.status === '0'">
-              {{ (role.status === '1' ? 'dict.status.enabled' : 'dict.status.disabled') | t }}
-            </span>
-          }
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef class="actions-cell">{{ 'table.actions' | t }}</th>
-        <td mat-cell *matCellDef="let role" class="actions-cell">
-          <button
-            mat-icon-button
-            type="button"
-            [matMenuTriggerFor]="rowMenu"
-            [attr.aria-label]="'table.openMenu' | t"
-          >
-            <mat-icon>more_horiz</mat-icon>
-          </button>
-          <mat-menu #rowMenu="matMenu" xPosition="before">
-            @if (auth.canAct(path, 'edit')) {
-              <button mat-menu-item type="button" (click)="openEdit(role)">
-                <mat-icon>edit</mat-icon>
-                <span>{{ 'button.edit' | t }}</span>
-              </button>
-            }
-            @if (auth.canAct(path, 'delete')) {
-              <button mat-menu-item type="button" (click)="requestDelete([role])">
-                <mat-icon>delete</mat-icon>
-                <span>{{ 'button.delete' | t }}</span>
-              </button>
-            }
-          </mat-menu>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="columns"></tr>
-      <tr mat-row *matRowDef="let row; columns: columns"></tr>
-    </table>
-
+  <div class="system-table">
     @if (lists.error()) {
-      <div class="empty-state">
-        <mat-icon>cloud_off</mat-icon>
-        <p>{{ 'table.loadError' | t }}</p>
-        <button mat-stroked-button type="button" (click)="lists.reload()">{{ 'table.retry' | t }}</button>
+      <div class="system-error">
+        <span>{{ 'table.loadError' | t }}</span>
+        <button class="system-button small" type="button" (click)="lists.reload()">
+          {{ 'table.retry' | t }}
+        </button>
       </div>
-    } @else if (!lists.loading() && lists.rows().length === 0) {
-      <div class="empty-state">
-        <mat-icon>inbox</mat-icon>
-        <p>{{ 'table.empty' | t }}</p>
-      </div>
-    }
+    } @else {
+      <table mat-table [dataSource]="lists.rows()">
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef class="system-select-cell">
+            <mat-checkbox
+              [checked]="allSelected()"
+              [indeterminate]="someSelected()"
+              [attr.aria-label]="'button.selectAll' | t"
+              (change)="toggleAll($event)"
+            />
+          </th>
+          <td mat-cell *matCellDef="let role" class="system-select-cell">
+            <mat-checkbox
+              [checked]="lists.isSelected(role.id)"
+              [attr.aria-label]="'table.selectRow' | t"
+              (change)="lists.toggleRow(role.id)"
+            />
+          </td>
+        </ng-container>
 
-    <mat-paginator
-      [length]="lists.total()"
-      [pageIndex]="page() - 1"
-      [pageSize]="size()"
-      [pageSizeOptions]="[10, 20, 50]"
-      [showFirstLastButtons]="true"
-      (page)="onPage($event)"
-    />
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>
+            <button class="system-sort" type="button" (click)="sortByName()">
+              {{ 'page.system.role.header.name' | t }}
+              <mat-icon>swap_vert</mat-icon>
+            </button>
+          </th>
+          <td mat-cell *matCellDef="let role">{{ role.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>{{ 'page.system.role.header.role' | t }}</th>
+          <td mat-cell *matCellDef="let role">{{ role.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="createTime">
+          <th mat-header-cell *matHeaderCellDef>{{ 'page.system.role.header.createTime' | t }}</th>
+          <td mat-cell *matCellDef="let role" class="nowrap">{{ formatDateTime(role.createTime) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>{{ 'page.system.role.header.status' | t }}</th>
+          <td mat-cell *matCellDef="let role">
+            @if (auth.canAct(path, 'edit')) {
+              <app-status-toggle
+                [status]="role.status"
+                [name]="role.name"
+                (changed)="changeStatus(role, $event)"
+              />
+            } @else {
+              <span class="status-text">
+                {{ (role.status === '1' ? 'dict.status.enabled' : 'dict.status.disabled') | t }}
+              </span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="system-actions-cell"></th>
+          <td mat-cell *matCellDef="let role" class="system-actions-cell">
+            <button
+              mat-icon-button
+              type="button"
+              [matMenuTriggerFor]="rowMenu"
+              [attr.aria-label]="'table.openMenu' | t"
+            >
+              <mat-icon>more_horiz</mat-icon>
+            </button>
+            <mat-menu #rowMenu="matMenu" xPosition="before" class="system-row-menu">
+              <div class="system-menu-label">{{ 'table.actions' | t }}</div>
+              @if (auth.canAct(path, 'edit')) {
+                <button mat-menu-item type="button" (click)="openEdit(role)">
+                  <span>{{ 'button.edit' | t }}</span>
+                </button>
+              }
+              @if (auth.canAct(path, 'delete')) {
+                <button mat-menu-item type="button" (click)="requestDelete([role])">
+                  <span>{{ 'button.delete' | t }}</span>
+                </button>
+              }
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="visibleColumns()"></tr>
+        <tr mat-row *matRowDef="let row; columns: visibleColumns()"></tr>
+
+        @if (lists.rows().length === 0) {
+          <tr>
+            <td class="system-empty-cell" [attr.colspan]="visibleColumns().length">
+              {{ (lists.loading() ? 'table.loading' : 'table.empty') | t }}
+            </td>
+          </tr>
+        }
+      </table>
+    }
   </div>
 
-  <p class="muted count-note">{{ 'table.total' | t: { total: lists.total() } }}</p>
+  <div class="system-footer">
+    <span class="system-footer-count">
+      {{
+        (lists.loading()
+          ? 'table.loading'
+          : 'table.selectedCount'
+        ) | t: { selected: selectedCount(), total: lists.total() }
+      }}
+    </span>
+    <div class="system-footer-pager">
+      <span class="system-footer-page">{{ page() }} / {{ totalPages() }}</span>
+      <button
+        class="system-button small"
+        type="button"
+        [disabled]="page() <= 1"
+        (click)="previousPage()"
+      >
+        {{ 'table.previous' | t }}
+      </button>
+      <button
+        class="system-button small"
+        type="button"
+        [disabled]="page() >= totalPages()"
+        (click)="nextPage()"
+      >
+        {{ 'table.next' | t }}
+      </button>
+    </div>
+  </div>
 </div>

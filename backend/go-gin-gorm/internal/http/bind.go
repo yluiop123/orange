@@ -38,16 +38,17 @@ func bindQuery(c *gin.Context, target any) *domain.Error {
 }
 
 func bindingError(err error) *domain.Error {
-	business := domain.ParamError("参数错误")
 	var validation validator.ValidationErrors
 	if errors.As(err, &validation) {
+		business := domain.Validation("校验失败")
 		fields := make(map[string]string, len(validation))
 		for _, fieldError := range validation {
 			fields[lowerFirst(fieldError.Field())] = "invalid value"
 		}
 		business.Data = fields
+		return business
 	}
-	return business
+	return domain.ParamError("参数错误")
 }
 
 func lowerFirst(value string) string {
@@ -62,7 +63,7 @@ func lowerFirst(value string) string {
 }
 
 func fieldError(field, message string) *domain.Error {
-	business := domain.ParamError("参数错误")
+	business := domain.Validation("校验失败")
 	business.Data = map[string]string{field: message}
 	return business
 }

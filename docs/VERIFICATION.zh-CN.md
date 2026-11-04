@@ -51,6 +51,34 @@ cargo +stable-x86_64-pc-windows-gnu test
 - `ControllerAuthorityCoverageTest` 保证 `@PreAuthorize` 的权限标识与 `permissions.json` 保持一致。
 - 每个前端都将访问令牌保存在内存中，并通过 HttpOnly 刷新 Cookie 恢复会话。
 
+### 3.1 跨栈契约验收
+
+`scripts/ci/contract-test.mjs` 在全新的 SQLite 数据库上执行完整 API 契约，
+每个后端单轮 **327 项断言**。
+
+| 后端 | 结果 | 重点覆盖 |
+| --- | --- | --- |
+| Spring Boot | 327/327 | 响应信封 + `X-Trace-Id` 头、刷新令牌轮换、强制改密、全部 CRUD、RBAC、操作日志、CORS |
+| Go | 327/327 | 同一套用例 |
+| NestJS | 327/327 | 同一套用例 |
+| C# | 327/327 | 同一套用例 |
+| Rust | 327/327 | 同一套用例 |
+| FastAPI | 327/327 | 同一套用例 |
+
+运行全部六栈：`node scripts/ci/run-contract.mjs`（使用 `18080` 端口，每栈一个临时
+SQLite 文件）。CI 的 `backend` 矩阵会在推送时执行同一脚本。
+
+本轮发现并修复的不一致：
+
+- Go、NestJS、Rust、Spring Boot 的请求体校验返回 `40001`；现在统一为 `40002`，
+  与 FastAPI、C# 一致。
+- Spring Boot 只在响应体里放 traceId，且响应头是 `X-Request-Id`；现在同时返回
+  文档要求的 `X-Trace-Id`，成功响应也写入 traceId。
+- 停用仍有启用子组织的父组织时，Vue、NestJS、C#、Spring Boot 返回 `40002`；
+  现在六栈统一为 `40901`（冲突），与 Mock 一致。
+- Rust 的 LIKE 过滤没有声明 `ESCAPE '\'`，导致包含 `_` 的用户名/角色编码在
+  SQLite/PostgreSQL 上无法被 `keyword`/`id` 过滤命中。
+
 ## 4. CI 与部署
 
 `.github/workflows/main.yml` 在推送到 `main` 和针对 `main` 的 PR 上运行：
@@ -58,7 +86,8 @@ cargo +stable-x86_64-pc-windows-gnu test
 - `frontend-react`、`frontend-angular`、`frontend-vue`：lint、类型检查、测试、构建。
 - `backend` 矩阵（`spring`、`go`、`nest`、`csharp`、`rust`、`fastapi`）：各栈测试与
   构建；推送时再通过 `scripts/ci/run-db-matrix.mjs` 对 PostgreSQL、MySQL、MariaDB、
-  SQLite 各跑一遍 HTTP 冒烟。
+  SQLite 各跑一遍 HTTP 冒烟，然后用 `scripts/ci/run-contract.mjs` 在 SQLite 上执行
+  完整契约验收。
 - PR 跳过四数据库矩阵以加快反馈，单元测试仍会执行。
 - 只有 React job 通过后才会把 `frontend/react/dist` 上传到 GitHub Pages。
 
@@ -107,7 +136,28 @@ Angular 和 Vue 已验证但不部署。后端托管不在该 workflow 内；Git
 - Spring Boot 的 CORS 默认只允许 `localhost:5173`；现在与其他栈一致，允许
   5173、5174、4200。
 
-## 7. 已知未验证项
+## 7. 三端 UI 对齐
+
+React 是三端视觉基准。三个前端的系统管理页现在使用同一套外壳：
+
+- 去掉页面标题和筛选卡片；筛选、操作和列显隐菜单放在同一行工具栏；
+- 页面高度锁定在 4rem 顶栏下方，只有表格主体滚动；
+- 单个带边框表格，表头 40px 且吸顶，行高 40px，单元格使用纯文本；
+- 底部左侧显示已选数量，右侧显示 `当前页 / 总页数` 与上一页/下一页；
+- 状态开关 32×18，控件圆角 8px，表格字号 14px。
+
+React 本轮修复：
+
+- 用户/角色/权限/组织页的工具栏不再跟着页面滚动；
+- 列选择器移入工具栏同一行；
+- 权限/组织分页按展开后的可见行计数，展开节点后可出现更多页；
+- 操作日志改为一个成对的日期时间范围控件，默认查询当天 00:00–23:59。
+
+Vue 和 Angular 的列集合、状态渲染和底部分页已与 React 对齐。仍存在的差异：
+侧栏品牌块、右上角角色/语言/用户控件和品牌色由各框架保留；Angular 使用单月
+Material 范围日历，而 React 使用双月日历。
+
+## 8. 已知未验证项
 
 - openGauss、OceanBase 和 GoldenDB 未启动；其脚本需要在目标版本上做冒烟测试。
 - Rust 项目没有已提交的数据库集成测试，只有可复现的冒烟脚本
@@ -118,7 +168,7 @@ Angular 和 Vue 已验证但不部署。后端托管不在该 workflow 内；Git
 - 真实浏览器端到端已跑 FastAPI+PostgreSQL、Spring+MySQL、Go+SQLite；其余后端/数据库
   组合由各栈 HTTP 冒烟和 CI 数据库矩阵覆盖，未跑浏览器。
 
-## 8. 重新运行
+## 9. 重新运行
 
 ```bash
 # Java

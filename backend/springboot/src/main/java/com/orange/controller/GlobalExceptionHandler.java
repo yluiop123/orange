@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         if (message.contains("不存在")) {
             return NOT_FOUND;
         }
-        if (message.contains("已存在") || message.contains("已被") || message.contains("不能删除")) {
+        if (message.contains("已存在") || message.contains("已被") || message.contains("不能删除") || message.contains("请先禁用子组织")) {
             return CONFLICT;
         }
         return VALIDATE_ERROR;
@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
                 ));
         String traceId = Response.newTraceId();
         log.warn("Validation failed traceId={}: {}", traceId, errors);
-        Response<Map<String, String>> body = Response.error(PARAM_ERROR.getCode(), PARAM_ERROR.getMessage(), errors);
+        Response<Map<String, String>> body = Response.error(VALIDATE_ERROR.getCode(), VALIDATE_ERROR.getMessage(), errors);
         body.setTraceId(traceId);
         return ResponseEntity.status(PARAM_ERROR.getHttpStatus()).body(body);
     }

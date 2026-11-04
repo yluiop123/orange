@@ -1,46 +1,35 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { ReferenceDataService } from '../../core/reference-data.service';
 import { buildTree, allNodeIds, flattenTree } from '../../core/tree-rows';
 import { TranslatePipe } from '../../core/translate.pipe';
 import type { Group } from '../../core/models';
 
+/** Organization filter rendered as a compact native select (React parity). */
 @Component({
   selector: 'app-group-select',
   standalone: true,
-  imports: [MatFormFieldModule, MatSelectModule, TranslatePipe],
+  imports: [TranslatePipe],
   template: `
-    <mat-form-field appearance="outline" class="group-select" subscriptSizing="dynamic">
-      <mat-label>{{ label() | t }}</mat-label>
-      <mat-select
-        [value]="value()"
-        [disabled]="disabled()"
-        (selectionChange)="valueChange.emit($event.value)"
-      >
-        @if (allowEmpty()) {
-          <mat-option value="">{{ emptyLabel() | t }}</mat-option>
-        }
-        @for (row of flat(); track row.node.id) {
-          <mat-option [value]="row.node.id">
-            <span [style.paddingLeft.px]="row.depth * 12">{{ row.node.name }}</span>
-            <span class="code">{{ row.node.id }}</span>
-          </mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+    <select
+      class="system-select group-select"
+      [value]="value()"
+      [disabled]="disabled()"
+      [attr.aria-label]="label() | t"
+      (change)="onChange($event)"
+    >
+      @if (allowEmpty()) {
+        <option value="">{{ emptyLabel() | t }}</option>
+      }
+      @for (row of flat(); track row.node.id) {
+        <option [value]="row.node.id">{{ indent(row.depth) }}{{ row.node.name }}</option>
+      }
+    </select>
   `,
   styles: [
     `
       .group-select {
-        width: 100%;
-        min-width: 180px;
-      }
-      .code {
-        margin-left: 8px;
-        color: var(--mat-sys-on-surface-variant, #5f6368);
-        font-size: 0.72rem;
-        font-family: ui-monospace, Consolas, monospace;
+        width: 15rem;
+        max-width: 100%;
       }
     `,
   ],
@@ -68,5 +57,13 @@ export class GroupSelectComponent {
 
   constructor() {
     this.reference.ensureGroups().subscribe((groups) => this.groups.set(groups ?? []));
+  }
+
+  indent(depth: number): string {
+    return '\u00a0\u00a0'.repeat(depth);
+  }
+
+  onChange(event: Event): void {
+    this.valueChange.emit((event.target as HTMLSelectElement).value);
   }
 }

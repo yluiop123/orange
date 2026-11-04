@@ -23,14 +23,14 @@ pub fn require_text(
 ) -> Result<String, AppError> {
     match value.map(str::trim).filter(|value| !value.is_empty()) {
         Some(value) => Ok(value.to_string()),
-        None => Err(AppError::param(message.to_string())),
+        None => Err(AppError::validation(message.to_string())),
     }
 }
 
 pub fn check_name(value: &str) -> Result<(), AppError> {
     let length = value.trim().chars().count();
     if !(2..=50).contains(&length) {
-        return Err(AppError::param("名称长度需在 2-50 之间"));
+        return Err(AppError::validation("名称长度需在 2-50 之间"));
     }
     Ok(())
 }
@@ -42,7 +42,7 @@ pub fn check_username(value: &str) -> Result<(), AppError> {
             .chars()
             .all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
     {
-        return Err(AppError::param("用户名只能包含字母、数字和下划线，且长度需在 4-50 之间"));
+        return Err(AppError::validation("用户名只能包含字母、数字和下划线，且长度需在 4-50 之间"));
     }
     Ok(())
 }
@@ -52,7 +52,7 @@ pub fn check_email(value: &str) -> Result<(), AppError> {
         return Ok(());
     }
     if value.contains(char::is_whitespace) {
-        return Err(AppError::param("邮箱格式不正确"));
+        return Err(AppError::validation("邮箱格式不正确"));
     }
     let mut parts = value.split('@');
     let local = parts.next().unwrap_or("");
@@ -64,7 +64,7 @@ pub fn check_email(value: &str) -> Result<(), AppError> {
         || domain.starts_with('.')
         || domain.ends_with('.')
     {
-        return Err(AppError::param("邮箱格式不正确"));
+        return Err(AppError::validation("邮箱格式不正确"));
     }
     Ok(())
 }
@@ -76,7 +76,7 @@ pub fn check_phone(value: &str) -> Result<(), AppError> {
         && ('3'..='9').contains(&chars[1])
         && chars.iter().all(|ch| ch.is_ascii_digit());
     if !valid {
-        return Err(AppError::param("手机号格式不正确"));
+        return Err(AppError::validation("手机号格式不正确"));
     }
     Ok(())
 }
@@ -85,7 +85,7 @@ pub fn check_status(value: &str) -> Result<(), AppError> {
     if is_status(value) {
         Ok(())
     } else {
-        Err(AppError::param("状态只能是 0 或 1"))
+        Err(AppError::validation("状态只能是 0 或 1"))
     }
 }
 
@@ -96,7 +96,7 @@ pub fn check_role_id(value: &str) -> Result<(), AppError> {
             .chars()
             .all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-');
     if !valid {
-        return Err(AppError::param("角色ID只能包含字母、数字、下划线和中划线"));
+        return Err(AppError::validation("角色ID只能包含字母、数字、下划线和中划线"));
     }
     Ok(())
 }
@@ -106,10 +106,10 @@ pub fn check_new_password(value: &str) -> Result<(), AppError> {
     let has_letter = value.chars().any(|ch| ch.is_ascii_alphabetic());
     let has_digit = value.chars().any(|ch| ch.is_ascii_digit());
     if !(8..=64).contains(&length) {
-        return Err(AppError::param("新密码长度需在 8-64 之间"));
+        return Err(AppError::validation("新密码长度需在 8-64 之间"));
     }
     if !has_letter || !has_digit {
-        return Err(AppError::param("新密码需同时包含字母和数字"));
+        return Err(AppError::validation("新密码需同时包含字母和数字"));
     }
     Ok(())
 }
@@ -125,7 +125,7 @@ pub fn check_path(value: &str) -> Result<(), AppError> {
 /// upper bound in the reference.
 pub fn check_path_length(value: &str) -> Result<(), AppError> {
     if value.chars().count() > 200 {
-        return Err(AppError::param("权限路径长度不能超过 200"));
+        return Err(AppError::validation("权限路径长度不能超过 200"));
     }
     Ok(())
 }

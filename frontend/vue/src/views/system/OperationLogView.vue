@@ -3,18 +3,27 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listOperationLogs } from '@/api/operation-log'
 import type { OperationLog, OperationLogQuery } from '@/api/types'
-import { usePageTitle } from '@/composables/usePageTitle'
 import { useResourceList } from '@/composables/useResourceList'
 import { formatDateTime } from '@/lib/date-time'
 import { useUiStore } from '@/stores/ui'
 import type { TableColumn } from '@/components/system/resource-table-types'
-import PageHeader from '@/components/PageHeader.vue'
 import ResourceTable from '@/components/system/ResourceTable.vue'
+import DateTimeRangePicker from '@/components/system/DateTimeRangePicker.vue'
 
 type LogParams = OperationLogQuery & { page: number; size: number }
 
+function pad(value: number) {
+  return String(value).padStart(2, '0')
+}
+
+/** Default query range: today 00:00 – 23:59, same as the React page. */
+function todayRange() {
+  const today = new Date()
+  const day = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+  return { from: `${day}T00:00`, to: `${day}T23:59` }
+}
+
 const { t } = useI18n()
-const title = usePageTitle('page.title.operationLog')
 const ui = useUiStore()
 
 const params = ref<LogParams>({
@@ -23,8 +32,7 @@ const params = ref<LogParams>({
   username: '',
   path: '',
   status: '',
-  from: '',
-  to: '',
+  ...todayRange(),
 })
 
 const detail = ref<OperationLog | null>(null)
@@ -62,14 +70,14 @@ const statusOptions = computed(() => [
 ])
 
 const columns = computed<TableColumn[]>(() => [
-  { key: 'createTime', title: t('page.system.operationLog.header.createTime'), width: '170px' },
-  { key: 'username', title: t('page.system.operationLog.header.username'), width: '110px' },
-  { key: 'method', title: t('page.system.operationLog.header.method'), width: '90px' },
+  { key: 'createTime', title: t('page.system.operationLog.header.createTime') },
+  { key: 'username', title: t('page.system.operationLog.header.username') },
+  { key: 'method', title: t('page.system.operationLog.header.method') },
   { key: 'path', title: t('page.system.operationLog.header.path') },
-  { key: 'status', title: t('page.system.operationLog.header.status'), width: '90px' },
-  { key: 'durationMs', title: t('page.system.operationLog.header.duration'), width: '100px' },
-  { key: 'ip', title: t('page.system.operationLog.header.ip'), width: '130px' },
-  { key: 'traceId', title: t('page.system.operationLog.header.traceId'), width: '180px' },
+  { key: 'status', title: t('page.system.operationLog.header.status') },
+  { key: 'durationMs', title: t('page.system.operationLog.header.duration') },
+  { key: 'ip', title: t('page.system.operationLog.header.ip') },
+  { key: 'traceId', title: t('page.system.operationLog.header.traceId') },
 ])
 
 function update(patch: Partial<LogParams>) {
@@ -80,10 +88,6 @@ function setPage(page: number) {
   params.value = { ...params.value, page }
 }
 
-function setSize(size: number) {
-  params.value = { ...params.value, size, page: 1 }
-}
-
 function refresh() {
   refetch()
   ui.notify(t('message.success'), 'success')
@@ -91,120 +95,119 @@ function refresh() {
 </script>
 
 <template>
-  <div class="demo-page">
-    <PageHeader :title="title" :subtitle="t('page.system.subtitle')" />
-
-    <v-card class="filter-card">
-      <div class="filters">
+  <div class="system-page">
+    <ResourceTable
+      :rows="list"
+      :columns="columns"
+      :row-key="(row) => String(row.id)"
+      :total="total"
+      :page="params.page"
+      :size="params.size"
+      :loading="loading"
+      :error="error"
+      @update:page="setPage"
+      @retry="refetch"
+    >
+      <template #toolbar>
+        <label class="system-label" for="log-filter-username">
+          {{ t('page.system.operationLog.header.username') }}
+        </label>
         <v-text-field
+          id="log-filter-username"
           :model-value="params.username ?? ''"
-          :label="t('page.system.operationLog.header.username')"
           density="compact"
           variant="outlined"
           hide-details
-          clearable
-          style="width: 160px"
+          class="system-input--username"
           @update:model-value="(value) => update({ username: value ?? '' })"
         />
+        <label class="system-label" for="log-filter-path">
+          {{ t('page.system.operationLog.header.path') }}
+        </label>
         <v-text-field
+          id="log-filter-path"
           :model-value="params.path ?? ''"
-          :label="t('page.system.operationLog.header.path')"
           density="compact"
           variant="outlined"
           hide-details
-          clearable
-          style="width: 230px"
+          class="system-input--path"
           @update:model-value="(value) => update({ path: value ?? '' })"
         />
+        <label class="system-label">{{ t('page.system.operationLog.header.status') }}</label>
         <v-select
           :model-value="params.status ?? ''"
           :items="statusOptions"
-          :label="t('page.system.operationLog.header.status')"
           density="compact"
           variant="outlined"
           hide-details
-          style="width: 130px"
+          class="system-input--sm"
           @update:model-value="(value) => update({ status: value ?? '' })"
         />
-        <v-text-field
-          :model-value="params.from ?? ''"
-          :label="t('page.system.operationLog.header.from')"
-          type="datetime-local"
-          density="compact"
-          variant="outlined"
-          hide-details
-          style="width: 220px"
-          @update:model-value="(value) => update({ from: value ?? '' })"
+        <DateTimeRangePicker
+          :model-value="{ from: params.from ?? '', to: params.to ?? '' }"
+          @update:model-value="(range) => update({ from: range.from, to: range.to })"
         />
-        <v-text-field
-          :model-value="params.to ?? ''"
-          :label="t('page.system.operationLog.header.to')"
-          type="datetime-local"
-          density="compact"
-          variant="outlined"
-          hide-details
-          style="width: 220px"
-          @update:model-value="(value) => update({ to: value ?? '' })"
-        />
-        <v-btn variant="outlined" prepend-icon="mdi-refresh" @click="refresh">
-          {{ t('button.refresh') }}
-        </v-btn>
-      </div>
-    </v-card>
-
-    <v-card>
-      <ResourceTable
-        :rows="list"
-        :columns="columns"
-        :row-key="(row) => String(row.id)"
-        :total="total"
-        :page="params.page"
-        :size="params.size"
-        :loading="loading"
-        :error="error"
-        @update:page="setPage"
-        @update:size="setSize"
-        @retry="refetch"
-      >
-        <template #cell-createTime="{ value }">
-          <span class="text-no-wrap">{{ formatDateTime(value as string) }}</span>
-        </template>
-        <template #cell-method="{ value }">
-          <code class="mono">{{ value }}</code>
-        </template>
-        <template #cell-path="{ value }">
-          <code class="mono path-cell">{{ value }}</code>
-        </template>
-        <template #cell-status="{ value }">
-          <v-chip size="small" :color="Number(value) >= 400 ? 'error' : 'success'" variant="tonal">
-            {{ value }}
-          </v-chip>
-        </template>
-        <template #cell-durationMs="{ value }">
-          <span class="mono">{{ value }} ms</span>
-        </template>
-        <template #cell-traceId="{ value }">
-          <code class="mono trace-cell" :title="String(value)">{{ value }}</code>
-        </template>
-        <template #actions="{ row }">
-          <v-btn size="small" variant="text" prepend-icon="mdi-eye-outline" @click="detail = row">
-            {{ t('button.detail') }}
+        <div class="system-toolbar__actions">
+          <v-btn variant="outlined" @click="refresh">
+            {{ t('button.refresh') }}
           </v-btn>
-        </template>
-      </ResourceTable>
-    </v-card>
+        </div>
+      </template>
 
-    <v-dialog :model-value="Boolean(detail)" max-width="760" @update:model-value="(value) => !value && (detail = null)">
+      <template #cell-createTime="{ value }">
+        <span>{{ formatDateTime(value as string) }}</span>
+      </template>
+      <template #cell-method="{ value }">
+        <span class="mono">{{ value }}</span>
+      </template>
+      <template #cell-path="{ value }">
+        <span class="mono system-cell--path" :title="String(value)">{{ value }}</span>
+      </template>
+      <template #cell-status="{ value }">
+        <span :class="{ 'system-cell--error': Number(value) >= 400 }">{{ value }}</span>
+      </template>
+      <template #cell-durationMs="{ value }">
+        <span>{{ value }} ms</span>
+      </template>
+      <template #cell-traceId="{ value }">
+        <span class="mono system-cell--truncate" :title="String(value)">{{ value }}</span>
+      </template>
+      <template #actions="{ row }">
+        <v-menu location="bottom end">
+          <template #activator="{ props: activatorProps }">
+            <v-btn
+              v-bind="activatorProps"
+              icon
+              size="small"
+              variant="text"
+              class="system-row-action"
+              :aria-label="t('table.openMenu')"
+            >
+              <v-icon icon="mdi-dots-horizontal" />
+            </v-btn>
+          </template>
+          <v-list density="compact" class="system-column-menu">
+            <v-list-subheader>{{ t('table.actions') }}</v-list-subheader>
+            <v-divider />
+            <v-list-item :title="t('button.detail')" @click="detail = row" />
+          </v-list>
+        </v-menu>
+      </template>
+    </ResourceTable>
+
+    <v-dialog
+      :model-value="Boolean(detail)"
+      max-width="672"
+      @update:model-value="(value) => !value && (detail = null)"
+    >
       <v-card>
         <v-card-title>{{ t('button.detail') }}</v-card-title>
-        <v-card-subtitle class="mono">
-          {{ detail?.method }} {{ detail?.path }}
-        </v-card-subtitle>
+        <v-card-subtitle class="mono">{{ detail?.method }} {{ detail?.path }}</v-card-subtitle>
         <v-card-text>
-          <dl class="detail-grid">
+          <dl class="system-detail-grid">
             <div>
               <dt>{{ t('page.system.operationLog.header.traceId') }}</dt>
-              <dd class="mono">{{ detail?.traceId || '—' }}</dd>
+              <dd class="mono">{{ detail?.traceId || '-' }}</dd>
             </div>
             <div>
               <dt>{{ t('page.system.operationLog.header.createTime') }}</dt>
@@ -218,13 +221,13 @@ function refresh() {
               <dt>{{ t('page.system.operationLog.header.ip') }}</dt>
               <dd class="mono">{{ detail?.ip }}</dd>
             </div>
-            <div class="detail-full">
+            <div>
               <dt>{{ t('page.system.operationLog.queryString') }}</dt>
-              <dd class="mono code-block">{{ detail?.queryString || '—' }}</dd>
+              <dd class="system-code-block">{{ detail?.queryString || '-' }}</dd>
             </div>
-            <div class="detail-full">
+            <div>
               <dt>{{ t('page.system.operationLog.requestBody') }}</dt>
-              <dd class="mono code-block">{{ detail?.requestBody || '—' }}</dd>
+              <dd class="system-code-block">{{ detail?.requestBody || '-' }}</dd>
             </div>
           </dl>
         </v-card-text>
@@ -236,65 +239,3 @@ function refresh() {
     </v-dialog>
   </div>
 </template>
-
-<style scoped>
-.filter-card {
-  padding: 12px;
-}
-
-.filters {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.path-cell {
-  display: inline-block;
-  max-width: 320px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
-.trace-cell {
-  display: inline-block;
-  max-width: 165px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.detail-grid dt {
-  font-size: 12px;
-  color: rgb(var(--v-theme-on-surface-variant));
-  margin-bottom: 3px;
-}
-
-.detail-grid dd {
-  margin: 0;
-  font-size: 13px;
-}
-
-.detail-full {
-  grid-column: span 2;
-}
-
-.code-block {
-  max-height: 220px;
-  overflow: auto;
-  background: rgb(var(--v-theme-surface-variant));
-  padding: 10px;
-  border-radius: 8px;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-</style>

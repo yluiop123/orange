@@ -1,81 +1,114 @@
-<div class="page">
-  <app-page-header titleKey="page.system.group.title" descKey="page.system.group.desc">
-    <button mat-stroked-button type="button" (click)="expandAll()">
-      <mat-icon>unfold_more</mat-icon>
-      {{ 'table.expand' | t }}
-    </button>
-    <button mat-stroked-button type="button" (click)="collapseAll()">
-      <mat-icon>unfold_less</mat-icon>
-      {{ 'table.expand' | t }}
-    </button>
-  </app-page-header>
+<div class="system-page">
+  <div class="system-toolbar">
+    <div class="system-field">
+      <label class="system-label" for="groupName">{{ 'page.system.group.header.name' | t }}</label>
+      <input
+        id="groupName"
+        class="system-input group-name"
+        type="text"
+        autocomplete="off"
+        [value]="nameValue()"
+        (input)="onName($event)"
+      />
+    </div>
+    <div class="system-field">
+      <label class="system-label" for="groupId">{{ 'page.system.group.header.id' | t }}</label>
+      <input
+        id="groupId"
+        class="system-input group-code"
+        type="text"
+        autocomplete="off"
+        [value]="idValue()"
+        (input)="onId($event)"
+      />
+    </div>
+    <div class="system-field">
+      <span class="system-label">{{ 'page.system.group.header.status' | t }}</span>
+      <app-status-filter
+        [value]="statusValue()"
+        [label]="'page.system.group.header.status'"
+        (valueChange)="onStatus($event)"
+      />
+    </div>
 
-  <div class="toolbar-row">
-    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
-      <mat-label>{{ 'page.system.group.header.name' | t }}</mat-label>
-      <input matInput [value]="nameValue()" (input)="onName($event)" autocomplete="off" />
-    </mat-form-field>
-    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
-      <mat-label>{{ 'page.system.group.header.id' | t }}</mat-label>
-      <input matInput [value]="idValue()" (input)="onId($event)" autocomplete="off" />
-    </mat-form-field>
-    <app-status-filter
-      [value]="statusValue()"
-      [label]="'page.system.group.header.status'"
-      (valueChange)="onStatus($event)"
-    />
-    <span class="grow"></span>
-    @if (auth.canAct(path, 'add')) {
-      <button mat-flat-button type="button" (click)="openAdd(null)">
-        <mat-icon>add</mat-icon>
-        {{ 'button.add' | t }}
-      </button>
-    }
-    @if (auth.canAct(path, 'delete')) {
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="lists.selected().size === 0"
-        (click)="deleteSelected()"
-      >
-        <mat-icon>delete</mat-icon>
-        {{ 'button.delete' | t }}
-      </button>
-    }
+    <div class="system-toolbar-actions">
+      @if (auth.canAct(path, 'add')) {
+        <button class="system-button primary" type="button" (click)="openAdd(null)">
+          {{ 'button.add' | t }}
+        </button>
+      }
+      @if (auth.canAct(path, 'delete')) {
+        <button
+          class="system-button"
+          type="button"
+          [disabled]="lists.selected().size === 0"
+          (click)="deleteSelected()"
+        >
+          {{ 'button.delete' | t }}
+        </button>
+      }
+    </div>
+
+    <button class="system-button small" type="button" [matMenuTriggerFor]="columnsMenu">
+      {{ 'table.columns' | t }}
+      <mat-icon class="system-caret">expand_more</mat-icon>
+    </button>
+    <mat-menu #columnsMenu="matMenu" xPosition="before" class="system-columns-menu">
+      @for (column of columnDefs; track column.key) {
+        @if (column.hideable) {
+          <button mat-menu-item type="button" (click)="toggleColumn(column.key)">
+            <mat-icon>{{ isColumnHidden(column.key) ? 'check_box_outline_blank' : 'check_box' }}</mat-icon>
+            <span>{{ column.labelKey | t }}</span>
+          </button>
+        }
+      }
+    </mat-menu>
   </div>
 
-  <div class="table-wrap">
-    @if (lists.loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-    <table mat-table [dataSource]="flatRows()">
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef class="select-cell">
-          <mat-checkbox
-            [checked]="allSelected()"
-            [indeterminate]="someSelected()"
-            [attr.aria-label]="'button.selectAll' | t"
-            (change)="toggleAll($event)"
-          />
-        </th>
-        <td mat-cell *matCellDef="let row" class="select-cell">
-          <mat-checkbox
-            [checked]="lists.isSelected(row.node.id)"
-            [attr.aria-label]="'table.selectRow' | t"
-            (change)="lists.toggleRow(row.node.id)"
-          />
-        </td>
-      </ng-container>
+  <div class="system-table">
+    @if (lists.error()) {
+      <div class="system-error">
+        <span>{{ 'table.loadError' | t }}</span>
+        <button class="system-button small" type="button" (click)="lists.reload()">
+          {{ 'table.retry' | t }}
+        </button>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="flatRows()">
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef class="system-select-cell">
+            <mat-checkbox
+              [checked]="allSelected()"
+              [indeterminate]="someSelected()"
+              [attr.aria-label]="'button.selectAll' | t"
+              (change)="toggleAll($event)"
+            />
+          </th>
+          <td mat-cell *matCellDef="let row" class="system-select-cell">
+            <mat-checkbox
+              [checked]="lists.isSelected(row.node.id)"
+              [attr.aria-label]="'table.selectRow' | t"
+              (change)="lists.toggleRow(row.node.id)"
+            />
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.name' | t }}</th>
-        <td mat-cell *matCellDef="let row">
-          <div class="tree-cell" [style.paddingLeft.px]="row.depth * 22">
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef class="system-expand-cell">
+            <button
+              class="system-tree-toggle"
+              type="button"
+              [attr.aria-label]="'table.expand' | t"
+              (click)="toggleExpandAll()"
+            >
+              <mat-icon>{{ allExpanded() ? 'expand_more' : 'chevron_right' }}</mat-icon>
+            </button>
+          </th>
+          <td mat-cell *matCellDef="let row" class="system-expand-cell">
             @if (row.hasChildren) {
               <button
-                mat-icon-button
+                class="system-tree-toggle"
                 type="button"
-                class="tree-toggle"
                 [attr.aria-label]="'table.expand' | t"
                 [attr.aria-expanded]="row.expanded"
                 (click)="toggle(row.node.id)"
@@ -83,100 +116,115 @@
                 <mat-icon>{{ row.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
               </button>
             } @else {
-              <span class="tree-spacer"></span>
+              <span class="system-tree-spacer"></span>
             }
-            <span>{{ row.node.name }}</span>
-          </div>
-        </td>
-      </ng-container>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.id' | t }}</th>
-        <td mat-cell *matCellDef="let row" class="mono">{{ row.node.id }}</td>
-      </ng-container>
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.name' | t }}</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="system-tree-name" [style.paddingLeft.rem]="row.depth * 2">
+              {{ row.node.name }}
+            </div>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.status' | t }}</th>
-        <td mat-cell *matCellDef="let row">
-          @if (auth.canAct(path, 'edit')) {
-            <app-status-toggle
-              [status]="row.node.status"
-              [name]="row.node.name"
-              (changed)="changeStatus(row.node, $event)"
-            />
-          } @else {
-            <span class="status-pill" [class.off]="row.node.status === '0'">
-              {{ (row.node.status === '1' ? 'dict.status.enabled' : 'dict.status.disabled') | t }}
-            </span>
-          }
-        </td>
-      </ng-container>
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.id' | t }}</th>
+          <td mat-cell *matCellDef="let row" class="lowercase">{{ row.node.id }}</td>
+        </ng-container>
 
-      <ng-container matColumnDef="createTime">
-        <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.createTime' | t }}</th>
-        <td mat-cell *matCellDef="let row" class="nowrap">{{ formatDateTime(row.node.createTime) }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef class="actions-cell">{{ 'table.actions' | t }}</th>
-        <td mat-cell *matCellDef="let row" class="actions-cell">
-          <button
-            mat-icon-button
-            type="button"
-            [matMenuTriggerFor]="rowMenu"
-            [attr.aria-label]="'table.openMenu' | t"
-          >
-            <mat-icon>more_horiz</mat-icon>
-          </button>
-          <mat-menu #rowMenu="matMenu" xPosition="before">
-            @if (auth.canAct(path, 'add')) {
-              <button mat-menu-item type="button" (click)="openAdd(row.node)">
-                <mat-icon>add</mat-icon>
-                <span>{{ 'button.addChild' | t }}</span>
-              </button>
-            }
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.status' | t }}</th>
+          <td mat-cell *matCellDef="let row">
             @if (auth.canAct(path, 'edit')) {
-              <button mat-menu-item type="button" (click)="openEdit(row.node)">
-                <mat-icon>edit</mat-icon>
-                <span>{{ 'button.edit' | t }}</span>
-              </button>
+              <app-status-toggle
+                [status]="row.node.status"
+                [name]="row.node.name"
+                (changed)="changeStatus(row.node, $event)"
+              />
+            } @else {
+              <span class="status-text">
+                {{ (row.node.status === '1' ? 'dict.status.enabled' : 'dict.status.disabled') | t }}
+              </span>
             }
-            @if (auth.canAct(path, 'delete')) {
-              <button mat-menu-item type="button" (click)="requestDelete([row.node])">
-                <mat-icon>delete</mat-icon>
-                <span>{{ 'button.delete' | t }}</span>
-              </button>
-            }
-          </mat-menu>
-        </td>
-      </ng-container>
+          </td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="columns"></tr>
-      <tr mat-row *matRowDef="let row; columns: columns"></tr>
-    </table>
+        <ng-container matColumnDef="createTime">
+          <th mat-header-cell *matHeaderCellDef>{{ 'page.system.group.header.createTime' | t }}</th>
+          <td mat-cell *matCellDef="let row" class="nowrap">{{ formatDateTime(row.node.createTime) }}</td>
+        </ng-container>
 
-    @if (lists.error()) {
-      <div class="empty-state">
-        <mat-icon>cloud_off</mat-icon>
-        <p>{{ 'table.loadError' | t }}</p>
-        <button mat-stroked-button type="button" (click)="lists.reload()">{{ 'table.retry' | t }}</button>
-      </div>
-    } @else if (!lists.loading() && flatRows().length === 0) {
-      <div class="empty-state">
-        <mat-icon>inbox</mat-icon>
-        <p>{{ 'table.empty' | t }}</p>
-      </div>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="system-actions-cell"></th>
+          <td mat-cell *matCellDef="let row" class="system-actions-cell">
+            <button
+              mat-icon-button
+              type="button"
+              [matMenuTriggerFor]="rowMenu"
+              [attr.aria-label]="'table.openMenu' | t"
+            >
+              <mat-icon>more_horiz</mat-icon>
+            </button>
+            <mat-menu #rowMenu="matMenu" xPosition="before" class="system-row-menu">
+              <div class="system-menu-label">{{ 'table.actions' | t }}</div>
+              @if (auth.canAct(path, 'add')) {
+                <button mat-menu-item type="button" (click)="openAdd(row.node)">
+                  <span>{{ 'button.addChild' | t }}</span>
+                </button>
+              }
+              @if (auth.canAct(path, 'edit')) {
+                <button mat-menu-item type="button" (click)="openEdit(row.node)">
+                  <span>{{ 'button.edit' | t }}</span>
+                </button>
+              }
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="visibleColumns()"></tr>
+        <tr mat-row *matRowDef="let row; columns: visibleColumns()"></tr>
+
+        @if (flatRows().length === 0) {
+          <tr>
+            <td class="system-empty-cell" [attr.colspan]="visibleColumns().length">
+              {{ (lists.loading() ? 'table.loading' : 'table.empty') | t }}
+            </td>
+          </tr>
+        }
+      </table>
     }
-
-    <mat-paginator
-      [length]="rootsTotal()"
-      [pageIndex]="page() - 1"
-      [pageSize]="size()"
-      [pageSizeOptions]="[10, 20, 50]"
-      [showFirstLastButtons]="true"
-      (page)="onPage($event)"
-    />
   </div>
 
-  <p class="muted count-note">{{ 'table.total' | t: { total: rootsTotal() } }}</p>
+  <div class="system-footer">
+    <span class="system-footer-count">
+      {{
+        (lists.loading()
+          ? 'table.loading'
+          : 'table.selectedCount'
+        ) | t: { selected: selectedCount(), total: visibleRowCount() }
+      }}
+    </span>
+    <div class="system-footer-pager">
+      <span class="system-footer-page">{{ page() }} / {{ totalPages() }}</span>
+      <button
+        class="system-button small"
+        type="button"
+        [disabled]="page() <= 1"
+        (click)="previousPage()"
+      >
+        {{ 'table.previous' | t }}
+      </button>
+      <button
+        class="system-button small"
+        type="button"
+        [disabled]="page() >= totalPages()"
+        (click)="nextPage()"
+      >
+        {{ 'table.next' | t }}
+      </button>
+    </div>
+  </div>
 </div>

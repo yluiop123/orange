@@ -5,6 +5,8 @@ export type TableColumn = {
   width?: string
   align?: 'start' | 'center' | 'end'
   class?: string
+  /** Fixed columns (name, actions) cannot be hidden from the column menu. */
+  fixed?: boolean
 }
 
 export type RowMeta = {

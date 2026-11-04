@@ -8,12 +8,15 @@ namespace Orange.Api.Domain;
 /// </summary>
 public class BusinessException : Exception
 {
-    public BusinessException(string message) : base(message)
+    private readonly int? _code;
+
+    public BusinessException(string message, int? code = null) : base(message)
     {
+        _code = code;
     }
 
     [JsonIgnore]
-    public int Code => ResolveCode(Message);
+    public int Code => _code ?? ResolveCode(Message);
 
     [JsonIgnore]
     public int HttpStatus => ErrorCodes.HttpStatusFor(Code);

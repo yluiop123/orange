@@ -152,4 +152,4 @@ def delete_groups(db: Session, ids: list[str], actor: str) -> None:
 def _assert_no_enabled_descendants(db: Session, group_id: str) -> None:
     index = _index(_all(db))
     if index.has_enabled_descendant(group_id, lambda group: group.status == STATUS_ENABLE):
-        raise invalid("请先禁用子组织")
+        raise conflict("请先禁用子组织")

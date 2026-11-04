@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts" generic="T">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RowMeta, SortState, TableColumn } from './resource-table-types'
 
@@ -44,6 +44,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const hiddenKeys = ref<string[]>([])
+
+const visibleColumns = computed(() =>
+  props.columns.filter((column) => !hiddenKeys.value.includes(column.key)),
+)
+const hideableColumns = computed(() =>
+  props.columns.filter((column) => !column.fixed && column.key !== 'actions'),
+)
+const treeColumnKey = computed(() => props.columns[0]?.key)
 const pageCount = computed(() => Math.max(1, Math.ceil(props.total / props.size)))
 const visibleIds = computed(() => props.rows.map(props.rowKey))
 const selectedSet = computed(() => new Set(props.selection))
@@ -53,6 +62,25 @@ const allSelected = computed(
 const someSelected = computed(
   () => !allSelected.value && visibleIds.value.some((id) => selectedSet.value.has(id)),
 )
+const expandableMetas = computed(() =>
+  props.rows.map((row) => metaFor(row)).filter((meta) => meta.hasChildren),
+)
+const allExpanded = computed(
+  () => expandableMetas.value.length > 0 && expandableMetas.value.every((meta) => meta.expanded),
+)
+
+function toggleAllExpanded() {
+  const expand = !allExpanded.value
+  for (const meta of expandableMetas.value) {
+    if (meta.expanded !== expand) meta.toggle()
+  }
+}
+
+function toggleColumn(key: string) {
+  hiddenKeys.value = hiddenKeys.value.includes(key)
+    ? hiddenKeys.value.filter((item) => item !== key)
+    : [...hiddenKeys.value, key]
+}
 
 function idsFor(row: T): string[] {
   const base = [props.rowKey(row)]
@@ -60,7 +88,7 @@ function idsFor(row: T): string[] {
   return [...new Set([...base, ...descendants])]
 }
 
-function toggleRow(row: T, value: boolean | null) {
+function toggleRow(row: T, value: boolean) {
   const next = new Set(props.selection)
   const ids = idsFor(row)
   if (value) ids.forEach((id) => next.add(id))
@@ -68,11 +96,19 @@ function toggleRow(row: T, value: boolean | null) {
   emit('update:selection', [...next])
 }
 
-function toggleAll(value: boolean | null) {
+function toggleAll(value: boolean) {
   const next = new Set(props.selection)
   if (value) props.rows.forEach((row) => idsFor(row).forEach((id) => next.add(id)))
   else visibleIds.value.forEach((id) => next.delete(id))
   emit('update:selection', [...next])
+}
+
+function onAllCheck(event: Event) {
+  toggleAll((event.target as HTMLInputElement).checked)
+}
+
+function onRowCheck(row: T, event: Event) {
+  toggleRow(row, (event.target as HTMLInputElement).checked)
 }
 
 function sortBy(column: TableColumn) {
@@ -82,7 +118,7 @@ function sortBy(column: TableColumn) {
 }
 
 function sortIcon(column: TableColumn) {
-  if (props.sortKey !== column.key) return 'mdi-unfold-more-horizontal'
+  if (props.sortKey !== column.key) return 'mdi-arrow-up-down'
   return props.sortDirection === 'asc' ? 'mdi-arrow-up' : 'mdi-arrow-down'
 }
 
@@ -91,7 +127,7 @@ function cellValue(row: T, key: string): unknown {
 }
 
 function display(value: unknown): string {
-  if (value === null || value === undefined || value === '') return '—'
+  if (value === null || value === undefined || value === '') return ''
   if (Array.isArray(value)) return value.join(', ')
   if (typeof value === 'object') return JSON.stringify(value)
   return String(value)
@@ -100,216 +136,197 @@ function display(value: unknown): string {
 function metaFor(row: T): RowMeta {
   return props.rowMeta?.(row) ?? { depth: 0, hasChildren: false, expanded: false, toggle: () => {} }
 }
+
+function indentFor(column: TableColumn, row: T): Record<string, string> | undefined {
+  if (!props.rowMeta || column.key !== treeColumnKey.value) return undefined
+  return { paddingLeft: `${metaFor(row).depth * 32 + 8}px` }
+}
 </script>
 
 <template>
-  <div class="resource-table">
-    <v-progress-linear v-if="loading" indeterminate color="primary" height="2" />
+  <div class="system-table">
+    <div class="system-toolbar">
+      <div class="system-toolbar__slot">
+        <slot name="toolbar" />
+      </div>
 
-    <div v-if="error" class="py-10 text-center">
-      <v-alert type="error" variant="tonal" class="mx-auto" max-width="520" :text="error" />
-      <v-btn class="mt-4" variant="outlined" prepend-icon="mdi-refresh" @click="emit('retry')">
+      <v-menu location="bottom end" :close-on-content-click="false">
+        <template #activator="{ props: activatorProps }">
+          <v-btn
+            v-bind="activatorProps"
+            variant="outlined"
+            class="system-columns"
+            :aria-label="t('table.columns')"
+          >
+            {{ t('table.columns') }}
+            <v-icon size="16">mdi-chevron-down</v-icon>
+          </v-btn>
+        </template>
+        <v-list density="compact" class="system-column-menu">
+          <v-list-item
+            v-for="column in hideableColumns"
+            :key="column.key"
+            @click="toggleColumn(column.key)"
+          >
+            <template #prepend>
+              <input
+                class="system-checkbox"
+                type="checkbox"
+                tabindex="-1"
+                :checked="!hiddenKeys.includes(column.key)"
+                :aria-label="column.title"
+                @click.stop="toggleColumn(column.key)"
+              />
+            </template>
+            <v-list-item-title>{{ column.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
+
+    <div v-if="error" class="system-error">
+      <p>{{ error }}</p>
+      <v-btn variant="outlined" size="small" @click="emit('retry')">
         {{ t('table.retry') }}
       </v-btn>
     </div>
 
     <template v-else>
-      <div v-if="selectable && selection.length > 0" class="selection-bar">
-        {{ t('table.selectedCount', { selected: selection.length, total }) }}
-        <v-btn size="small" variant="text" @click="emit('update:selection', [])">
-          {{ t('button.clear') }}
-        </v-btn>
+      <div class="system-table__scroll">
+        <table>
+          <thead>
+            <tr>
+              <th v-if="selectable" class="system-cell--select">
+                <input
+                  class="system-checkbox"
+                  type="checkbox"
+                  :checked="allSelected"
+                  :indeterminate="someSelected"
+                  :aria-label="t('table.selectAll')"
+                  @change="onAllCheck"
+                />
+              </th>
+              <th v-if="rowMeta" class="system-cell--expand">
+                <button
+                  v-if="expandableMetas.length > 0"
+                  type="button"
+                  class="system-expand"
+                  :aria-label="t('table.expandAll')"
+                  @click="toggleAllExpanded"
+                >
+                  <v-icon size="18">
+                    {{ allExpanded ? 'mdi-chevron-down' : 'mdi-chevron-right' }}
+                  </v-icon>
+                </button>
+              </th>
+              <th
+                v-for="column in visibleColumns"
+                :key="column.key"
+                :style="column.width ? { width: column.width } : undefined"
+                :class="column.class"
+                scope="col"
+              >
+                <button
+                  v-if="column.sortable"
+                  type="button"
+                  class="system-sort"
+                  :aria-label="column.title"
+                  @click="sortBy(column)"
+                >
+                  {{ column.title }}
+                  <v-icon size="14" :icon="sortIcon(column)" />
+                </button>
+                <span v-else>{{ column.title }}</span>
+              </th>
+              <th v-if="$slots.actions" class="system-cell--actions" />
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in rows" :key="rowKey(row)" :class="{ 'is-selected': selectedSet.has(rowKey(row)) }">
+              <td v-if="selectable" class="system-cell--select">
+                <input
+                  class="system-checkbox"
+                  type="checkbox"
+                  :checked="selectedSet.has(rowKey(row))"
+                  :aria-label="t('table.selectRow')"
+                  @change="onRowCheck(row, $event)"
+                />
+              </td>
+              <td v-if="rowMeta" class="system-cell--expand">
+                <button
+                  v-if="metaFor(row).hasChildren"
+                  type="button"
+                  class="system-expand"
+                  :aria-label="t('table.toggleExpand')"
+                  @click="metaFor(row).toggle()"
+                >
+                  <v-icon size="18">
+                    {{ metaFor(row).expanded ? 'mdi-chevron-down' : 'mdi-chevron-right' }}
+                  </v-icon>
+                </button>
+                <span v-else class="system-expand__spacer" />
+              </td>
+              <td
+                v-for="column in visibleColumns"
+                :key="column.key"
+                :class="column.class"
+                :style="indentFor(column, row)"
+              >
+                <slot
+                  :name="`cell-${column.key}`"
+                  :row="row"
+                  :value="cellValue(row, column.key)"
+                  :meta="metaFor(row)"
+                >
+                  {{ display(cellValue(row, column.key)) }}
+                </slot>
+              </td>
+              <td v-if="$slots.actions" class="system-cell--actions">
+                <slot name="actions" :row="row" />
+              </td>
+            </tr>
+            <tr v-if="rows.length === 0">
+              <td
+                class="system-table__empty"
+                :colspan="
+                  visibleColumns.length + (selectable ? 1 : 0) + (rowMeta ? 1 : 0) + ($slots.actions ? 1 : 0)
+                "
+              >
+                {{ loading ? t('table.loading') : t('table.empty') }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <v-table class="table" density="comfortable" hover>
-        <thead>
-          <tr>
-            <th v-if="selectable" class="checkbox-cell">
-              <v-checkbox-btn
-                :model-value="allSelected"
-                :indeterminate="someSelected"
-                :aria-label="t('table.selectAll')"
-                @update:model-value="toggleAll"
-              />
-            </th>
-            <th
-              v-for="column in columns"
-              :key="column.key"
-              :style="column.width ? { width: column.width } : undefined"
-              :class="[column.class, `text-${column.align ?? 'start'}`]"
-              scope="col"
-            >
-              <button
-                v-if="column.sortable"
-                type="button"
-                class="sort-button"
-                :aria-label="column.title"
-                @click="sortBy(column)"
-              >
-                {{ column.title }}
-                <v-icon size="16" :icon="sortIcon(column)" />
-              </button>
-              <span v-else>{{ column.title }}</span>
-            </th>
-            <th v-if="$slots.actions" class="text-end">{{ t('table.actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in rows" :key="rowKey(row)">
-            <td v-if="selectable" class="checkbox-cell">
-              <v-checkbox-btn
-                :model-value="selectedSet.has(rowKey(row))"
-                :aria-label="t('table.selectRow')"
-                @update:model-value="(value) => toggleRow(row, value)"
-              />
-            </td>
-            <td
-              v-for="column in columns"
-              :key="column.key"
-              :class="[column.class, `text-${column.align ?? 'start'}`]"
-            >
-              <slot
-                :name="`cell-${column.key}`"
-                :row="row"
-                :value="cellValue(row, column.key)"
-                :meta="metaFor(row)"
-              >
-                <div
-                  v-if="columns.length > 0 && column.key === columns[0].key && rowMeta"
-                  class="tree-cell"
-                  :style="{ paddingLeft: `${metaFor(row).depth * 20}px` }"
-                >
-                  <v-btn
-                    v-if="metaFor(row).hasChildren"
-                    icon
-                    size="x-small"
-                    variant="text"
-                    :aria-label="t('table.toggleExpand')"
-                    @click="metaFor(row).toggle()"
-                  >
-                    <v-icon size="18">
-                      {{ metaFor(row).expanded ? 'mdi-chevron-down' : 'mdi-chevron-right' }}
-                    </v-icon>
-                  </v-btn>
-                  <span v-else class="tree-spacer" />
-                  <span>{{ display(cellValue(row, column.key)) }}</span>
-                </div>
-                <span v-else>{{ display(cellValue(row, column.key)) }}</span>
-              </slot>
-            </td>
-            <td v-if="$slots.actions" class="text-end">
-              <slot name="actions" :row="row" />
-            </td>
-          </tr>
-          <tr v-if="rows.length === 0 && !loading">
-            <td :colspan="columns.length + (selectable ? 1 : 0) + ($slots.actions ? 1 : 0)">
-              <div class="empty-state">{{ t('table.empty') }}</div>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-
-      <div class="table-footer">
-        <div class="footer-total">{{ t('table.total', { total }) }}</div>
-        <div class="footer-size">
-          <span>{{ t('table.perPage') }}</span>
-          <v-select
-            :model-value="size"
-            :items="pageSizes"
-            density="compact"
-            variant="outlined"
-            hide-details
-            class="size-select"
-            @update:model-value="(value) => emit('update:size', value)"
-          />
+      <div class="system-footer">
+        <div class="system-footer__count">
+          {{
+            loading
+              ? t('table.loading')
+              : t('table.selectedCount', { selected: selection.length, total })
+          }}
         </div>
-        <v-pagination
-          :model-value="page"
-          :length="pageCount"
-          :total-visible="7"
-          density="comfortable"
-          @update:model-value="(value) => emit('update:page', value)"
-        />
+        <div class="system-footer__pager">
+          <span class="system-footer__page">{{ page }} / {{ pageCount }}</span>
+          <v-btn
+            variant="outlined"
+            size="small"
+            :disabled="page <= 1"
+            @click="emit('update:page', page - 1)"
+          >
+            {{ t('table.previous') }}
+          </v-btn>
+          <v-btn
+            variant="outlined"
+            size="small"
+            :disabled="page >= pageCount"
+            @click="emit('update:page', page + 1)"
+          >
+            {{ t('table.next') }}
+          </v-btn>
+        </div>
       </div>
     </template>
   </div>
 </template>
-
-<style scoped>
-.resource-table {
-  position: relative;
-}
-
-.table {
-  background: transparent;
-}
-
-.checkbox-cell {
-  width: 48px;
-  padding-inline: 8px !important;
-}
-
-.selection-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: rgb(var(--v-theme-on-surface-variant));
-  padding: 4px 8px;
-}
-
-.table-footer {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 12px 4px 4px;
-}
-
-.footer-total {
-  font-size: 13px;
-  color: rgb(var(--v-theme-on-surface-variant));
-}
-
-.footer-size {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-
-.size-select {
-  width: 92px;
-}
-
-.table-footer :deep(.v-pagination) {
-  margin-left: auto;
-}
-
-.sort-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  color: inherit;
-}
-
-.tree-cell {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.tree-spacer {
-  display: inline-block;
-  width: 32px;
-}
-
-.empty-state {
-  padding: 40px 0;
-  text-align: center;
-  color: rgb(var(--v-theme-on-surface-variant));
-}
-</style>

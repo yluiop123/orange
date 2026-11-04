@@ -410,13 +410,13 @@ class SecurityIntegrationTest {
     @Test
     void traceIdHeaderIsReusedInErrorResponse() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Request-Id", "trace-test-1234");
+        headers.set("X-Trace-Id", "trace-test-1234");
 
         ResponseEntity<String> response = rest.exchange(
                 "/api/v1/auth/user-info", HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(response.getHeaders().getFirst("X-Request-Id")).isEqualTo("trace-test-1234");
+        assertThat(response.getHeaders().getFirst("X-Trace-Id")).isEqualTo("trace-test-1234");
         assertThat(response.getBody()).contains("\"traceId\":\"trace-test-1234\"");
     }
 
@@ -469,7 +469,7 @@ class SecurityIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(login.token());
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-Request-Id", traceId);
+        headers.set("X-Trace-Id", traceId);
 
         ResponseEntity<String> created = rest.exchange(
                 "/api/v1/system/groups/children",

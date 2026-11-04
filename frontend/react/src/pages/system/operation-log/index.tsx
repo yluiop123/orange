@@ -5,6 +5,7 @@ import {
 } from "@/api/system/operation-log";
 import { ResourceTable, useResourceList } from "@/components/system/resource-list";
 import type { ListParams } from "@/components/system/resource-list";
+import { DateTimeRangePicker } from "@/components/system/date-time-range-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -47,17 +48,27 @@ function toIso(value: string) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 
+function pad(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+/** 默认查询当天 00:00 到 23:59。 */
+function todayRange() {
+  const today = new Date();
+  const day = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  return { from: `${day}T00:00`, to: `${day}T23:59` };
+}
+
 export default function OperationLogPage() {
   const intl = useIntl();
-  const [params, setParams] = useState<TableParams>({
+  const [params, setParams] = useState<TableParams>(() => ({
     page: 1,
     size: 10,
     username: "",
     path: "",
     status: "",
-    from: "",
-    to: "",
-  });
+    ...todayRange(),
+  }));
   const [detail, setDetail] = useState<OperationLog | null>(null);
 
   const { data, loading, error, refetch } = useResourceList<TableParams, OperationLog>({
@@ -162,7 +173,7 @@ export default function OperationLogPage() {
   ];
 
   return (
-    <div className="w-full p-3">
+    <div className="flex h-[calc(100svh-4rem)] w-full flex-col p-3">
       <Dialog open={!!detail} onOpenChange={(open) => { if (!open) setDetail(null); }}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -196,94 +207,6 @@ export default function OperationLogPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex flex-wrap items-center gap-3 py-3">
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap" htmlFor="operationLogUsername">
-            {intl.formatMessage({ id: "page.system.operationLog.header.username" })}
-          </Label>
-          <Input
-            id="operationLogUsername"
-            value={params.username}
-            onChange={(event) =>
-              setParams((prev) => ({ ...prev, username: event.target.value, page: 1 }))
-            }
-            className="w-36"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap" htmlFor="operationLogPath">
-            {intl.formatMessage({ id: "page.system.operationLog.header.path" })}
-          </Label>
-          <Input
-            id="operationLogPath"
-            value={params.path}
-            onChange={(event) =>
-              setParams((prev) => ({ ...prev, path: event.target.value, page: 1 }))
-            }
-            className="w-48"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap">
-            {intl.formatMessage({ id: "page.system.operationLog.header.status" })}
-          </Label>
-          <Select
-            value={params.status || "all"}
-            onValueChange={(value) =>
-              setParams((prev) => ({
-                ...prev,
-                status: !value || value === "all" ? "" : value,
-                page: 1,
-              }))
-            }
-          >
-            <SelectTrigger className="w-28">
-              <SelectValue>
-                {params.status || intl.formatMessage({ id: "dict.status.all" })}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((status) => (
-                <SelectItem key={status || "all"} value={status || "all"}>
-                  {status || intl.formatMessage({ id: "dict.status.all" })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap" htmlFor="operationLogFrom">
-            {intl.formatMessage({ id: "page.system.operationLog.header.from" })}
-          </Label>
-          <Input
-            id="operationLogFrom"
-            type="datetime-local"
-            value={params.from}
-            onChange={(event) =>
-              setParams((prev) => ({ ...prev, from: event.target.value, page: 1 }))
-            }
-            className="w-52"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap" htmlFor="operationLogTo">
-            {intl.formatMessage({ id: "page.system.operationLog.header.to" })}
-          </Label>
-          <Input
-            id="operationLogTo"
-            type="datetime-local"
-            value={params.to}
-            onChange={(event) =>
-              setParams((prev) => ({ ...prev, to: event.target.value, page: 1 }))
-            }
-            className="w-52"
-          />
-        </div>
-        <Button variant="outline" onClick={refetch}>
-          {intl.formatMessage({ id: "button.refresh" })}
-        </Button>
-      </div>
-
       <ResourceTable
         data={data.list}
         columns={columns}
@@ -295,6 +218,75 @@ export default function OperationLogPage() {
         loading={loading}
         error={error}
         onRetry={refetch}
+        toolbar={(
+          <>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap" htmlFor="operationLogUsername">
+                {intl.formatMessage({ id: "page.system.operationLog.header.username" })}
+              </Label>
+              <Input
+                id="operationLogUsername"
+                value={params.username}
+                onChange={(event) =>
+                  setParams((prev) => ({ ...prev, username: event.target.value, page: 1 }))
+                }
+                className="w-32"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap" htmlFor="operationLogPath">
+                {intl.formatMessage({ id: "page.system.operationLog.header.path" })}
+              </Label>
+              <Input
+                id="operationLogPath"
+                value={params.path}
+                onChange={(event) =>
+                  setParams((prev) => ({ ...prev, path: event.target.value, page: 1 }))
+                }
+                className="w-40"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap">
+                {intl.formatMessage({ id: "page.system.operationLog.header.status" })}
+              </Label>
+              <Select
+                value={params.status || "all"}
+                onValueChange={(value) =>
+                  setParams((prev) => ({
+                    ...prev,
+                    status: !value || value === "all" ? "" : value,
+                    page: 1,
+                  }))
+                }
+              >
+                <SelectTrigger className="w-28">
+                  <SelectValue>
+                    {params.status || intl.formatMessage({ id: "dict.status.all" })}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((status) => (
+                    <SelectItem key={status || "all"} value={status || "all"}>
+                      {status || intl.formatMessage({ id: "dict.status.all" })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DateTimeRangePicker
+              value={{ from: params.from ?? "", to: params.to ?? "" }}
+              onChange={(range) =>
+                setParams((prev) => ({ ...prev, ...range, page: 1 }))
+              }
+            />
+            <div className="ml-auto flex items-center gap-2">
+              <Button variant="outline" onClick={refetch}>
+                {intl.formatMessage({ id: "button.refresh" })}
+              </Button>
+            </div>
+          </>
+        )}
       />
     </div>
   );

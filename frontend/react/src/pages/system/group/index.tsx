@@ -164,7 +164,7 @@ export default function Group() {
   ]
 
   return (
-    <div className="w-full p-3">
+    <div className="flex h-[calc(100svh-4rem)] w-full flex-col p-3">
       <EditDialog id={id} setOpen={setIsEditDialogOpen} open={isEditDialogOpen}
         onSave={refetch} />
       <AddChildDialog id={id} setOpen={setIsAddChildDialogOpen} open={isAddChildDialogOpen}
@@ -176,30 +176,6 @@ export default function Group() {
         pending={deleting}
         onConfirm={confirmDelete}
       />
-
-      <div className="flex items-center py-3 gap-4">
-        <div className="flex items-center gap-4">
-          <Label className="whitespace-nowrap" htmlFor="groupName">{formatMessage({ id: 'page.system.group.header.name' })}</Label>
-          <Input id="groupName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} />
-        </div>
-        <div className="flex items-center gap-4">
-          <Label className="whitespace-nowrap" htmlFor="groupId">{formatMessage({ id: 'page.system.group.header.id' })}</Label>
-          <Input id="groupId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.group.header.status' })}</Label>
-          <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <ActionAuth action="add">
-            <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
-          </ActionAuth>
-          <ActionAuth action="delete">
-            <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
-          </ActionAuth>
-        </div>
-      </div>
 
       <ResourceTable
         data={data.list}
@@ -216,6 +192,30 @@ export default function Group() {
         loading={loading}
         error={error}
         onRetry={refetch}
+        toolbar={(
+          <>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap" htmlFor="groupName">{formatMessage({ id: 'page.system.group.header.name' })}</Label>
+              <Input id="groupName" type="text" placeholder="" value={params.name ?? ''} onChange={(e) => updateParams({ name: e.target.value })} className="w-40" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap" htmlFor="groupId">{formatMessage({ id: 'page.system.group.header.id' })}</Label>
+              <Input id="groupId" type="text" placeholder="" value={params.id ?? ''} onChange={(e) => updateParams({ id: e.target.value })} className="w-32" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap">{formatMessage({ id: 'page.system.group.header.status' })}</Label>
+              <StatusFilter value={params.status ?? 'all'} onChange={(status) => updateParams({ status })} />
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <ActionAuth action="add">
+                <Button onClick={() => handleAddChild(null)}>{formatMessage({ id: 'button.add' })}</Button>
+              </ActionAuth>
+              <ActionAuth action="delete">
+                <Button disabled={selectedRows.length === 0} onClick={() => requestDelete(selectedRows)}>{formatMessage({ id: 'button.delete' })}</Button>
+              </ActionAuth>
+            </div>
+          </>
+        )}
       />
     </div>
   )

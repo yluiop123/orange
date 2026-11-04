@@ -120,7 +120,7 @@ Deprecated compatibility parameters (`filterField`, `filterValue`, `orderField`,
 | DELETE | `/{groupId}` | `action#/system/group:delete` | Delete one |
 | DELETE | `?ids=a,b` | `action#/system/group:delete` | Delete many |
 
-Rules: code is digits; root is 2 digits; child = parent + 2 digits; code immutable; deleting a subtree with users is rejected; disabling a parent requires all descendants to be disabled first; the whole subtree is deleted explicitly, deepest first.
+Rules: code is digits; root is 2 digits; child = parent + 2 digits; code immutable; deleting a subtree with users is rejected; disabling a parent requires all descendants to be disabled first (otherwise `40901`); the whole subtree is deleted explicitly, deepest first.
 
 ### 5.2 Permissions — `/api/v1/system/permissions`
 
