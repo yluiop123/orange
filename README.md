@@ -1,5 +1,7 @@
 # ORANGE
 
+[![CI](https://github.com/yluiop123/orange/actions/workflows/main.yml/badge.svg)](https://github.com/yluiop123/orange/actions/workflows/main.yml)
+
 <img height="80" src="./readme/images/orange.png">
 
 ORANGE is a full-stack permission-management demo. The repository is a polyglot monorepo: the same product is implemented with several frontend frameworks, backend languages and database engines.

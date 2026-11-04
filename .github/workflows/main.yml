@@ -24,6 +24,7 @@ concurrency:
 jobs:
   frontend-react:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -55,6 +56,7 @@ jobs:
 
   frontend-angular:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -73,11 +75,12 @@ jobs:
 
   frontend-vue:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.28.2
+          version: 12.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -96,6 +99,7 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -158,7 +162,7 @@ jobs:
       - if: matrix.stack == 'nest'
         uses: pnpm/action-setup@v4
         with:
-          version: 10.28.2
+          version: 12.15.0
 
       - if: matrix.stack == 'csharp'
         uses: actions/setup-dotnet@v4
@@ -192,6 +196,7 @@ jobs:
               ;;
             go)
               cd backend/go-gin-gorm
+              test -z "$(gofmt -l .)"
               go build ./...
               go vet ./...
               go test ./...
@@ -238,6 +243,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
