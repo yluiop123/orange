@@ -47,12 +47,21 @@ Mock mode must be disabled for the real run:
 Then run:
 
 ```bash
-node real-react.mjs
-node real-vue.mjs
-node real-angular.mjs
+E2E_BACKEND=spring E2E_DB=mysql node real-react.mjs
+E2E_BACKEND=spring E2E_DB=mysql node real-vue.mjs
+E2E_BACKEND=spring E2E_DB=mysql node real-angular.mjs
 ```
 
-Current result (2026-11-04, FastAPI + PostgreSQL): React 14/14, Vue 15/15, Angular 15/15.
+`E2E_BACKEND` and `E2E_DB` are labels written into the JSON result; they do not
+change the interactions. `E2E_BASE` overrides the app URL.
+
+Current results (2026-11-04):
+
+| Backend | Database | React | Vue | Angular |
+| --- | --- | --- | --- | --- |
+| FastAPI | PostgreSQL | 14/14 | 15/15 | 15/15 |
+| Spring Boot | MySQL | 14/14 | 15/15 | 15/15 |
+| Go | SQLite | 14/14 | 15/15 | 15/15 |
 
 The real scripts reuse the mock flows but assert data from the database, check that
 the performed writes appear in the operation log, and drop mock-only fixtures.

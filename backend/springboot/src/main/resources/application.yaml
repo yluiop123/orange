@@ -29,7 +29,7 @@ spring:
   jpa:
 #    hibernate:
 #      ddl-auto: update   # 开发用：update / create / validate
-    show-sql: true
+    show-sql: ${SPRING_SHOW_SQL:${SHOW_SQL:false}}
     # 方言由 DatabaseConfig 根据 DB_DRIVER/URL 自动注入，不要在此写死。
     hibernate:
       # 表结构由 database/<engine>/ddl.sql 管理，应用不建表。
@@ -64,7 +64,7 @@ app:
     # 允许跨域访问的来源，逗号分隔。
     # 本地开发默认 http://localhost:3000；生产通过环境变量覆盖，例如：
     # CORS_ALLOWED_ORIGINS=https://orange.example.com
-    allowed-origins: ${CORS_ORIGINS:${CORS_ALLOWED_ORIGINS:http://localhost:5173}}
+    allowed-origins: ${CORS_ORIGINS:${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:4200}}
   auth:
     # refresh token Cookie 是否只允许 HTTPS。生产必须设为 true。
     cookie-secure: ${COOKIE_SECURE:false}

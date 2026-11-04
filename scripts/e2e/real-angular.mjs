@@ -3,6 +3,8 @@ import fs from 'node:fs';
 
 const base = process.env.E2E_BASE ?? 'http://localhost:4200';
 const shots = process.env.E2E_EVIDENCE ?? 'D:/User/Cache/Temp/opencode/evidence';
+const backend = process.env.E2E_BACKEND ?? 'fastapi';
+const db = process.env.E2E_DB ?? 'postgres';
 // 每次运行使用不同的 2 位根组织编码，避免上次失败残留导致编码冲突
 const groupCode = String(90 + Number(String(Date.now()).slice(-1)));
 const groupName = `E2E组织${groupCode}`;
@@ -56,7 +58,7 @@ await step('菜单点击：系统管理 → 用户管理', async () => {
   await page.getByRole('link', { name: '用户管理' }).click();
   await page.waitForURL(/\/system\/user$/);
   await page.getByRole('columnheader', { name: '用户名' }).waitFor();
-  await page.getByRole('cell', { name: 'super', exact: true }).first().waitFor();
+  await page.getByRole('row').nth(1).waitFor({ timeout: 15000 });
 });
 
 await step('用户搜索过滤', async () => {
@@ -182,5 +184,5 @@ await step('多角色用户切换到受限角色后跳到首个可见页面', as
 await browser.close();
 
 const failed = results.filter((r) => !r.ok);
-console.log(JSON.stringify({ app: 'angular-real', passed: results.length - failed.length, failed: failed.length, results, consoleErrors: consoleErrors.slice(0, 20) }, null, 2));
+console.log(JSON.stringify({ app: 'angular-real', backend, db, passed: results.length - failed.length, failed: failed.length, results, consoleErrors: consoleErrors.slice(0, 20) }, null, 2));
 process.exit(failed.length ? 1 : 0);

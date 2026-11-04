@@ -54,10 +54,17 @@ on PostgreSQL, MySQL, MariaDB and SQLite: 7 groups, 48 permissions, 67 role gran
 
 ## 4. CI and deployment
 
-- `.github/workflows/main.yml` compiles and tests the Spring Boot backend.
-- The same workflow lints, type-checks, tests and builds `frontend/react`.
-- Only `frontend/react/dist` is uploaded to GitHub Pages.
-- Angular and Vue are not deployed and are not part of the CI workflow yet.
+`.github/workflows/main.yml` runs on pushes and pull requests to `main`:
+
+- `frontend-react`, `frontend-angular`, `frontend-vue`: lint, type-check, test, build.
+- `backend` matrix (`spring`, `go`, `nest`, `csharp`, `rust`, `fastapi`): each stack's
+  tests and build, then — on push — an HTTP smoke against PostgreSQL, MySQL, MariaDB
+  and SQLite using `scripts/ci/run-db-matrix.mjs`.
+- Pull requests skip the four-engine matrix to keep feedback fast; unit tests still run.
+- Only `frontend/react/dist` is uploaded to GitHub Pages, after the React job passes.
+
+Angular and Vue are verified but not deployed. Backend hosting is not part of this
+workflow; GitHub Pages cannot run server processes.
 
 ## 5. Frontend mock end-to-end
 
@@ -78,28 +85,30 @@ Scripts: `scripts/e2e/` (`mock-react.mjs`, `mock-vue.mjs`, `mock-angular.mjs`).
 
 ## 6. Frontend real end-to-end
 
-Date: 2026-11-04. Backend: FastAPI on port 8080, database: PostgreSQL `orange_fastapi`.
-Mocks disabled; the dev-server proxies forwarded `/api/v1` to the real backend.
+Date: 2026-11-04. Mocks disabled; the dev-server proxies forwarded `/api/v1` to the real backend.
 
-| App | Checks | Result |
-| --- | --- | --- |
-| React | 14 | 14 passed |
-| Vue | 15 | 15 passed |
-| Angular | 15 | 15 passed |
+| Backend | Database | React | Vue | Angular |
+| --- | --- | --- | --- | --- |
+| FastAPI | PostgreSQL | 14/14 | 15/15 | 15/15 |
+| Spring Boot | MySQL | 14/14 | 15/15 | 15/15 |
+| Go | SQLite | 14/14 | 15/15 | 15/15 |
 
 Each run covered: login with the database account, session restore after reload,
 menu navigation, user search, role/permission/group pages, group create/status/delete,
 operation-log rows produced by those writes, permission action validation, zh/en
 switching, logout and protected-route redirect, and restricted-role redirect.
 
-Scripts: `scripts/e2e/real-react.mjs`, `real-vue.mjs`, `real-angular.mjs`.
+Scripts: `scripts/e2e/real-react.mjs`, `real-vue.mjs`, `real-angular.mjs`; set
+`E2E_BACKEND` and `E2E_DB` to label the run.
 
-Two defects were found and fixed by this run:
+Defects found and fixed by this run:
 
 - Vue and Angular menu titles came from the backend, which returns Chinese names
   only. They now translate by path from the shared permission catalog, like React.
 - Angular operation-log requests sent empty `from`/`to` filters and the real
   backend rejected them with 400. Empty filters are now omitted.
+- Spring Boot's CORS default allowed only `localhost:5173`; it now matches the
+  other stacks and allows 5173, 5174 and 4200.
 
 ## 7. Known unverified items
 
@@ -108,9 +117,9 @@ Two defects were found and fixed by this run:
 - Angular Cesium loads runtime assets from the Cesium CDN; offline behaviour falls back to a static globe.
 - The Angular/Vue demo pages use framework-appropriate substitutes for React-only libraries (Recharts, AntV G2, L7).
 - The three mock E2E scripts are not in CI.
-- Real-backend end-to-end was executed for FastAPI + PostgreSQL on 2026-11-04;
-  other backend/database combinations are covered by the per-stack HTTP smoke
-  tests, not by the browser run.
+- Real browser end-to-end was executed for FastAPI+PostgreSQL, Spring+MySQL and
+  Go+SQLite. The remaining backend/database combinations are covered by the
+  per-stack HTTP smoke tests and the CI database matrix, not by a browser run.
 
 ## 8. Re-running
 

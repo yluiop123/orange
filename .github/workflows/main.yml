@@ -1,93 +1,244 @@
-# 一个简单的 GitHub Pages 部署工作流
-name: Deploy static content to Pages
+# CI + GitHub Pages
+# - 前端：React / Angular / Vue 的 lint、类型检查、测试、构建
+# - 后端：六个技术栈的测试与构建（矩阵）
+# - 数据库：每个后端在 PostgreSQL / MySQL / MariaDB / SQLite 上跑同一套 HTTP 冒烟
+# - Pages：仅在 main 分支部署 React 静态构建
+name: CI and Pages
 
 on:
-  # 仅在推送到默认分支时运行
   push:
     branches: ['main']
-
-  # 这个选项可以使你手动在 Action tab 页面触发工作流
+  pull_request:
+    branches: ['main']
   workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 的权限，以允许部署到 GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 允许一个并发部署
 concurrency:
-  group: 'pages'
+  group: 'ci-${{ github.ref }}'
   cancel-in-progress: true
 
 jobs:
-  backend:
+  frontend-react:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up JDK
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+          cache-dependency-path: './frontend/react/pnpm-lock.yaml'
+      - run: pnpm install --frozen-lockfile
+        working-directory: frontend/react
+      - run: pnpm run lint
+        working-directory: frontend/react
+      - run: pnpm run typecheck
+        working-directory: frontend/react
+      - run: pnpm run test
+        working-directory: frontend/react
+      - run: pnpm run db:seed:check
+        working-directory: frontend/react
+      - run: pnpm run build:github
+        working-directory: frontend/react
+      - if: github.event_name == 'push'
+        uses: actions/configure-pages@v5
+      - if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './frontend/react/dist'
+
+  frontend-angular:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'npm'
+          cache-dependency-path: './frontend/angular/package-lock.json'
+      - run: npm ci
+        working-directory: frontend/angular
+      - run: npm run lint
+        working-directory: frontend/angular
+      - run: npm test -- --watch=false
+        working-directory: frontend/angular
+      - run: npm run build
+        working-directory: frontend/angular
+
+  frontend-vue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: 'pnpm'
+          cache-dependency-path: './frontend/vue/pnpm-lock.yaml'
+      - run: pnpm install --frozen-lockfile
+        working-directory: frontend/vue
+      - run: pnpm run typecheck
+        working-directory: frontend/vue
+      - run: pnpm run lint
+        working-directory: frontend/vue
+      - run: pnpm run test
+        working-directory: frontend/vue
+      - run: pnpm run build
+        working-directory: frontend/vue
+
+  backend:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack: [spring, go, nest, csharp, rust, fastapi]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orange
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: orange
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: orange
+        ports: ['3307:3306']
+        options: >-
+          --health-cmd "mariadb-admin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node is needed for the shared database matrix runner and for NestJS.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - if: matrix.stack == 'spring'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '25'
           cache: maven
-      - name: Compile
-        run: mvn -B -DskipTests compile
-        working-directory: backend/springboot
-      - name: Security tests
-        run: >-
-          mvn -B
-          -Dtest=JwtUtilTest,PermissionAuthorityBuilderTest,LoginAttemptServiceTest,SecurityResponseWriterTest,SecurityIntegrationTest
-          test
-        working-directory: backend/springboot
 
-  # 单次部署的工作描述
+      - if: matrix.stack == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+          cache-dependency-path: backend/go-gin-gorm/go.sum
+
+      - if: matrix.stack == 'nest'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - if: matrix.stack == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - if: matrix.stack == 'rust'
+        uses: dtolnay/rust-toolchain@stable
+
+      - if: matrix.stack == 'rust'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend/rust-axum
+
+      - if: matrix.stack == 'fastapi'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/python-fastapi/requirements-dev.txt
+
+      - name: Test and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ matrix.stack }}" in
+            spring)
+              cd backend/springboot
+              mvn -B test
+              mvn -B -DskipTests package
+              ;;
+            go)
+              cd backend/go-gin-gorm
+              go build ./...
+              go vet ./...
+              go test ./...
+              go build -o bin/server ./cmd/server
+              ;;
+            nest)
+              cd backend/node-nestjs
+              pnpm install --frozen-lockfile
+              pnpm run build
+              pnpm run test
+              ;;
+            csharp)
+              cd backend/csharp
+              dotnet build Orange.slnx
+              dotnet test Orange.slnx --no-build
+              dotnet publish src/Orange.Api/Orange.Api.csproj -c Release -o out
+              ;;
+            rust)
+              cd backend/rust-axum
+              cargo test
+              cargo build
+              ;;
+            fastapi)
+              cd backend/python-fastapi
+              pip install -r requirements-dev.txt
+              python -m pytest -q
+              ;;
+          esac
+
+      - name: Database clients
+        if: github.event_name != 'pull_request'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client default-mysql-client
+
+      - name: Database matrix
+        if: github.event_name != 'pull_request'
+        run: node scripts/ci/run-db-matrix.mjs ${{ matrix.stack }}
+
   deploy:
-    env:
-      VITE_PLATFORM: github
+    if: github.event_name == 'push'
+    needs: frontend-react
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.28.2
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: 'pnpm'
-          cache-dependency-path: './frontend/react/pnpm-lock.yaml'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        working-directory: frontend/react
-      - name: Lint
-        run: pnpm run lint
-        working-directory: frontend/react
-      - name: Type check
-        run: pnpm run typecheck
-        working-directory: frontend/react
-      - name: Test
-        run: pnpm run test
-        working-directory: frontend/react
-      - name: Check permission seed
-        run: pnpm run db:seed:check
-        working-directory: frontend/react
-      - name: Build
-        run: pnpm run build:github
-        working-directory: frontend/react
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # 只部署 React 前端
-          path: './frontend/react/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

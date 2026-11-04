@@ -53,10 +53,17 @@ cargo +stable-x86_64-pc-windows-gnu test
 
 ## 4. CI 与部署
 
-- `.github/workflows/main.yml` 编译并测试 Spring Boot 后端。
-- 同一 workflow 对 `frontend/react` 执行 lint、类型检查、测试和构建。
-- 仅 `frontend/react/dist` 会被上传到 GitHub Pages。
-- Angular 和 Vue 未部署，且尚未纳入 CI workflow。
+`.github/workflows/main.yml` 在推送到 `main` 和针对 `main` 的 PR 上运行：
+
+- `frontend-react`、`frontend-angular`、`frontend-vue`：lint、类型检查、测试、构建。
+- `backend` 矩阵（`spring`、`go`、`nest`、`csharp`、`rust`、`fastapi`）：各栈测试与
+  构建；推送时再通过 `scripts/ci/run-db-matrix.mjs` 对 PostgreSQL、MySQL、MariaDB、
+  SQLite 各跑一遍 HTTP 冒烟。
+- PR 跳过四数据库矩阵以加快反馈，单元测试仍会执行。
+- 只有 React job 通过后才会把 `frontend/react/dist` 上传到 GitHub Pages。
+
+Angular 和 Vue 已验证但不部署。后端托管不在该 workflow 内；GitHub Pages
+不能运行服务端进程。
 
 ## 5. 前端 Mock 端到端
 
@@ -76,27 +83,29 @@ cargo +stable-x86_64-pc-windows-gnu test
 
 ## 6. 前端真实端到端
 
-日期：2026-11-04。后端：FastAPI（8080），数据库：PostgreSQL `orange_fastapi`。
-关闭 Mock，开发服务器代理把 `/api/v1` 转发到真实后端。
+日期：2026-11-04。关闭 Mock，开发服务器代理把 `/api/v1` 转发到真实后端。
 
-| 应用 | 检查项 | 结果 |
-| --- | --- | --- |
-| React | 14 | 14 通过 |
-| Vue | 15 | 15 通过 |
-| Angular | 15 | 15 通过 |
+| 后端 | 数据库 | React | Vue | Angular |
+| --- | --- | --- | --- | --- |
+| FastAPI | PostgreSQL | 14/14 | 15/15 | 15/15 |
+| Spring Boot | MySQL | 14/14 | 15/15 | 15/15 |
+| Go | SQLite | 14/14 | 15/15 | 15/15 |
 
 每轮覆盖：数据库账号登录、刷新后恢复会话、菜单导航、用户搜索、角色/权限/组织页面、
 组织新增/状态/删除、这些写操作产生的真实操作日志、权限动作校验、中英文切换、
 退出登录与受保护路由跳转、受限角色跳转。
 
-脚本：`scripts/e2e/real-react.mjs`、`real-vue.mjs`、`real-angular.mjs`。
+脚本：`scripts/e2e/real-react.mjs`、`real-vue.mjs`、`real-angular.mjs`；
+通过 `E2E_BACKEND`、`E2E_DB` 标记本轮组合。
 
-本轮发现并修复两个真实缺陷：
+本轮发现并修复：
 
 - Vue/Angular 菜单标题直接使用后端返回的名称，而后端只返回中文；现在和 React
   一样按路径从共享权限目录取当前语言名称。
 - Angular 操作日志把空的 `from`/`to` 筛选参数也发给后端，真实后端返回 400；
   现在只发送非空条件。
+- Spring Boot 的 CORS 默认只允许 `localhost:5173`；现在与其他栈一致，允许
+  5173、5174、4200。
 
 ## 7. 已知未验证项
 
@@ -106,8 +115,8 @@ cargo +stable-x86_64-pc-windows-gnu test
 - Angular 的 Cesium 从 Cesium CDN 加载运行时资源；离线时回退为静态地球。
 - Angular/Vue 的演示页面针对仅限 React 的库（Recharts、AntV G2、L7）使用了适合各自框架的替代方案。
 - 三个 Mock E2E 脚本尚未纳入 CI。
-- 真实后端端到端已在 2026-11-04 用 FastAPI + PostgreSQL 执行；其余后端/数据库
-  组合由各栈 HTTP 冒烟覆盖，未跑浏览器联调。
+- 真实浏览器端到端已跑 FastAPI+PostgreSQL、Spring+MySQL、Go+SQLite；其余后端/数据库
+  组合由各栈 HTTP 冒烟和 CI 数据库矩阵覆盖，未跑浏览器。
 
 ## 8. 重新运行
 
