@@ -90,7 +90,6 @@ import type { MenuNode } from '../core/models';
       }
       .nav-item.active {
         background: var(--app-sidebar-active);
-        color: var(--app-sidebar-active-foreground);
       }
       .nav-item.active.branch {
         background: transparent;

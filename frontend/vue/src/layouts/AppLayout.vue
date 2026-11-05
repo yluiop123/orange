@@ -37,7 +37,14 @@ const forcedOpen = computed({
 
 <style scoped>
 .app-main {
+  height: 100vh;
+  overflow-y: auto;
   background: rgb(var(--v-theme-background));
+}
+
+.app-shell {
+  height: 100vh;
+  overflow: hidden;
 }
 
 .page-container {

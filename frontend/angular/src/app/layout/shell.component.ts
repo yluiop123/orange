@@ -119,6 +119,7 @@ export class ShellComponent {
     document.documentElement.classList.toggle('dark', this.dark());
     const root = document.documentElement;
     const item = this.colors.find((entry) => entry.key === this.color());
+    const isDark = this.dark();
     if (!item || item.key === 'default') {
       root.style.removeProperty('--app-primary');
       root.style.removeProperty('--app-primary-foreground');
@@ -126,15 +127,33 @@ export class ShellComponent {
       root.style.removeProperty('--mat-sys-primary');
       root.style.removeProperty('--mat-sys-primary-fixed');
       root.style.removeProperty('--mat-sys-primary-container');
+      root.style.setProperty('--app-sidebar-active', isDark ? '#27272a' : '#e7e7e7');
+      root.style.setProperty('--app-sidebar-active-foreground', isDark ? '#fafafa' : '#18181b');
     } else {
-      const foreground = this.dark() ? '#18181b' : '#ffffff';
+      const foreground = isDark ? '#18181b' : '#ffffff';
       root.style.setProperty('--app-primary', item.hex);
       root.style.setProperty('--app-primary-foreground', foreground);
       root.style.setProperty('--app-ring', item.hex);
       root.style.setProperty('--mat-sys-primary', item.hex);
       root.style.setProperty('--mat-sys-primary-fixed', item.hex);
       root.style.setProperty('--mat-sys-primary-container', item.hex);
+      root.style.setProperty(
+        '--app-sidebar-active',
+        this.mixColor(item.hex, isDark ? '#18181b' : '#fafafa', 0.3),
+      );
+      root.style.setProperty('--app-sidebar-active-foreground', item.hex);
     }
+  }
+
+  private mixColor(hex: string, base: string, ratio: number): string {
+    const parse = (value: string) =>
+      [0, 2, 4].map((index) => Number.parseInt(value.replace('#', '').slice(index, index + 2), 16));
+    const source = parse(hex);
+    const target = parse(base);
+    const mixed = source.map((channel, index) =>
+      Math.round(channel * ratio + target[index] * (1 - ratio)),
+    );
+    return `#${mixed.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
   }
 
   toggleNav(): void {

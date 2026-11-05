@@ -254,8 +254,12 @@ async function logout() {
 }
 
 .menu-list :deep(.v-list-group--active > .v-list-group__header) {
+  color: rgb(var(--v-theme-sidebar-active-foreground));
+}
+
+.menu-list :deep(.v-list-group--active > .v-list-group__header) {
   background: transparent !important;
-  color: rgb(var(--v-theme-on-surface));
+  color: rgb(var(--v-theme-sidebar-active-foreground));
   font-weight: 400;
 }
 

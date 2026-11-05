@@ -43,6 +43,34 @@ function checkColor(key: string) {
   return ui.dark ? '#18181b' : '#fafafa'
 }
 
+function mixColor(hex: string, base: string, ratio: number) {
+  const parse = (value: string) => {
+    const raw = value.replace('#', '')
+    return [0, 2, 4].map((index) => Number.parseInt(raw.slice(index, index + 2), 16))
+  }
+  const source = parse(hex)
+  const target = parse(base)
+  const mixed = source.map((channel, index) =>
+    Math.round(channel * ratio + target[index] * (1 - ratio)),
+  )
+  return `#${mixed.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
+}
+
+function applySidebarColor(next: string) {
+  const hex = next === 'default' ? '' : (COLORS.find((item) => item.key === next)?.hex ?? '')
+  const themes = theme.themes.value
+  for (const name of ['light', 'dark'] as const) {
+    const isDark = name === 'dark'
+    const base = isDark ? '#18181b' : '#fafafa'
+    themes[name].colors['sidebar-active'] = hex
+      ? mixColor(hex, base, 0.3)
+      : (isDark ? '#27272a' : '#e7e7e7')
+    themes[name].colors['sidebar-active-foreground'] = hex
+      ? hex
+      : (isDark ? '#fafafa' : '#18181b')
+  }
+}
+
 function setColor(next: string) {
   color.value = next
   localStorage.setItem(THEME_COLOR_KEY, next)
@@ -53,6 +81,7 @@ function setColor(next: string) {
   theme.themes.value.dark.colors.primary = darkPrimary
   theme.themes.value.light.colors['sidebar-primary'] = lightPrimary
   theme.themes.value.dark.colors['sidebar-primary'] = darkPrimary
+  applySidebarColor(next)
 }
 
 setColor(color.value)
