@@ -1,5 +1,11 @@
 @use '@angular/material' as mat;
 
+/* Use the outlined Material icon set across the app; it matches the
+   stroke-based lucide icons used by the React reference. */
+.material-icons {
+  font-family: 'Material Icons Outlined' !important;
+}
+
 /* ------------------------------------------------------------------
    Reference tokens (see docs/STYLE-GUIDE.md). React is the visual
    reference; these values are the hex equivalents of its OKLCH set.
@@ -46,7 +52,7 @@ html {
   --app-ring: #f97316;
   --app-sidebar: #fafafa;
   --app-sidebar-foreground: #18181b;
-  --app-sidebar-active: #f4f4f5;
+  --app-sidebar-active: #e7e7e7;
   --app-sidebar-active-foreground: #18181b;
   --app-sidebar-hover: #f4f4f5;
   --app-sidebar-border: #e4e4e7;
@@ -817,14 +823,14 @@ table.mat-mdc-table {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  background: var(--app-card);
+  background: var(--app-background);
   border: 1px solid var(--app-border);
   border-radius: 0.5rem;
 }
 
 .system-table table.mat-mdc-table {
   width: 100%;
-  background: var(--app-card);
+  background: var(--app-background);
 }
 
 .system-table .mat-mdc-header-row {
@@ -832,12 +838,13 @@ table.mat-mdc-table {
   top: 0;
   z-index: 2;
   height: 2.5rem;
-  background: var(--app-card);
+  min-height: 2.5rem;
+  background: var(--app-background);
 }
 
 .system-table .mat-mdc-header-cell {
   padding: 0 0.5rem;
-  background: var(--app-card);
+  background: var(--app-background);
   color: var(--app-muted-foreground);
   font-size: 0.875rem;
   font-weight: 500;
@@ -847,6 +854,7 @@ table.mat-mdc-table {
 
 .system-table .mat-mdc-row {
   height: 2.5rem;
+  min-height: 2.5rem;
   border-bottom: 1px solid var(--app-border);
 }
 
@@ -1045,4 +1053,118 @@ table.mat-mdc-table {
   .chart-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Dark mode mirrors the React token set. */
+html.dark {
+  color-scheme: dark;
+  --app-primary: #fafafa;
+  --app-primary-foreground: #18181b;
+  --app-background: #18181b;
+  --app-card: #27272a;
+  --app-foreground: #fafafa;
+  --app-muted: #27272a;
+  --app-muted-foreground: #a1a1aa;
+  --app-border: #3f3f46;
+  --app-input: #3f3f46;
+  --app-destructive: #f87171;
+  --app-ring: #fafafa;
+  --app-sidebar: #18181b;
+  --app-sidebar-foreground: #fafafa;
+  --app-sidebar-active: #27272a;
+  --app-sidebar-active-foreground: #fafafa;
+  --app-sidebar-hover: #27272a;
+  --app-sidebar-border: #3f3f46;
+
+  --mat-sys-background: #18181b;
+  --mat-sys-on-background: #fafafa;
+  --mat-sys-surface: #18181b;
+  --mat-sys-on-surface: #fafafa;
+  --mat-sys-surface-variant: #27272a;
+  --mat-sys-on-surface-variant: #a1a1aa;
+  --mat-sys-surface-dim: #18181b;
+  --mat-sys-surface-bright: #3f3f46;
+  --mat-sys-surface-container-lowest: #09090b;
+  --mat-sys-surface-container-low: #18181b;
+  --mat-sys-surface-container: #27272a;
+  --mat-sys-surface-container-high: #3f3f46;
+  --mat-sys-surface-container-highest: #52525b;
+  --mat-sys-surface-tint: #fafafa;
+  --mat-sys-primary: #fafafa;
+  --mat-sys-on-primary: #18181b;
+  --mat-sys-primary-container: #3f3f46;
+  --mat-sys-on-primary-container: #fafafa;
+  --mat-sys-primary-fixed: #3f3f46;
+  --mat-sys-primary-fixed-dim: #52525b;
+  --mat-sys-on-primary-fixed: #fafafa;
+  --mat-sys-on-primary-fixed-variant: #e4e4e7;
+  --mat-sys-secondary: #27272a;
+  --mat-sys-on-secondary: #fafafa;
+  --mat-sys-secondary-container: #3f3f46;
+  --mat-sys-on-secondary-container: #fafafa;
+  --mat-sys-secondary-fixed: #3f3f46;
+  --mat-sys-secondary-fixed-dim: #52525b;
+  --mat-sys-on-secondary-fixed: #fafafa;
+  --mat-sys-on-secondary-fixed-variant: #e4e4e7;
+  --mat-sys-tertiary: #a1a1aa;
+  --mat-sys-on-tertiary: #18181b;
+  --mat-sys-tertiary-container: #3f3f46;
+  --mat-sys-on-tertiary-container: #fafafa;
+  --mat-sys-tertiary-fixed: #3f3f46;
+  --mat-sys-tertiary-fixed-dim: #52525b;
+  --mat-sys-on-tertiary-fixed: #fafafa;
+  --mat-sys-on-tertiary-fixed-variant: #e4e4e7;
+  --mat-sys-error: #f87171;
+  --mat-sys-on-error: #18181b;
+  --mat-sys-error-container: #7f1d1d;
+  --mat-sys-on-error-container: #fecaca;
+  --mat-sys-outline: #71717a;
+  --mat-sys-outline-variant: #3f3f46;
+  --mat-sys-inverse-surface: #fafafa;
+  --mat-sys-inverse-on-surface: #18181b;
+  --mat-sys-inverse-primary: #18181b;
+  --mat-sys-scrim: #000000;
+  --mat-sys-shadow: #000000;
+  --mat-sys-neutral10: #fafafa;
+  --mat-sys-neutral-variant20: #e4e4e7;
+}
+
+html.dark .system-table,
+html.dark .system-table table.mat-mdc-table {
+  background: var(--app-background);
+}
+
+html.dark .system-table .mat-mdc-header-row,
+html.dark .system-table .mat-mdc-header-cell {
+  background: var(--app-background);
+}
+
+
+/* Color palette popover: the overlay panel must hug the 4x2 swatch grid. */
+.mat-mdc-menu-panel.color-menu {
+  min-width: 0;
+  padding: 0;
+}
+
+.mat-mdc-menu-panel.color-menu .mat-mdc-menu-content {
+  padding: 0;
+}
+
+/* Language popover matches the React dropdown density. */
+.mat-mdc-menu-panel.language-menu {
+  min-width: 140px;
+}
+
+.mat-mdc-menu-panel.language-menu .mat-mdc-menu-content {
+  padding: 4px 0;
+}
+
+.mat-mdc-menu-panel.language-menu .mat-mdc-menu-item {
+  min-height: 32px;
+}
+
+.mat-mdc-menu-panel.language-menu .mat-mdc-menu-item-text {
+  display: flex;
+  align-items: center;
+  width: 100%;
 }

@@ -1,17 +1,16 @@
 <mat-sidenav-container class="shell">
   <mat-sidenav
     class="sidebar"
+    [class.collapsed]="sidebarCollapsed()"
     [mode]="mobile() ? 'over' : 'side'"
     [opened]="mobile() ? navOpen() : true"
     (closedStart)="navOpen.set(false)"
   >
     <a class="brand" routerLink="/" (click)="goHome()">
-      <span class="brand-mark">O</span>
-      <span class="brand-text">
-        <strong>{{ 'app.name' | t }}</strong>
-        <small>{{ 'app.subtitle' | t }}</small>
-      </span>
+      <img class="brand-avatar" src="orange.png" alt="ORANGE" />
     </a>
+
+    <div class="menu-label">{{ 'sidebar.menu.title' | t }}</div>
 
     <nav class="menu" aria-label="Main navigation">
       @for (node of auth.visibleMenus(); track node.id) {
@@ -31,8 +30,46 @@
     </nav>
 
     <div class="sidebar-footer">
-      <span class="dot"></span>
-      <span>ORANGE · Angular</span>
+      <button
+        type="button"
+        class="user-card"
+        [matMenuTriggerFor]="userMenu"
+        [attr.aria-label]="'header.switchRole' | t"
+      >
+        <img class="user-avatar" src="orange.png" alt="" />
+        <span class="user-meta">
+          <span class="user-name">{{ auth.displayName() }}</span>
+          <span class="user-email">{{ auth.user()?.email }}</span>
+        </span>
+        <mat-icon class="user-dots">more_vert</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" xPosition="after" class="user-menu">
+        <div class="user-menu-head">
+          <span class="user-name">{{ auth.displayName() }}</span>
+          <span class="user-email">{{ auth.user()?.email }}</span>
+        </div>
+        <button mat-menu-item type="button" (click)="openChangePassword()">
+          <mat-icon>key</mat-icon>
+          <span>{{ 'sidebar.user.changePassword' | t }}</span>
+        </button>
+        <div class="menu-section-label">{{ 'header.switchRole' | t }}</div>
+        <button mat-menu-item type="button" (click)="changeRole(allRoles)">
+          <mat-icon>{{ auth.currentRole() === allRoles ? 'check' : 'radio_button_unchecked' }}</mat-icon>
+          <span>{{ 'header.allRoles' | t }}</span>
+        </button>
+        @for (role of auth.roles(); track role.id) {
+          <button mat-menu-item type="button" (click)="changeRole(role.id)">
+            <mat-icon>{{ auth.currentRole() === role.id ? 'check' : 'radio_button_unchecked' }}</mat-icon>
+            <span>{{ role.name || role.id }}</span>
+          </button>
+        }
+        <mat-divider />
+        <button mat-menu-item type="button" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>{{ 'sidebar.user.logout' | t }}</span>
+        </button>
+      </mat-menu>
     </div>
   </mat-sidenav>
 
@@ -45,15 +82,16 @@
         [attr.aria-label]="'header.toggleMenu' | t"
         (click)="toggleNav()"
       >
-        <mat-icon>menu</mat-icon>
+        <mat-icon>{{ sidebarCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
       </button>
 
+      <span class="header-separator"></span>
+
       <nav class="breadcrumb" [attr.aria-label]="'header.breadcrumb' | t">
-        <a class="crumb home" routerLink="/" (click)="goHome()" [attr.aria-label]="'header.home' | t">
-          <mat-icon>home</mat-icon>
-        </a>
         @for (node of breadcrumb(); track node.id; let last = $last) {
-          <mat-icon class="sep">chevron_right</mat-icon>
+          @if (!$first) {
+            <mat-icon class="sep">chevron_right</mat-icon>
+          }
           @if (last) {
             <span class="crumb current" aria-current="page">{{ crumbName(node) }}</span>
           } @else {
@@ -64,44 +102,79 @@
 
       <span class="spacer"></span>
 
-      <mat-select
-        class="role-select"
-        [value]="auth.currentRole()"
-        [attr.aria-label]="'header.switchRole' | t"
-        (selectionChange)="changeRole($event.value)"
+      <button
+        mat-button
+        type="button"
+        class="header-chip"
+        [matMenuTriggerFor]="languageMenu"
+        [attr.title]="'header.language' | t"
       >
-        <mat-option [value]="allRoles">{{ 'header.allRoles' | t }}</mat-option>
-        @for (role of auth.roles(); track role.id) {
-          <mat-option [value]="role.id">{{ role.name }}</mat-option>
-        }
-      </mat-select>
-
-      <mat-select
-        class="lang-select"
-        [value]="i18n.locale()"
-        [attr.aria-label]="'header.language' | t"
-        (selectionChange)="changeLocale($event.value)"
-      >
-        @for (language of i18n.languages(); track language.id) {
-          <mat-option [value]="language.id">{{ language.label }}</mat-option>
-        }
-      </mat-select>
-
-      <button mat-button type="button" class="user-button" [matMenuTriggerFor]="userMenu">
-        <span class="avatar">{{ initials() }}</span>
-        <span class="user-name">{{ auth.displayName() }}</span>
-        <mat-icon>expand_more</mat-icon>
+        {{ i18n.locale() === 'en' ? 'EN' : '中文' }}
       </button>
-      <mat-menu #userMenu="matMenu" xPosition="before">
-        <button mat-menu-item type="button" (click)="openChangePassword()">
-          <mat-icon>lock</mat-icon>
-          <span>{{ 'header.changePassword' | t }}</span>
+      <mat-menu #languageMenu="matMenu" xPosition="before" class="language-menu">
+        <button mat-menu-item type="button" (click)="changeLocale('zh')">
+          <span>中文</span>
+          @if (i18n.locale() === 'zh') {
+            <span class="language-check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+            </span>
+          }
         </button>
-        <button mat-menu-item type="button" (click)="logout()">
-          <mat-icon>logout</mat-icon>
-          <span>{{ 'header.logout' | t }}</span>
+        <button mat-menu-item type="button" (click)="changeLocale('en')">
+          <span>EN</span>
+          @if (i18n.locale() === 'en') {
+            <span class="language-check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+            </span>
+          }
         </button>
       </mat-menu>
+
+      <button
+        type="button"
+        class="theme-switch"
+        [class.on]="dark()"
+        [attr.aria-label]="dark() ? 'Light' : 'Dark'"
+        (click)="toggleDark(!dark())"
+      >
+        <span class="theme-thumb"></span>
+      </button>
+
+      <button
+        type="button"
+        class="header-color"
+        [matMenuTriggerFor]="colorMenu"
+        aria-label="Theme color"
+        [style.background]="currentColor()"
+      >
+        <mat-icon class="color-check" [style.color]="checkColor(color())">verified</mat-icon>
+      </button>
+      <mat-menu #colorMenu="matMenu" xPosition="before" class="color-menu">
+        <div class="color-grid">
+          @for (item of colors; track item.key) {
+            <button
+              type="button"
+              class="color-swatch"
+              [attr.aria-label]="item.key"
+              [style.background]="item.key === 'default' ? currentColor() : item.hex"
+              (click)="setColor(item.key)"
+            >
+              @if (color() === item.key) {
+                <mat-icon class="color-check" [style.color]="checkColor(item.key)">verified</mat-icon>
+              }
+            </button>
+          }
+        </div>
+      </mat-menu>
+
+      <a
+        class="header-github"
+        href="https://github.com/yluiop123/orange"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        GitHub
+      </a>
     </header>
 
     <main class="content">

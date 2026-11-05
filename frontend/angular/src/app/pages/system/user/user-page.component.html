@@ -1,6 +1,8 @@
 <div class="system-page">
   <div class="system-toolbar">
     <app-group-select
+      class="group-filter"
+      [label]="''"
       [value]="groupValue()"
       [label]="'page.system.user.filterGroup'"
       (valueChange)="onGroup($event)"

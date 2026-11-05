@@ -69,7 +69,7 @@ export function SiteHeader() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-15 border border-foreground/10 bg-foreground/10 px-1 text-xs"
+                  className="h-6 w-15 border border-border bg-background px-1 text-xs hover:bg-muted"
                 />
               }
             >

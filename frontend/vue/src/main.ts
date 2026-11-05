@@ -17,7 +17,7 @@ import { bootstrapAuth } from './auth/service'
 import { onSessionExpired } from './auth/events'
 import { useAuthStore } from './stores/auth'
 
-const storedTheme = localStorage.getItem('orange.theme') === 'dark' ? 'dark' : 'light'
+const storedTheme = localStorage.getItem('orange.theme') === 'light' ? 'light' : 'dark'
 
 const vuetify = createVuetify({
   components: vuetifyComponents,
@@ -45,6 +45,7 @@ const vuetify = createVuetify({
           warning: '#f59e0b',
           border: '#e4e4e7',
           sidebar: '#fafafa',
+          'sidebar-active': '#e7e7e7',
         },
         variables: {
           'border-color': '#e4e4e7',
@@ -73,6 +74,7 @@ const vuetify = createVuetify({
           warning: '#f59e0b',
           border: '#27272a',
           sidebar: '#18181b',
+          'sidebar-active': '#27272a',
         },
         variables: {
           'border-color': '#ffffff',

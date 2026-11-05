@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { listGroups } from '@/api/group'
 import type { Group } from '@/api/types'
-import { buildTree, allTreeIds, flattenTree } from '@/lib/tree'
+import TreeSelect, { type TreeSelectItem } from './TreeSelect.vue'
 
 withDefaults(
   defineProps<{
@@ -19,14 +19,14 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 const groups = ref<Group[]>([])
 const loading = ref(false)
 
-const items = computed(() => {
-  const tree = buildTree(groups.value, { id: (row) => row.id, parentId: (row) => row.parentId })
-  const expanded = new Set(allTreeIds(tree))
-  return flattenTree(tree, expanded).map(({ row }) => ({
-    title: row.name,
-    value: row.id,
-  }))
-})
+const items = computed<TreeSelectItem[]>(() =>
+  groups.value.map((group) => ({
+    id: group.id,
+    name: group.name,
+    parentId: group.parentId,
+    disabled: group.status === '0',
+  })),
+)
 
 onMounted(async () => {
   loading.value = true
@@ -41,19 +41,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-select
-    :model-value="modelValue"
+  <TreeSelect
     :items="items"
-    item-title="title"
-    item-value="value"
-    :label="label || undefined"
-    :placeholder="placeholder"
+    :model-value="modelValue"
+    :placeholder="loading ? '加载中…' : (label || placeholder)"
     :disabled="disabled"
-    :clearable="clearable"
-    :loading="loading"
-    density="comfortable"
-    variant="outlined"
-    hide-details="auto"
-    @update:model-value="(value) => emit('update:modelValue', value ?? '')"
+    :allow-empty="clearable"
+    empty-label="dict.status.all"
+    filterable
+    @update:model-value="(value) => emit('update:modelValue', String(value ?? ''))"
   />
 </template>

@@ -2,7 +2,7 @@
 
 # Verification
 
-> Date: 2026-11-04
+> Date: 2026-11-05
 > This page records what was actually executed. Anything not listed here is a static review, not a runtime guarantee.
 
 ## 1. Stacks
@@ -99,7 +99,7 @@ workflow; GitHub Pages cannot run server processes.
 
 ## 5. Frontend mock end-to-end
 
-Date: 2026-11-04. Playwright against the three dev servers with mock enabled.
+Date: 2026-11-05. Playwright against the three dev servers with mock enabled.
 
 | App | Checks | Result |
 | --- | --- | --- |
@@ -116,7 +116,7 @@ Scripts: `scripts/e2e/` (`mock-react.mjs`, `mock-vue.mjs`, `mock-angular.mjs`).
 
 ## 6. Frontend real end-to-end
 
-Date: 2026-11-04. Mocks disabled; the dev-server proxies forwarded `/api/v1` to the real backend.
+Date: 2026-11-05. Mocks disabled; the dev-server proxies forwarded `/api/v1` to the real backend.
 
 | Backend | Database | React | Vue | Angular |
 | --- | --- | --- | --- | --- |
@@ -128,6 +128,9 @@ Each run covered: login with the database account, session restore after reload,
 menu navigation, user search, role/permission/group pages, group create/status/delete,
 operation-log rows produced by those writes, permission action validation, zh/en
 switching, logout and protected-route redirect, and restricted-role redirect.
+
+The FastAPI + PostgreSQL row was re-run on 2026-11-05 after the UI alignment work:
+React 14/14, Vue 15/15, Angular 15/15.
 
 Scripts: `scripts/e2e/real-react.mjs`, `real-vue.mjs`, `real-angular.mjs`; set
 `E2E_BACKEND` and `E2E_DB` to label the run.
@@ -163,10 +166,23 @@ React-specific fixes:
 - operation logs use one paired date-time range control, defaulting to today
   00:00–23:59.
 
-Vue and Angular column sets, status rendering and footer now match React. Known
-remaining shell differences: the sidebar brand block, top-right role/language/user
-controls and brand accent are framework-specific; Angular uses a single-month
-Material range calendar instead of React's two-month calendar.
+Vue and Angular column sets, status rendering and footer match React. The shell
+has also been aligned:
+
+- 4rem header, 256px sidebar, 60px circular brand avatar, 32px menu rows with
+  4px gaps, 32px submenu rows with 14px text, a 30px inset and a left rule, and
+  an active pill that stays visible with the default light palette;
+- 24px circular color trigger with a 4×2 palette popover, 32×18 theme switch,
+  24px language button, GitHub control, and 32px language-menu rows with a check
+  on the selected locale;
+- menu paths and routes match React; Vue uses MDI outline icons and Angular uses
+  the Material outlined font, matching React's lucide stroke icons;
+- organization and permission pickers are tree dropdowns on all three frontends;
+  Angular positions the tree popover with fixed coordinates so dialogs do not
+  clip it.
+
+Known remaining difference: Angular uses a single-month Material range calendar
+instead of React's two-month calendar.
 
 ## 8. Known unverified items
 

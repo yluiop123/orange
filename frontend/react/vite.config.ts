@@ -19,7 +19,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       // 仅 `pnpm dev` 生效；`vite build` 的产物不会包含代理。
       proxy: {
         "/api": {
-          target: env.VITE_PROXY_TARGET || "http://localhost:8080",
+          target: env.VITE_PROXY_TARGET || "http://127.0.0.1:8080",
           changeOrigin: true,
         },
       },

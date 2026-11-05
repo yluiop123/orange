@@ -25,7 +25,7 @@ const logs: OperationLog[] = [
     status: 200,
     durationMs: 42,
     ip: "127.0.0.1",
-    createTime: "2026-11-02T10:12:30+08:00",
+    createTime: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
   },
   {
     id: 2,
@@ -37,7 +37,7 @@ const logs: OperationLog[] = [
     status: 201,
     durationMs: 65,
     ip: "127.0.0.1",
-    createTime: "2026-11-02T10:10:02+08:00",
+    createTime: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
   },
   {
     id: 1,
@@ -49,7 +49,7 @@ const logs: OperationLog[] = [
     status: 409,
     durationMs: 18,
     ip: "127.0.0.1",
-    createTime: "2026-11-02T09:48:11+08:00",
+    createTime: new Date(Date.now() - 42 * 60 * 1000).toISOString(),
   },
 ];
 

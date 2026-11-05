@@ -1,72 +1,77 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useTheme } from 'vuetify'
 import { setLocale, type AppLocale } from '@/i18n'
-import { useAccess } from '@/composables/useAccess'
-import { useAuthStore } from '@/stores/auth'
 import { useMenuStore } from '@/stores/menu'
 import { useUiStore } from '@/stores/ui'
 import { findMenuChain } from '@/lib/menu'
 import { menuTitle } from '@/lib/menu-title'
-import { isSamePath } from '@/lib/path'
-import ChangePasswordDialog from '@/components/ChangePasswordDialog.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()
-const router = useRouter()
-const auth = useAuthStore()
 const menuStore = useMenuStore()
 const ui = useUiStore()
-const access = useAccess()
+const theme = useTheme()
 
-const changePasswordOpen = ref(false)
+const THEME_COLOR_KEY = 'orange.color'
+const COLORS = [
+  { key: 'default', hex: '#18181b' },
+  { key: 'blue', hex: '#3b82f6' },
+  { key: 'green', hex: '#22c55e' },
+  { key: 'orange', hex: '#f97316' },
+  { key: 'red', hex: '#ef4444' },
+  { key: 'rose', hex: '#f43f5e' },
+  { key: 'violet', hex: '#8b5cf6' },
+  { key: 'yellow', hex: '#eab308' },
+] as const
+
+const color = ref(localStorage.getItem(THEME_COLOR_KEY) ?? 'default')
+const currentColorHex = computed(() => {
+  if (color.value === 'default') return ui.dark ? '#fafafa' : '#18181b'
+  return COLORS.find((item) => item.key === color.value)?.hex ?? '#18181b'
+})
+
+function swatch(key: string) {
+  if (key === 'default') return ui.dark ? '#fafafa' : '#18181b'
+  return COLORS.find((item) => item.key === key)?.hex ?? '#18181b'
+}
+
+function checkColor(key: string) {
+  if (key !== 'default') return '#ffffff'
+  return ui.dark ? '#18181b' : '#fafafa'
+}
+
+function setColor(next: string) {
+  color.value = next
+  localStorage.setItem(THEME_COLOR_KEY, next)
+  const hex = COLORS.find((item) => item.key === next)?.hex ?? '#18181b'
+  const lightPrimary = next === 'default' ? '#18181b' : hex
+  const darkPrimary = next === 'default' ? '#fafafa' : hex
+  theme.themes.value.light.colors.primary = lightPrimary
+  theme.themes.value.dark.colors.primary = darkPrimary
+  theme.themes.value.light.colors['sidebar-primary'] = lightPrimary
+  theme.themes.value.dark.colors['sidebar-primary'] = darkPrimary
+}
+
+setColor(color.value)
 
 const breadcrumbs = computed(() => {
   const chain = findMenuChain(menuStore.menus, route.path)
-  const items =
-    chain.length > 0
-      ? chain.map((node, index) => ({
-          title: menuTitle(node.path, node.name, locale.value),
-          to: index === chain.length - 1 ? undefined : node.path,
-          disabled: index === chain.length - 1,
-        }))
-      : [{ title: route.path === '/' ? 'ORANGE' : route.path, disabled: true }]
-  return items
+  return chain.length > 0
+    ? chain.map((node, index) => ({
+        title: menuTitle(node.path, node.name, locale.value),
+        to: index === chain.length - 1 ? undefined : node.path,
+        disabled: index === chain.length - 1,
+      }))
+    : [{ title: route.path === '/' ? 'ORANGE' : route.path, disabled: true }]
 })
-
-const roleItems = computed(() => [
-  { title: t('header.role.all'), value: 'all' },
-  ...auth.roles.map((role) => ({ title: role.name || role.id, value: role.id })),
-])
-
-const currentRole = computed(() => auth.userInfo?.currentRole ?? 'all')
-const displayName = computed(() => auth.userInfo?.name || auth.userInfo?.username || 'ORANGE')
-const initial = computed(() => displayName.value.slice(0, 1).toUpperCase())
-
-const containerPaths = ['/', '/dashboard', '/chart', '/map', '/three', '/component', '/system']
-
-function onRoleChange(role: string) {
-  auth.setRole(role)
-  const path = route.path
-  if (containerPaths.some((item) => isSamePath(item, path))) return
-  if (!access.canView(path)) {
-    const target = access.firstVisibleLeaf(menuStore.menus)
-    router.replace(target ?? '/forbidden')
-  }
-}
 
 function switchLocale(next: AppLocale) {
   setLocale(next)
-  // Backend menu and role names are localized by the Locale header, so refetch them.
   menuStore.clearMenus()
   void menuStore.fetchMenus()
-  void auth.fetchUser()
-}
-
-async function logout() {
-  auth.logout()
-  await router.replace('/login')
 }
 </script>
 
@@ -79,6 +84,8 @@ async function logout() {
       <v-icon>{{ ui.sidebarCollapsed ? 'mdi-menu' : 'mdi-menu-open' }}</v-icon>
     </v-app-bar-nav-icon>
 
+    <v-divider vertical class="header-separator" />
+
     <v-breadcrumbs :items="breadcrumbs" density="compact" class="header-breadcrumbs">
       <template #divider>
         <v-icon size="16">mdi-chevron-right</v-icon>
@@ -87,99 +94,227 @@ async function logout() {
 
     <v-spacer />
 
-    <v-select
-      :model-value="currentRole"
-      :items="roleItems"
-      density="compact"
-      variant="outlined"
-      hide-details
-      class="role-switch"
-      :aria-label="t('header.roleSwitch')"
-      @update:model-value="onRoleChange"
-    />
-
     <v-menu location="bottom end">
       <template #activator="{ props: activatorProps }">
         <v-btn
           v-bind="activatorProps"
           variant="text"
+          class="header-language"
           :aria-label="t('header.language')"
-          prepend-icon="mdi-translate"
         >
-          <span class="d-none d-sm-inline">{{ locale === 'en' ? 'EN' : '中文' }}</span>
+          {{ locale === 'en' ? 'EN' : '中文' }}
         </v-btn>
       </template>
-      <v-list density="compact">
-        <v-list-item
-          :active="locale === 'zh'"
-          title="中文"
-          @click="switchLocale('zh')"
-        />
-        <v-list-item :active="locale === 'en'" title="English" @click="switchLocale('en')" />
+      <v-list density="compact" class="language-menu">
+        <v-list-item title="中文" @click="switchLocale('zh')">
+          <template v-if="locale === 'zh'" #append>
+            <v-icon size="16">mdi-check</v-icon>
+          </template>
+        </v-list-item>
+        <v-list-item title="EN" @click="switchLocale('en')">
+          <template v-if="locale === 'en'" #append>
+            <v-icon size="16">mdi-check</v-icon>
+          </template>
+        </v-list-item>
       </v-list>
     </v-menu>
 
-    <v-btn
-      icon
-      variant="text"
+    <v-switch
+      :model-value="ui.dark"
+      density="compact"
+      hide-details
+      inset
+      class="header-theme"
       :aria-label="ui.dark ? t('header.theme.light') : t('header.theme.dark')"
-      @click="ui.setDark(!ui.dark)"
-    >
-      <v-icon>{{ ui.dark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
-    </v-btn>
+      @update:model-value="(value) => ui.setDark(Boolean(value))"
+    />
 
     <v-menu location="bottom end">
       <template #activator="{ props: activatorProps }">
-        <v-btn v-bind="activatorProps" variant="text" class="user-button">
-          <v-avatar size="30" color="primary" class="mr-2">
-            <span class="text-caption font-weight-bold">{{ initial }}</span>
-          </v-avatar>
-          <span class="d-none d-md-inline text-body-2">{{ displayName }}</span>
-          <v-icon end size="18">mdi-chevron-down</v-icon>
-        </v-btn>
+        <button
+          v-bind="activatorProps"
+          type="button"
+          class="header-color"
+          aria-label="Theme color"
+          :style="{ background: currentColorHex }"
+        >
+          <v-icon size="16" :color="checkColor(color)">mdi-check-decagram</v-icon>
+        </button>
       </template>
-      <v-list density="compact" min-width="220">
-        <v-list-item
-          :title="auth.userInfo?.username || '—'"
-          :subtitle="auth.userInfo?.groupName || ''"
-        />
-        <v-divider />
-        <v-list-item
-          prepend-icon="mdi-lock-reset"
-          :title="t('sidebar.user.changePassword')"
-          @click="changePasswordOpen = true"
-        />
-        <v-list-item
-          prepend-icon="mdi-logout"
-          :title="t('sidebar.user.logout')"
-          @click="logout"
-        />
-      </v-list>
+      <div class="color-grid">
+        <button
+          v-for="item in COLORS"
+          :key="item.key"
+          type="button"
+          class="color-swatch"
+          :aria-label="item.key"
+          :style="{ background: swatch(item.key) }"
+          @click="setColor(item.key)"
+        >
+          <v-icon v-if="color === item.key" size="16" :color="checkColor(item.key)">
+            mdi-check-decagram
+          </v-icon>
+        </button>
+      </div>
     </v-menu>
 
-    <ChangePasswordDialog v-model="changePasswordOpen" />
+    <a
+      class="header-github"
+      href="https://github.com/yluiop123/orange"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      GitHub
+    </a>
   </v-app-bar>
 </template>
 
 <style scoped>
 .app-header {
   border-bottom: 0;
-  box-shadow: inset 0 -1px 0 rgb(var(--v-border-color));
+  box-shadow: inset 0 -1px 0 rgba(var(--v-border-color), var(--v-border-opacity));
+  padding-inline: 16px 24px;
+}
+
+.header-separator {
+  height: 16px !important;
+  margin-inline: 8px;
 }
 
 .header-breadcrumbs {
-  padding-inline: 4px;
+  padding-inline: 0;
+  font-size: 14px;
 }
 
-.role-switch {
-  max-width: 190px;
-  min-width: 130px;
+.header-breadcrumbs :deep(.v-breadcrumbs-item) {
+  font-size: 14px;
+}
+
+.header-breadcrumbs :deep(.v-breadcrumbs-item--disabled) {
+  opacity: 1;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.header-language {
+  min-width: 60px;
+  height: 24px !important;
+  padding-inline: 8px !important;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.language-menu {
+  min-width: 140px;
+  padding: 4px;
+}
+
+.language-menu :deep(.v-list-item) {
+  min-height: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.header-theme {
+  flex: none;
+  margin-inline: 8px;
+}
+
+.header-theme :deep(.v-switch__track) {
+  width: 32px;
+  min-width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(var(--v-theme-on-surface), 0.2) !important;
+  opacity: 1;
+}
+
+.header-theme :deep(.v-switch--on .v-switch__track),
+.header-theme :deep(.v-input--dirty .v-switch__track) {
+  background: rgb(var(--v-theme-primary)) !important;
+}
+
+.header-theme :deep(.v-input--dirty .v-switch__thumb) {
+  background: rgb(var(--v-theme-on-primary)) !important;
+}
+
+.header-theme :deep(.v-switch__thumb) {
+  width: 14px;
+  height: 14px;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.header-theme :deep(.v-selection-control) {
+  min-height: 24px;
+}
+
+.header-theme :deep(.v-selection-control__wrapper) {
+  width: 32px;
+  height: 24px;
+}
+
+.header-color {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  padding: 0;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
   margin-inline-end: 8px;
 }
 
-.user-button {
-  text-transform: none;
-  letter-spacing: 0;
+.header-color:hover {
+  transform: scale(1.05);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 32px);
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  background: rgb(var(--v-theme-surface));
+  box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.45);
+}
+
+.color-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.color-swatch:hover {
+  transform: scale(1.05);
+}
+
+.header-github {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding-inline: 10px;
+  border-radius: 8px;
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.header-github:hover {
+  background: rgb(var(--v-theme-surface-variant));
 }
 
 @media (max-width: 700px) {
@@ -187,8 +322,8 @@ async function logout() {
     display: none;
   }
 
-  .role-switch {
-    max-width: 130px;
+  .header-github {
+    display: none;
   }
 }
 </style>

@@ -19,7 +19,8 @@ import type { MenuNode } from '../core/models';
         type="button"
         class="nav-item"
         [class.active]="isActive()"
-        [style.paddingLeft.px]="12 + depth() * 14"
+        [class.branch]="true"
+        [class.nav-item--sub]="depth() > 0"
         (click)="toggle()"
         [attr.aria-expanded]="expanded()"
       >
@@ -28,16 +29,18 @@ import type { MenuNode } from '../core/models';
         <mat-icon class="chevron">{{ expanded() ? 'expand_more' : 'chevron_right' }}</mat-icon>
       </button>
       @if (expanded()) {
-        @for (child of node().children; track child.id) {
-          <app-sidebar-item [node]="child" [depth]="depth() + 1" />
-        }
+        <div class="sub-menu">
+          @for (child of node().children; track child.id) {
+            <app-sidebar-item [node]="child" [depth]="depth() + 1" />
+          }
+        </div>
       }
     } @else {
       <a
         class="nav-item"
+        [class.nav-item--sub]="depth() > 0"
         [routerLink]="node().path"
         routerLinkActive="active"
-        [style.paddingLeft.px]="12 + depth() * 14"
       >
         <mat-icon class="nav-icon">{{ icon() }}</mat-icon>
         <span class="nav-label">{{ label() }}</span>
@@ -52,19 +55,34 @@ import type { MenuNode } from '../core/models';
       .nav-item {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 8px;
         width: 100%;
-        min-height: 2rem;
-        padding-right: 0.5rem;
+        min-height: 32px;
+        height: 32px;
+        padding-left: 16px;
+        padding-right: 8px;
         border: 0;
-        border-radius: 0.5rem;
+        border-radius: 8px;
         background: transparent;
         color: var(--app-sidebar-foreground);
         text-decoration: none;
         font: inherit;
-        font-size: 0.8125rem;
+        font-size: 14px;
         cursor: pointer;
         transition: background-color 0.15s ease, color 0.15s ease;
+      }
+      .nav-item--sub {
+        min-height: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      .sub-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin: 0 14px;
+        padding: 2px 10px;
+        border-left: 1px solid var(--app-sidebar-border);
       }
       .nav-item:hover {
         background: var(--app-sidebar-hover);
@@ -73,14 +91,18 @@ import type { MenuNode } from '../core/models';
       .nav-item.active {
         background: var(--app-sidebar-active);
         color: var(--app-sidebar-active-foreground);
-        font-weight: 600;
+      }
+      .nav-item.active.branch {
+        background: transparent;
+        color: var(--app-sidebar-active-foreground);
+        font-weight: 400;
       }
       .nav-icon {
         flex: none;
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        opacity: 0.9;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        opacity: 1;
       }
       .nav-label {
         overflow: hidden;

@@ -39,7 +39,7 @@ export type MockState = {
   logs: OperationLog[]
 }
 
-const now = '2026-11-03T09:00:00+08:00'
+const now = new Date().toISOString()
 
 function permissionFromCatalog(entry: CatalogPermission): MockPermission {
   return {
@@ -187,7 +187,7 @@ initialState.logs = Array.from({ length: 26 }, (_, index) => {
     status,
     durationMs: 12 + ((index * 17) % 240),
     ip: `10.20.${index % 8}.${(index * 7) % 250}`,
-    createTime: `2026-11-0${(index % 3) + 1}T${String(8 + (index % 10)).padStart(2, '0')}:15:00+08:00`,
+    createTime: new Date(Date.now() - index * 7 * 60 * 1000).toISOString(),
   } satisfies OperationLog
 })
 

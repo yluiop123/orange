@@ -150,7 +150,7 @@ await step('权限管理：操作类型必须有操作名（表单校验）', as
 await step('中文切换英文后菜单/面包屑更新', async () => {
   await closeDialog();
   await page.getByRole('button', { name: '中文' }).click();
-  await page.getByText('English', { exact: true }).click();
+  await page.getByText('EN', { exact: true }).click();
   await page.getByRole('option', { name: 'System' }).waitFor({ timeout: 10000 });
   await page.getByText('Permissions', { exact: true }).first().waitFor();
 });
@@ -162,7 +162,7 @@ await step('英文切回中文', async () => {
 });
 
 await step('退出登录后受保护页面回到登录页', async () => {
-  await page.getByRole('button', { name: /超级管理员/ }).click();
+  await page.getByRole('button', { name: '角色视角' }).click();
   await page.getByText(/退出登录|Log out/).click();
   await page.waitForURL(/\/login/, { timeout: 15000 });
   await page.goto(`${base}/system/user`);
@@ -174,14 +174,14 @@ await step('多角色用户切换到受限角色后跳到首个可见页面', as
   await login('super', 'super');
   await page.goto(`${base}/system/user`);
   await page.getByRole('columnheader', { name: '用户名' }).waitFor({ timeout: 15000 });
-  await page.getByRole('combobox', { name: '角色视角' }).click({ force: true });
-  await page.getByRole('option', { name: '普通用户' }).click();
+  await page.getByRole('button', { name: '角色视角' }).click();
+  await page.locator('.user-menu .v-list-item').filter({ hasText: /^普通用户$/ }).click();
   await page.waitForURL(/\/dashboard\/normal/, { timeout: 15000 });
   await page.getByRole('heading', { name: '普通仪表盘' }).waitFor();
 });
 
 await step('强制改密账号登录后弹出改密框', async () => {
-  await page.getByRole('banner').getByRole('button').last().click();
+  await page.getByRole('button', { name: '角色视角' }).click();
   await page.getByText(/退出登录|Log out/).click();
   await page.waitForURL(/\/login/, { timeout: 15000 });
   await login('newbie', 'newbie');

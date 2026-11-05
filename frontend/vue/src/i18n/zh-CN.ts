@@ -7,6 +7,7 @@ export default {
   'header.roleSwitch': '角色视角',
   'header.role.all': '全部角色',
   'sidebar.menu.loading': '菜单加载中…',
+  'sidebar.menu.title': '菜单',
   'sidebar.menu.error': '菜单加载失败',
   'sidebar.menu.retry': '重试',
   'sidebar.user.message': '用户信息',

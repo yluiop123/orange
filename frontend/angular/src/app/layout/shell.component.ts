@@ -3,9 +3,9 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ALL_ROLES, AuthService } from '../core/auth.service';
@@ -27,8 +27,8 @@ import type { MenuNode } from '../core/models';
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    MatSelectModule,
     MatTooltipModule,
+    MatDividerModule,
     MatDialogModule,
     TranslatePipe,
     SidebarItemComponent,
@@ -46,7 +46,24 @@ export class ShellComponent {
 
   readonly mobile = signal(false);
   readonly navOpen = signal(false);
+  readonly sidebarCollapsed = signal(localStorage.getItem('orange.angular.sidebar') === '1');
   readonly allRoles = ALL_ROLES;
+  readonly dark = signal(localStorage.getItem('orange.angular.theme') !== 'light');
+  readonly color = signal(localStorage.getItem('orange.angular.color') ?? 'default');
+  readonly colors = [
+    { key: 'default', hex: '#18181b' },
+    { key: 'blue', hex: '#3b82f6' },
+    { key: 'green', hex: '#22c55e' },
+    { key: 'orange', hex: '#f97316' },
+    { key: 'red', hex: '#ef4444' },
+    { key: 'rose', hex: '#f43f5e' },
+    { key: 'violet', hex: '#8b5cf6' },
+    { key: 'yellow', hex: '#eab308' },
+  ] as const;
+  readonly currentColor = computed(() => {
+    if (this.color() === 'default') return this.dark() ? '#fafafa' : '#18181b';
+    return this.colors.find((item) => item.key === this.color())?.hex ?? '#18181b';
+  });
 
   private forcedDialog: MatDialogRef<ChangePasswordDialogComponent> | null = null;
 
@@ -58,6 +75,8 @@ export class ShellComponent {
   });
 
   constructor() {
+    this.applyTheme();
+
     this.breakpoint.observe('(max-width: 900px)').subscribe((state) => {
       this.mobile.set(state.matches);
       if (!state.matches) this.navOpen.set(false);
@@ -79,10 +98,54 @@ export class ShellComponent {
     });
   }
 
+  toggleDark(value: boolean): void {
+    this.dark.set(value);
+    localStorage.setItem('orange.angular.theme', value ? 'dark' : 'light');
+    this.applyTheme();
+  }
+
+  setColor(key: string): void {
+    this.color.set(key);
+    localStorage.setItem('orange.angular.color', key);
+    this.applyTheme();
+  }
+
+  checkColor(key: string): string {
+    if (key !== 'default') return '#ffffff';
+    return this.dark() ? '#18181b' : '#fafafa';
+  }
+
+  private applyTheme(): void {
+    document.documentElement.classList.toggle('dark', this.dark());
+    const root = document.documentElement;
+    const item = this.colors.find((entry) => entry.key === this.color());
+    if (!item || item.key === 'default') {
+      root.style.removeProperty('--app-primary');
+      root.style.removeProperty('--app-primary-foreground');
+      root.style.removeProperty('--app-ring');
+      root.style.removeProperty('--mat-sys-primary');
+      root.style.removeProperty('--mat-sys-primary-fixed');
+      root.style.removeProperty('--mat-sys-primary-container');
+    } else {
+      const foreground = this.dark() ? '#18181b' : '#ffffff';
+      root.style.setProperty('--app-primary', item.hex);
+      root.style.setProperty('--app-primary-foreground', foreground);
+      root.style.setProperty('--app-ring', item.hex);
+      root.style.setProperty('--mat-sys-primary', item.hex);
+      root.style.setProperty('--mat-sys-primary-fixed', item.hex);
+      root.style.setProperty('--mat-sys-primary-container', item.hex);
+    }
+  }
+
   toggleNav(): void {
     if (this.mobile()) {
       this.navOpen.update((value) => !value);
+      return;
     }
+    this.sidebarCollapsed.update((value) => {
+      localStorage.setItem('orange.angular.sidebar', value ? '0' : '1');
+      return !value;
+    });
   }
 
   closeNav(): void {

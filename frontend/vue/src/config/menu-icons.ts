@@ -1,19 +1,43 @@
-const ICONS: Array<{ match: string; icon: string }> = [
-  { match: '/system/user', icon: 'mdi-account-multiple-outline' },
-  { match: '/system/role', icon: 'mdi-shield-account-outline' },
-  { match: '/system/group', icon: 'mdi-office-building-outline' },
-  { match: '/system/permission', icon: 'mdi-key-outline' },
-  { match: '/system/operation-log', icon: 'mdi-text-box-search-outline' },
-  { match: '/system', icon: 'mdi-cog-outline' },
-  { match: '/dashboard', icon: 'mdi-view-dashboard-outline' },
-  { match: '/chart', icon: 'mdi-chart-box-outline' },
-  { match: '/map', icon: 'mdi-map-outline' },
-  { match: '/three', icon: 'mdi-cube-outline' },
-  { match: '/component', icon: 'mdi-widgets-outline' },
-]
+/** Material Design Icons equivalents of React's lucide menu icons. */
+const ICONS: Record<string, string> = {
+  '/dashboard': 'mdi-view-dashboard-outline',
+  '/dashboard/normal': 'mdi-gauge',
+  '/dashboard/network-security': 'mdi-shield-check-outline',
+  '/dashboard/military-situational-awareness': 'mdi-shield-outline',
+  '/dashboard/disaster-command': 'mdi-alert-octagon-outline',
+  '/dashboard/agriculture-forestry': 'mdi-sprout-outline',
+  '/dashboard/industrial': 'mdi-factory',
+  '/component': 'mdi-puzzle-outline',
+  '/component/general': 'mdi-square-outline',
+  '/component/layout': 'mdi-view-column-outline',
+  '/component/navigation': 'mdi-share-variant-outline',
+  '/component/display': 'mdi-monitor',
+  '/component/feedback': 'mdi-bell-outline',
+  '/component/form': 'mdi-file-document-outline',
+  '/component/table': 'mdi-table',
+  '/component/custom': 'mdi-wrench-outline',
+  '/chart': 'mdi-chart-bar',
+  '/chart/rechart': 'mdi-chart-line',
+  '/chart/echart': 'mdi-chart-pie',
+  '/chart/d3': 'mdi-transit-connection-variant',
+  '/chart/antv': 'mdi-trending-up',
+  '/three': 'mdi-cube-outline',
+  '/three/babylon': 'mdi-cube-scan',
+  '/three/three': 'mdi-rotate-3d-variant',
+  '/map': 'mdi-map-outline',
+  '/map/cesium': 'mdi-earth',
+  '/map/deckgl': 'mdi-layers-outline',
+  '/map/l7': 'mdi-radar',
+  '/map/leaflet': 'mdi-map-marker-outline',
+  '/map/openlayers': 'mdi-grid',
+  '/system': 'mdi-cog-outline',
+  '/system/user': 'mdi-account-outline',
+  '/system/role': 'mdi-shield-outline',
+  '/system/group': 'mdi-account-group-outline',
+  '/system/permission': 'mdi-key-outline',
+  '/system/operation-log': 'mdi-text-box-search-outline',
+}
 
 export function getMenuIcon(path: string, type: 'menu' | 'directory'): string {
-  if (type === 'directory') return 'mdi-folder-outline'
-  const found = ICONS.find((item) => path.startsWith(item.match))
-  return found?.icon ?? 'mdi-circle-small'
+  return ICONS[path] ?? (type === 'directory' ? 'mdi-folder-outline' : 'mdi-circle-small')
 }

@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listPermissions } from '@/api/permission'
 import type { Permission } from '@/api/types'
-import { allTreeIds, buildTree, flattenTree } from '@/lib/tree'
+import TreeSelect, { type TreeSelectItem } from './TreeSelect.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -21,7 +21,7 @@ const { t } = useI18n()
 const permissions = ref<Permission[]>([])
 const loading = ref(false)
 
-const items = computed(() => {
+const items = computed<TreeSelectItem[]>(() => {
   const excluded = new Set<string>()
   if (props.excludeId) {
     excluded.add(props.excludeId)
@@ -36,22 +36,16 @@ const items = computed(() => {
       }
     }
   }
-
-  const rows = permissions.value
+  return permissions.value
     .filter((permission) => !excluded.has(permission.id))
     .map((permission) => ({
       id: permission.id,
       name: permission.name,
-      path: permission.path,
-      type: permission.type ?? 'menu',
       parentId: permission.parentId,
+      disabled:
+        permission.status === '0'
+        || (!props.multiple && permission.type === 'action'),
     }))
-  const tree = buildTree(rows, { id: (row) => row.id, parentId: (row) => row.parentId })
-  const expanded = new Set(allTreeIds(tree))
-  return flattenTree(tree, expanded).map(({ row, depth }) => ({
-    title: `${'— '.repeat(depth)}${row.name} · ${row.path}${row.type === 'action' ? `:${row.id}` : ''}`,
-    value: row.id,
-  }))
 })
 
 onMounted(async () => {
@@ -67,19 +61,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-select
-    :model-value="modelValue"
+  <TreeSelect
     :items="items"
-    item-title="title"
-    item-value="value"
-    :label="label || t('page.system.user.header.permissions')"
-    :disabled="disabled"
-    :loading="loading"
+    :model-value="modelValue"
     :multiple="multiple"
-    :chips="multiple"
-    density="comfortable"
-    variant="outlined"
-    hide-details="auto"
-    @update:model-value="(value) => emit('update:modelValue', multiple ? (value ?? []) : (value ?? ''))"
+    filterable
+    :placeholder="loading ? t('table.loading') : (label || t('page.system.user.header.permissions'))"
+    :disabled="disabled"
+    @update:model-value="(value) => emit('update:modelValue', multiple ? (value as string[]) : String(value ?? ''))"
   />
 </template>

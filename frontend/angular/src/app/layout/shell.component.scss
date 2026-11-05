@@ -16,10 +16,37 @@
   color: var(--app-sidebar-foreground);
 }
 
-/* The width token exists so a future collapse toggle only needs to add
-   the class; the current shell keeps the 16rem behaviour. */
 .sidebar.collapsed {
   width: var(--app-sidebar-collapsed-width);
+}
+
+.sidebar.collapsed .brand {
+  justify-content: center;
+  padding: 12px 4px;
+}
+
+.sidebar.collapsed .brand-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.sidebar.collapsed .menu-label,
+.sidebar.collapsed .user-meta,
+.sidebar.collapsed .user-dots,
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .chevron {
+  display: none;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding-left: 8px !important;
+  padding-right: 8px;
+}
+
+.sidebar.collapsed .user-card {
+  justify-content: center;
+  padding: 8px 0;
 }
 
 .sidebar ::ng-deep .mat-drawer-inner-container {
@@ -31,45 +58,37 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.75rem 1rem;
+  justify-content: flex-start;
+  min-height: 84px;
+  padding: 8px 8px 16px 68px;
   color: var(--app-sidebar-foreground);
   text-decoration: none;
 }
 
-.brand-mark {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--app-radius);
-  background: var(--app-primary);
-  color: var(--app-primary-foreground);
-  font-weight: 800;
-  font-size: 0.95rem;
+.brand-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  object-fit: cover;
 }
 
-.brand-text {
+.menu-label {
   display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-
-.brand-text strong {
-  letter-spacing: 0.12em;
-  font-size: 0.875rem;
-}
-
-.brand-text small {
+  align-items: center;
+  height: 32px;
+  padding: 0 16px;
   color: var(--app-muted-foreground);
-  font-size: 0.7rem;
-  margin-top: 0.1875rem;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .menu {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 4px;
   overflow-y: auto;
-  padding: 0.25rem 0.5rem 0.75rem;
+  padding: 0 8px 8px;
   scrollbar-width: thin;
   scrollbar-color: var(--app-border) transparent;
 }
@@ -81,22 +100,82 @@
 }
 
 .sidebar-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 8px;
   border-top: 1px solid var(--app-sidebar-border);
-  color: var(--app-muted-foreground);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16);
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--app-sidebar-foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-card:hover {
+  background: var(--app-sidebar-hover);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex: none;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.user-name,
+.user-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-email {
+  font-size: 12px;
+  color: var(--app-muted-foreground);
+}
+
+.user-dots {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.user-menu-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 16px;
+  line-height: 1.2;
+}
+
+.menu-section-label {
+  padding: 8px 16px 4px;
+  color: var(--app-muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .main {
@@ -109,17 +188,21 @@
 .topbar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   min-height: var(--app-header-height);
-  padding: 0 0.75rem;
+  height: var(--app-header-height);
+  padding: 0 24px 0 20px;
   border-bottom: 1px solid var(--app-border);
   background: var(--app-background);
   position: relative;
   z-index: 10;
 }
 
-.menu-toggle {
-  display: none;
+.header-separator {
+  width: 1px;
+  height: 16px;
+  margin-inline: 4px;
+  background: var(--app-border);
 }
 
 .breadcrumb {
@@ -134,16 +217,16 @@
 .crumb {
   color: var(--app-muted-foreground);
   text-decoration: none;
-  font-size: 0.8125rem;
+  font-size: 14px;
 }
 
 .crumb:hover {
-  color: var(--app-primary);
+  color: var(--app-foreground);
 }
 
 .crumb.current {
   color: var(--app-foreground);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .crumb.home {
@@ -153,9 +236,9 @@
 
 .crumb.home .mat-icon,
 .sep {
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 .sep {
@@ -166,42 +249,123 @@
   flex: 1;
 }
 
-.role-select,
-.lang-select {
-  width: 132px;
-  font-size: 0.8125rem;
+.header-chip {
+  min-width: 60px;
+  height: 24px !important;
+  padding: 0 8px !important;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  color: var(--app-foreground) !important;
+  font-size: 12px !important;
+  line-height: 22px !important;
 }
 
-.lang-select {
-  width: 96px;
-}
-
-.user-button {
+.theme-switch {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.25rem;
-  min-width: 0;
+  width: 32px;
+  height: 18px;
+  padding: 1px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--app-foreground) 20%, transparent);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
+.theme-switch.on {
   background: var(--app-primary);
-  color: var(--app-primary-foreground);
-  font-size: 0.75rem;
-  font-weight: 700;
 }
 
-.user-name {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.8125rem;
+.theme-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.theme-switch.on .theme-thumb {
+  background: var(--app-primary-foreground);
+  transform: translateX(14px);
+}
+
+.header-color {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.header-color:hover {
+  transform: scale(1.05);
+  background: inherit;
+}
+
+.color-check {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 32px);
+  gap: 8px;
+  padding: 8px;
+}
+
+.color-swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.color-swatch:hover {
+  transform: scale(1.05);
+}
+
+.header-github {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--app-foreground);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.language-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 16px;
+  height: 16px;
+}
+
+.language-check svg {
+  width: 16px;
+  height: 16px;
+}
+
+.header-github:hover {
+  background: var(--app-muted);
 }
 
 .content {
@@ -220,15 +384,14 @@
   .breadcrumb {
     max-width: 42vw;
   }
-  .user-name,
-  .lang-select {
+  .header-github {
     display: none;
   }
-  .role-select {
-    width: 108px;
-  }
   .topbar {
-    padding: 0 0.5rem;
-    gap: 0.25rem;
+    padding: 0 8px;
+    gap: 4px;
+  }
+  .brand {
+    padding-left: 16px;
   }
 }

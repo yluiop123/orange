@@ -5,8 +5,35 @@ const base = process.env.E2E_BASE ?? 'http://localhost:5174';
 const shots = process.env.E2E_EVIDENCE ?? 'D:/User/Cache/Temp/opencode/evidence';
 const backend = process.env.E2E_BACKEND ?? 'fastapi';
 const db = process.env.E2E_DB ?? 'postgres';
-// 每次运行使用不同的 2 位根组织编码，避免上次失败残留导致编码冲突
-const groupCode = String(90 + Number(String(Date.now()).slice(-1)));
+const apiBase = `${base}/api/v1`;
+
+/** Remove leftovers from failed runs and return a free two-digit root code. */
+async function pickGroupCode() {
+  const login = await fetch(`${apiBase}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'super', password: 'super' }),
+  });
+  const session = await login.json();
+  const token = session?.data?.token;
+  if (!token) throw new Error('e2e setup: login failed');
+  const headers = { Authorization: `Bearer ${token}` };
+  const response = await fetch(`${apiBase}/system/groups`, { headers });
+  const payload = await response.json();
+  const groups = payload?.data ?? [];
+  for (const group of groups) {
+    if (!group.parentId && group.name?.startsWith('E2E')) {
+      await fetch(`${apiBase}/system/groups?ids=${group.id}`, { method: 'DELETE', headers });
+    }
+  }
+  const used = new Set(groups.filter((group) => !group.parentId).map((group) => group.id));
+  for (let code = 10; code < 100; code += 1) {
+    if (!used.has(String(code))) return String(code);
+  }
+  throw new Error('e2e setup: no free two-digit group code');
+}
+
+const groupCode = await pickGroupCode();
 const groupName = `E2E组织${groupCode}`;
 fs.mkdirSync(shots, { recursive: true });
 
@@ -160,7 +187,7 @@ await step('权限管理：操作类型必须有操作名（表单校验）', as
 await step('中文切换英文后菜单/面包屑更新', async () => {
   await closeDialog();
   await page.getByRole('button', { name: '中文' }).click();
-  await page.getByText('English', { exact: true }).click();
+  await page.getByText('EN', { exact: true }).click();
   await page.getByRole('option', { name: 'System' }).waitFor({ timeout: 10000 });
   await page.getByText('Permissions', { exact: true }).first().waitFor();
 });
@@ -172,7 +199,7 @@ await step('英文切回中文', async () => {
 });
 
 await step('退出登录后受保护页面回到登录页', async () => {
-  await page.getByRole('button', { name: /超级管理员/ }).click();
+  await page.getByRole('button', { name: '角色视角' }).click();
   await page.getByText(/退出登录|Log out/).click();
   await page.waitForURL(/\/login/, { timeout: 15000 });
   await page.goto(`${base}/system/user`);
@@ -184,8 +211,8 @@ await step('多角色用户切换到受限角色后跳到首个可见页面', as
   await login('super', 'super');
   await page.goto(`${base}/system/user`);
   await page.getByRole('columnheader', { name: '用户名' }).waitFor({ timeout: 15000 });
-  await page.getByRole('combobox', { name: '角色视角' }).click({ force: true });
-  await page.getByRole('option', { name: '用户', exact: true }).click();
+  await page.getByRole('button', { name: '角色视角' }).click();
+  await page.locator('.user-menu .v-list-item').filter({ hasText: /^用户$/ }).click();
   await page.waitForURL(/\/dashboard\/normal/, { timeout: 15000 });
   await page.getByRole('heading', { name: '普通仪表盘' }).waitFor();
 });

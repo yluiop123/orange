@@ -27,7 +27,7 @@ export const useUiStore = defineStore('ui', () => {
     forbidden.value = { show: true, message, path }
   }
 
-  const dark = ref(localStorage.getItem(THEME_KEY) === 'dark')
+  const dark = ref(localStorage.getItem(THEME_KEY) !== 'light')
 
   function setDark(value: boolean) {
     dark.value = value

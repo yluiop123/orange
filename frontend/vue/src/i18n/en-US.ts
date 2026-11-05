@@ -7,6 +7,7 @@ export default {
   'header.roleSwitch': 'Role view',
   'header.role.all': 'All roles',
   'sidebar.menu.loading': 'Loading menus…',
+  'sidebar.menu.title': 'Menu',
   'sidebar.menu.error': 'Failed to load menus',
   'sidebar.menu.retry': 'Retry',
   'sidebar.user.message': 'User',

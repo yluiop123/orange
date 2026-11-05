@@ -39,7 +39,7 @@ export class ReferenceDataService {
 
   ensureRoles(): Observable<Role[]> {
     if (!this.roles$) {
-      this.roles$ = this.api.listRoles({ page: 1, size: 200 }).pipe(
+      this.roles$ = this.api.listRoles({ page: 1, size: 100 }).pipe(
         map((result: PageResult<Role>) => result.list ?? []),
         tap((roles) => this.roles.set(roles)),
         shareReplay(1),
