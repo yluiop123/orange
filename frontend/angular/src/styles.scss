@@ -133,34 +133,34 @@ html {
   --mat-sys-corner-large-start: var(--app-radius) 0 0 var(--app-radius);
   --mat-sys-corner-large-end: 0 var(--app-radius) var(--app-radius) 0;
 
-  /* Buttons: 2rem tall, 0.65rem radius. */
-  --mat-button-text-container-height: 2rem;
-  --mat-button-filled-container-height: 2rem;
-  --mat-button-protected-container-height: 2rem;
-  --mat-button-tonal-container-height: 2rem;
-  --mat-button-outlined-container-height: 2rem;
-  --mat-button-text-container-shape: var(--app-radius);
-  --mat-button-filled-container-shape: var(--app-radius);
-  --mat-button-protected-container-shape: var(--app-radius);
-  --mat-button-tonal-container-shape: var(--app-radius);
-  --mat-button-outlined-container-shape: var(--app-radius);
-  --mat-button-text-horizontal-padding: 0.75rem;
-  --mat-button-filled-horizontal-padding: 0.75rem;
-  --mat-button-protected-horizontal-padding: 0.75rem;
-  --mat-button-tonal-horizontal-padding: 0.75rem;
-  --mat-button-outlined-horizontal-padding: 0.75rem;
-  --mat-icon-button-state-layer-size: 2rem;
+  /* Buttons: React shadcn h-9, px-2.5, rounded-lg, text-sm/500. */
+  --mat-button-text-container-height: 2.25rem;
+  --mat-button-filled-container-height: 2.25rem;
+  --mat-button-protected-container-height: 2.25rem;
+  --mat-button-tonal-container-height: 2.25rem;
+  --mat-button-outlined-container-height: 2.25rem;
+  --mat-button-text-container-shape: 0.5rem;
+  --mat-button-filled-container-shape: 0.5rem;
+  --mat-button-protected-container-shape: 0.5rem;
+  --mat-button-tonal-container-shape: 0.5rem;
+  --mat-button-outlined-container-shape: 0.5rem;
+  --mat-button-text-horizontal-padding: 0.625rem;
+  --mat-button-filled-horizontal-padding: 0.625rem;
+  --mat-button-protected-horizontal-padding: 0.625rem;
+  --mat-button-tonal-horizontal-padding: 0.625rem;
+  --mat-button-outlined-horizontal-padding: 0.625rem;
+  --mat-icon-button-state-layer-size: 2.25rem;
   --mat-icon-button-icon-size: 1.125rem;
   --mat-icon-button-container-shape: 0.5rem;
 
-  /* Inputs: 2rem tall, orange focus outline. */
-  --mat-form-field-container-height: 2rem;
+  /* Inputs: React shadcn h-9, rounded-md, text-sm. */
+  --mat-form-field-container-height: 2.25rem;
   --mat-form-field-container-vertical-padding: 0.25rem;
-  --mat-form-field-container-text-size: 0.8125rem;
+  --mat-form-field-container-text-size: 0.875rem;
   --mat-form-field-container-text-line-height: 1.25rem;
-  --mat-form-field-outlined-label-text-size: 0.8125rem;
-  --mat-form-field-outlined-container-shape: var(--app-radius);
-  --mat-form-field-filled-container-shape: var(--app-radius);
+  --mat-form-field-outlined-label-text-size: 0.875rem;
+  --mat-form-field-outlined-container-shape: 0.375rem;
+  --mat-form-field-filled-container-shape: 0.375rem;
   --mat-form-field-outlined-outline-color: var(--app-input);
   --mat-form-field-outlined-hover-outline-color: var(--app-muted-foreground);
   --mat-form-field-outlined-focus-outline-color: var(--app-ring);
@@ -169,9 +169,9 @@ html {
   --mat-form-field-outlined-label-text-color: var(--app-muted-foreground);
 
   /* Cards, tables, paginator. */
-  --mat-card-outlined-container-shape: var(--app-radius);
-  --mat-card-elevated-container-shape: var(--app-radius);
-  --mat-card-filled-container-shape: var(--app-radius);
+  --mat-card-outlined-container-shape: 0.75rem;
+  --mat-card-elevated-container-shape: 0.75rem;
+  --mat-card-filled-container-shape: 0.75rem;
   --mat-card-outlined-container-color: var(--app-card);
   --mat-card-outlined-outline-color: var(--app-border);
   --mat-card-elevated-container-color: var(--app-card);
@@ -1244,7 +1244,38 @@ html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
   margin-top: 8px;
 }
 
-/* Long demo tab strips scroll horizontally instead of shrinking labels. */
+/* Material buttons follow the React shadcn metrics globally. */
+.mat-mdc-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-raised-button,
+.mat-mdc-outlined-button,
+.mat-mdc-tonal-button {
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.25rem;
+  text-transform: none;
+}
+
+.mat-mdc-button .mat-mdc-button-persistent-ripple,
+.mat-mdc-button .mdc-button__ripple,
+.mat-mdc-button .mat-ripple {
+  display: none;
+}
+
+/* Material form fields follow the React shadcn Input metrics globally. */
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border-radius: 0.375rem;
+}
+
+.mat-mdc-form-field .mat-mdc-form-field-infix {
+  min-height: 2.25rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
 .mat-mdc-tab-group.demo-tabs .mat-mdc-tab-label-container {
   overflow-x: auto;
   overflow-y: hidden;
