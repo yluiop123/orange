@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { EChartsOption } from 'echarts'
 import { usePageTitle } from '@/composables/usePageTitle'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
@@ -96,14 +96,14 @@ const stacked = computed<EChartsOption>(() => ({
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.chart.antv')" />
     <v-alert type="info" variant="tonal" density="compact">
       AntV G2/L7 are React-oriented in the reference app. This page keeps the AntV palette and
       chart grammar with ECharts so the Vue bundle stays consistent.
     </v-alert>
 
-    <div class="demo-grid demo-grid--2">
+    <div class="orange-grid orange-grid--2">
       <EchartCard :title="`${t('chart.bar')} · AntV palette`" :option="column" :height="320" />
       <EchartCard :title="`${t('chart.pie')} · Rose`" :option="rose" :height="320" />
       <EchartCard :title="t('chart.line')" :option="dual" :height="320" />

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useUiStore } from '@/stores/ui'
-import DemoSection from '@/components/demo/DemoSection.vue'
+import SectionCard from '@/components/showcase/SectionCard.vue'
 
 const ui = useUiStore()
 
@@ -553,9 +553,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
 
-    <v-tabs v-model="tab" class="demo-tabs demo-tabs--scroll">
+    <v-tabs v-model="tab" class="orange-tabs orange-tabs--scroll">
       <v-tab value="autocomplete">AutoComplete</v-tab>
       <v-tab value="cascader">Cascader</v-tab>
       <v-tab value="checkbox">Checkbox</v-tab>
@@ -580,7 +580,7 @@ onBeforeUnmount(() => {
       <!-- AutoComplete ------------------------------------------------------ -->
       <v-window-item value="autocomplete">
         <div class="tab-pane">
-          <DemoSection title="搜索 / Search" subtitle="Free-text options and debounced async loading">
+          <SectionCard title="搜索 / Search" subtitle="Free-text options and debounced async loading">
             <v-row dense>
               <v-col cols="12" md="6">
                 <v-autocomplete
@@ -604,15 +604,15 @@ onBeforeUnmount(() => {
                 />
               </v-col>
             </v-row>
-          </DemoSection>
+          </SectionCard>
 
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="受控模式 / Controlled" subtitle="Selected value is reflected below">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="受控模式 / Controlled" subtitle="Selected value is reflected below">
               <v-autocomplete v-model="acControlled" :items="acFruits" label="选择水果 / Select fruit" clearable />
-              <div class="demo-note">当前值 / Current value: {{ acControlled || '-' }}</div>
-            </DemoSection>
+              <div class="orange-note">当前值 / Current value: {{ acControlled || '-' }}</div>
+            </SectionCard>
 
-            <DemoSection title="自定义选项 / Custom Option" subtitle="Custom icon and subtitle per option">
+            <SectionCard title="自定义选项 / Custom Option" subtitle="Custom icon and subtitle per option">
               <v-autocomplete v-model="acCustom" :items="acTechOptions" label="选择技术栈 / Select tech">
                 <template #item="{ props: itemProps, item }">
                   <v-list-item
@@ -622,10 +622,10 @@ onBeforeUnmount(() => {
                   />
                 </template>
               </v-autocomplete>
-            </DemoSection>
+            </SectionCard>
           </div>
 
-          <DemoSection title="尺寸 & 状态 / Size & Status" subtitle="Density and validation feedback">
+          <SectionCard title="尺寸 & 状态 / Size & Status" subtitle="Density and validation feedback">
             <v-row dense>
               <v-col cols="12" md="4">
                 <v-autocomplete v-model="acSize" :items="['Small', 'Medium', 'Large']" label="Small" density="compact" hide-details />
@@ -650,22 +650,22 @@ onBeforeUnmount(() => {
                 />
               </v-col>
             </v-row>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Cascader ---------------------------------------------------------- -->
       <v-window-item value="cascader">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="单选模式 / Single" subtitle="Nested selects emulate a cascader">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="单选模式 / Single" subtitle="Nested selects emulate a cascader">
               <v-select v-model="cascadeRoot" :items="cascadeRootOptions" label="一级分类 / Level 1" hide-details />
               <v-select v-model="cascadeChild" :items="cascadeChildOptions" label="二级分类 / Level 2" hide-details />
               <v-select v-model="cascadeLeaf" :items="cascadeLeafOptions" label="三级分类 / Level 3" hide-details />
               <v-chip color="primary" variant="tonal">Path: {{ cascadePath.join(' / ') || '-' }}</v-chip>
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="多选模式 / Multiple" subtitle="Choose any leaf nodes">
+            <SectionCard title="多选模式 / Multiple" subtitle="Choose any leaf nodes">
               <v-select
                 v-model="cascadeMulti"
                 :items="cascadeLeavesAll"
@@ -674,11 +674,11 @@ onBeforeUnmount(() => {
                 chips
                 closable-chips
               />
-              <div class="demo-note">Multiple count: {{ cascadeMulti.length }}</div>
-            </DemoSection>
+              <div class="orange-note">Multiple count: {{ cascadeMulti.length }}</div>
+            </SectionCard>
           </div>
 
-          <DemoSection title="选项树 / Options tree" subtitle="Same data rendered as a compact tree">
+          <SectionCard title="选项树 / Options tree" subtitle="Same data rendered as a compact tree">
             <v-list density="compact" class="tree-list">
               <template v-for="node in cascadeTree" :key="node.value">
                 <v-list-item :title="node.label" prepend-icon="mdi-folder-outline" />
@@ -694,9 +694,9 @@ onBeforeUnmount(() => {
                 </template>
               </template>
             </v-list>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="自定义边框 / Custom border" subtitle="Styling a single select">
+          <SectionCard title="自定义边框 / Custom border" subtitle="Styling a single select">
             <v-select
               v-model="cascadeRoot"
               :items="cascadeRootOptions"
@@ -704,14 +704,14 @@ onBeforeUnmount(() => {
               class="purple-select"
               hide-details
             />
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Checkbox ---------------------------------------------------------- -->
       <v-window-item value="checkbox">
         <div class="tab-pane">
-          <DemoSection title="选择你的技术栈 / Select Stack" subtitle="Array v-model with value per checkbox">
+          <SectionCard title="选择你的技术栈 / Select Stack" subtitle="Array v-model with value per checkbox">
             <v-checkbox
               v-for="item in stackItems"
               :key="item.id"
@@ -722,28 +722,28 @@ onBeforeUnmount(() => {
               hide-details
             />
             <v-divider class="my-2" />
-            <div class="demo-note">Selected: {{ checkedStack.length ? checkedStack.join(', ') : 'No selection' }}</div>
+            <div class="orange-note">Selected: {{ checkedStack.length ? checkedStack.join(', ') : 'No selection' }}</div>
             <div v-if="checkedStack.length" class="chip-row">
               <v-chip v-for="id in checkedStack" :key="id" size="small" color="primary" variant="tonal">{{ id }}</v-chip>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="状态 / States" subtitle="Checked, indeterminate and disabled">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="状态 / States" subtitle="Checked, indeterminate and disabled">
               <v-checkbox v-model="checkedState" label="Checked" color="primary" hide-details />
               <v-checkbox :model-value="true" label="Checked + disabled" disabled hide-details />
               <v-checkbox :model-value="false" :indeterminate="true" label="Indeterminate" hide-details />
               <v-checkbox :model-value="false" label="Unchecked" hide-details />
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="内联布局 / Inline" subtitle="Compact checkbox buttons">
+            <SectionCard title="内联布局 / Inline" subtitle="Compact checkbox buttons">
               <div class="chip-row">
                 <v-checkbox-btn v-model="checkedStack" value="vue" label="Vue" />
                 <v-checkbox-btn v-model="checkedStack" value="react" label="React" />
                 <v-checkbox-btn v-model="checkedStack" value="svelte" label="Svelte" />
               </div>
               <pre class="code-block">{{ JSON.stringify(checkedStack) }}</pre>
-            </DemoSection>
+            </SectionCard>
           </div>
         </div>
       </v-window-item>
@@ -751,16 +751,16 @@ onBeforeUnmount(() => {
       <!-- ColorPicker ------------------------------------------------------- -->
       <v-window-item value="colorpicker">
         <div class="tab-pane">
-          <DemoSection title="背景颜色设置 / Background Setting" subtitle="Native color input + live preview">
+          <SectionCard title="背景颜色设置 / Background Setting" subtitle="Native color input + live preview">
             <div class="color-row">
               <input v-model="color" type="color" class="native-color" aria-label="Pick background color" />
               <v-text-field v-model="color" label="HEX" density="compact" hide-details style="max-width: 200px" />
               <v-chip variant="tonal">{{ color }}</v-chip>
             </div>
             <div class="swatch-large" :style="{ backgroundColor: color }">{{ color }}</div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="预设色板 / Presets" subtitle="Click a swatch to apply it">
+          <SectionCard title="预设色板 / Presets" subtitle="Click a swatch to apply it">
             <div class="swatch-grid">
               <button
                 v-for="preset in colorPresets"
@@ -773,14 +773,14 @@ onBeforeUnmount(() => {
                 @click="color = preset"
               />
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="双色渐变 / Two-tone preview" subtitle="Background and accent colors combine">
+          <SectionCard title="双色渐变 / Two-tone preview" subtitle="Background and accent colors combine">
             <v-row dense>
               <v-col cols="12" md="6">
                 <div class="color-row">
                   <input v-model="accentColor" type="color" class="native-color" aria-label="Pick accent color" />
-                  <span class="demo-note">Accent: {{ accentColor }}</span>
+                  <span class="orange-note">Accent: {{ accentColor }}</span>
                 </div>
               </v-col>
               <v-col cols="12" md="6">
@@ -789,21 +789,21 @@ onBeforeUnmount(() => {
                 </div>
               </v-col>
             </v-row>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- DatePicker -------------------------------------------------------- -->
       <v-window-item value="datepicker">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="出生日期 / Birthday" subtitle="Pick a date from the calendar">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="出生日期 / Birthday" subtitle="Pick a date from the calendar">
               <v-date-picker v-model="calendarDate" show-adjacent-months class="date-picker" />
               <v-text-field v-model="birthday" label="Birthday" type="date" prepend-inner-icon="mdi-calendar" />
-            </DemoSection>
+            </SectionCard>
 
             <div class="stack-col">
-              <DemoSection title="活动时间 / Event Time" subtitle="Native time input with icon">
+              <SectionCard title="活动时间 / Event Time" subtitle="Native time input with icon">
                 <v-text-field
                   v-model="eventTime"
                   label="Event Time / 活动具体时间"
@@ -812,9 +812,9 @@ onBeforeUnmount(() => {
                   hint="Will be combined with the date above"
                   persistent-hint
                 />
-              </DemoSection>
+              </SectionCard>
 
-              <DemoSection title="项目周期 / Project Duration" subtitle="End must be after start">
+              <SectionCard title="项目周期 / Project Duration" subtitle="End must be after start">
                 <v-row dense>
                   <v-col cols="12" sm="6">
                     <v-text-field v-model="rangeFrom" label="From" type="date" />
@@ -830,7 +830,7 @@ onBeforeUnmount(() => {
                 >
                   {{ rangeValid ? '日期区间有效 / Valid date range' : '结束日期必须晚于开始日期 / End date must be after start date' }}
                 </v-alert>
-              </DemoSection>
+              </SectionCard>
             </div>
           </div>
         </div>
@@ -839,7 +839,7 @@ onBeforeUnmount(() => {
       <!-- Form -------------------------------------------------------------- -->
       <v-window-item value="form">
         <div class="tab-pane">
-          <DemoSection title="创建账户 / Create Account" subtitle="v-form with validation rules and loading state">
+          <SectionCard title="创建账户 / Create Account" subtitle="v-form with validation rules and loading state">
             <v-form v-model="profileValid" @submit.prevent="submitProfile">
               <v-row dense>
                 <v-col cols="12" md="6">
@@ -891,9 +891,9 @@ onBeforeUnmount(() => {
                 </v-btn>
               </div>
             </v-form>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="校验状态 / Validation state" subtitle="Reactive flags exposed by v-form">
+          <SectionCard title="校验状态 / Validation state" subtitle="Reactive flags exposed by v-form">
             <div class="chip-row">
               <v-chip :color="profileValid ? 'success' : 'warning'" variant="tonal">
                 {{ profileValid ? 'Form is valid' : 'Form has errors' }}
@@ -901,14 +901,14 @@ onBeforeUnmount(() => {
               <v-chip variant="tonal">username: {{ profile.username || '—' }}</v-chip>
               <v-chip variant="tonal">email: {{ profile.email || '—' }}</v-chip>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Input ------------------------------------------------------------- -->
       <v-window-item value="input">
         <div class="tab-pane">
-          <DemoSection title="表单验证示例 / Form Validation" subtitle="Field-style layout with rules">
+          <SectionCard title="表单验证示例 / Form Validation" subtitle="Field-style layout with rules">
             <v-form v-model="inputValid" @submit.prevent="submitInput">
               <v-row dense>
                 <v-col cols="12" md="6">
@@ -954,21 +954,21 @@ onBeforeUnmount(() => {
                 <v-btn color="primary" type="submit" :loading="inputLoading">提交表单 / Submit</v-btn>
               </div>
             </v-form>
-          </DemoSection>
+          </SectionCard>
 
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="输入状态 / States" subtitle="Prefix, disabled, error and textarea">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="输入状态 / States" subtitle="Prefix, disabled, error and textarea">
               <v-text-field label="With prefix" prefix="¥" model-value="1,280" />
               <v-text-field label="Disabled" disabled model-value="Read only" />
               <v-text-field label="Error state" error-messages="This field is required" model-value="" />
               <v-textarea label="Bio" rows="3" auto-grow model-value="Front-end engineer working on the admin console." />
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="后缀与计数器 / Suffix & counter" subtitle="Adornments and character limits">
+            <SectionCard title="后缀与计数器 / Suffix & counter" subtitle="Adornments and character limits">
               <v-text-field label="Website" suffix=".com" model-value="orange" />
               <v-text-field label="Code" maxlength="12" counter="12" model-value="ABC-123" />
               <v-text-field label="Readonly" readonly model-value="Locked value" prepend-inner-icon="mdi-lock-outline" />
-            </DemoSection>
+            </SectionCard>
           </div>
         </div>
       </v-window-item>
@@ -976,20 +976,20 @@ onBeforeUnmount(() => {
       <!-- InputNumber ------------------------------------------------------- -->
       <v-window-item value="input-number">
         <div class="tab-pane">
-          <DemoSection title="基础用法 / Basic Usage" subtitle="Steppers and controlled values">
+          <SectionCard title="基础用法 / Basic Usage" subtitle="Steppers and controlled values">
             <v-row dense>
               <v-col cols="12" md="6">
                 <v-number-input v-model="numberBasic" label="默认输入框 / Default" placeholder="输入数字..." />
-                <div class="demo-note">当前值: {{ numberBasic ?? '—' }}</div>
+                <div class="orange-note">当前值: {{ numberBasic ?? '—' }}</div>
               </v-col>
               <v-col cols="12" md="6">
                 <v-number-input v-model="numberStep" :step="5" label="带步长 / With Step" />
-                <div class="demo-note">单次增减步长为 5</div>
+                <div class="orange-note">单次增减步长为 5</div>
               </v-col>
             </v-row>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="按钮与精度 / Buttons & Precision" subtitle="Left controls, integer and price precision">
+          <SectionCard title="按钮与精度 / Buttons & Precision" subtitle="Left controls, integer and price precision">
             <v-row dense>
               <v-col cols="12" md="4">
                 <v-number-input
@@ -1015,9 +1015,9 @@ onBeforeUnmount(() => {
                 />
               </v-col>
             </v-row>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="表单验证示例 / Form Validation" subtitle="Live budget calculation">
+          <SectionCard title="表单验证示例 / Form Validation" subtitle="Live budget calculation">
             <v-form @submit.prevent="submitNumbers">
               <v-row dense>
                 <v-col cols="12" md="3">
@@ -1041,21 +1041,21 @@ onBeforeUnmount(() => {
                 </v-col>
               </v-row>
               <div class="budget-box">
-                <span class="demo-note">实时预算 / Live budget:</span>
+                <span class="orange-note">实时预算 / Live budget:</span>
                 <span class="budget-value mono">¥ {{ budget.toFixed(2) }}</span>
               </div>
               <div class="form-actions">
                 <v-btn color="primary" type="submit" :loading="numberLoading">提交表单 / Submit Form</v-btn>
               </div>
             </v-form>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Mentions ---------------------------------------------------------- -->
       <v-window-item value="mentions">
         <div class="tab-pane">
-          <DemoSection title="基础用法 / Basic Usage" subtitle="Type @ or click a user to mention">
+          <SectionCard title="基础用法 / Basic Usage" subtitle="Type @ or click a user to mention">
             <v-textarea
               v-model="mentionText"
               label="输入评论并 @ 提及用户 / Enter comment and mention users"
@@ -1077,23 +1077,23 @@ onBeforeUnmount(() => {
               </v-chip>
             </div>
             <div v-if="mentionText" class="mention-preview">
-              <div class="demo-note">当前内容 / Current Content:</div>
+              <div class="orange-note">当前内容 / Current Content:</div>
               <div class="mention-content">{{ mentionText }}</div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="已提及用户 / Mentioned users" subtitle="Unique chips collected from interactions">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="已提及用户 / Mentioned users" subtitle="Unique chips collected from interactions">
               <div v-if="mentionedLabels.length" class="chip-row">
                 <v-chip v-for="label in mentionedLabels" :key="label" size="small" color="primary" variant="tonal">
                   {{ label }}
                 </v-chip>
               </div>
-              <div v-else class="demo-note">暂未提及任何用户 / No users mentioned yet.</div>
+              <div v-else class="orange-note">暂未提及任何用户 / No users mentioned yet.</div>
               <v-btn variant="text" size="small" @click="mentionedLabels = []; mentionText = ''">Clear</v-btn>
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="加载 & 禁用 / Loading & Disabled" subtitle="Async user list and a locked field">
+            <SectionCard title="加载 & 禁用 / Loading & Disabled" subtitle="Async user list and a locked field">
               <v-textarea
                 label="加载用户后输入 / Load users first"
                 rows="2"
@@ -1110,7 +1110,7 @@ onBeforeUnmount(() => {
                 disabled
                 model-value="这是一个禁用的输入框 / This field is disabled"
               />
-            </DemoSection>
+            </SectionCard>
           </div>
         </div>
       </v-window-item>
@@ -1118,59 +1118,59 @@ onBeforeUnmount(() => {
       <!-- Radio ------------------------------------------------------------- -->
       <v-window-item value="radio">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="基础用法 / Basic Usage" subtitle="Vertical group, single selection">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="基础用法 / Basic Usage" subtitle="Vertical group, single selection">
               <v-radio-group v-model="radioBasic" hide-details>
                 <v-radio label="选项一 / Option One" value="option1" />
                 <v-radio label="选项二 / Option Two" value="option2" />
                 <v-radio label="选项三 / Option Three" value="option3" />
               </v-radio-group>
               <v-chip size="small" variant="tonal">Current: {{ radioBasic }}</v-chip>
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="横向布局 / Horizontal" subtitle="Inline payment method">
+            <SectionCard title="横向布局 / Horizontal" subtitle="Inline payment method">
               <v-radio-group v-model="radioPayment" inline hide-details>
                 <v-radio label="信用卡 / Credit Card" value="credit-card" />
                 <v-radio label="支付宝 / Alipay" value="alipay" />
                 <v-radio label="微信支付 / WeChat Pay" value="wechat" />
                 <v-radio label="银行转账 / Bank Transfer" value="bank-transfer" />
               </v-radio-group>
-              <div class="demo-note">Selected payment: {{ radioPayment }}</div>
+              <div class="orange-note">Selected payment: {{ radioPayment }}</div>
               <v-divider class="my-2" />
               <v-radio-group v-model="radioNotification" hide-details>
                 <v-radio label="接收所有通知 / Receive all notifications" value="all" />
                 <v-radio label="仅接收重要通知 / Important only" value="important" />
                 <v-radio label="不接收通知 / No notifications" value="none" />
               </v-radio-group>
-            </DemoSection>
+            </SectionCard>
           </div>
 
-          <DemoSection title="带描述的选项 / Options with Description" subtitle="Plan cards with prices">
+          <SectionCard title="带描述的选项 / Options with Description" subtitle="Plan cards with prices">
             <v-radio-group v-model="radioPlan" hide-details>
               <div v-for="plan in radioPlans" :key="plan.value" class="plan-row">
                 <v-radio :value="plan.value" :label="plan.title" hide-details />
                 <div class="plan-meta">
-                  <span class="demo-note">{{ plan.description }}</span>
+                  <span class="orange-note">{{ plan.description }}</span>
                   <v-chip size="small" color="primary" variant="tonal">{{ plan.price }}</v-chip>
                 </div>
               </div>
             </v-radio-group>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="状态 / States" subtitle="Inline and disabled options">
+          <SectionCard title="状态 / States" subtitle="Inline and disabled options">
             <v-radio-group v-model="radioState" inline hide-details>
               <v-radio label="启用 / Enabled" value="enabled" />
               <v-radio label="禁用 / Disabled" value="disabled" disabled />
             </v-radio-group>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Rate -------------------------------------------------------------- -->
       <v-window-item value="rate">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="基础用法 / Basic Usage" subtitle="Default, initial values and half stars">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="基础用法 / Basic Usage" subtitle="Default, initial values and half stars">
               <div class="rating-row">
                 <span class="rating-label">默认评分 / Default</span>
                 <v-rating v-model="ratingDefault" color="warning" density="compact" />
@@ -1187,9 +1187,9 @@ onBeforeUnmount(() => {
                 <span class="rating-label">10 星 / 10 stars</span>
                 <v-rating v-model="ratingTen" :length="10" size="x-small" color="primary" density="compact" />
               </div>
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="受控模式 / Controlled" subtitle="Clearable rating with live value">
+            <SectionCard title="受控模式 / Controlled" subtitle="Clearable rating with live value">
               <div class="rating-row">
                 <v-rating v-model="ratingControlled" clearable hover color="warning" />
                 <v-chip size="small" variant="tonal">{{ ratingControlled }} / 5</v-chip>
@@ -1206,26 +1206,26 @@ onBeforeUnmount(() => {
                 <span class="rating-label">禁用 / Disabled</span>
                 <v-rating v-model="ratingDisabled" disabled color="warning" density="compact" />
               </div>
-            </DemoSection>
+            </SectionCard>
           </div>
 
-          <DemoSection title="表单验证示例 / Form Validation" subtitle="Rate service, quality and support">
+          <SectionCard title="表单验证示例 / Form Validation" subtitle="Rate service, quality and support">
             <v-form @submit.prevent="submitRating">
               <v-row dense>
                 <v-col cols="12" md="4">
                   <div class="rating-label">您对服务的满意度 / Service Satisfaction</div>
                   <v-rating v-model="ratingSatisfaction" clearable hover color="warning" />
-                  <div class="demo-note">{{ ratingSatisfaction }} / 5</div>
+                  <div class="orange-note">{{ ratingSatisfaction }} / 5</div>
                 </v-col>
                 <v-col cols="12" md="4">
                   <div class="rating-label">商品质量 / Product Quality</div>
                   <v-rating v-model="ratingQuality" half-increments clearable hover color="success" />
-                  <div class="demo-note">{{ ratingQuality }} / 5</div>
+                  <div class="orange-note">{{ ratingQuality }} / 5</div>
                 </v-col>
                 <v-col cols="12" md="4">
                   <div class="rating-label">客户服务 / Customer Service (0-10)</div>
                   <v-rating v-model="ratingService" :length="10" size="small" clearable hover color="info" />
-                  <div class="demo-note">{{ ratingService }} / 10</div>
+                  <div class="orange-note">{{ ratingService }} / 10</div>
                 </v-col>
               </v-row>
               <v-alert v-if="ratingSatisfaction || ratingQuality || ratingService" type="info" density="compact" variant="tonal">
@@ -1235,41 +1235,41 @@ onBeforeUnmount(() => {
                 <v-btn color="primary" type="submit" :loading="ratingLoading">提交评分 / Submit Rating</v-btn>
               </div>
             </v-form>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Select ------------------------------------------------------------ -->
       <v-window-item value="select">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="基础用法 / Basic Usage" subtitle="Country and language">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="基础用法 / Basic Usage" subtitle="Country and language">
               <v-select v-model="selectCountry" :items="countries" label="选择国家 / Select country" />
               <v-select v-model="selectLanguage" :items="languages" label="选择语言 / Select language" />
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="受控模式 / Controlled" subtitle="Selected value is shown below">
+            <SectionCard title="受控模式 / Controlled" subtitle="Selected value is shown below">
               <v-select
                 v-model="selectControlled"
                 :items="countries"
                 label="实时显示选择值 / Real-time selection"
                 clearable
               />
-              <div class="demo-note">
+              <div class="orange-note">
                 已选择 / Selected:
                 {{ countries.find((item) => item.value === selectControlled)?.title || '—' }}
               </div>
-            </DemoSection>
+            </SectionCard>
           </div>
 
-          <DemoSection title="分组与禁用 / Groups & Disabled" subtitle="Header items and disabled options">
+          <SectionCard title="分组与禁用 / Groups & Disabled" subtitle="Header items and disabled options">
             <v-row dense>
               <v-col cols="12" md="4">
                 <v-select v-model="selectCategory" :items="categoryItems" label="选择数据类型 / Data type" />
               </v-col>
               <v-col cols="12" md="4">
                 <v-select v-model="selectDepartment" :items="disabledDepartments" label="禁用的选项 / Disabled option" />
-                <div class="demo-note">后端选项已禁用 / Backend is disabled</div>
+                <div class="orange-note">后端选项已禁用 / Backend is disabled</div>
               </v-col>
               <v-col cols="12" md="4">
                 <v-select
@@ -1280,9 +1280,9 @@ onBeforeUnmount(() => {
                 />
               </v-col>
             </v-row>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="长列表与多选 / Long list & Multiple" subtitle="Search-friendly city list and multi select">
+          <SectionCard title="长列表与多选 / Long list & Multiple" subtitle="Search-friendly city list and multi select">
             <v-row dense>
               <v-col cols="12" md="6">
                 <v-select
@@ -1309,18 +1309,18 @@ onBeforeUnmount(() => {
                   chips
                   closable-chips
                 />
-                <div class="demo-note">Selected departments: {{ selectMulti.join(', ') || '—' }}</div>
+                <div class="orange-note">Selected departments: {{ selectMulti.join(', ') || '—' }}</div>
               </v-col>
             </v-row>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Slider ------------------------------------------------------------ -->
       <v-window-item value="slider">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="基础调节 / Basic controls" subtitle="Volume and brightness">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="基础调节 / Basic controls" subtitle="Volume and brightness">
               <div class="slider-label">
                 <v-icon size="18" :color="volume > 70 ? 'error' : 'primary'">mdi-volume-high</v-icon>
                 <span>音量 / Volume ({{ volume }}%)</span>
@@ -1331,9 +1331,9 @@ onBeforeUnmount(() => {
                 <span>亮度调节 / Brightness ({{ brightness }}%)</span>
               </div>
               <v-slider v-model="brightness" :min="0" :max="100" color="warning" thumb-label hide-details />
-            </DemoSection>
+            </SectionCard>
 
-            <DemoSection title="范围与温度 / Range & Temperature" subtitle="Range slider plus signed values">
+            <SectionCard title="范围与温度 / Range & Temperature" subtitle="Range slider plus signed values">
               <div class="slider-label">
                 <v-icon size="18">mdi-currency-usd</v-icon>
                 <span>预算区间 / Budget: ${{ priceRange[0] }} - ${{ priceRange[1] }}</span>
@@ -1352,45 +1352,45 @@ onBeforeUnmount(() => {
                 <span>环境温度 / Temperature ({{ temperature }}°C)</span>
               </div>
               <v-slider v-model="temperature" :min="-10" :max="50" :step="1" color="info" thumb-label hide-details />
-            </DemoSection>
+            </SectionCard>
           </div>
 
-          <DemoSection title="实时配置快照 / Snapshot" subtitle="Values update as sliders move">
+          <SectionCard title="实时配置快照 / Snapshot" subtitle="Values update as sliders move">
             <pre class="code-block">{{ sliderSnapshot }}</pre>
             <div class="form-actions">
               <v-btn color="primary" :loading="sliderLoading" @click="saveSliders">保存当前设置 / Save</v-btn>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Switch ------------------------------------------------------------ -->
       <v-window-item value="switch">
         <div class="tab-pane">
-          <DemoSection title="基础用法 / Basic Usage" subtitle="Binary settings with supporting text">
+          <SectionCard title="基础用法 / Basic Usage" subtitle="Binary settings with supporting text">
             <div class="switch-row">
               <div>
                 <div class="switch-title">接收邮件订阅 / Newsletter</div>
-                <div class="demo-note">开启后会收到每周订阅邮件</div>
+                <div class="orange-note">开启后会收到每周订阅邮件</div>
               </div>
               <v-switch v-model="newsletter" color="primary" hide-details />
             </div>
             <div class="switch-row">
               <div>
                 <div class="switch-title">桌面通知 / Desktop Notifications</div>
-                <div class="demo-note">接收来自应用的桌面通知</div>
+                <div class="orange-note">接收来自应用的桌面通知</div>
               </div>
               <v-switch v-model="notifications" color="primary" hide-details />
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="受控模式 / Controlled" subtitle="Light and dark preview toggles stay in sync">
+          <SectionCard title="受控模式 / Controlled" subtitle="Light and dark preview toggles stay in sync">
             <div class="switch-row">
               <div class="switch-inline">
                 <v-icon color="warning">mdi-weather-sunny</v-icon>
                 <div>
                   <div class="switch-title">浅色主题 / Light</div>
-                  <div class="demo-note">切换以切换主题预览</div>
+                  <div class="orange-note">切换以切换主题预览</div>
                 </div>
               </div>
               <v-switch :model-value="!darkPreview" color="primary" hide-details @update:model-value="darkPreview = !$event" />
@@ -1400,19 +1400,19 @@ onBeforeUnmount(() => {
                 <v-icon>mdi-weather-night</v-icon>
                 <div>
                   <div class="switch-title">深色主题 / Dark</div>
-                  <div class="demo-note">用于夜间模式</div>
+                  <div class="orange-note">用于夜间模式</div>
                 </div>
               </div>
               <v-switch v-model="darkPreview" color="primary" hide-details />
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="表单集成 / Form Integration" subtitle="Terms must be accepted before saving">
+          <SectionCard title="表单集成 / Form Integration" subtitle="Terms must be accepted before saving">
             <v-form @submit.prevent="saveSwitches">
               <div class="switch-row">
                 <div>
                   <div class="switch-title">同意条款 / Accept Terms</div>
-                  <div class="demo-note">请阅读并同意服务条款</div>
+                  <div class="orange-note">请阅读并同意服务条款</div>
                 </div>
                 <v-switch v-model="terms" color="primary" hide-details />
               </div>
@@ -1423,15 +1423,15 @@ onBeforeUnmount(() => {
                 <v-btn color="primary" type="submit" :loading="switchLoading">保存设置 / Save Settings</v-btn>
               </div>
             </v-form>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- TimePicker -------------------------------------------------------- -->
       <v-window-item value="timepicker">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="基础用法 / Basic" subtitle="Native input and a clock picker">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="基础用法 / Basic" subtitle="Native input and a clock picker">
               <v-text-field
                 v-model="meetingTime"
                 label="选择会议时间 / Meeting Time"
@@ -1441,11 +1441,11 @@ onBeforeUnmount(() => {
               <div class="time-picker-wrap">
                 <v-time-picker v-model="clockTime" format="24hr" class="time-picker" />
               </div>
-              <div class="demo-note">当前选择: {{ clockTime || '未选择 / none' }}</div>
-            </DemoSection>
+              <div class="orange-note">当前选择: {{ clockTime || '未选择 / none' }}</div>
+            </SectionCard>
 
             <div class="stack-col">
-              <DemoSection title="范围/双端选择 / Range" subtitle="Office hours example">
+              <SectionCard title="范围/双端选择 / Range" subtitle="Office hours example">
                 <v-row dense>
                   <v-col cols="12" sm="6">
                     <v-text-field v-model="startTime" label="开始时间 / Start" type="time" />
@@ -1454,17 +1454,17 @@ onBeforeUnmount(() => {
                     <v-text-field v-model="endTime" label="结束时间 / End" type="time" />
                   </v-col>
                 </v-row>
-                <div class="demo-note">Shift: {{ startTime }} – {{ endTime }}</div>
-              </DemoSection>
+                <div class="orange-note">Shift: {{ startTime }} – {{ endTime }}</div>
+              </SectionCard>
 
-              <DemoSection title="秒级步进 / Seconds" subtitle="Time with seconds enabled">
+              <SectionCard title="秒级步进 / Seconds" subtitle="Time with seconds enabled">
                 <v-text-field v-model="secondTime" label="带秒的时间 / Time with seconds" type="time" step="1" />
-                <div class="demo-note">step=1 支持秒级选择</div>
-              </DemoSection>
+                <div class="orange-note">step=1 支持秒级选择</div>
+              </SectionCard>
 
-              <DemoSection title="禁用 / Disabled" subtitle="Read-only time value">
+              <SectionCard title="禁用 / Disabled" subtitle="Read-only time value">
                 <v-text-field label="不可用的时间选择器 / Disabled" type="time" model-value="12:00" disabled />
-              </DemoSection>
+              </SectionCard>
             </div>
           </div>
         </div>
@@ -1473,7 +1473,7 @@ onBeforeUnmount(() => {
       <!-- Transfer ---------------------------------------------------------- -->
       <v-window-item value="transfer">
         <div class="tab-pane">
-          <DemoSection title="基础用法 / Basic" subtitle="Move items between two panels">
+          <SectionCard title="基础用法 / Basic" subtitle="Move items between two panels">
             <v-text-field
               v-model="transferSearch"
               label="搜索条目 / Search items"
@@ -1535,12 +1535,12 @@ onBeforeUnmount(() => {
                 </v-list>
               </div>
             </div>
-            <div class="demo-note">
+            <div class="orange-note">
               Disabled items are skipped (Item 1, Item 8). Target keys: {{ targetKeys.join(', ') || '—' }}
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="表单集成 / Form Integration" subtitle="Persist the selected keys">
+          <SectionCard title="表单集成 / Form Integration" subtitle="Persist the selected keys">
             <div class="chip-row">
               <v-chip v-for="key in targetKeys" :key="key" size="small" color="primary" variant="tonal">
                 {{ transferItems.find((item) => item.key === key)?.title }}
@@ -1549,15 +1549,15 @@ onBeforeUnmount(() => {
             <div class="form-actions">
               <v-btn color="primary" :loading="transferSaving" @click="saveTransfer">保存 / Save</v-btn>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- TreeSelect -------------------------------------------------------- -->
       <v-window-item value="treeselect">
         <div class="tab-pane">
-          <div class="demo-grid demo-grid--2">
-            <DemoSection title="基础用法 / Basic Usage" subtitle="Nested selects plus a tree list">
+          <div class="orange-grid orange-grid--2">
+            <SectionCard title="基础用法 / Basic Usage" subtitle="Nested selects plus a tree list">
               <v-select v-model="treeRegion" :items="treeRegionOptions" label="大洲 / Region" hide-details />
               <v-select v-model="treeCountry" :items="treeCountryOptions" label="国家 / Country" hide-details />
               <v-chip size="small" variant="tonal">
@@ -1578,10 +1578,10 @@ onBeforeUnmount(() => {
                   </template>
                 </template>
               </v-list>
-            </DemoSection>
+            </SectionCard>
 
             <div class="stack-col">
-              <DemoSection title="受控多选 / Controlled Multiple" subtitle="Tags, select all and clear">
+              <SectionCard title="受控多选 / Controlled Multiple" subtitle="Tags, select all and clear">
                 <v-select
                   v-model="treeSelected"
                   :items="treeData.flatMap((node) =>
@@ -1602,14 +1602,14 @@ onBeforeUnmount(() => {
                   <v-btn size="small" variant="outlined" @click="treeSelected = []">清空 / Clear</v-btn>
                 </div>
                 <div v-if="treeSelectedPaths.length" class="path-list">
-                  <div v-for="entry in treeSelectedPaths" :key="entry.path" class="demo-note">
+                  <div v-for="entry in treeSelectedPaths" :key="entry.path" class="orange-note">
                     {{ entry.path }}
                   </div>
                 </div>
                 <pre class="code-block">{{ JSON.stringify(treeSelected) }}</pre>
-              </DemoSection>
+              </SectionCard>
 
-              <DemoSection title="异步加载 / Async Load" subtitle="Success and failure states">
+              <SectionCard title="异步加载 / Async Load" subtitle="Success and failure states">
                 <div class="chip-row">
                   <v-btn size="small" variant="tonal" :loading="treeLoading" @click="loadRemoteTree(false)">重新加载 / Reload</v-btn>
                   <v-btn size="small" variant="outlined" :disabled="treeLoading" @click="loadRemoteTree(true)">模拟失败 / Fail</v-btn>
@@ -1622,28 +1622,28 @@ onBeforeUnmount(() => {
                   label="远程数据 / Remote data"
                   hide-details
                 />
-                <div v-if="!treeLoading && !remoteTree && !treeError" class="demo-note">
+                <div v-if="!treeLoading && !remoteTree && !treeError" class="orange-note">
                   Press reload to load the remote tree.
                 </div>
-              </DemoSection>
+              </SectionCard>
             </div>
           </div>
 
-          <DemoSection title="禁用状态 / Disabled" subtitle="Tree selector cannot be changed">
+          <SectionCard title="禁用状态 / Disabled" subtitle="Tree selector cannot be changed">
             <v-select
               :items="treeRegionOptions"
               label="此选择器已禁用 / This selector is disabled"
               model-value="asia"
               disabled
             />
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Upload ------------------------------------------------------------ -->
       <v-window-item value="upload">
         <div class="tab-pane">
-          <DemoSection title="方式 1: 标准上传 / Option 1: Standard" subtitle="Pick files and review the list">
+          <SectionCard title="方式 1: 标准上传 / Option 1: Standard" subtitle="Pick files and review the list">
             <v-file-input
               v-model="uploadFiles"
               label="普通文件 / Files"
@@ -1657,15 +1657,15 @@ onBeforeUnmount(() => {
               <div v-for="(file, index) in uploadFiles" :key="`${file.name}-${index}`" class="file-row">
                 <v-icon size="18">mdi-file-outline</v-icon>
                 <span class="file-name">{{ file.name }}</span>
-                <span class="demo-note">{{ (file.size / 1024).toFixed(0) }} KB</span>
+                <span class="orange-note">{{ (file.size / 1024).toFixed(0) }} KB</span>
                 <v-btn icon="mdi-close" size="x-small" variant="text" aria-label="Remove file" @click="removeFile(index)" />
               </div>
             </div>
-            <div v-else class="demo-note">No files selected yet.</div>
-            <div class="demo-note">Total: {{ uploadTotalKb }} KB</div>
-          </DemoSection>
+            <div v-else class="orange-note">No files selected yet.</div>
+            <div class="orange-note">Total: {{ uploadTotalKb }} KB</div>
+          </SectionCard>
 
-          <DemoSection title="方式 2: 大文件续传 / Option 2: Resumable" subtitle="Simulated chunked upload with progress">
+          <SectionCard title="方式 2: 大文件续传 / Option 2: Resumable" subtitle="Simulated chunked upload with progress">
             <v-file-input
               v-model="uploadFiles"
               label="选择大文件 / Select Large Files"
@@ -1674,7 +1674,7 @@ onBeforeUnmount(() => {
               prepend-icon="mdi-harddisk"
             />
             <v-progress-linear :model-value="uploadProgress" height="8" rounded color="primary" />
-            <div class="demo-note">
+            <div class="orange-note">
               {{ uploading ? `正在上传 / Uploading… ${uploadProgress}%` : uploadProgress === 100 ? '上传完成 / Complete' : '等待开始 / Ready' }}
             </div>
             <div class="chip-row">
@@ -1683,9 +1683,9 @@ onBeforeUnmount(() => {
               </v-btn>
               <v-btn variant="outlined" size="small" :disabled="!uploading" @click="cancelUpload">取消 / Cancel</v-btn>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="上传限制 / Constraints" subtitle="Accepted types and size guidance">
+          <SectionCard title="上传限制 / Constraints" subtitle="Accepted types and size guidance">
             <div class="chip-row">
               <v-chip size="small" variant="tonal">Accept: .pdf .png .jpg .txt .zip</v-chip>
               <v-chip size="small" variant="tonal">Max: 5 MB per chunk</v-chip>
@@ -1694,7 +1694,7 @@ onBeforeUnmount(() => {
             <v-alert type="info" density="compact" variant="tonal">
               大文件使用分片续传，普通文件可直接选择后上传 / Large files use resumable chunks.
             </v-alert>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
     </v-window>
@@ -1702,24 +1702,24 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.demo-tabs--scroll {
+.orange-tabs--scroll {
   width: 100%;
   height: auto;
   min-height: 32px;
 }
 
-.demo-tabs--scroll :deep(.v-slide-group) {
+.orange-tabs--scroll :deep(.v-slide-group) {
   height: auto;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
 }
 
-.demo-tabs--scroll :deep(.v-slide-group__content) {
+.orange-tabs--scroll :deep(.v-slide-group__content) {
   flex-wrap: nowrap;
 }
 
-.demo-tabs--scroll :deep(.v-tab) {
+.orange-tabs--scroll :deep(.v-tab) {
   flex: 0 0 auto;
 }
 
@@ -1749,7 +1749,7 @@ onBeforeUnmount(() => {
   margin-top: 12px;
 }
 
-.demo-note {
+.orange-note {
   font-size: 12px;
   color: rgb(var(--v-theme-on-surface-variant));
 }

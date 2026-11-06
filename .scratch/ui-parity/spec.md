@@ -20,12 +20,11 @@ routing chosen in this thread.
    - `frontend/vue/src/styles/main.css`
    - `frontend/angular/src/styles.scss`
    - `frontend/react/src/index.css`
-3. **Layout primitives are allowed, but files are not shared.** Each frontend
-   keeps its own copy at `<app>/src/styles/demo.css`; the three codebases do
-   not import from a common shared directory. The file holds
-   only page-level layout classes (`.demo-root`, `.demo-body`, `.demo-title`,
-   `.demo-row`, `.demo-section`). It must not define alternative button/card
-   components.
+3. **Layout primitives live in each app's main stylesheet.** No shared file:
+   Vue `styles/main.css`, Angular `styles.scss`, React `index.css`. The
+   classes use the `orange-*` namespace (`.orange-root`, `.orange-body`,
+   `.orange-title`, `.orange-row`, `.orange-section`). They must not define
+   alternative button/card components.
 4. **React is the content baseline.** React styles may be adjusted when needed
    to make the shared rules sensible.
 5. **Menus:** parent active background stays unchanged; parent text uses the

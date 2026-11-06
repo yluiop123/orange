@@ -57,9 +57,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.map.leaflet')" />
-    <div class="demo-map">
+    <div class="orange-map">
       <div ref="el" class="map-canvas" />
       <v-card class="map-legend" variant="flat">
         <div class="legend-title">{{ t('page.map.leaflet') }}</div>

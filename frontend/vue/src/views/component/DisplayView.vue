@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import DemoSection from '@/components/demo/DemoSection.vue'
+import SectionCard from '@/components/showcase/SectionCard.vue'
 
 const tab = ref('avatar')
 
@@ -310,7 +310,7 @@ function previousTourStep() {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="avatar">Avatar</v-tab>
@@ -334,28 +334,28 @@ function previousTourStep() {
     <v-window v-model="tab" class="display-window">
       <!-- Avatar -->
       <v-window-item value="avatar">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Basic usage" subtitle="Image with initials fallback">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Basic usage" subtitle="Image with initials fallback">
             <div class="row">
               <v-avatar size="48"><v-img :src="avatarImages[0]" alt="CN" /></v-avatar>
               <v-avatar size="48"><v-img :src="avatarImages[1]" alt="RU" /></v-avatar>
               <v-avatar size="48" color="primary"><span class="text-body-2">UF</span></v-avatar>
               <v-avatar size="48" color="secondary"><v-icon>mdi-account-outline</v-icon></v-avatar>
             </div>
-            <p class="demo-note">
+            <p class="orange-note">
               When the image cannot be loaded the fallback initials stay visible.
             </p>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Sizes" subtitle="32 / 48 / 64 / 96 px">
+          <SectionCard title="Sizes" subtitle="32 / 48 / 64 / 96 px">
             <div class="row align-end">
               <v-avatar v-for="size in [32, 48, 64, 96]" :key="size" :size="size">
                 <v-img :src="avatarImages[2]" alt="JD" />
               </v-avatar>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="With badge" subtitle="Presence indicators">
+          <SectionCard title="With badge" subtitle="Presence indicators">
             <div class="row">
               <v-badge dot color="success" location="bottom right" offset-x="2" offset-y="2">
                 <v-avatar size="48"><v-img :src="avatarImages[0]" alt="Online" /></v-avatar>
@@ -367,10 +367,10 @@ function previousTourStep() {
                 <v-avatar size="48" color="primary"><span class="text-body-2">AW</span></v-avatar>
               </v-badge>
             </div>
-            <p class="demo-note">Green is online, amber is away, red is offline.</p>
-          </DemoSection>
+            <p class="orange-note">Green is online, amber is away, red is offline.</p>
+          </SectionCard>
 
-          <DemoSection title="Fallback types" subtitle="Initials, full name, icon">
+          <SectionCard title="Fallback types" subtitle="Initials, full name, icon">
             <div class="row">
               <v-avatar size="48" color="primary"><span class="text-body-2">JD</span></v-avatar>
               <v-avatar size="48" color="secondary"><span class="text-caption">John Doe</span></v-avatar>
@@ -378,23 +378,23 @@ function previousTourStep() {
                 <v-icon>mdi-account</v-icon>
               </v-avatar>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Badge -->
       <v-window-item value="badge">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Basic variants" subtitle="Inline badges for labels">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Basic variants" subtitle="Inline badges for labels">
             <div class="badge-row">
               <v-badge inline content="Default" color="primary" />
               <v-badge inline content="Secondary" color="secondary" />
               <v-badge inline content="Destructive" color="error" />
               <v-badge inline content="Outline" color="surface" text-color="on-surface" bordered />
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="With icons" subtitle="Status at a glance">
+          <SectionCard title="With icons" subtitle="Status at a glance">
             <div class="badge-row">
               <v-badge inline color="success">
                 <template #badge><v-icon icon="mdi-check" size="12" class="mr-1" />Success</template>
@@ -413,9 +413,9 @@ function previousTourStep() {
                 </template>
               </v-badge>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="In context" subtitle="Notification list">
+          <SectionCard title="In context" subtitle="Notification list">
             <v-list density="compact" class="badge-list">
               <v-list-item title="New message">
                 <template #append><v-badge inline content="1" color="error" /></template>
@@ -427,9 +427,9 @@ function previousTourStep() {
                 <template #append><v-badge inline content="Done" color="secondary" /></template>
               </v-list-item>
             </v-list>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="On icons & avatars" subtitle="Counter badges">
+          <SectionCard title="On icons & avatars" subtitle="Counter badges">
             <div class="row badge-gap">
               <v-badge :content="3" color="error">
                 <v-icon size="28">mdi-bell-outline</v-icon>
@@ -444,24 +444,24 @@ function previousTourStep() {
                 <v-avatar size="44"><v-img :src="avatarImages[2]" alt="User" /></v-avatar>
               </v-badge>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Calendar -->
       <v-window-item value="calendar">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Single date" subtitle="Click a day to select it">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Single date" subtitle="Click a day to select it">
             <v-date-picker v-model="singleDate" color="primary" :header="fmtDate(singleDate)" />
             <v-card variant="tonal" color="primary" class="date-summary">
               <v-card-text>
                 <div class="date-large">{{ fmtDate(singleDate) }}</div>
-                <div class="demo-note">Selected date is bound with v-model.</div>
+                <div class="orange-note">Selected date is bound with v-model.</div>
               </v-card-text>
             </v-card>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Date range" subtitle="Pick a start and an end date">
+          <SectionCard title="Date range" subtitle="Pick a start and an end date">
             <div class="range-pickers">
               <div>
                 <div class="field-label">From</div>
@@ -475,22 +475,22 @@ function previousTourStep() {
             <v-card variant="tonal" color="success">
               <v-card-text>
                 <div class="date-large">{{ rangeDays }} day(s)</div>
-                <div class="demo-note">{{ fmtDate(fromDate) }} → {{ fmtDate(toDate) }}</div>
+                <div class="orange-note">{{ fmtDate(fromDate) }} → {{ fmtDate(toDate) }}</div>
               </v-card-text>
             </v-card>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Disabled past dates" subtitle="Only today and future dates">
+          <SectionCard title="Disabled past dates" subtitle="Only today and future dates">
             <v-date-picker
               v-model="futureDate"
               color="primary"
               :min="todayIso"
               :allowed-dates="allowedFromToday"
             />
-            <p class="demo-note">The min prop and allowed-dates keep earlier days unavailable.</p>
-          </DemoSection>
+            <p class="orange-note">The min prop and allowed-dates keep earlier days unavailable.</p>
+          </SectionCard>
 
-          <DemoSection title="Multiple dates" subtitle="Select several days">
+          <SectionCard title="Multiple dates" subtitle="Select several days">
             <v-date-picker v-model="multipleDates" color="primary" multiple />
             <div class="row">
               <v-chip
@@ -502,16 +502,16 @@ function previousTourStep() {
               >
                 {{ date }}
               </v-chip>
-              <span v-if="!multipleDates.length" class="demo-note">No dates selected</span>
+              <span v-if="!multipleDates.length" class="orange-note">No dates selected</span>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Card -->
       <v-window-item value="card">
-        <DemoSection title="Basic card" subtitle="Media, title, support text and actions">
-          <div class="demo-grid demo-grid--2">
+        <SectionCard title="Basic card" subtitle="Media, title, support text and actions">
+          <div class="orange-grid orange-grid--2">
             <v-card class="media-card">
               <v-img :src="images[0]" height="160" cover />
               <v-card-title>ORANGE console</v-card-title>
@@ -536,10 +536,10 @@ function previousTourStep() {
               </v-card-actions>
             </v-card>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Profile & form" subtitle="Two content-heavy card layouts">
-          <div class="demo-grid demo-grid--2">
+        <SectionCard title="Profile & form" subtitle="Two content-heavy card layouts">
+          <div class="orange-grid orange-grid--2">
             <v-card>
               <v-card-item title="Profile card" subtitle="Manage account settings" />
               <v-card-text>
@@ -572,9 +572,9 @@ function previousTourStep() {
               </v-card-actions>
             </v-card>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Navigation cards" subtitle="Shortcut tiles">
+        <SectionCard title="Navigation cards" subtitle="Shortcut tiles">
           <v-row dense>
             <v-col v-for="tile in [
               { icon: 'mdi-bell-outline', title: 'Notifications', text: 'Manage notification preferences', color: 'info' },
@@ -588,7 +588,7 @@ function previousTourStep() {
                     <v-icon>{{ tile.icon }}</v-icon>
                   </v-avatar>
                   <div class="nav-card-title">{{ tile.title }}</div>
-                  <div class="demo-note nav-card-text">{{ tile.text }}</div>
+                  <div class="orange-note nav-card-text">{{ tile.text }}</div>
                 </v-card-text>
                 <v-card-actions>
                   <v-btn variant="outlined" block size="small">Configure</v-btn>
@@ -596,9 +596,9 @@ function previousTourStep() {
               </v-card>
             </v-col>
           </v-row>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Interactive card" subtitle="Upcoming events">
+        <SectionCard title="Interactive card" subtitle="Upcoming events">
           <v-card max-width="380">
             <v-card-item title="Event reminder" subtitle="Upcoming events this week" />
             <v-card-text>
@@ -612,12 +612,12 @@ function previousTourStep() {
               <v-btn variant="outlined" block>View all events</v-btn>
             </v-card-actions>
           </v-card>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Carousel -->
       <v-window-item value="carousel">
-        <DemoSection title="Basic carousel" subtitle="Cycle through numbered slides">
+        <SectionCard title="Basic carousel" subtitle="Cycle through numbered slides">
           <v-carousel
             v-model="basicSlide"
             height="240"
@@ -635,7 +635,7 @@ function previousTourStep() {
             </v-carousel-item>
           </v-carousel>
           <div class="row between">
-            <span class="demo-note">Slide {{ basicSlide + 1 }} / {{ numberedSlides.length }}</span>
+            <span class="orange-note">Slide {{ basicSlide + 1 }} / {{ numberedSlides.length }}</span>
             <v-btn-group variant="outlined" density="compact">
               <v-btn
                 icon="mdi-chevron-left"
@@ -649,9 +649,9 @@ function previousTourStep() {
               />
             </v-btn-group>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Carousel with captions" subtitle="Images, captions and progress">
+        <SectionCard title="Carousel with captions" subtitle="Images, captions and progress">
           <v-carousel
             v-model="captionSlide"
             height="260"
@@ -680,11 +680,11 @@ function previousTourStep() {
             >
               {{ index + 1 }}
             </v-chip>
-            <span class="demo-note">{{ captionSlides[captionSlide]?.title }}</span>
+            <span class="orange-note">{{ captionSlides[captionSlide]?.title }}</span>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Image carousel" subtitle="Gradient artwork with hover navigation">
+        <SectionCard title="Image carousel" subtitle="Gradient artwork with hover navigation">
           <v-carousel v-model="basicSlide" height="280" hide-delimiters show-arrows="hover">
             <v-carousel-item v-for="(image, index) in images" :key="image">
               <v-img :src="image" height="280" cover :alt="`Slide ${index + 1}`">
@@ -694,13 +694,13 @@ function previousTourStep() {
               </v-img>
             </v-carousel-item>
           </v-carousel>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Accordion -->
       <v-window-item value="accordion">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Basic accordion" subtitle="One panel open at a time">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Basic accordion" subtitle="One panel open at a time">
             <v-expansion-panels v-model="singlePanel" variant="accordion">
               <v-expansion-panel title="Is it accessible?">
                 <v-expansion-panel-text>
@@ -718,9 +718,9 @@ function previousTourStep() {
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Multiple expandable" subtitle="Open several panels at once">
+          <SectionCard title="Multiple expandable" subtitle="Open several panels at once">
             <v-expansion-panels v-model="multiPanels" multiple variant="popout">
               <v-expansion-panel title="What is a good API?">
                 <v-expansion-panel-text>
@@ -743,11 +743,11 @@ function previousTourStep() {
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
-          </DemoSection>
+          </SectionCard>
         </div>
 
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Custom styling" subtitle="Inset panel with custom trigger">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Custom styling" subtitle="Inset panel with custom trigger">
             <v-expansion-panels variant="inset" class="custom-panels">
               <v-expansion-panel>
                 <v-expansion-panel-title class="custom-trigger">
@@ -766,9 +766,9 @@ function previousTourStep() {
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Long content" subtitle="Panel growth and scrolling">
+          <SectionCard title="Long content" subtitle="Panel growth and scrolling">
             <v-expansion-panels>
               <v-expansion-panel title="Click to expand long content">
                 <v-expansion-panel-text>
@@ -788,13 +788,13 @@ function previousTourStep() {
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Descriptions -->
       <v-window-item value="descriptions">
-        <DemoSection title="Horizontal layout" subtitle="Label and value pairs in columns">
+        <SectionCard title="Horizontal layout" subtitle="Label and value pairs in columns">
           <v-table density="compact" class="desc-table">
             <tbody>
               <tr>
@@ -817,9 +817,9 @@ function previousTourStep() {
               </tr>
             </tbody>
           </v-table>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Vertical layout" subtitle="Bordered header row">
+        <SectionCard title="Vertical layout" subtitle="Bordered header row">
           <v-table density="compact" class="desc-table desc-bordered">
             <thead>
               <tr>
@@ -838,9 +838,9 @@ function previousTourStep() {
               </tr>
             </tbody>
           </v-table>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Project details" subtitle="Merged cells and status colour">
+        <SectionCard title="Project details" subtitle="Merged cells and status colour">
           <v-table density="compact" class="desc-table desc-bordered">
             <tbody>
               <tr>
@@ -869,9 +869,9 @@ function previousTourStep() {
               </tr>
             </tbody>
           </v-table>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="System info" subtitle="Mixed spans with horizontal layout">
+        <SectionCard title="System info" subtitle="Mixed spans with horizontal layout">
           <v-table density="compact" class="desc-table">
             <tbody>
               <tr>
@@ -892,21 +892,21 @@ function previousTourStep() {
               </tr>
             </tbody>
           </v-table>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Empty -->
       <v-window-item value="empty">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Basic empty" subtitle="No documents yet">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Basic empty" subtitle="No documents yet">
             <v-empty-state
               icon="mdi-folder-open-outline"
               title="No documents"
               text="Create your first document to get started."
             />
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="With actions" subtitle="Search returned nothing">
+          <SectionCard title="With actions" subtitle="Search returned nothing">
             <v-empty-state
               icon="mdi-magnify"
               title="No results found"
@@ -916,9 +916,9 @@ function previousTourStep() {
                 <v-btn color="primary" variant="flat">Clear filters</v-btn>
               </template>
             </v-empty-state>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="User registration" subtitle="Empty user list">
+          <SectionCard title="User registration" subtitle="Empty user list">
             <v-empty-state
               icon="mdi-account-plus-outline"
               title="No users"
@@ -929,9 +929,9 @@ function previousTourStep() {
                 <v-btn color="primary">Create user</v-btn>
               </template>
             </v-empty-state>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Custom media" subtitle="Page not found">
+          <SectionCard title="Custom media" subtitle="Page not found">
             <v-empty-state title="Page not found" text="The page you are looking for does not exist or has moved.">
               <template #media>
                 <div class="empty-badge">404</div>
@@ -940,13 +940,13 @@ function previousTourStep() {
                 <v-btn color="primary">Go home</v-btn>
               </template>
             </v-empty-state>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Image -->
       <v-window-item value="image">
-        <DemoSection title="Avatar images" subtitle="Image, fallback and initials">
+        <SectionCard title="Avatar images" subtitle="Image, fallback and initials">
           <v-row dense>
             <v-col v-for="item in [
               { title: 'With image', text: 'Avatar with image', src: avatarImages[0], fallback: 'CN' },
@@ -960,22 +960,22 @@ function previousTourStep() {
                     <span v-else class="text-h6">{{ item.fallback }}</span>
                   </v-avatar>
                   <div class="field-label">{{ item.title }}</div>
-                  <div class="demo-note">{{ item.text }}</div>
+                  <div class="orange-note">{{ item.text }}</div>
                 </v-card-text>
               </v-card>
             </v-col>
           </v-row>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Different sizes" subtitle="40 / 64 / 96 / 128 px">
+        <SectionCard title="Different sizes" subtitle="40 / 64 / 96 / 128 px">
           <div class="row surface-strip">
             <v-avatar v-for="size in [40, 64, 96, 128]" :key="size" :size="size">
               <v-img :src="images[1]" alt="Vue" />
             </v-avatar>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Avatar groups" subtitle="Overlapping stack with overflow count">
+        <SectionCard title="Avatar groups" subtitle="Overlapping stack with overflow count">
           <div class="row surface-strip">
             <div class="avatar-stack">
               <v-avatar size="48" class="stacked"><v-img :src="avatarImages[0]" alt="User 1" /></v-avatar>
@@ -986,9 +986,9 @@ function previousTourStep() {
               </v-avatar>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Status avatars" subtitle="Online, away, busy and offline">
+        <SectionCard title="Status avatars" subtitle="Online, away, busy and offline">
           <div class="row surface-strip">
             <div v-for="person in [
               { label: 'Online', color: 'success' },
@@ -999,16 +999,16 @@ function previousTourStep() {
               <v-badge dot :color="person.color" location="bottom right">
                 <v-avatar size="56"><v-img :src="images[2]" alt="Person" /></v-avatar>
               </v-badge>
-              <span class="demo-note">{{ person.label }}</span>
+              <span class="orange-note">{{ person.label }}</span>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Popover -->
       <v-window-item value="popover">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Basic popover" subtitle="Dimensions form inside a menu">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Basic popover" subtitle="Dimensions form inside a menu">
             <v-menu :close-on-content-click="false" location="bottom start">
               <template #activator="{ props: activatorProps }">
                 <v-btn v-bind="activatorProps" variant="outlined">Open popover</v-btn>
@@ -1023,10 +1023,10 @@ function previousTourStep() {
                 </v-card-text>
               </v-card>
             </v-menu>
-            <p class="demo-note">Menus keep focus while the content stays interactive.</p>
-          </DemoSection>
+            <p class="orange-note">Menus keep focus while the content stays interactive.</p>
+          </SectionCard>
 
-          <DemoSection title="Direction popovers" subtitle="Top, right, bottom and left">
+          <SectionCard title="Direction popovers" subtitle="Top, right, bottom and left">
             <div class="row center-row">
               <div v-for="direction in [
                 { location: 'top', icon: 'mdi-arrow-up', label: 'Top' },
@@ -1048,12 +1048,12 @@ function previousTourStep() {
                     <v-card-text>Popover on {{ direction.label.toLowerCase() }}</v-card-text>
                   </v-card>
                 </v-menu>
-                <span class="demo-note">{{ direction.label }}</span>
+                <span class="orange-note">{{ direction.label }}</span>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Settings popover" subtitle="Preferences with switches">
+          <SectionCard title="Settings popover" subtitle="Preferences with switches">
             <v-menu :close-on-content-click="false">
               <template #activator="{ props: activatorProps }">
                 <v-btn v-bind="activatorProps" variant="outlined" prepend-icon="mdi-cog-outline">
@@ -1071,9 +1071,9 @@ function previousTourStep() {
                 </v-card-text>
               </v-card>
             </v-menu>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Action popover" subtitle="Schedule a post">
+          <SectionCard title="Action popover" subtitle="Schedule a post">
             <v-menu :close-on-content-click="false">
               <template #activator="{ props: activatorProps }">
                 <v-btn
@@ -1096,13 +1096,13 @@ function previousTourStep() {
                 </v-card-text>
               </v-card>
             </v-menu>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- QRCode -->
       <v-window-item value="qrcode">
-        <DemoSection title="Color variants" subtitle="Foreground and background combinations">
+        <SectionCard title="Color variants" subtitle="Foreground and background combinations">
           <v-row dense>
             <v-col v-for="preset in qrColorPresets" :key="preset.title" cols="12" sm="6" md="4" lg="2">
               <v-card variant="outlined" class="center-card qr-card">
@@ -1140,9 +1140,9 @@ function previousTourStep() {
               </v-card>
             </v-col>
           </v-row>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Different sizes" subtitle="64 to 300 pixels">
+        <SectionCard title="Different sizes" subtitle="64 to 300 pixels">
           <div class="row center-row qr-sizes">
             <div v-for="preset in qrSizePresets" :key="preset.label" class="qr-size-item">
               <svg
@@ -1170,12 +1170,12 @@ function previousTourStep() {
                   <rect :x="origin.x + 2" :y="origin.y + 2" width="3" height="3" :fill="qrFg" />
                 </g>
               </svg>
-              <span class="demo-note">{{ preset.label }} · {{ preset.size }}px</span>
+              <span class="orange-note">{{ preset.label }} · {{ preset.size }}px</span>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Dynamic QR code" subtitle="Adjust value, size and colours">
+        <SectionCard title="Dynamic QR code" subtitle="Adjust value, size and colours">
           <div class="qr-builder">
             <v-card variant="outlined" class="qr-controls">
               <v-card-text class="form-stack">
@@ -1186,11 +1186,11 @@ function previousTourStep() {
                 </div>
                 <div class="qr-colors">
                   <label class="color-field">
-                    <span class="demo-note">Foreground</span>
+                    <span class="orange-note">Foreground</span>
                     <input v-model="qrFg" type="color" />
                   </label>
                   <label class="color-field">
-                    <span class="demo-note">Background</span>
+                    <span class="orange-note">Background</span>
                     <input v-model="qrBg" type="color" />
                   </label>
                 </div>
@@ -1225,25 +1225,25 @@ function previousTourStep() {
                   <rect :x="origin.x + 2" :y="origin.y + 2" width="3" height="3" :fill="qrFg" />
                 </g>
               </svg>
-              <span class="demo-note">{{ qrValue || 'Enter a value to encode' }}</span>
+              <span class="orange-note">{{ qrValue || 'Enter a value to encode' }}</span>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Segmented -->
       <v-window-item value="segmented">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Basic segmented" subtitle="Day / week / month">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Basic segmented" subtitle="Day / week / month">
             <v-btn-toggle v-model="basicSegment" mandatory divided color="primary" variant="outlined">
               <v-btn v-for="option in segmentOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </v-btn>
             </v-btn-toggle>
-            <p class="demo-note">Selected: {{ basicSegment }}</p>
-          </DemoSection>
+            <p class="orange-note">Selected: {{ basicSegment }}</p>
+          </SectionCard>
 
-          <DemoSection title="Controlled segmented" subtitle="Model bound to local state">
+          <SectionCard title="Controlled segmented" subtitle="Model bound to local state">
             <div class="row">
               <v-btn-toggle
                 v-model="controlledSegment"
@@ -1256,11 +1256,11 @@ function previousTourStep() {
                   {{ option.label }}
                 </v-btn>
               </v-btn-toggle>
-              <span class="demo-note">Current: {{ controlledSegment }}</span>
+              <span class="orange-note">Current: {{ controlledSegment }}</span>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Loading state" subtitle="Selected item shows a spinner">
+          <SectionCard title="Loading state" subtitle="Selected item shows a spinner">
             <div class="row">
               <v-btn-toggle
                 v-model="loadingSegment"
@@ -1284,10 +1284,10 @@ function previousTourStep() {
                 Set month
               </v-btn>
             </div>
-            <p class="demo-note">The spinner clears after 1.2 seconds.</p>
-          </DemoSection>
+            <p class="orange-note">The spinner clears after 1.2 seconds.</p>
+          </SectionCard>
 
-          <DemoSection title="States" subtitle="Bilingual, disabled and error">
+          <SectionCard title="States" subtitle="Bilingual, disabled and error">
             <div class="form-stack">
               <div>
                 <div class="field-label">Bilingual labels</div>
@@ -1321,13 +1321,13 @@ function previousTourStep() {
                 <div class="error-text">Selection required / 需要选择</div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Tag -->
       <v-window-item value="tag">
-        <DemoSection title="Basic tags & sizes" subtitle="Semantic variants and three sizes">
+        <SectionCard title="Basic tags & sizes" subtitle="Semantic variants and three sizes">
           <div class="row">
             <v-chip>Default</v-chip>
             <v-chip color="primary">Primary</v-chip>
@@ -1343,9 +1343,9 @@ function previousTourStep() {
             <v-chip>Medium tag</v-chip>
             <v-chip size="large">Large tag</v-chip>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Closable & interactive" subtitle="Dismiss tags, then add or remove your own">
+        <SectionCard title="Closable & interactive" subtitle="Dismiss tags, then add or remove your own">
           <div class="row">
             <v-chip
               v-for="tag in closableTags"
@@ -1382,10 +1382,10 @@ function previousTourStep() {
               Add tag
             </v-btn>
           </div>
-          <p class="demo-note">{{ tags.length }} tag(s) in the interactive list.</p>
-        </DemoSection>
+          <p class="orange-note">{{ tags.length }} tag(s) in the interactive list.</p>
+        </SectionCard>
 
-        <DemoSection title="States & combinations" subtitle="Disabled chips and grouped labels">
+        <SectionCard title="States & combinations" subtitle="Disabled chips and grouped labels">
           <div class="form-stack">
             <div class="row">
               <v-chip disabled>Disabled default</v-chip>
@@ -1406,9 +1406,9 @@ function previousTourStep() {
               <v-chip color="success" size="small">Stable</v-chip>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Tag cloud" subtitle="Mixed colours and sizes">
+        <SectionCard title="Tag cloud" subtitle="Mixed colours and sizes">
           <div class="row center-row">
             <v-chip
               v-for="(tech, index) in techTags"
@@ -1420,13 +1420,13 @@ function previousTourStep() {
               {{ tech }}
             </v-chip>
           </div>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Timeline -->
       <v-window-item value="timeline">
-        <div class="demo-grid demo-grid--2">
-          <DemoSection title="Vertical single side" subtitle="Click a step to activate it">
+        <div class="orange-grid orange-grid--2">
+          <SectionCard title="Vertical single side" subtitle="Click a step to activate it">
             <v-timeline side="end" density="compact">
               <v-timeline-item
                 v-for="step in timelineSteps"
@@ -1442,9 +1442,9 @@ function previousTourStep() {
                 <div class="timeline-text">{{ step.text }}</div>
               </v-timeline-item>
             </v-timeline>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Dense activity" subtitle="Audit log with trace context">
+          <SectionCard title="Dense activity" subtitle="Audit log with trace context">
             <v-timeline side="end" density="compact" truncate-line="both">
               <v-timeline-item
                 v-for="event in [
@@ -1462,10 +1462,10 @@ function previousTourStep() {
                 <div class="timeline-text">{{ event.text }}</div>
               </v-timeline-item>
             </v-timeline>
-          </DemoSection>
+          </SectionCard>
         </div>
 
-        <DemoSection title="Horizontal alternate" subtitle="Roadmap across four milestones">
+        <SectionCard title="Horizontal alternate" subtitle="Roadmap across four milestones">
           <div class="timeline-scroll">
             <v-timeline direction="horizontal" align="center" truncate-line="both" density="compact">
               <v-timeline-item
@@ -1485,12 +1485,12 @@ function previousTourStep() {
               </v-timeline-item>
             </v-timeline>
           </div>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Tooltip -->
       <v-window-item value="tooltip">
-        <DemoSection title="Rich profile tooltip" subtitle="Hover the avatar for a member card">
+        <SectionCard title="Rich profile tooltip" subtitle="Hover the avatar for a member card">
           <div class="row center-row tooltip-stage">
             <v-tooltip location="top" :max-width="280" :open-delay="100">
               <template #activator="{ props: activatorProps }">
@@ -1512,23 +1512,23 @@ function previousTourStep() {
                     <strong>Premium plan</strong>
                     <v-chip size="x-small" color="primary" variant="tonal">PRO</v-chip>
                   </div>
-                  <p class="demo-note mt-2">
+                  <p class="orange-note mt-2">
                     Unlock every AI feature, unlimited high-resolution exports and priority renders.
                   </p>
                   <v-divider class="my-2" />
                   <div class="row between">
-                    <span class="demo-note">Next billing: 2026.12.01</span>
+                    <span class="orange-note">Next billing: 2026.12.01</span>
                     <span class="link-text">Manage</span>
                   </div>
                 </v-card-text>
               </v-card>
             </v-tooltip>
-            <span class="demo-note">Profile / status tooltip</span>
+            <span class="orange-note">Profile / status tooltip</span>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <div class="demo-grid demo-grid--3">
-          <DemoSection title="Danger action" subtitle="Semantic warning colour">
+        <div class="orange-grid orange-grid--3">
+          <SectionCard title="Danger action" subtitle="Semantic warning colour">
             <v-tooltip location="bottom" :max-width="240" content-class="tooltip-danger">
               <template #activator="{ props: activatorProps }">
                 <v-btn
@@ -1542,9 +1542,9 @@ function previousTourStep() {
               </template>
               <span>This action cannot be undone.</span>
             </v-tooltip>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Keyboard shortcut" subtitle="Shortcut hint on hover">
+          <SectionCard title="Keyboard shortcut" subtitle="Shortcut hint on hover">
             <v-tooltip location="right">
               <template #activator="{ props: activatorProps }">
                 <v-btn v-bind="activatorProps" variant="outlined" icon="mdi-command" aria-label="Global search" />
@@ -1555,9 +1555,9 @@ function previousTourStep() {
                 <v-kbd>K</v-kbd>
               </div>
             </v-tooltip>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Security note" subtitle="Longer explanatory content">
+          <SectionCard title="Security note" subtitle="Longer explanatory content">
             <v-tooltip location="top" :max-width="220" text="Only you can read this conversation. Even the developers cannot access it.">
               <template #activator="{ props: activatorProps }">
                 <v-chip
@@ -1570,18 +1570,18 @@ function previousTourStep() {
                 </v-chip>
               </template>
             </v-tooltip>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Tour -->
       <v-window-item value="tour">
-        <DemoSection title="Guided tour" subtitle="Two-step walkthrough with a modal">
+        <SectionCard title="Guided tour" subtitle="Two-step walkthrough with a modal">
           <div class="row">
             <v-btn color="success" prepend-icon="mdi-map-marker-path" @click="startTour">
               Start tour
             </v-btn>
-            <span class="demo-note">
+            <span class="orange-note">
               Step {{ tourStep + 1 }} of {{ tourSteps.length }} · {{ tourOpen ? 'running' : 'idle' }}
             </span>
           </div>
@@ -1594,7 +1594,7 @@ function previousTourStep() {
               <v-card-text class="row between">
                 <div>
                   <div class="timeline-title">Main action</div>
-                  <div class="demo-note">The primary button for the form.</div>
+                  <div class="orange-note">The primary button for the form.</div>
                 </div>
                 <v-btn color="primary" @click="tourAction = 'Form submitted'">Submit</v-btn>
               </v-card-text>
@@ -1608,11 +1608,11 @@ function previousTourStep() {
                 hide-details
               />
             </div>
-            <div class="demo-note" v-if="tourAction">Last action: {{ tourAction }}</div>
+            <div class="orange-note" v-if="tourAction">Last action: {{ tourAction }}</div>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Tour steps" subtitle="Ordered steps highlight one target at a time">
+        <SectionCard title="Tour steps" subtitle="Ordered steps highlight one target at a time">
           <v-list density="comfortable">
             <v-list-item v-for="(step, index) in tourSteps" :key="step.title">
               <template #prepend>
@@ -1628,10 +1628,10 @@ function previousTourStep() {
               <v-list-item-subtitle>{{ step.text }}</v-list-item-subtitle>
             </v-list-item>
           </v-list>
-          <p class="demo-note">
+          <p class="orange-note">
             Start the tour to launch the modal, then step through the highlighted targets.
           </p>
-        </DemoSection>
+        </SectionCard>
 
         <v-dialog v-model="tourOpen" max-width="520" persistent>
           <v-card>

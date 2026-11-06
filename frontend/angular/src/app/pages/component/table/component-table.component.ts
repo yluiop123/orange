@@ -65,7 +65,7 @@ const STATUS_OPTIONS: PersonStatus[] = ['relationship', 'single', 'complicated']
   template: `
     <div class="page">
 
-      <mat-tab-group class="demo-tabs" animationDuration="0ms">
+      <mat-tab-group class="orange-tabs" animationDuration="0ms">
         <mat-tab label="Basic">
           <div class="tab-body">
             <section class="panel table-panel">

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { EChartsOption } from 'echarts'
 import { usePageTitle } from '@/composables/usePageTitle'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { barOption, gaugeOption, lineOption, pieOption, radarOption } from '../dashboard/chart-options'
 
@@ -80,10 +80,10 @@ const scatter = computed<EChartsOption>(() => ({
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.chart.echart')" />
 
-    <div class="demo-grid demo-grid--2">
+    <div class="orange-grid orange-grid--2">
       <EchartCard :title="t('chart.line')" :option="line" :height="320" />
       <EchartCard :title="t('chart.bar')" :option="bar" :height="320" />
       <EchartCard :title="t('chart.pie')" :option="pie" :height="320" />

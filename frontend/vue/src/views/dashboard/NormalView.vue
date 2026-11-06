@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageTitle } from '@/composables/usePageTitle'
-import MetricCard from '@/components/demo/MetricCard.vue'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import MetricCard from '@/components/showcase/MetricCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { barOption, lineOption, pieOption } from './chart-options'
 
@@ -55,7 +55,7 @@ const orders = computed(() => [
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('demo.updated')">
       <template #actions>
         <v-chip color="success" variant="tonal" prepend-icon="mdi-radar">
@@ -64,7 +64,7 @@ const orders = computed(() => [
       </template>
     </PageHeader>
 
-    <div class="demo-grid demo-grid--4">
+    <div class="orange-grid orange-grid--4">
       <MetricCard
         :label="t('demo.metric.revenue')"
         value="¥ 2,486,300"

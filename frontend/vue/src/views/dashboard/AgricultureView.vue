@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageTitle } from '@/composables/usePageTitle'
-import MetricCard from '@/components/demo/MetricCard.vue'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import MetricCard from '@/components/showcase/MetricCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { lineOption, pieOption } from './chart-options'
 
@@ -49,7 +49,7 @@ const statusColor: Record<string, string> = {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('demo.chart.soilMoisture')">
       <template #actions>
         <v-chip color="success" variant="tonal" prepend-icon="mdi-sprout-outline">
@@ -58,7 +58,7 @@ const statusColor: Record<string, string> = {
       </template>
     </PageHeader>
 
-    <div class="demo-grid demo-grid--4">
+    <div class="orange-grid orange-grid--4">
       <MetricCard :label="t('demo.metric.temperature')" value="24.8 °C" delta="+1.2" icon="mdi-thermometer" color="warning" />
       <MetricCard :label="t('demo.metric.humidity')" value="63%" delta="-4%" icon="mdi-water-percent" color="info" />
       <MetricCard :label="t('demo.metric.plots')" value="86" delta="+3" icon="mdi-terrain" color="success" />

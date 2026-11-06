@@ -46,7 +46,7 @@ interface TagItem {
   template: `
     <div class="page">
 
-      <mat-tab-group class="demo-tabs" animationDuration="0ms">
+      <mat-tab-group class="orange-tabs" animationDuration="0ms">
         <!-- ============================== Avatar ============================== -->
         <mat-tab label="Avatar">
           <div class="tab-body">
@@ -263,7 +263,7 @@ interface TagItem {
           <div class="tab-body">
             <section class="panel">
               <h2>Basic Card</h2>
-              <mat-card appearance="outlined" class="demo-card">
+              <mat-card appearance="outlined" class="orange-card">
                 <mat-card-header>
                   <mat-card-title>Basic Card</mat-card-title>
                   <mat-card-subtitle>This is a basic card example.</mat-card-subtitle>
@@ -279,7 +279,7 @@ interface TagItem {
 
             <section class="panel">
               <h2>Card with Action</h2>
-              <mat-card appearance="outlined" class="demo-card">
+              <mat-card appearance="outlined" class="orange-card">
                 <mat-card-header>
                   <mat-card-title>Profile Card</mat-card-title>
                   <mat-card-subtitle>Manage your account settings</mat-card-subtitle>
@@ -298,16 +298,16 @@ interface TagItem {
 
             <section class="panel">
               <h2>Card with Form</h2>
-              <mat-card appearance="outlined" class="demo-card form-card">
+              <mat-card appearance="outlined" class="orange-card form-card">
                 <mat-card-header>
                   <mat-card-title>Create Project</mat-card-title>
                   <mat-card-subtitle>Add a new project to manage.</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                   <label class="field-label" for="project-name">Project Name</label>
-                  <input id="project-name" class="demo-input" placeholder="Name of your project" />
+                  <input id="project-name" class="orange-input" placeholder="Name of your project" />
                   <label class="field-label" for="project-desc">Description</label>
-                  <input id="project-desc" class="demo-input" placeholder="Short description" />
+                  <input id="project-desc" class="orange-input" placeholder="Short description" />
                   <label class="check-line">
                     <input type="checkbox" checked />
                     <span>Accept terms and conditions</span>
@@ -448,7 +448,7 @@ interface TagItem {
           <div class="tab-body">
             <section class="panel">
               <h2>Basic Accordion</h2>
-              <mat-accordion class="demo-accordion">
+              <mat-accordion class="orange-accordion">
                 <mat-expansion-panel>
                   <mat-expansion-panel-header>
                     <mat-panel-title>Is it accessible?</mat-panel-title>
@@ -472,7 +472,7 @@ interface TagItem {
 
             <section class="panel">
               <h2>Multiple Expandable Accordion</h2>
-              <mat-accordion multi class="demo-accordion">
+              <mat-accordion multi class="orange-accordion">
                 <mat-expansion-panel>
                   <mat-expansion-panel-header>
                     <mat-panel-title>What is a good API?</mat-panel-title>
@@ -502,7 +502,7 @@ interface TagItem {
 
             <section class="panel">
               <h2>Custom Styling &amp; Long Content</h2>
-              <mat-accordion class="demo-accordion custom">
+              <mat-accordion class="orange-accordion custom">
                 <mat-expansion-panel>
                   <mat-expansion-panel-header>
                     <mat-panel-title>Custom trigger style</mat-panel-title>
@@ -725,10 +725,10 @@ interface TagItem {
                 <div class="popover-panel">
                   <strong>Dimensions</strong>
                   <p class="muted">Set the dimensions for the layer.</p>
-                  <label class="popover-field"><span>Width</span><input class="demo-input" value="100%" /></label>
-                  <label class="popover-field"><span>Max. width</span><input class="demo-input" value="300px" /></label>
-                  <label class="popover-field"><span>Height</span><input class="demo-input" value="25px" /></label>
-                  <label class="popover-field"><span>Max. height</span><input class="demo-input" value="none" /></label>
+                  <label class="popover-field"><span>Width</span><input class="orange-input" value="100%" /></label>
+                  <label class="popover-field"><span>Max. width</span><input class="orange-input" value="300px" /></label>
+                  <label class="popover-field"><span>Height</span><input class="orange-input" value="25px" /></label>
+                  <label class="popover-field"><span>Max. height</span><input class="orange-input" value="none" /></label>
                 </div>
               </mat-menu>
             </section>
@@ -892,7 +892,7 @@ interface TagItem {
                   <label class="field-label" for="qr-url">URL</label>
                   <input
                     id="qr-url"
-                    class="demo-input"
+                    class="orange-input"
                     [value]="qrUrl()"
                     (input)="setText($event, qrUrl)"
                     placeholder="Enter URL"
@@ -1302,7 +1302,7 @@ interface TagItem {
                 <mat-step label="Search Box">
                   <p class="muted">Step 2 — Search for the content you want here.</p>
                   <div class="tour-target wide">
-                    <input class="demo-input" placeholder="Search content" />
+                    <input class="orange-input" placeholder="Search content" />
                     <span class="tour-badge">2</span>
                   </div>
                   <div class="row split">
@@ -1333,7 +1333,7 @@ interface TagItem {
                   <span class="tour-badge">2</span>
                   <strong>Search box</strong>
                   <p class="muted">Find records, users and settings quickly.</p>
-                  <input class="demo-input" placeholder="Search content" />
+                  <input class="orange-input" placeholder="Search content" />
                 </div>
                 <div class="tour-card" [class.spotlight]="tourStep() === 2">
                   <span class="tour-badge">3</span>
@@ -1643,7 +1643,7 @@ interface TagItem {
       }
 
       /* Cards */
-      .demo-card {
+      .orange-card {
         max-width: 420px;
       }
       .icon-line {
@@ -1670,7 +1670,7 @@ interface TagItem {
         font-size: 0.75rem;
         font-weight: 500;
       }
-      .demo-input {
+      .orange-input {
         width: 100%;
         height: 2rem;
         padding: 0 8px;
@@ -1682,7 +1682,7 @@ interface TagItem {
         font-size: 0.82rem;
         outline: none;
       }
-      .demo-input:focus {
+      .orange-input:focus {
         border-color: var(--app-ring);
       }
       input[type='range'] {
@@ -1827,16 +1827,16 @@ interface TagItem {
       }
 
       /* Accordion */
-      .demo-accordion {
+      .orange-accordion {
         max-width: 560px;
       }
-      .demo-accordion p {
+      .orange-accordion p {
         margin: 0 0 8px;
         font-size: 0.82rem;
         line-height: 1.6;
         color: var(--app-muted-foreground);
       }
-      .demo-accordion.custom .mat-expansion-panel {
+      .orange-accordion.custom .mat-expansion-panel {
         border: 1px solid var(--app-border);
         border-radius: var(--app-radius);
         margin-bottom: 8px;
@@ -2382,7 +2382,7 @@ interface TagItem {
         display: flex;
         max-width: 360px;
       }
-      .tour-target.wide .demo-input {
+      .tour-target.wide .orange-input {
         padding-right: 32px;
       }
       .tour-badge {

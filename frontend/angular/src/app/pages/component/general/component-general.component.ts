@@ -11,26 +11,26 @@ import { MatTabsModule } from '@angular/material/tabs';
   template: `
     <div class="page">
 
-      <mat-tab-group class="demo-tabs" animationDuration="120ms">
+      <mat-tab-group class="orange-tabs" animationDuration="120ms">
         <mat-tab label="Button">
-          <div class="demo-body">
-            <h2 class="demo-title">Size 大小</h2>
-            <div class="demo-row">
+          <div class="orange-body">
+            <h2 class="orange-title">Size 大小</h2>
+            <div class="orange-row">
               <button mat-flat-button color="primary" class="size-sm" type="button">small</button>
               <button mat-flat-button color="primary" type="button">default</button>
               <button mat-flat-button color="primary" class="size-lg" type="button">large</button>
-              <button mat-flat-button color="primary" class="demo-icon-square" type="button">
+              <button mat-flat-button color="primary" class="orange-icon-square" type="button">
                 icon
               </button>
             </div>
 
-            <h2 class="demo-title">Type 类型</h2>
-            <div class="demo-row">
+            <h2 class="orange-title">Type 类型</h2>
+            <div class="orange-row">
               <button mat-flat-button color="primary" type="button">Default</button>
-              <button mat-flat-button class="demo-blue" type="button">Primary 主要</button>
-              <button mat-flat-button class="demo-secondary" type="button">Secondary 次要</button>
-              <button mat-flat-button class="demo-danger" type="button">Destructive 危险</button>
-              <button mat-flat-button class="demo-success" type="button">Success 成功</button>
+              <button mat-flat-button class="orange-blue" type="button">Primary 主要</button>
+              <button mat-flat-button class="orange-secondary" type="button">Secondary 次要</button>
+              <button mat-flat-button class="orange-danger" type="button">Destructive 危险</button>
+              <button mat-flat-button class="orange-success" type="button">Success 成功</button>
               <a
                 mat-flat-button
                 color="primary"
@@ -42,18 +42,18 @@ import { MatTabsModule } from '@angular/material/tabs';
               </a>
             </div>
 
-            <h2 class="demo-title">Variant 变体</h2>
-            <div class="demo-row">
+            <h2 class="orange-title">Variant 变体</h2>
+            <div class="orange-row">
               <button mat-flat-button color="primary" type="button">default</button>
-              <button mat-flat-button class="demo-destructive-tonal" type="button">destructive</button>
+              <button mat-flat-button class="orange-destructive-tonal" type="button">destructive</button>
               <button mat-stroked-button type="button">outline</button>
-              <button mat-flat-button class="demo-secondary" type="button">secondary</button>
+              <button mat-flat-button class="orange-secondary" type="button">secondary</button>
               <button mat-button type="button">ghost</button>
               <button mat-button color="primary" type="button">Link</button>
             </div>
 
-            <h2 class="demo-title">Status 状态</h2>
-            <div class="demo-row">
+            <h2 class="orange-title">Status 状态</h2>
+            <div class="orange-row">
               <button mat-flat-button color="primary" type="button">Normal</button>
               <button mat-flat-button color="primary" type="button" disabled>Disabled</button>
               <button
@@ -70,33 +70,33 @@ import { MatTabsModule } from '@angular/material/tabs';
               </button>
             </div>
 
-            <h2 class="demo-title">Icon Button 图标按钮</h2>
-            <div class="demo-row">
+            <h2 class="orange-title">Icon Button 图标按钮</h2>
+            <div class="orange-row">
               <button mat-flat-button color="primary" type="button">
                 <mat-icon>coffee</mat-icon> Icon Button
               </button>
-              <button mat-flat-button class="demo-success" type="button">
+              <button mat-flat-button class="orange-success" type="button">
                 <mat-icon>check</mat-icon> Success
               </button>
             </div>
 
-            <h2 class="demo-title">Square 形状</h2>
-            <div class="demo-row">
-              <button mat-flat-button color="primary" class="demo-square" type="button">Square</button>
-              <button mat-flat-button color="primary" class="demo-round" type="button">Round</button>
-              <button mat-flat-button color="primary" class="demo-pill" type="button">Full Circle</button>
+            <h2 class="orange-title">Square 形状</h2>
+            <div class="orange-row">
+              <button mat-flat-button color="primary" class="orange-square" type="button">Square</button>
+              <button mat-flat-button color="primary" class="orange-round" type="button">Round</button>
+              <button mat-flat-button color="primary" class="orange-pill" type="button">Full Circle</button>
             </div>
           </div>
         </mat-tab>
 
         <mat-tab label="FloatButton">
-          <div class="demo-page-surface">
-            <p class="demo-float-copy">页面内容很长，可以滚动。示例展示回到顶部、不同位置与展开方向。</p>
+          <div class="orange-page-surface">
+            <p class="orange-float-copy">页面内容很长，可以滚动。示例展示回到顶部、不同位置与展开方向。</p>
 
             <button
               mat-mini-fab
               color="primary"
-              class="demo-float"
+              class="orange-float"
               type="button"
               aria-label="Back to top"
               style="bottom: 24px; left: 50%; transform: translateX(-50%)"
@@ -109,7 +109,7 @@ import { MatTabsModule } from '@angular/material/tabs';
             <button
               mat-mini-fab
               color="primary"
-              class="demo-float"
+              class="orange-float"
               type="button"
               aria-label="Quick actions"
               style="top: 50%; right: 24px; transform: translateY(-50%)"
@@ -120,7 +120,7 @@ import { MatTabsModule } from '@angular/material/tabs';
             <button
               mat-mini-fab
               color="primary"
-              class="demo-float"
+              class="orange-float"
               type="button"
               aria-label="Expand upward"
               style="bottom: 24px; right: 24px"
@@ -131,7 +131,7 @@ import { MatTabsModule } from '@angular/material/tabs';
             <button
               mat-mini-fab
               color="primary"
-              class="demo-float"
+              class="orange-float"
               type="button"
               aria-label="Expand to the right"
               style="top: 50%; left: 24px; transform: translateY(-50%)"
@@ -139,8 +139,8 @@ import { MatTabsModule } from '@angular/material/tabs';
               <mat-icon>add</mat-icon>
             </button>
 
-            <div class="demo-notes">
-              <h3 class="demo-subtitle">演示说明</h3>
+            <div class="orange-notes">
+              <h3 class="orange-subtitle">演示说明</h3>
               <ul>
                 <li>主按钮支持回到顶部、展开按钮组或自定义点击回调。</li>
                 <li>组按钮支持徽章计数与自定义样式。</li>
@@ -151,16 +151,16 @@ import { MatTabsModule } from '@angular/material/tabs';
         </mat-tab>
 
         <mat-tab label="Affix">
-          <div class="demo-page-surface">
-            <div class="demo-affix-container">
-              <h1 class="demo-hero-title">Affix / 固钉</h1>
+          <div class="orange-page-surface">
+            <div class="orange-affix-container">
+              <h1 class="orange-hero-title">Affix / 固钉</h1>
 
-              <section class="demo-affix-card">
-                <h2 class="demo-affix-title">Top Affix / 顶部固钉</h2>
-                <p class="demo-muted">示例：顶部固钉，支持顶部与水平偏移。</p>
+              <section class="orange-affix-card">
+                <h2 class="orange-affix-title">Top Affix / 顶部固钉</h2>
+                <p class="orange-muted">示例：顶部固钉，支持顶部与水平偏移。</p>
 
                 <div
-                  class="demo-affix-header"
+                  class="orange-affix-header"
                   [style.top.px]="offsetTop()"
                   [style.marginLeft.px]="offsetLeft() ?? 0"
                   [style.marginRight.px]="offsetRight() ?? 0"
@@ -199,18 +199,18 @@ import { MatTabsModule } from '@angular/material/tabs';
                 </div>
               </section>
 
-              <section class="demo-affix-card">
-                <h2 class="demo-affix-title">Bottom Fixed Affix / 底部固定</h2>
-                <p class="demo-muted">
+              <section class="orange-affix-card">
+                <h2 class="orange-affix-title">Bottom Fixed Affix / 底部固定</h2>
+                <p class="orange-muted">
                   示例：底部固定（滚动到指定位置后固定），可设置底部与水平偏移。
                 </p>
 
-                <div class="demo-affix-scroll">
+                <div class="orange-affix-scroll">
                   @for (line of scrollLines; track line) {
-                    <div class="demo-scroll-line">{{ line }}</div>
+                    <div class="orange-scroll-line">{{ line }}</div>
                   }
                   <div
-                    class="demo-affix-footer"
+                    class="orange-affix-footer"
                     [style.bottom.px]="offsetBottom()"
                     [style.marginLeft.px]="offsetLeft() ?? 0"
                     [style.marginRight.px]="offsetRight() ?? 0"
@@ -238,11 +238,11 @@ import { MatTabsModule } from '@angular/material/tabs';
         </mat-tab>
 
         <mat-tab label="Typography">
-          <div class="demo-typography">
-            <h1 class="demo-type-h1">Typography 排版示例</h1>
+          <div class="orange-typography">
+            <h1 class="orange-type-h1">Typography 排版示例</h1>
             <br />
-            <h2 class="demo-type-h2">Text 文本</h2>
-            <p class="demo-type-p">
+            <h2 class="orange-type-h2">Text 文本</h2>
+            <p class="orange-type-p">
               <strong>Strong 加粗</strong> ·
               <span class="underlined">Underline 下划线</span> ·
               <del>Delete 删除线</del> ·
@@ -250,20 +250,20 @@ import { MatTabsModule } from '@angular/material/tabs';
               <em>Italic 斜体</em>
             </p>
             <br />
-            <h2 class="demo-type-h2">copyable/editable 复制/编辑</h2>
-            <p class="demo-type-p copyable">
+            <h2 class="orange-type-h2">copyable/editable 复制/编辑</h2>
+            <p class="orange-type-p copyable">
               Copyable 支持复制
-              <button mat-icon-button class="demo-icon-small" type="button" aria-label="Copy text" (click)="copyText()">
+              <button mat-icon-button class="orange-icon-small" type="button" aria-label="Copy text" (click)="copyText()">
                 <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
               </button>
             </p>
-            <p class="demo-type-p copyable">
+            <p class="orange-type-p copyable">
               Copyable withIcon 自定义图标复制
-              <button mat-icon-button class="demo-icon-small" type="button" aria-label="Copy text" (click)="copyText()">
+              <button mat-icon-button class="orange-icon-small" type="button" aria-label="Copy text" (click)="copyText()">
                 <mat-icon>content_copy</mat-icon>
               </button>
             </p>
-            <p class="demo-type-p copyable">
+            <p class="orange-type-p copyable">
               @if (editing()) {
                 <input
                   class="text-input"
@@ -275,26 +275,26 @@ import { MatTabsModule } from '@angular/material/tabs';
                 <button mat-flat-button type="button" (click)="editing.set(false)">Save</button>
               } @else {
                 {{ editableText() }}
-                <button mat-icon-button class="demo-icon-small" type="button" aria-label="Edit text" (click)="editing.set(true)">
+                <button mat-icon-button class="orange-icon-small" type="button" aria-label="Edit text" (click)="editing.set(true)">
                   <mat-icon>edit</mat-icon>
                 </button>
               }
             </p>
             <br />
-            <h2 class="demo-type-h2">ellipsis 省略</h2>
-            <p class="demo-type-p">
+            <h2 class="orange-type-h2">ellipsis 省略</h2>
+            <p class="orange-type-p">
               <span class="ellipsis-copy" [class.clamp-1]="!expanded()['e1']">{{ ellipsisText }}</span>
             </p>
             <button mat-stroked-button type="button" (click)="toggleExpanded('e1')">
               {{ expanded()['e1'] ? '收起' : '展开' }}
             </button>
-            <p class="demo-type-p">
+            <p class="orange-type-p">
               <span class="ellipsis-copy" [class.clamp-2]="!expanded()['e2']">{{ ellipsisText }}</span>
             </p>
             <button mat-stroked-button type="button" (click)="toggleExpanded('e2')">
               {{ expanded()['e2'] ? '收起' : '展开' }}
             </button>
-            <p class="demo-type-p">
+            <p class="orange-type-p">
               <span class="ellipsis-copy" [class.clamp-1]="!expanded()['e3']">
                 {{ expanded()['e3'] ? middleEllipsisText : middleTextDisplay }}
               </span>
@@ -302,13 +302,13 @@ import { MatTabsModule } from '@angular/material/tabs';
             <button mat-stroked-button type="button" (click)="toggleExpanded('e3')">
               {{ expanded()['e3'] ? '收起' : '展开' }}
             </button>
-            <p class="demo-type-p">
+            <p class="orange-type-p">
               <span class="ellipsis-copy" [class.clamp-1]="!expanded()['e4']">{{ expandableText }}</span>
             </p>
             <button mat-stroked-button type="button" (click)="toggleExpanded('e4')">
               {{ expanded()['e4'] ? '收起全文' : '显示更多' }}
             </button>
-            <p class="demo-type-p">
+            <p class="orange-type-p">
               <span class="ellipsis-copy" [class.clamp-2]="!expanded()['e5']">{{ iconExpandText }}</span>
             </p>
             <button mat-stroked-button type="button" (click)="toggleExpanded('e5')">

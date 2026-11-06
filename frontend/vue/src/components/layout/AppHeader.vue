@@ -103,12 +103,12 @@ function setColor(next: string) {
   theme.themes.value.dark.colors['sidebar-primary'] = darkPrimary
   // React keeps cards on the page background for the neutral palette and on
   // the raised surface for colored palettes.
-  const demoCard = ui.dark
+  const cardSurface = ui.dark
     ? next === 'default'
       ? '#0a0a0a'
       : '#18181b'
     : '#ffffff'
-  document.documentElement.style.setProperty('--demo-card', demoCard)
+  document.documentElement.style.setProperty('--orange-card-surface', cardSurface)
   applySidebarColor(next)
 }
 

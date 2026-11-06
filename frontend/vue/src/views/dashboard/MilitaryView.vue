@@ -3,8 +3,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { EChartsOption } from 'echarts'
 import { usePageTitle } from '@/composables/usePageTitle'
-import MetricCard from '@/components/demo/MetricCard.vue'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import MetricCard from '@/components/showcase/MetricCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { radarOption } from './chart-options'
 
@@ -66,7 +66,7 @@ const severityColor: Record<string, string> = {
 </script>
 
 <template>
-  <div class="demo-page military">
+  <div class="orange-page military">
     <PageHeader :title="title" :subtitle="t('demo.chart.radarSweep')">
       <template #actions>
         <v-chip color="warning" variant="tonal" prepend-icon="mdi-alert-decagram-outline">
@@ -78,7 +78,7 @@ const severityColor: Record<string, string> = {
       </template>
     </PageHeader>
 
-    <div class="demo-grid demo-grid--4">
+    <div class="orange-grid orange-grid--4">
       <MetricCard :label="t('demo.metric.assets')" value="1,284" delta="+24" icon="mdi-satellite-variant" color="info" />
       <MetricCard :label="t('demo.metric.attacks')" value="37" delta="-12" icon="mdi-target" color="error" />
       <MetricCard :label="t('demo.metric.response')" value="4m 12s" delta="-38s" icon="mdi-timer-outline" color="warning" />

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { useUiStore } from '@/stores/ui'
-import DemoSection from '@/components/demo/DemoSection.vue'
+import SectionCard from '@/components/showcase/SectionCard.vue'
 
 const ui = useUiStore()
 
@@ -260,9 +260,9 @@ function regenerateDndData() {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
 
-    <v-tabs v-model="tab" class="demo-tabs demo-tabs--scroll">
+    <v-tabs v-model="tab" class="orange-tabs orange-tabs--scroll">
       <v-tab value="basic">Basic</v-tab>
       <v-tab value="header-groups">Header Groups</v-tab>
       <v-tab value="filters">Filters</v-tab>
@@ -276,7 +276,7 @@ function regenerateDndData() {
       <!-- Basic ------------------------------------------------------------ -->
       <v-window-item value="basic">
         <div class="tab-pane">
-          <DemoSection title="Basic Table" subtitle="v-data-table with selection, search and custom cells">
+          <SectionCard title="Basic Table" subtitle="v-data-table with selection, search and custom cells">
             <template #actions>
               <v-chip v-if="selectedBasic.length" size="small" color="primary" variant="tonal">
                 {{ selectedBasic.length }} selected
@@ -319,9 +319,9 @@ function regenerateDndData() {
                 </div>
               </template>
             </v-data-table>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Compact Table" subtitle="Dense v-table with custom status icons">
+          <SectionCard title="Compact Table" subtitle="Dense v-table with custom status icons">
             <v-table density="compact" class="compact-table">
               <thead>
                 <tr>
@@ -346,14 +346,14 @@ function regenerateDndData() {
                 </tr>
               </tbody>
             </v-table>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Header Groups ---------------------------------------------------- -->
       <v-window-item value="header-groups">
         <div class="tab-pane">
-          <DemoSection title="Column Groups with Sticky Header" subtitle="Three header levels: Name, Info and More">
+          <SectionCard title="Column Groups with Sticky Header" subtitle="Three header levels: Name, Info and More">
             <template #actions>
               <v-switch v-model="denseGrouped" label="Dense rows" color="primary" density="compact" hide-details />
             </template>
@@ -392,21 +392,21 @@ function regenerateDndData() {
                 </tbody>
               </table>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Sticky Behaviour" subtitle="The header stays visible while the body scrolls">
-            <div class="demo-note">
+          <SectionCard title="Sticky Behaviour" subtitle="The header stays visible while the body scrolls">
+            <div class="orange-note">
               Scroll the table above — all three header rows remain pinned to the top. Toggle “Dense rows” to
               compare the row height.
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Filters ---------------------------------------------------------- -->
       <v-window-item value="filters">
         <div class="tab-pane">
-          <DemoSection title="Column Filters" subtitle="Filter each column independently">
+          <SectionCard title="Column Filters" subtitle="Filter each column independently">
             <template #actions>
               <v-chip size="small" variant="tonal">{{ filteredPeople.length }} rows</v-chip>
             </template>
@@ -448,9 +448,9 @@ function regenerateDndData() {
                 </tr>
               </tbody>
             </v-table>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Filter State" subtitle="Chips reflect the current filter values">
+          <SectionCard title="Filter State" subtitle="Chips reflect the current filter values">
             <div class="chip-row">
               <v-chip
                 v-for="(value, key) in filters"
@@ -462,16 +462,16 @@ function regenerateDndData() {
               >
                 {{ key }}: {{ value }}
               </v-chip>
-              <span v-if="!activeFilterCount" class="demo-note">No active filters.</span>
+              <span v-if="!activeFilterCount" class="orange-note">No active filters.</span>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Faceted Filters -------------------------------------------------- -->
       <v-window-item value="filters-faceted">
         <div class="tab-pane">
-          <DemoSection title="Faceted Filters" subtitle="Status facets with live counts">
+          <SectionCard title="Faceted Filters" subtitle="Status facets with live counts">
             <template #actions>
               <v-chip size="small" variant="tonal">{{ facetedRows.length }} rows</v-chip>
             </template>
@@ -518,24 +518,24 @@ function regenerateDndData() {
                 </tr>
               </tbody>
             </v-table>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Selected Facets" subtitle="Combined with the status facet counts">
+          <SectionCard title="Selected Facets" subtitle="Combined with the status facet counts">
             <div class="chip-row">
               <v-chip v-for="status in selectedStatuses" :key="status" size="small" :color="statusColor(status)" variant="tonal">
                 {{ statusLabel(status) }}
               </v-chip>
-              <span v-if="!selectedStatuses.length" class="demo-note">All statuses are shown.</span>
+              <span v-if="!selectedStatuses.length" class="orange-note">All statuses are shown.</span>
             </div>
             <pre class="code-block">{{ JSON.stringify(selectedStatuses) }}</pre>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Fuzzy Filters ---------------------------------------------------- -->
       <v-window-item value="filters-fuzzy">
         <div class="tab-pane">
-          <DemoSection title="Global Fuzzy Search" subtitle="Ranked matches across all columns">
+          <SectionCard title="Global Fuzzy Search" subtitle="Ranked matches across all columns">
             <template #actions>
               <v-chip size="small" variant="tonal">{{ fuzzyRows.length }} matches</v-chip>
             </template>
@@ -589,9 +589,9 @@ function regenerateDndData() {
                 </tr>
               </tbody>
             </v-table>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Pagination & Data" subtitle="Page size, navigation and refresh">
+          <SectionCard title="Pagination & Data" subtitle="Page size, navigation and refresh">
             <div class="pagination-bar">
               <v-btn
                 size="small"
@@ -609,7 +609,7 @@ function regenerateDndData() {
                 aria-label="Previous page"
                 @click="fuzzyPage -= 1"
               />
-              <span class="demo-note">Page {{ fuzzyPage }} of {{ fuzzyPageCount }}</span>
+              <span class="orange-note">Page {{ fuzzyPage }} of {{ fuzzyPageCount }}</span>
               <v-btn
                 size="small"
                 variant="outlined"
@@ -652,14 +652,14 @@ function regenerateDndData() {
                 2,
               )
             }}</pre>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Column Ordering -------------------------------------------------- -->
       <v-window-item value="column-ordering">
         <div class="tab-pane">
-          <DemoSection title="Column Visibility & Order" subtitle="Toggle columns and shuffle their order">
+          <SectionCard title="Column Visibility & Order" subtitle="Toggle columns and shuffle their order">
             <div class="column-panel">
               <v-checkbox v-model="allVisible" label="Toggle All" density="compact" hide-details />
               <v-divider class="my-2" />
@@ -706,9 +706,9 @@ function regenerateDndData() {
                 </tbody>
               </table>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Column State" subtitle="Order and visibility are kept in sync">
+          <SectionCard title="Column State" subtitle="Order and visibility are kept in sync">
             <pre class="code-block">{{
               JSON.stringify(
                 {
@@ -719,14 +719,14 @@ function regenerateDndData() {
                 2,
               )
             }}</pre>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Column DnD ------------------------------------------------------- -->
       <v-window-item value="column-dnd">
         <div class="tab-pane">
-          <DemoSection title="Reorder Columns" subtitle="Up/down buttons replace drag handles">
+          <SectionCard title="Reorder Columns" subtitle="Up/down buttons replace drag handles">
             <template #actions>
               <v-chip size="small" variant="tonal">{{ dndRows.length }} rows</v-chip>
             </template>
@@ -759,9 +759,9 @@ function regenerateDndData() {
               </v-btn>
               <v-btn variant="text" size="small" @click="resetDndOrder">Reset Order</v-btn>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Live Table" subtitle="Header order matches the list above">
+          <SectionCard title="Live Table" subtitle="Header order matches the list above">
             <div class="table-scroll">
               <table class="grouped-table grouped-table--dense">
                 <thead>
@@ -803,11 +803,11 @@ function regenerateDndData() {
                 </tbody>
               </table>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Row Data Preview" subtitle="Same source data rendered as JSON">
+          <SectionCard title="Row Data Preview" subtitle="Same source data rendered as JSON">
             <pre class="code-block">{{ JSON.stringify(dndRows.slice(0, 3), null, 2) }}</pre>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
     </v-window>
@@ -815,24 +815,24 @@ function regenerateDndData() {
 </template>
 
 <style scoped>
-.demo-tabs--scroll {
+.orange-tabs--scroll {
   width: 100%;
   height: auto;
   min-height: 32px;
 }
 
-.demo-tabs--scroll :deep(.v-slide-group) {
+.orange-tabs--scroll :deep(.v-slide-group) {
   height: auto;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
 }
 
-.demo-tabs--scroll :deep(.v-slide-group__content) {
+.orange-tabs--scroll :deep(.v-slide-group__content) {
   flex-wrap: nowrap;
 }
 
-.demo-tabs--scroll :deep(.v-tab) {
+.orange-tabs--scroll :deep(.v-tab) {
   flex: 0 0 auto;
 }
 
@@ -940,7 +940,7 @@ function regenerateDndData() {
   color: rgb(var(--v-theme-on-surface-variant));
 }
 
-.demo-note {
+.orange-note {
   font-size: 12px;
   color: rgb(var(--v-theme-on-surface-variant));
 }

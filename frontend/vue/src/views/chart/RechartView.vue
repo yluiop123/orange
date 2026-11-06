@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ChartData, ChartOptions } from 'chart.js'
-import ChartJsCard from '@/components/demo/ChartJsCard.vue'
+import ChartJsCard from '@/components/showcase/ChartJsCard.vue'
 import { useUiStore } from '@/stores/ui'
 
 const { t } = useI18n()
@@ -782,7 +782,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="area">{{ t('chart.area') }}</v-tab>
@@ -797,7 +797,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
     <v-window v-model="tab">
       <!-- Area Chart -->
       <v-window-item value="area">
-        <div class="demo-grid demo-grid--3 tab-body">
+        <div class="orange-grid orange-grid--3 tab-body">
           <ChartJsCard
             title="面积图"
             subtitle="Area Chart"
@@ -851,7 +851,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 
       <!-- Bar Chart -->
       <v-window-item value="bar">
-        <div class="demo-grid demo-grid--3 tab-body">
+        <div class="orange-grid orange-grid--3 tab-body">
           <ChartJsCard
             title="柱状图"
             subtitle="Bar Chart"
@@ -905,7 +905,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 
       <!-- Line Chart -->
       <v-window-item value="line">
-        <div class="demo-grid demo-grid--3 tab-body">
+        <div class="orange-grid orange-grid--3 tab-body">
           <ChartJsCard
             title="折线图 - 默认"
             subtitle="Line Chart"
@@ -959,7 +959,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 
       <!-- Pie Chart -->
       <v-window-item value="pie">
-        <div class="demo-grid demo-grid--3 tab-body">
+        <div class="orange-grid orange-grid--3 tab-body">
           <ChartJsCard
             title="饼图"
             subtitle="Pie Chart"
@@ -1013,7 +1013,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 
       <!-- Radar Chart -->
       <v-window-item value="radar">
-        <div class="demo-grid demo-grid--3 tab-body">
+        <div class="orange-grid orange-grid--3 tab-body">
           <ChartJsCard
             title="雷达图"
             subtitle="Radar Chart"
@@ -1067,7 +1067,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 
       <!-- Radial Chart -->
       <v-window-item value="radial">
-        <div class="demo-grid demo-grid--3 tab-body">
+        <div class="orange-grid orange-grid--3 tab-body">
           <ChartJsCard
             title="扇形图"
             subtitle="Radial Chart"
@@ -1121,7 +1121,7 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 
       <!-- Tooltip -->
       <v-window-item value="tooltip">
-        <div class="demo-grid demo-grid--3 tab-body">
+        <div class="orange-grid orange-grid--3 tab-body">
           <ChartJsCard
             title="提示 - 默认"
             subtitle="Tooltip - Default"

@@ -119,9 +119,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.three.three')" />
-    <div class="demo-3d">
+    <div class="orange-3d">
       <div ref="el" class="three-canvas" />
       <v-card class="three-card" variant="flat">
         <div class="three-title">Three.js · WebGLRenderer</div>

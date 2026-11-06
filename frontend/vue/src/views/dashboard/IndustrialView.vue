@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageTitle } from '@/composables/usePageTitle'
-import MetricCard from '@/components/demo/MetricCard.vue'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import MetricCard from '@/components/showcase/MetricCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { gaugeOption, lineOption } from './chart-options'
 
@@ -42,7 +42,7 @@ const statusColor: Record<string, string> = {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('demo.chart.production')">
       <template #actions>
         <v-chip color="success" variant="tonal" prepend-icon="mdi-factory">
@@ -51,7 +51,7 @@ const statusColor: Record<string, string> = {
       </template>
     </PageHeader>
 
-    <div class="demo-grid demo-grid--4">
+    <div class="orange-grid orange-grid--4">
       <MetricCard :label="t('demo.metric.output')" value="12,480" delta="+4.2%" icon="mdi-package-variant-closed" color="primary" />
       <MetricCard :label="t('demo.metric.oee')" value="86.4%" delta="+1.8%" icon="mdi-gauge" color="success" />
       <MetricCard :label="t('demo.metric.downtime')" value="42 min" delta="-18 min" icon="mdi-timer-off-outline" color="warning" />

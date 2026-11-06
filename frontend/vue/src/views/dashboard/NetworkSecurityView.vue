@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageTitle } from '@/composables/usePageTitle'
-import MetricCard from '@/components/demo/MetricCard.vue'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import MetricCard from '@/components/showcase/MetricCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { lineOption, pieOption } from './chart-options'
 
@@ -66,7 +66,7 @@ const statusColor: Record<string, string> = {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('demo.chart.attackTrend')">
       <template #actions>
         <v-chip color="error" variant="tonal" prepend-icon="mdi-shield-alert-outline">
@@ -75,7 +75,7 @@ const statusColor: Record<string, string> = {
       </template>
     </PageHeader>
 
-    <div class="demo-grid demo-grid--4">
+    <div class="orange-grid orange-grid--4">
       <MetricCard :label="t('demo.metric.attacks')" value="24.5k" delta="+18.2%" icon="mdi-shield-off-outline" color="error" />
       <MetricCard :label="t('demo.metric.violations')" value="3" delta="-2" icon="mdi-bug-outline" color="warning" />
       <MetricCard :label="t('demo.metric.traffic')" value="1.2 TB" delta="+6.4%" icon="mdi-swap-horizontal" color="info" />

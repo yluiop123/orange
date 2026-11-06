@@ -32,7 +32,7 @@ type ToastHorizontal = 'start' | 'center' | 'end';
   template: `
     <div class="page">
 
-      <mat-tab-group class="demo-tabs" animationDuration="0ms">
+      <mat-tab-group class="orange-tabs" animationDuration="0ms">
         <!-- ============================== Alert ============================== -->
         <mat-tab label="Alert">
           <div class="tab-body">
@@ -679,7 +679,7 @@ type ToastHorizontal = 'start' | 'center' | 'end';
                 <label class="field-label" for="mark-text">Text</label>
                 <input
                   id="mark-text"
-                  class="demo-input"
+                  class="orange-input"
                   [value]="markText()"
                   (input)="setText($event, markText)"
                 />
@@ -779,9 +779,9 @@ type ToastHorizontal = 'start' | 'center' | 'end';
         <mat-dialog-content>
           <p class="muted">Add a new project to manage.</p>
           <label class="field-label" for="dialog-name">Project name</label>
-          <input id="dialog-name" class="demo-input" placeholder="Name of your project" />
+          <input id="dialog-name" class="orange-input" placeholder="Name of your project" />
           <label class="field-label" for="dialog-desc">Description</label>
-          <input id="dialog-desc" class="demo-input" placeholder="Short description" />
+          <input id="dialog-desc" class="orange-input" placeholder="Short description" />
           <label class="check-line">
             <input type="checkbox" />
             <span>Accept terms and conditions</span>
@@ -872,7 +872,7 @@ type ToastHorizontal = 'start' | 'center' | 'end';
         font-size: 0.75rem;
         font-weight: 500;
       }
-      .demo-input {
+      .orange-input {
         width: 100%;
         height: 2rem;
         padding: 0 8px;
@@ -884,7 +884,7 @@ type ToastHorizontal = 'start' | 'center' | 'end';
         font-size: 0.82rem;
         outline: none;
       }
-      .demo-input:focus {
+      .orange-input:focus {
         border-color: var(--app-ring);
       }
       input[type='range'] {

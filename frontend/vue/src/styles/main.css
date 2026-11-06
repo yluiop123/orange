@@ -1,18 +1,204 @@
-@import './demo.css';
+/* Layout primitives used by this frontend. Components stay framework-native;
+   only layout and spacing live here. */
+
+.orange-root {
+  padding: 0.75rem;
+}
+
+.orange-body {
+  padding: 1.5rem;
+}
+
+.orange-title {
+  margin: 0;
+  color: rgb(var(--v-theme-on-surface));
+  font: 700 1.25rem/1.75rem var(--orange-font);
+}
+
+/* Keep this rule after .orange-title: the title resets margin, and this rule
+   restores the 24px rhythm between page sections. */
+.orange-body > * + * {
+  margin-top: 1.5rem;
+}
+
+.orange-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.orange-section {
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Page-level layout helpers for the general component pages. These    */
+/* placement and rhythm only; controls stay framework-native.          */
+/* ------------------------------------------------------------------ */
+
+.orange-page-surface {
+  min-height: 1200px;
+  width: 100%;
+  padding: 1.5rem;
+  background: rgb(var(--v-theme-background));
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.orange-float {
+  position: fixed;
+  z-index: 50;
+}
+
+.orange-float-copy {
+  margin: 0 0 3rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.orange-notes {
+  margin-top: 2rem;
+}
+
+.orange-subtitle {
+  margin: 0 0 0.5rem;
+  font: 500 1.125rem/1.75rem var(--orange-font);
+}
+
+.orange-notes ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+
+.orange-affix-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.orange-hero-title {
+  margin: 0;
+  font: 700 1.5rem/2rem var(--orange-font);
+}
+
+.orange-affix-card {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  background: var(--orange-card-surface);
+}
+
+.orange-affix-title {
+  margin: 0;
+  font: 500 1rem/1.5rem var(--orange-font);
+}
+
+.orange-muted {
+  margin: 0.25rem 0 0;
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.orange-affix-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background: rgb(var(--v-theme-background));
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  font-size: 0.875rem;
+}
+
+.orange-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.orange-affix-scroll {
+  position: relative;
+  height: 420px;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 0.25rem;
+  overflow-y: auto;
+}
+
+.orange-scroll-line {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 0.25rem;
+  background: var(--orange-card-surface);
+  font-size: 0.875rem;
+}
+
+.orange-affix-footer {
+  position: sticky;
+  right: auto;
+  bottom: 0;
+  left: auto;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background: rgb(var(--v-theme-background));
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.orange-typography {
+  display: block;
+  line-height: 1.5;
+}
+
+.orange-typography > * + * {
+  margin-top: 0.5rem;
+}
+
+.orange-type-h1 {
+  margin: 0;
+  font: 700 2.25rem/2.5rem var(--orange-font);
+}
+
+.orange-type-h2 {
+  margin: 0;
+  font: 600 1.875rem/2.25rem var(--orange-font);
+}
+
+.orange-type-p {
+  margin: 0;
+  color: rgb(var(--v-theme-on-surface-variant));
+  font: 400 1rem/1.75rem var(--orange-font);
+}
+
+.orange-type-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 
 :root {
-  --demo-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  --orange-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     sans-serif;
-  --demo-background: rgb(var(--v-theme-background));
-  --demo-foreground: rgb(var(--v-theme-on-surface));
-  --demo-card: rgb(var(--v-theme-background));
-  --demo-muted: rgb(var(--v-theme-surface-variant));
-  --demo-muted-foreground: rgb(var(--v-theme-on-surface-variant));
-  --demo-border: rgba(var(--v-border-color), var(--v-border-opacity));
-  --demo-primary: rgb(var(--v-theme-primary));
-  --demo-primary-foreground: rgb(var(--v-theme-on-primary));
-  --demo-secondary: rgb(var(--v-theme-secondary));
-  --demo-secondary-foreground: rgb(var(--v-theme-on-secondary));
+  --orange-card-surface: rgb(var(--v-theme-background));
   --orange-radius: 0.65rem;
   --orange-sidebar-width: 16rem;
   --orange-sidebar-rail-width: 3rem;
@@ -119,7 +305,7 @@ body {
 /* Tonal destructive action: React uses bg-destructive/20 with destructive
    text. Vuetify's tonal variant paints through the hidden underlay, so give
    this one an explicit tint. */
-.v-btn.demo-destructive-tonal {
+.v-btn.orange-destructive-tonal {
   background: color-mix(in srgb, #fb2c36 20%, transparent);
 }
 
@@ -195,7 +381,7 @@ a:focus-visible,
   line-height: 1rem;
 }
 
-/* Demo tab content: align native Vuetify controls with React without
+/* Component tab content: align native Vuetify controls with React without
    touching page templates. Scoped to v-window so header/system buttons keep
    their compact variants. */
 .v-window .v-btn.v-btn {
@@ -227,7 +413,7 @@ a:focus-visible,
   flex: 0 0 auto;
 }
 
-.v-btn.demo-icon-small {
+.v-btn.orange-icon-small {
   width: 24px;
   height: 24px;
   min-width: 24px;
@@ -333,43 +519,43 @@ code {
   background: transparent;
 }
 
-.demo-page {
+.orange-page {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.demo-grid {
+.orange-grid {
   display: grid;
   gap: var(--orange-content-gap);
 }
 
-.demo-grid--2 {
+.orange-grid--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.demo-grid--3 {
+.orange-grid--3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.demo-grid--4 {
+.orange-grid--4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.demo-span-2 {
+.orange-span-2 {
   grid-column: span 2;
 }
 
-.demo-chart {
+.orange-chart {
   height: 320px;
   width: 100%;
 }
 
-.demo-chart--tall {
+.orange-chart--tall {
   height: 420px;
 }
 
-.demo-map {
+.orange-map {
   height: calc(100vh - 140px);
   min-height: 460px;
   width: 100%;
@@ -378,7 +564,7 @@ code {
   position: relative;
 }
 
-.demo-3d {
+.orange-3d {
   height: calc(100vh - 140px);
   min-height: 460px;
   width: 100%;
@@ -388,12 +574,12 @@ code {
   background: #0b1020;
 }
 
-.demo-note {
+.orange-note {
   font-size: 12px;
   color: rgb(var(--v-theme-on-surface-variant));
 }
 
-.demo-toolbar {
+.orange-toolbar {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -406,23 +592,23 @@ code {
 }
 
 @media (max-width: 1100px) {
-  .demo-grid--4 {
+  .orange-grid--4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .demo-grid--3 {
+  .orange-grid--3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 720px) {
-  .demo-grid--2,
-  .demo-grid--3,
-  .demo-grid--4 {
+  .orange-grid--2,
+  .orange-grid--3,
+  .orange-grid--4 {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .demo-span-2 {
+  .orange-span-2 {
     grid-column: span 1;
   }
 }

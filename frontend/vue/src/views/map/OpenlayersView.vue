@@ -84,9 +84,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.map.openlayers')" />
-    <div class="demo-map">
+    <div class="orange-map">
       <div ref="el" class="map-canvas" />
       <v-card class="map-card" variant="flat">
         <div class="card-title">OpenLayers · XYZ + Vector</div>

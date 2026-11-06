@@ -157,16 +157,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.map.cesium')" />
-    <div class="demo-map cesium-map">
+    <div class="orange-map cesium-map">
       <div v-if="loading" class="cesium-state">
         <v-progress-circular indeterminate color="primary" />
         <span>Loading Cesium…</span>
       </div>
       <div v-else-if="error" class="cesium-state">
         <v-alert type="error" variant="tonal" :text="error" max-width="440" />
-        <p class="demo-note">Cesium assets are copied to /cesium-package by vite-plugin-cesium-build.</p>
+        <p class="orange-note">Cesium assets are copied to /cesium-package by vite-plugin-cesium-build.</p>
       </div>
       <div v-show="!loading && !error" ref="el" class="map-canvas" />
       <v-card v-if="!loading && !error" class="cesium-card" variant="flat">

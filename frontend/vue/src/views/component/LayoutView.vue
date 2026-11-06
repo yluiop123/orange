@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import DemoSection from '@/components/demo/DemoSection.vue'
+import SectionCard from '@/components/showcase/SectionCard.vue'
 
 
 const tab = ref('divider')
@@ -18,7 +18,7 @@ const reverseArrow = ref(false)
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="divider">Divider</v-tab>
@@ -32,8 +32,8 @@ const reverseArrow = ref(false)
     <v-window v-model="tab">
       <!-- Divider -->
       <v-window-item value="divider">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Basic & dashed divider"
             subtitle="Solid and dashed separators between content blocks"
           >
@@ -47,21 +47,21 @@ const reverseArrow = ref(false)
               <div class="dashed-divider" />
               <p class="text-body-2 text-medium-emphasis">Dashed / 虚线 example.</p>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection title="Divider with text" subtitle="Center, left and right label alignment">
+          <SectionCard title="Divider with text" subtitle="Center, left and right label alignment">
             <div class="divider-sample">
               <div class="text-divider">居中标题 / Center Title</div>
               <div class="text-divider text-divider--left">Left</div>
               <div class="text-divider text-divider--right">Right</div>
             </div>
-            <p class="demo-note">
+            <p class="orange-note">
               The label is rendered between two flex lines, so the divider length always fills the
               card.
             </p>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Vertical, size & color"
             subtitle="Inline separation plus thickness and semantic colors"
           >
@@ -78,9 +78,9 @@ const reverseArrow = ref(false)
               <v-divider :thickness="3" color="error" />
               <v-divider :thickness="3" color="success" />
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Form grouping"
             subtitle="A text divider separates account and security fields"
           >
@@ -93,14 +93,14 @@ const reverseArrow = ref(false)
               <v-text-field type="password" label="Password / 密码" hide-details />
               <v-text-field type="password" label="Confirm Password / 确认密码" hide-details />
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Flex -->
       <v-window-item value="flex">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Flex Row 横向布局"
             subtitle="flex-1 automatically divides the remaining space"
           >
@@ -113,9 +113,9 @@ const reverseArrow = ref(false)
               <div class="flex-cell tint-amber">flex-1</div>
               <div class="flex-cell tint-emerald">flex-1</div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Flex Basis 固定比例"
             subtitle="Use flex-basis for fixed proportions inside a row"
           >
@@ -128,9 +128,9 @@ const reverseArrow = ref(false)
               <div class="flex-cell basis-1-4 tint-pink">basis-1/4</div>
               <div class="flex-cell basis-1-2 tint-indigo">basis-1/2</div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Flex Offset 偏移布局"
             subtitle="margin-left / margin-right auto pushes elements apart"
           >
@@ -142,9 +142,9 @@ const reverseArrow = ref(false)
               <div class="flex-cell basis-1-4 push-right tint-sky">ml-auto</div>
               <div class="flex-cell basis-1-4 push-left tint-cyan">mr-auto</div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Flex Align 对齐方式"
             subtitle="Horizontal justify-* and vertical items-* alignment"
           >
@@ -179,23 +179,23 @@ const reverseArrow = ref(false)
                 <span class="align-chip align-chip--tall tint-indigo">taller</span>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Flex Wrap 换行布局"
             subtitle="Items wrap onto new lines when the container is narrow"
           >
             <div class="align-row flex-wrap">
               <div v-for="index in 8" :key="index" class="wrap-cell">Item {{ index }}</div>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Grid -->
       <v-window-item value="grid">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="基础网格布局 / Basic Grid"
             subtitle="Two, three and four equal columns"
           >
@@ -220,9 +220,9 @@ const reverseArrow = ref(false)
                 <div v-for="index in 4" :key="index" class="grid-cell tint-blue">w-1/4</div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="不等宽网格布局 / Unequal Grid"
             subtitle="Mixed column ratios for content-heavy layouts"
           >
@@ -241,9 +241,9 @@ const reverseArrow = ref(false)
                 <div class="grid-cell tint-indigo">w-1/3 (33.33%)</div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="响应式网格 / Responsive Grid"
             subtitle="auto-fit + minmax adapts from one to many columns on resize"
           >
@@ -258,18 +258,18 @@ const reverseArrow = ref(false)
               <div class="grid-cell tint-rose">Cell B</div>
               <div class="grid-cell tint-violet">Cell C</div>
             </div>
-            <p class="demo-note">
+            <p class="orange-note">
               Drag the browser window to see the auto-fit column count change. The second grid shows
               an item spanning two rows.
             </p>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Layout -->
       <v-window-item value="layout">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="基础布局示例 / Basic Layout"
             subtitle="Header, collapsible sider, content cards and footer"
           >
@@ -317,9 +317,9 @@ const reverseArrow = ref(false)
               </div>
               <div class="app-shell__footer">© 2026 MyApp - 版权所有 / All Rights Reserved</div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="受控折叠示例 / Controlled Collapse"
             subtitle="External buttons control the sider state"
           >
@@ -365,10 +365,10 @@ const reverseArrow = ref(false)
                 </div>
               </div>
             </div>
-            <div class="demo-note mono">collapsed: {{ controlled }}</div>
-          </DemoSection>
+            <div class="orange-note mono">collapsed: {{ controlled }}</div>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="自定义图标 / Custom Icons"
             subtitle="Toggle the sider side and icon direction"
           >
@@ -413,14 +413,14 @@ const reverseArrow = ref(false)
                 </div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Space -->
       <v-window-item value="space">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="水平与垂直间距 / Horizontal & Vertical"
             subtitle="The same gap applied along each axis"
           >
@@ -438,9 +438,9 @@ const reverseArrow = ref(false)
                 <div class="space-item">项目 3 / Item 3</div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="动态间距控制 / Dynamic Spacing"
             subtitle="Select a gap value and watch the row update"
           >
@@ -462,9 +462,9 @@ const reverseArrow = ref(false)
                 <v-btn variant="outlined">按钮三 / Button 3</v-btn>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="对齐方式示例 / Alignment"
             subtitle="Different alignments with elements of varying heights"
           >
@@ -492,9 +492,9 @@ const reverseArrow = ref(false)
                 <v-btn variant="outlined" height="64">较大 / Large</v-btn>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="自动换行 & 分隔符 / Wrap & Separators"
             subtitle="Wrapping items and vertical separators inside a spaced row"
           >
@@ -510,14 +510,14 @@ const reverseArrow = ref(false)
               <v-divider vertical inset />
               <span>香蕉 / Banana</span>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Resizable -->
       <v-window-item value="resizable">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="横向调整大小 / Horizontal Resize"
             subtitle="Drag the bottom-right corner of the sidebar to resize it"
           >
@@ -531,9 +531,9 @@ const reverseArrow = ref(false)
                 <p class="resize-pane__hint">This panel fills the remaining space.</p>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="纵向调整大小 / Vertical Resize"
             subtitle="Drag the bottom edge of the top panel"
           >
@@ -545,9 +545,9 @@ const reverseArrow = ref(false)
               <div class="resize-pane__title">内容区域 / Content Area</div>
               <p class="resize-pane__hint">The content below adapts to the available height.</p>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="复杂嵌套布局 / Nested & Corner Resize"
             subtitle="Vertical nesting plus a panel resizable on both axes"
           >
@@ -569,9 +569,9 @@ const reverseArrow = ref(false)
                 </div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="实际应用场景 / Code Editor"
             subtitle="A resizable file tree next to an editor surface"
           >
@@ -593,8 +593,8 @@ const reverseArrow = ref(false)
 &lt;/div&gt;</pre>
               </div>
             </div>
-            <p class="demo-note">Drag the right edge of the file tree to widen it.</p>
-          </DemoSection>
+            <p class="orange-note">Drag the right edge of the file tree to widen it.</p>
+          </SectionCard>
         </div>
       </v-window-item>
     </v-window>

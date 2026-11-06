@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import type { Anchor } from 'vuetify'
 import { useUiStore } from '@/stores/ui'
-import DemoSection from '@/components/demo/DemoSection.vue'
+import SectionCard from '@/components/showcase/SectionCard.vue'
 
 const ui = useUiStore()
 const tab = ref('alert')
@@ -132,7 +132,7 @@ function resetWatermark() {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="alert">Alert</v-tab>
@@ -150,11 +150,11 @@ function resetWatermark() {
     <v-window v-model="tab" class="feedback-window">
       <!-- Alert -->
       <v-window-item value="alert">
-        <DemoSection title="Basic usage" subtitle="Important information that needs attention">
+        <SectionCard title="Basic usage" subtitle="Important information that needs attention">
           <v-alert type="info" variant="tonal" title="Heads up!" text="You can add components to your app using the CLI." />
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Types" subtitle="Information, error, success and warning">
+        <SectionCard title="Types" subtitle="Information, error, success and warning">
           <div class="stack">
             <v-alert
               type="info"
@@ -181,9 +181,9 @@ function resetWatermark() {
               text="This action cannot be undone. Please proceed with caution. / 此操作无法撤消，请谨慎操作。"
             />
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Closable alerts" subtitle="Dismiss and restore">
+        <SectionCard title="Closable alerts" subtitle="Dismiss and restore">
           <v-alert
             v-model="alertVisible"
             type="info"
@@ -211,29 +211,29 @@ function resetWatermark() {
               Restore alerts
             </v-btn>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Long text" subtitle="Alerts grow with their content">
+        <SectionCard title="Long text" subtitle="Alerts grow with their content">
           <v-alert type="info" variant="flat" title="Detailed information / 详细信息">
             This is a longer description that demonstrates how alerts handle extended content.
             Alerts can contain multiple lines of text, and they adapt to the content height. 这是一个
             较长的描述，演示了警报如何处理扩展内容。警报可以包含多行文本，并且它们会适应内容高度。
           </v-alert>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Drawer -->
       <v-window-item value="drawer">
-        <DemoSection title="Basic drawer" subtitle="Header, content and footer actions">
+        <SectionCard title="Basic drawer" subtitle="Header, content and footer actions">
           <div class="row">
             <v-btn color="primary" prepend-icon="mdi-dock-right" @click="openDrawer('right')">
               Open drawer
             </v-btn>
-            <span class="demo-note">Slides in from the right edge with a temporary overlay.</span>
+            <span class="orange-note">Slides in from the right edge with a temporary overlay.</span>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Directions" subtitle="Drawers can slide from any edge">
+        <SectionCard title="Directions" subtitle="Drawers can slide from any edge">
           <div class="row">
             <v-btn
               v-for="direction in drawerDirections"
@@ -245,10 +245,10 @@ function resetWatermark() {
               {{ direction.label }}
             </v-btn>
           </div>
-          <p class="demo-note">Each button reuses the same drawer instance with a new location.</p>
-        </DemoSection>
+          <p class="orange-note">Each button reuses the same drawer instance with a new location.</p>
+        </SectionCard>
 
-        <DemoSection title="Loading & error states" subtitle="Disabled actions and inline feedback">
+        <SectionCard title="Loading & error states" subtitle="Disabled actions and inline feedback">
           <div class="row">
             <v-btn color="primary" @click="openDrawer('right', 'loading')">
               Open with loading
@@ -257,15 +257,15 @@ function resetWatermark() {
               Open with error
             </v-btn>
           </div>
-          <p class="demo-note">
+          <p class="orange-note">
             Loading disables the footer actions; the error state keeps the confirm action disabled.
           </p>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Sonner -->
       <v-window-item value="sonner">
-        <DemoSection title="Basic notifications" subtitle="Transient messages at the current position">
+        <SectionCard title="Basic notifications" subtitle="Transient messages at the current position">
           <div class="row">
             <v-btn variant="tonal" @click="showToast('Hello from the toast / 来自提示的消息')">
               Basic
@@ -280,9 +280,9 @@ function resetWatermark() {
               Warning
             </v-btn>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Promise toast" subtitle="Reflect async status from pending to done">
+        <SectionCard title="Promise toast" subtitle="Reflect async status from pending to done">
           <div class="row">
             <v-btn
               color="primary"
@@ -292,11 +292,11 @@ function resetWatermark() {
             >
               {{ toastLoading ? 'Working...' : 'Run promise' }}
             </v-btn>
-            <span class="demo-note">Shows "Saving..." then "Saved!" after 1.8 seconds.</span>
+            <span class="orange-note">Shows "Saving..." then "Saved!" after 1.8 seconds.</span>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Placement" subtitle="Show a toast at each anchor">
+        <SectionCard title="Placement" subtitle="Show a toast at each anchor">
           <div class="row">
             <v-btn
               v-for="position in toastPositions"
@@ -308,8 +308,8 @@ function resetWatermark() {
               {{ position.label }}
             </v-btn>
           </div>
-          <p class="demo-note">Current position: {{ snackbarLocation }}</p>
-        </DemoSection>
+          <p class="orange-note">Current position: {{ snackbarLocation }}</p>
+        </SectionCard>
 
         <v-snackbar
           v-model="snackbar"
@@ -325,10 +325,10 @@ function resetWatermark() {
 
       <!-- Alert Dialog -->
       <v-window-item value="alert-dialog">
-        <DemoSection title="Destructive confirmation" subtitle="Requires an explicit choice">
+        <SectionCard title="Destructive confirmation" subtitle="Requires an explicit choice">
           <div class="row">
             <v-btn color="error" variant="tonal" @click="deleteDialog = true">Delete item</v-btn>
-            <span class="demo-note">The dialog stays open until confirm or cancel is pressed.</span>
+            <span class="orange-note">The dialog stays open until confirm or cancel is pressed.</span>
           </div>
 
           <v-dialog v-model="deleteDialog" max-width="440" persistent>
@@ -349,9 +349,9 @@ function resetWatermark() {
               </v-card-actions>
             </v-card>
           </v-dialog>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Sign out" subtitle="A second confirmation flow">
+        <SectionCard title="Sign out" subtitle="A second confirmation flow">
           <div class="row">
             <v-btn variant="outlined" @click="signOutDialog = true">Sign out</v-btn>
           </div>
@@ -366,19 +366,19 @@ function resetWatermark() {
               </v-card-actions>
             </v-card>
           </v-dialog>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Accessibility" subtitle="Focus and keyboard behaviour">
+        <SectionCard title="Accessibility" subtitle="Focus and keyboard behaviour">
           <p class="text-body-2">
             Alert dialogs trap focus and require explicit confirmation. Keyboard users can press
             Enter to confirm or Escape to cancel. Destructive actions always ask first.
           </p>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Dialog -->
       <v-window-item value="dialog">
-        <DemoSection title="Basic dialog" subtitle="Centered modal with short content">
+        <SectionCard title="Basic dialog" subtitle="Centered modal with short content">
           <div class="row">
             <v-btn color="primary" @click="dialogOpen = true">Open dialog</v-btn>
           </div>
@@ -401,9 +401,9 @@ function resetWatermark() {
               </v-card-actions>
             </v-card>
           </v-dialog>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Large scrollable dialog" subtitle="For complex forms or content">
+        <SectionCard title="Large scrollable dialog" subtitle="For complex forms or content">
           <div class="row">
             <v-btn variant="outlined" @click="largeDialogOpen = true">Open large dialog</v-btn>
           </div>
@@ -415,7 +415,7 @@ function resetWatermark() {
               <v-divider />
               <v-card-text class="scroll-body">
                 <p class="text-body-2">Long scrollable content:</p>
-                <p v-for="line in dialogLines" :key="line" class="demo-note">
+                <p v-for="line in dialogLines" :key="line" class="orange-note">
                   Line {{ line }} · the dialog body keeps its own scroll position.
                 </p>
               </v-card-text>
@@ -432,14 +432,14 @@ function resetWatermark() {
               </v-card-actions>
             </v-card>
           </v-dialog>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Overlay loading" subtitle="Blocking overlay with progress">
+        <SectionCard title="Overlay loading" subtitle="Blocking overlay with progress">
           <div class="row">
             <v-btn variant="outlined" prepend-icon="mdi-progress-upload" @click="overlayOpen = true">
               Show overlay
             </v-btn>
-            <span class="demo-note">A contained overlay imitates a long-running request.</span>
+            <span class="orange-note">A contained overlay imitates a long-running request.</span>
           </div>
 
           <v-overlay v-model="overlayOpen" class="align-center justify-center" persistent>
@@ -454,12 +454,12 @@ function resetWatermark() {
               </v-card-actions>
             </v-card>
           </v-overlay>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Progress -->
       <v-window-item value="progress">
-        <DemoSection title="Determinate progress" subtitle="Bound to local state">
+        <SectionCard title="Determinate progress" subtitle="Bound to local state">
           <v-progress-linear :model-value="progress" color="primary" height="12" rounded>
             <template #default="{ value }">
               <strong>{{ Math.ceil(value) }}%</strong>
@@ -474,38 +474,38 @@ function resetWatermark() {
               +10
             </v-btn>
             <v-btn variant="text" size="small" @click="progress = 0">Reset</v-btn>
-            <span class="demo-note">{{ progress }} / 100</span>
+            <span class="orange-note">{{ progress }} / 100</span>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Indeterminate progress" subtitle="Unknown-length tasks">
+        <SectionCard title="Indeterminate progress" subtitle="Unknown-length tasks">
           <v-progress-linear indeterminate color="info" height="10" rounded />
           <v-progress-linear indeterminate color="warning" height="4" />
-          <p class="demo-note">Use an animated bar when the total amount of work is unknown.</p>
-        </DemoSection>
+          <p class="orange-note">Use an animated bar when the total amount of work is unknown.</p>
+        </SectionCard>
 
-        <DemoSection title="Circular progress" subtitle="Determinate and indeterminate rings">
+        <SectionCard title="Circular progress" subtitle="Determinate and indeterminate rings">
           <div class="row">
             <v-progress-circular :model-value="progress" color="primary" size="72" width="7">
               {{ progress }}%
             </v-progress-circular>
             <v-progress-circular indeterminate color="warning" size="52" width="5" />
             <v-progress-circular indeterminate color="success" size="36" width="4" />
-            <span class="demo-note">The ring mirrors the determinate slider above.</span>
+            <span class="orange-note">The ring mirrors the determinate slider above.</span>
           </div>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Result -->
       <v-window-item value="result">
-        <DemoSection title="Result state" subtitle="Toggle between success and failure">
+        <SectionCard title="Result state" subtitle="Toggle between success and failure">
           <div class="result-panel">
             <v-avatar :color="resultOk ? 'success' : 'error'" variant="tonal" size="64">
               <v-icon size="36">{{ resultOk ? 'mdi-check-circle-outline' : 'mdi-close-circle-outline' }}</v-icon>
             </v-avatar>
             <div class="result-body">
               <div class="result-title">{{ resultOk ? 'Success / 成功' : 'Failed / 失败' }}</div>
-              <p class="demo-note">
+              <p class="orange-note">
                 {{
                   resultOk
                     ? 'Your operation completed successfully.'
@@ -526,10 +526,10 @@ function resetWatermark() {
               </div>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Status variants" subtitle="Success, warning and error results">
-          <div class="demo-grid demo-grid--3">
+        <SectionCard title="Status variants" subtitle="Success, warning and error results">
+          <div class="orange-grid orange-grid--3">
             <v-card v-for="state in [
               { icon: 'mdi-check-circle', color: 'success', title: 'Payment complete', text: 'Your invoice was paid.' },
               { icon: 'mdi-alert-circle', color: 'warning', title: 'Review required', text: 'One field needs attention.' },
@@ -538,16 +538,16 @@ function resetWatermark() {
               <v-card-text class="result-mini">
                 <v-icon :color="state.color" size="32">{{ state.icon }}</v-icon>
                 <div class="timeline-title">{{ state.title }}</div>
-                <div class="demo-note">{{ state.text }}</div>
+                <div class="orange-note">{{ state.text }}</div>
               </v-card-text>
             </v-card>
           </div>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Skeleton -->
       <v-window-item value="skeleton">
-        <DemoSection title="Loading toggle" subtitle="Swap placeholders for real content">
+        <SectionCard title="Loading toggle" subtitle="Swap placeholders for real content">
           <div class="row">
             <v-btn
               color="primary"
@@ -556,12 +556,12 @@ function resetWatermark() {
             >
               {{ skeletonLoading ? 'Show content' : 'Show skeletons' }}
             </v-btn>
-            <span class="demo-note">{{ skeletonLoading ? 'Loading placeholders' : 'Content loaded' }}</span>
+            <span class="orange-note">{{ skeletonLoading ? 'Loading placeholders' : 'Content loaded' }}</span>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Profile, article and list" subtitle="Three common placeholder shapes">
-          <div class="demo-grid demo-grid--3">
+        <SectionCard title="Profile, article and list" subtitle="Three common placeholder shapes">
+          <div class="orange-grid orange-grid--3">
             <v-card variant="outlined">
               <v-card-text>
                 <template v-if="skeletonLoading">
@@ -573,7 +573,7 @@ function resetWatermark() {
                   <v-avatar color="primary" size="44"><span>JD</span></v-avatar>
                   <div>
                     <div class="timeline-title">John Doe</div>
-                    <div class="demo-note">Product designer</div>
+                    <div class="orange-note">Product designer</div>
                   </div>
                 </div>
               </v-card-text>
@@ -584,7 +584,7 @@ function resetWatermark() {
                 <v-skeleton-loader v-if="skeletonLoading" type="heading, text, text" />
                 <template v-else>
                   <div class="result-title">Loaded title</div>
-                  <p class="demo-note">Content is loaded and ready to read.</p>
+                  <p class="orange-note">Content is loaded and ready to read.</p>
                 </template>
               </v-card-text>
             </v-card>
@@ -600,9 +600,9 @@ function resetWatermark() {
               </v-card-text>
             </v-card>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Card grid skeleton" subtitle="Placeholder cards while data loads">
+        <SectionCard title="Card grid skeleton" subtitle="Placeholder cards while data loads">
           <v-row dense>
             <v-col v-for="index in 3" :key="index" cols="12" sm="4">
               <v-card v-if="skeletonLoading" variant="outlined">
@@ -619,27 +619,27 @@ function resetWatermark() {
                     <v-icon>mdi-package-variant-closed</v-icon>
                   </v-avatar>
                   <div class="timeline-title">Loaded card {{ index }}</div>
-                  <div class="demo-note">A complete card with real content.</div>
+                  <div class="orange-note">A complete card with real content.</div>
                 </v-card-text>
               </v-card>
             </v-col>
           </v-row>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Spinner -->
       <v-window-item value="spinner">
-        <DemoSection title="Sizes" subtitle="Small, default and large indicators">
+        <SectionCard title="Sizes" subtitle="Small, default and large indicators">
           <div class="row center-row spinner-stage">
             <div v-for="size in [24, 40, 64]" :key="size" class="spinner-item">
               <v-progress-circular v-if="spinnerLoading" indeterminate color="primary" :size="size" :width="size / 10" />
               <v-icon v-else color="success" :size="size">mdi-check-circle-outline</v-icon>
-              <span class="demo-note">{{ size === 24 ? 'Small' : size === 40 ? 'Default' : 'Large' }}</span>
+              <span class="orange-note">{{ size === 24 ? 'Small' : size === 40 ? 'Default' : 'Large' }}</span>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Inline in button" subtitle="Loading state with a label">
+        <SectionCard title="Inline in button" subtitle="Loading state with a label">
           <div class="row">
             <v-btn
               color="primary"
@@ -652,29 +652,29 @@ function resetWatermark() {
               Toggle loading
             </v-btn>
           </div>
-          <p class="demo-note">The spinner replaces the action label while the task runs.</p>
-        </DemoSection>
+          <p class="orange-note">The spinner replaces the action label while the task runs.</p>
+        </SectionCard>
 
-        <DemoSection title="Colours" subtitle="Spinner colour follows the semantic state">
+        <SectionCard title="Colours" subtitle="Spinner colour follows the semantic state">
           <div class="row">
             <v-progress-circular indeterminate color="primary" size="44" width="4" />
             <v-progress-circular indeterminate color="success" size="44" width="4" />
             <v-progress-circular indeterminate color="warning" size="44" width="4" />
             <v-progress-circular indeterminate color="error" size="44" width="4" />
           </div>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
 
       <!-- Watermark -->
       <v-window-item value="watermark">
-        <DemoSection title="Basic watermark" subtitle="Adjust text, size, rotation and opacity">
+        <SectionCard title="Basic watermark" subtitle="Adjust text, size, rotation and opacity">
           <div class="watermark-stage">
             <div class="watermark-layer" aria-hidden="true">
               <span :style="watermarkStyle">{{ watermarkText }}</span>
             </div>
             <div class="watermark-content">
               <div class="timeline-title">Protected content</div>
-              <p class="demo-note">
+              <p class="orange-note">
                 Your content goes here. The watermark appears behind the content and never
                 intercepts pointer events.
               </p>
@@ -723,9 +723,9 @@ function resetWatermark() {
               />
             </v-col>
           </v-row>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Tiled watermark" subtitle="Repeated diagonal pattern">
+        <SectionCard title="Tiled watermark" subtitle="Repeated diagonal pattern">
           <div class="watermark-stage tiled">
             <div class="watermark-grid" aria-hidden="true">
               <span v-for="index in 12" :key="index" :style="watermarkStyle">
@@ -734,29 +734,29 @@ function resetWatermark() {
             </div>
             <div class="watermark-content">
               <div class="timeline-title">Dense coverage</div>
-              <p class="demo-note">
+              <p class="orange-note">
                 A repeated layer is useful for marking screenshots or internal documents. The text
                 stays decorative and out of the accessibility tree.
               </p>
             </div>
           </div>
-        </DemoSection>
+        </SectionCard>
 
-        <DemoSection title="Watermark with card content" subtitle="Foreground remains fully readable">
+        <SectionCard title="Watermark with card content" subtitle="Foreground remains fully readable">
           <v-card variant="outlined" class="watermark-card">
             <div class="watermark-layer" aria-hidden="true">
               <span :style="watermarkStyle">{{ watermarkText }}</span>
             </div>
             <v-card-text class="watermark-content">
               <div class="timeline-title">Quarterly report</div>
-              <p class="demo-note">
+              <p class="orange-note">
                 Revenue grew 12% quarter over quarter, driven by the new console and the expanded
                 permission catalogue.
               </p>
               <v-chip size="small" color="primary" variant="tonal">Internal</v-chip>
             </v-card-text>
           </v-card>
-        </DemoSection>
+        </SectionCard>
       </v-window-item>
     </v-window>
 
@@ -764,7 +764,7 @@ function resetWatermark() {
       <div class="drawer-head">
         <div>
           <div class="drawer-title">{{ drawerTitle }}</div>
-          <div class="demo-note">{{ drawerSubtitle }}</div>
+          <div class="orange-note">{{ drawerSubtitle }}</div>
         </div>
         <v-btn
           icon="mdi-close"

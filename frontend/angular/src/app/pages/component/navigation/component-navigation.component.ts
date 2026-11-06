@@ -50,7 +50,7 @@ interface Crumb {
   template: `
     <div class="page">
 
-      <mat-tab-group class="demo-tabs" animationDuration="120ms">
+      <mat-tab-group class="orange-tabs" animationDuration="120ms">
         <mat-tab label="Anchor">
           <div class="tab-pane">
             <section class="panel anchor-panel">
@@ -638,7 +638,7 @@ interface Crumb {
           <div class="tab-pane">
             <section class="panel">
               <h2>Basic usage / 基础用法</h2>
-              <mat-tab-group class="demo-tabs" animationDuration="120ms">
+              <mat-tab-group class="orange-tabs" animationDuration="120ms">
                 <mat-tab label="Tab A 标签 A">
                   <p class="tab-body">内容 A (Content A)</p>
                 </mat-tab>
@@ -650,7 +650,7 @@ interface Crumb {
 
             <section class="panel">
               <h2>Business scenario / 业务场景</h2>
-              <mat-tab-group class="demo-tabs" animationDuration="120ms">
+              <mat-tab-group class="orange-tabs" animationDuration="120ms">
                 <mat-tab label="Profile 个人信息">
                   <div class="tab-body form-stack">
                     <mat-form-field appearance="outline">
@@ -686,7 +686,7 @@ interface Crumb {
                 <button mat-stroked-button type="button" (click)="innerTab.set(1)">Show Tab 2</button>
                 <span class="muted mono">selectedIndex: {{ innerTab() }}</span>
               </div>
-              <mat-tab-group class="demo-tabs"
+              <mat-tab-group class="orange-tabs"
                 animationDuration="120ms"
                 [selectedIndex]="innerTab()"
                 (selectedIndexChange)="innerTab.set($event)"
@@ -702,7 +702,7 @@ interface Crumb {
 
             <section class="panel">
               <h2>Tabs with icons / 带图标的 Tabs</h2>
-              <mat-tab-group class="demo-tabs" animationDuration="120ms">
+              <mat-tab-group class="orange-tabs" animationDuration="120ms">
                 <mat-tab>
                   <ng-template mat-tab-label><mat-icon class="tab-icon">person</mat-icon> Account</ng-template>
                   <p class="tab-body">账号相关内容 (Account content)</p>
@@ -720,7 +720,7 @@ interface Crumb {
 
             <section class="panel">
               <h2>Tabs with card / 卡片组合</h2>
-              <mat-tab-group class="demo-tabs" animationDuration="120ms">
+              <mat-tab-group class="orange-tabs" animationDuration="120ms">
                 <mat-tab label="Logs 日志">
                   <mat-card appearance="outlined" class="tab-card">
                     <mat-card-header>

@@ -52,11 +52,12 @@ Blocked by: none
 
 ## Notes
 
-- Each app's `src/styles/demo.css` gained page-level layout helpers for the
-  four general tabs. The three copies are intentionally duplicated so the
-  frontends stay independent. They compose framework-native controls; they do
-  not define alternative button or card components. The original spec listed the initial
-  five primitives, so this is a deliberate expansion of the shared layout
+- Each app's main stylesheet gained page-level layout helpers for the four
+  general tabs. The rules are duplicated per frontend so the codebases stay
+  independent, and use the `orange-*` namespace. They compose framework-native
+  controls; they do not define alternative button or card components. The
+  original spec listed the initial five primitives, so this is a deliberate
+  expansion of the shared layout
   vocabulary.
 - Semantic demo button classes (`demo-blue`, `demo-secondary`, `demo-success`,
   `demo-danger`, `demo-destructive-tonal`, shape helpers) live in each

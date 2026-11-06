@@ -191,7 +191,7 @@ const SELECT_GROUPS: SelectGroup[] = [
   template: `
     <div class="page">
 
-      <mat-tab-group class="demo-tabs" animationDuration="0ms">
+      <mat-tab-group class="orange-tabs" animationDuration="0ms">
         <mat-tab label="AutoComplete">
           <div class="tab-body">
             <section class="panel">

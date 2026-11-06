@@ -62,13 +62,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.map.l7')" />
     <v-alert type="info" variant="tonal" density="compact">
       AntV L7/LarkMap needs a Mapbox or AMap token in the reference app. This page keeps the same
       POI-layer demo and dark basemap with Leaflet, so it runs without a token.
     </v-alert>
-    <div class="demo-map l7-map">
+    <div class="orange-map l7-map">
       <div ref="el" class="map-canvas" />
       <v-card class="l7-card" variant="flat">
         <div class="l7-title">L7-style point layer</div>

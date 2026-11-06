@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePageTitle } from '@/composables/usePageTitle'
-import MetricCard from '@/components/demo/MetricCard.vue'
-import EchartCard from '@/components/demo/EchartCard.vue'
+import MetricCard from '@/components/showcase/MetricCard.vue'
+import EchartCard from '@/components/showcase/EchartCard.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { barOption, lineOption } from './chart-options'
 
@@ -48,7 +48,7 @@ const severityColor: Record<string, string> = {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('demo.chart.incidentTrend')">
       <template #actions>
         <v-chip color="error" variant="tonal" prepend-icon="mdi-alert-octagon-outline">
@@ -58,7 +58,7 @@ const severityColor: Record<string, string> = {
       </template>
     </PageHeader>
 
-    <div class="demo-grid demo-grid--4">
+    <div class="orange-grid orange-grid--4">
       <MetricCard :label="t('demo.metric.incidents')" value="142" delta="+8" icon="mdi-alert-outline" color="error" />
       <MetricCard :label="t('demo.metric.response')" value="6m 04s" delta="-52s" icon="mdi-timer-sand" color="warning" />
       <MetricCard :label="t('demo.metric.resources')" value="386" delta="+42" icon="mdi-truck-fast-outline" color="info" />

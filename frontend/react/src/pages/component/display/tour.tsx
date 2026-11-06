@@ -18,7 +18,7 @@ const steps = [
   }
 ];
 
-function DemoContent() {
+function TourContent() {
   const { startTour } = useTour();
 
   return (
@@ -42,7 +42,7 @@ function DemoContent() {
 export default function TourDemo() {
   return (
     <TourProvider steps={steps}>
-      <DemoContent />
+      <TourContent />
     </TourProvider>
   );
 }

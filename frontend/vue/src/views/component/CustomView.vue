@@ -5,7 +5,7 @@ import { usePageTitle } from '@/composables/usePageTitle'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import PageHeader from '@/components/PageHeader.vue'
-import DemoSection from '@/components/demo/DemoSection.vue'
+import SectionCard from '@/components/showcase/SectionCard.vue'
 
 const { t } = useI18n()
 const title = usePageTitle('page.title.component')
@@ -43,7 +43,7 @@ const coverage = [
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.component.custom')" />
 
     <div class="custom-grid">
@@ -139,13 +139,13 @@ const coverage = [
       </v-card>
     </div>
 
-    <DemoSection title="Composition notes">
+    <SectionCard title="Composition notes">
       <p class="text-body-2 text-medium-emphasis">
         This page composes Vuetify surfaces with local SVG, instead of relying on a chart library.
         It demonstrates that the shell can host custom product blocks: profile, access coverage,
         trend, activity and health.
       </p>
-    </DemoSection>
+    </SectionCard>
   </div>
 </template>
 

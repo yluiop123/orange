@@ -75,7 +75,7 @@ function pickAction(label: string) {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <v-tabs v-model="tab" color="primary">
       <v-tab value="button">Button</v-tab>
       <v-tab value="floatButton">FloatButton</v-tab>
@@ -86,17 +86,17 @@ function pickAction(label: string) {
     <v-window v-model="tab">
       <!-- Button -->
       <v-window-item value="button">
-        <div class="demo-body">
-          <h2 class="demo-title">Size 大小</h2>
-          <div class="demo-row">
+        <div class="orange-body">
+          <h2 class="orange-title">Size 大小</h2>
+          <div class="orange-row">
             <v-btn size="small" color="primary">small</v-btn>
             <v-btn color="primary">default</v-btn>
             <v-btn size="large" color="primary">large</v-btn>
             <v-btn color="primary" icon aria-label="Icon button">icon</v-btn>
           </div>
 
-          <h2 class="demo-title">Type 类型</h2>
-          <div class="demo-row">
+          <h2 class="orange-title">Type 类型</h2>
+          <div class="orange-row">
             <v-btn color="primary">Default</v-btn>
             <v-btn color="#155dfc">Primary 主要</v-btn>
             <v-btn variant="flat" color="secondary">Secondary 次要</v-btn>
@@ -107,18 +107,18 @@ function pickAction(label: string) {
             </v-btn>
           </div>
 
-          <h2 class="demo-title">Variant 变体</h2>
-          <div class="demo-row">
+          <h2 class="orange-title">Variant 变体</h2>
+          <div class="orange-row">
             <v-btn color="primary">default</v-btn>
-            <v-btn variant="text" color="error" class="demo-destructive-tonal">destructive</v-btn>
+            <v-btn variant="text" color="error" class="orange-destructive-tonal">destructive</v-btn>
             <v-btn variant="outlined">outline</v-btn>
             <v-btn variant="flat" color="secondary">secondary</v-btn>
             <v-btn variant="text">ghost</v-btn>
             <v-btn variant="text" color="primary">Link</v-btn>
           </div>
 
-          <h2 class="demo-title">Status 状态</h2>
-          <div class="demo-row">
+          <h2 class="orange-title">Status 状态</h2>
+          <div class="orange-row">
             <v-btn color="primary">Normal</v-btn>
             <v-btn color="primary" disabled>Disabled</v-btn>
             <v-btn color="primary" :disabled="loading" @click="simulateLoad">
@@ -126,14 +126,14 @@ function pickAction(label: string) {
             </v-btn>
           </div>
 
-          <h2 class="demo-title">Icon Button 图标按钮</h2>
-          <div class="demo-row">
+          <h2 class="orange-title">Icon Button 图标按钮</h2>
+          <div class="orange-row">
             <v-btn color="primary" prepend-icon="mdi-coffee-outline">Icon Button</v-btn>
             <v-btn color="#00c950" prepend-icon="mdi-check">Success</v-btn>
           </div>
 
-          <h2 class="demo-title">Square 形状</h2>
-          <div class="demo-row">
+          <h2 class="orange-title">Square 形状</h2>
+          <div class="orange-row">
             <v-btn color="primary" rounded="0">Square</v-btn>
             <v-btn color="primary" rounded="lg">Round</v-btn>
             <v-btn color="primary" rounded="pill">Full Circle</v-btn>
@@ -143,12 +143,12 @@ function pickAction(label: string) {
 
       <!-- FloatButton -->
       <v-window-item value="floatButton">
-        <div class="demo-page-surface">
-          <p class="demo-float-copy">页面内容很长，可以滚动。示例展示回到顶部、不同位置与展开方向。</p>
+        <div class="orange-page-surface">
+          <p class="orange-float-copy">页面内容很长，可以滚动。示例展示回到顶部、不同位置与展开方向。</p>
 
           <v-btn
             v-show="showBackTop"
-            class="demo-float"
+            class="orange-float"
             style="bottom: 24px; left: 50%; transform: translateX(-50%)"
             color="primary"
             icon="mdi-arrow-up"
@@ -160,7 +160,7 @@ function pickAction(label: string) {
             <template #activator="{ props: activatorProps }">
               <v-btn
                 v-bind="activatorProps"
-                class="demo-float"
+                class="orange-float"
                 style="top: 50%; right: 24px; transform: translateY(-50%)"
                 color="primary"
                 icon="mdi-plus"
@@ -186,7 +186,7 @@ function pickAction(label: string) {
             <template #activator="{ props: activatorProps }">
               <v-btn
                 v-bind="activatorProps"
-                class="demo-float"
+                class="orange-float"
                 style="bottom: 24px; right: 24px"
                 color="primary"
                 icon="mdi-plus"
@@ -212,7 +212,7 @@ function pickAction(label: string) {
             <template #activator="{ props: activatorProps }">
               <v-btn
                 v-bind="activatorProps"
-                class="demo-float"
+                class="orange-float"
                 style="top: 50%; left: 24px; transform: translateY(-50%)"
                 color="primary"
                 icon="mdi-plus"
@@ -228,8 +228,8 @@ function pickAction(label: string) {
             </v-list>
           </v-menu>
 
-          <div class="demo-notes">
-            <h3 class="demo-subtitle">演示说明</h3>
+          <div class="orange-notes">
+            <h3 class="orange-subtitle">演示说明</h3>
             <ul>
               <li>主按钮支持回到顶部、展开按钮组或自定义点击回调。</li>
               <li>组按钮支持徽章计数与自定义样式。</li>
@@ -241,16 +241,16 @@ function pickAction(label: string) {
 
       <!-- Affix -->
       <v-window-item value="affix">
-        <div class="demo-page-surface">
-          <div class="demo-affix-container">
-            <h1 class="demo-hero-title">Affix / 固钉</h1>
+        <div class="orange-page-surface">
+          <div class="orange-affix-container">
+            <h1 class="orange-hero-title">Affix / 固钉</h1>
 
-            <section class="demo-affix-card">
-              <h2 class="demo-affix-title">Top Affix / 顶部固钉</h2>
-              <p class="demo-muted">示例：顶部固钉，支持顶部与水平偏移。</p>
+            <section class="orange-affix-card">
+              <h2 class="orange-affix-title">Top Affix / 顶部固钉</h2>
+              <p class="orange-muted">示例：顶部固钉，支持顶部与水平偏移。</p>
 
               <div
-                class="demo-affix-header"
+                class="orange-affix-header"
                 :style="{
                   top: `${offsetTop}px`,
                   marginLeft: `${offsetLeft}px`,
@@ -261,7 +261,7 @@ function pickAction(label: string) {
                 <v-btn size="small" variant="outlined">Action</v-btn>
               </div>
 
-              <div class="demo-controls">
+              <div class="orange-controls">
                 <label>Offset Top</label>
                 <v-slider
                   v-model="offsetTop"
@@ -270,7 +270,7 @@ function pickAction(label: string) {
                   hide-details
                   style="max-width: 8rem"
                 />
-                <span class="demo-muted">{{ offsetTop }}px</span>
+                <span class="orange-muted">{{ offsetTop }}px</span>
                 <label>Left</label>
                 <v-text-field
                   v-model.number="offsetLeft"
@@ -290,18 +290,18 @@ function pickAction(label: string) {
               </div>
             </section>
 
-            <section class="demo-affix-card">
-              <h2 class="demo-affix-title">Bottom Fixed Affix / 底部固定</h2>
-              <p class="demo-muted">
+            <section class="orange-affix-card">
+              <h2 class="orange-affix-title">Bottom Fixed Affix / 底部固定</h2>
+              <p class="orange-muted">
                 示例：底部固定（滚动到指定位置后固定），可设置底部与水平偏移。
               </p>
 
-              <div class="demo-affix-scroll">
-                <div v-for="index in 24" :key="index" class="demo-scroll-line">
+              <div class="orange-affix-scroll">
+                <div v-for="index in 24" :key="index" class="orange-scroll-line">
                   Scroll content {{ index }}
                 </div>
                 <div
-                  class="demo-affix-footer"
+                  class="orange-affix-footer"
                   :style="{
                     bottom: `${offsetBottom}px`,
                     marginLeft: `${offsetLeft}px`,
@@ -313,7 +313,7 @@ function pickAction(label: string) {
                 </div>
               </div>
 
-              <div class="demo-controls">
+              <div class="orange-controls">
                 <label>Offset Bottom</label>
                 <v-slider
                   v-model="offsetBottom"
@@ -322,7 +322,7 @@ function pickAction(label: string) {
                   hide-details
                   style="max-width: 8rem"
                 />
-                <span class="demo-muted">{{ offsetBottom }}px</span>
+                <span class="orange-muted">{{ offsetBottom }}px</span>
                 <label>Left (px)</label>
                 <v-text-field
                   v-model.number="offsetLeft"
@@ -347,11 +347,11 @@ function pickAction(label: string) {
 
       <!-- Typography -->
       <v-window-item value="typography">
-        <div class="demo-typography">
-          <h1 class="demo-type-h1">Typography 排版示例</h1>
+        <div class="orange-typography">
+          <h1 class="orange-type-h1">Typography 排版示例</h1>
           <br />
-          <h2 class="demo-type-h2">Text 文本</h2>
-          <p class="demo-type-p">
+          <h2 class="orange-type-h2">Text 文本</h2>
+          <p class="orange-type-p">
             <strong>Strong 加粗</strong> ·
             <span style="text-decoration: underline">Underline 下划线</span> ·
             <span style="text-decoration: line-through">Delete 删除线</span> ·
@@ -359,30 +359,30 @@ function pickAction(label: string) {
             <em>Italic 斜体</em>
           </p>
           <br />
-          <h2 class="demo-type-h2">copyable/editable 复制/编辑</h2>
-          <p class="demo-type-p demo-type-text">
+          <h2 class="orange-type-h2">copyable/editable 复制/编辑</h2>
+          <p class="orange-type-p orange-type-text">
             {{ copyableText }}
             <v-btn
               icon="mdi-content-copy"
               variant="text"
               size="x-small"
-              class="demo-icon-small"
+              class="orange-icon-small"
               aria-label="Copy text"
               @click="copyValue(copyableText)"
             />
           </p>
-          <p class="demo-type-p demo-type-text">
+          <p class="orange-type-p orange-type-text">
             Copyable withIcon 自定义图标复制
             <v-btn
               icon="mdi-content-copy"
               variant="text"
               size="x-small"
-              class="demo-icon-small"
+              class="orange-icon-small"
               aria-label="Copy text"
               @click="copyValue('Copyable withIcon 自定义图标复制')"
             />
           </p>
-          <p class="demo-type-p demo-type-text">
+          <p class="orange-type-p orange-type-text">
             <v-text-field
               v-if="editing"
               v-model="editableText"
@@ -398,26 +398,26 @@ function pickAction(label: string) {
               :icon="editing ? 'mdi-check' : 'mdi-pencil-outline'"
               variant="text"
               size="x-small"
-              class="demo-icon-small"
+              class="orange-icon-small"
               :aria-label="editing ? 'Save text' : 'Edit text'"
               @click="editing = !editing"
             />
           </p>
           <br />
-          <h2 class="demo-type-h2">ellipsis 省略</h2>
-          <p class="demo-type-p">
+          <h2 class="orange-type-h2">ellipsis 省略</h2>
+          <p class="orange-type-p">
             <span :class="{ 'clamp-1': !expanded.e1 }">{{ ellipsisText }}</span>
           </p>
           <v-btn variant="text" size="small" color="primary" @click="toggleExpanded('e1')">
             {{ expanded.e1 ? '收起' : '展开' }}
           </v-btn>
-          <p class="demo-type-p">
+          <p class="orange-type-p">
             <span :class="{ 'clamp-2': !expanded.e2 }">{{ ellipsisText }}</span>
           </p>
           <v-btn variant="text" size="small" color="primary" @click="toggleExpanded('e2')">
             {{ expanded.e2 ? '收起' : '展开' }}
           </v-btn>
-          <p class="demo-type-p">
+          <p class="orange-type-p">
             <span :class="{ 'clamp-1': !expanded.e3 }">
               {{ expanded.e3 ? middleEllipsisText : middleTextDisplay }}
             </span>
@@ -425,13 +425,13 @@ function pickAction(label: string) {
           <v-btn variant="text" size="small" color="primary" @click="toggleExpanded('e3')">
             {{ expanded.e3 ? '收起' : '展开' }}
           </v-btn>
-          <p class="demo-type-p">
+          <p class="orange-type-p">
             <span :class="{ 'clamp-1': !expanded.e4 }">{{ expandableText }}</span>
           </p>
           <v-btn variant="text" size="small" color="primary" @click="toggleExpanded('e4')">
             {{ expanded.e4 ? '收起全文' : '显示更多' }}
           </v-btn>
-          <p class="demo-type-p">
+          <p class="orange-type-p">
             <span :class="{ 'clamp-2': !expanded.e5 }">{{ iconExpandText }}</span>
           </p>
           <v-btn variant="text" size="small" color="primary" @click="toggleExpanded('e5')">

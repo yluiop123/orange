@@ -6,7 +6,7 @@ defineProps<{
 </script>
 
 <template>
-  <v-card variant="flat" class="demo-section">
+  <v-card variant="flat" class="orange-section">
     <div class="section-head">
       <div>
         <div class="section-title">{{ title }}</div>
@@ -21,7 +21,7 @@ defineProps<{
 </template>
 
 <style scoped>
-.demo-section {
+.orange-section {
   padding: 16px 18px;
   border: 1px solid rgb(var(--v-border-color));
 }

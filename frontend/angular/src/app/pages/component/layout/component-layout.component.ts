@@ -24,7 +24,7 @@ import { MatTabsModule } from '@angular/material/tabs';
   template: `
     <div class="page">
 
-      <mat-tab-group class="demo-tabs" animationDuration="120ms">
+      <mat-tab-group class="orange-tabs" animationDuration="120ms">
         <mat-tab label="Divider">
           <div class="tab-pane">
             <section class="panel">
@@ -98,11 +98,11 @@ import { MatTabsModule } from '@angular/material/tabs';
             <section class="panel">
               <h2>Flex row 横向布局</h2>
               <p class="muted">flex: 1 divides the remaining space equally.</p>
-              <div class="demo-row">
+              <div class="orange-row">
                 <div class="flex-cell tone-sky">flex-1</div>
                 <div class="flex-cell tone-rose">flex-1</div>
               </div>
-              <div class="demo-row">
+              <div class="orange-row">
                 <div class="flex-cell tone-sky">flex-1</div>
                 <div class="flex-cell tone-amber">flex-1</div>
                 <div class="flex-cell tone-emerald">flex-1</div>
@@ -112,11 +112,11 @@ import { MatTabsModule } from '@angular/material/tabs';
             <section class="panel">
               <h2>Flex basis 固定比例</h2>
               <p class="muted">basis-1/3 is roughly 33%; basis-2/3 is roughly 66%.</p>
-              <div class="demo-row">
+              <div class="orange-row">
                 <div class="flex-cell basis-1-3 tone-emerald">basis-1/3</div>
                 <div class="flex-cell basis-2-3 tone-amber">basis-2/3</div>
               </div>
-              <div class="demo-row">
+              <div class="orange-row">
                 <div class="flex-cell basis-1-4 tone-violet">basis-1/4</div>
                 <div class="flex-cell basis-1-4 tone-pink">basis-1/4</div>
                 <div class="flex-cell basis-1-2 tone-indigo">basis-1/2</div>
@@ -126,11 +126,11 @@ import { MatTabsModule } from '@angular/material/tabs';
             <section class="panel">
               <h2>Flex offset 偏移布局</h2>
               <p class="muted">Auto margins push a cell to the opposite edge.</p>
-              <div class="demo-row">
+              <div class="orange-row">
                 <div class="flex-cell basis-1-3 tone-violet">basis-1/3</div>
                 <div class="flex-cell basis-1-3 tone-pink push-right">margin-left: auto</div>
               </div>
-              <div class="demo-row">
+              <div class="orange-row">
                 <div class="flex-cell basis-1-4 tone-sky push-right">margin-left: auto</div>
                 <div class="flex-cell basis-1-4 tone-cyan push-left">margin-right: auto</div>
               </div>
@@ -172,16 +172,16 @@ import { MatTabsModule } from '@angular/material/tabs';
           <div class="tab-pane">
             <section class="panel">
               <h2>Basic grid 基础网格</h2>
-              <div class="demo-grid cols-2">
+              <div class="orange-grid cols-2">
                 <div class="grid-cell tone-sky">1 / 2 · 50%</div>
                 <div class="grid-cell tone-rose">2 / 2 · 50%</div>
               </div>
-              <div class="demo-grid cols-3">
+              <div class="orange-grid cols-3">
                 <div class="grid-cell tone-emerald">1 / 3 · 33%</div>
                 <div class="grid-cell tone-amber">2 / 3 · 33%</div>
                 <div class="grid-cell tone-violet">3 / 3 · 33%</div>
               </div>
-              <div class="demo-grid cols-4">
+              <div class="orange-grid cols-4">
                 @for (item of fourCols; track item) {
                   <div class="grid-cell tone-indigo">Column {{ item }}</div>
                 }
@@ -190,16 +190,16 @@ import { MatTabsModule } from '@angular/material/tabs';
 
             <section class="panel">
               <h2>Unequal widths 不等宽布局</h2>
-              <div class="demo-grid custom-2-1-1">
+              <div class="orange-grid custom-2-1-1">
                 <div class="grid-cell tone-sky">50% · wide</div>
                 <div class="grid-cell tone-rose">25%</div>
                 <div class="grid-cell tone-emerald">25%</div>
               </div>
-              <div class="demo-grid custom-2-1">
+              <div class="orange-grid custom-2-1">
                 <div class="grid-cell tone-sky">2fr · main</div>
                 <div class="grid-cell tone-rose">1fr · aside</div>
               </div>
-              <div class="demo-grid custom-1-1-1">
+              <div class="orange-grid custom-1-1-1">
                 <div class="grid-cell tone-amber">1fr</div>
                 <div class="grid-cell tone-emerald span-two-rows">span 2 rows</div>
                 <div class="grid-cell tone-violet">1fr</div>
@@ -595,7 +595,7 @@ import { MatTabsModule } from '@angular/material/tabs';
         font: inherit;
         font-size: 0.82rem;
       }
-      .demo-row {
+      .orange-row {
         display: flex;
         gap: 12px;
         margin-top: 10px;
@@ -703,7 +703,7 @@ import { MatTabsModule } from '@angular/material/tabs';
         border: 1px solid color-mix(in srgb, #3b82f6 36%, var(--app-border));
         font-size: 0.75rem;
       }
-      .demo-grid {
+      .orange-grid {
         display: grid;
         gap: 10px;
         margin-top: 10px;
@@ -1021,7 +1021,7 @@ import { MatTabsModule } from '@angular/material/tabs';
         .cols-4 {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        .demo-row {
+        .orange-row {
           flex-wrap: wrap;
         }
         .resize-frame {

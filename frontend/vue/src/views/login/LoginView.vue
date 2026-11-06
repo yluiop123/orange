@@ -137,7 +137,7 @@ async function submit() {
               {{ t('page.login.login') }}
             </v-btn>
           </v-form>
-          <p class="demo-hint">{{ t('page.login.demoHint') }}</p>
+          <p class="orange-hint">{{ t('page.login.demoHint') }}</p>
         </v-card-text>
       </v-card>
     </div>
@@ -246,7 +246,7 @@ async function submit() {
   border-radius: var(--orange-radius);
 }
 
-.demo-hint {
+.orange-hint {
   margin-top: 16px;
   font-size: 12px;
   color: rgb(var(--v-theme-on-surface-variant));

@@ -1,18 +1,206 @@
 @use '@angular/material' as mat;
 
+/* Layout primitives used by this frontend. Components stay framework-native;
+   only layout and spacing live here. */
+
+.orange-root {
+  padding: 0.75rem;
+}
+
+.orange-body {
+  padding: 1.5rem;
+}
+
+.orange-title {
+  margin: 0;
+  color: var(--app-foreground);
+  font: 700 1.25rem/1.75rem var(--orange-font);
+}
+
+/* Keep this rule after .orange-title: the title resets margin, and this rule
+   restores the 24px rhythm between page sections. */
+.orange-body > * + * {
+  margin-top: 1.5rem;
+}
+
+.orange-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.orange-section {
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Page-level layout helpers for the general demos. These describe     */
+/* placement and rhythm only; controls stay framework-native.          */
+/* ------------------------------------------------------------------ */
+
+.orange-page-surface {
+  min-height: 1200px;
+  width: 100%;
+  padding: 1.5rem;
+  background: var(--app-background);
+  color: var(--app-foreground);
+}
+
+.orange-float {
+  position: fixed;
+  z-index: 50;
+}
+
+.orange-float-copy {
+  margin: 0 0 3rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.orange-notes {
+  margin-top: 2rem;
+}
+
+.orange-subtitle {
+  margin: 0 0 0.5rem;
+  font: 500 1.125rem/1.75rem var(--orange-font);
+}
+
+.orange-notes ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--app-muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+
+.orange-affix-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.orange-hero-title {
+  margin: 0;
+  font: 700 1.5rem/2rem var(--orange-font);
+}
+
+.orange-affix-card {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  background: var(--orange-card-surface);
+}
+
+.orange-affix-title {
+  margin: 0;
+  font: 500 1rem/1.5rem var(--orange-font);
+}
+
+.orange-muted {
+  margin: 0.25rem 0 0;
+  color: var(--app-muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.orange-affix-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background: var(--app-background);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  font-size: 0.875rem;
+}
+
+.orange-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.orange-affix-scroll {
+  position: relative;
+  height: 420px;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.25rem;
+  overflow-y: auto;
+}
+
+.orange-scroll-line {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.25rem;
+  background: var(--orange-card-surface);
+  font-size: 0.875rem;
+}
+
+.orange-affix-footer {
+  position: sticky;
+  right: auto;
+  bottom: 0;
+  left: auto;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background: var(--app-background);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.orange-typography {
+  display: block;
+  line-height: 1.5;
+}
+
+.orange-typography > * + * {
+  margin-top: 0.5rem;
+}
+
+.orange-type-h1 {
+  margin: 0;
+  font: 700 2.25rem/2.5rem var(--orange-font);
+}
+
+.orange-type-h2 {
+  margin: 0;
+  font: 600 1.875rem/2.25rem var(--orange-font);
+}
+
+.orange-type-p {
+  margin: 0;
+  color: var(--app-muted-foreground);
+  font: 400 1rem/1.75rem var(--orange-font);
+}
+
+.orange-type-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
 :root {
-  --demo-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  --orange-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
     sans-serif;
-  --demo-background: var(--app-background);
-  --demo-foreground: var(--app-foreground);
-  --demo-card: var(--app-background);
-  --demo-muted: var(--app-muted);
-  --demo-muted-foreground: var(--app-muted-foreground);
-  --demo-border: var(--app-border);
-  --demo-primary: var(--app-primary);
-  --demo-primary-foreground: var(--app-primary-foreground);
-  --demo-secondary: var(--app-muted);
-  --demo-secondary-foreground: var(--app-foreground);
+  --orange-card-surface: var(--app-background);
 }
 
 /* Use the outlined Material icon set across the app; it matches the
@@ -491,7 +679,7 @@ p {
   color: var(--app-muted-foreground);
 }
 
-/* Full-bleed demo pages (maps, 3D) */
+/* Full-bleed pages (maps, 3D) */
 .full-bleed {
   height: calc(100vh - var(--app-header-height));
   min-height: 420px;
@@ -1305,7 +1493,7 @@ html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
   line-height: 1.25rem;
 }
 
-/* Demo tab content: align native Material controls with React without
+/* Component tab content: align native Material controls with React without
    touching page templates. Scoped to the tab body so header/system buttons
    keep their compact variants. */
 .mat-mdc-tab-body .mat-mdc-button.mat-mdc-button,
@@ -1353,69 +1541,69 @@ html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
   min-height: 2.5rem;
 }
 
-/* Demo semantic colors and shapes for framework-native buttons. These live
+/* Semantic colors and shapes for framework-native buttons. These live
    here, not in a page stylesheet, so the component demos share one source. */
-.mat-mdc-tab-body .mat-mdc-button.demo-blue,
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-blue,
-.mat-mdc-tab-body .mat-mdc-raised-button.demo-blue,
-.mat-mdc-tab-body .mat-mdc-outlined-button.demo-blue {
+.mat-mdc-tab-body .mat-mdc-button.orange-blue,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-blue,
+.mat-mdc-tab-body .mat-mdc-raised-button.orange-blue,
+.mat-mdc-tab-body .mat-mdc-outlined-button.orange-blue {
   background: #155dfc;
   color: #ffffff;
 }
 
-.mat-mdc-tab-body .mat-mdc-button.demo-secondary,
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-secondary,
-.mat-mdc-tab-body .mat-mdc-raised-button.demo-secondary,
-.mat-mdc-tab-body .mat-mdc-outlined-button.demo-secondary {
+.mat-mdc-tab-body .mat-mdc-button.orange-secondary,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-secondary,
+.mat-mdc-tab-body .mat-mdc-raised-button.orange-secondary,
+.mat-mdc-tab-body .mat-mdc-outlined-button.orange-secondary {
   background: var(--app-muted);
   color: var(--app-foreground);
 }
 
-.mat-mdc-tab-body .mat-mdc-button.demo-success,
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-success,
-.mat-mdc-tab-body .mat-mdc-raised-button.demo-success,
-.mat-mdc-tab-body .mat-mdc-outlined-button.demo-success {
+.mat-mdc-tab-body .mat-mdc-button.orange-success,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-success,
+.mat-mdc-tab-body .mat-mdc-raised-button.orange-success,
+.mat-mdc-tab-body .mat-mdc-outlined-button.orange-success {
   background: #00c950;
   color: #ffffff;
 }
 
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-square {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-square {
   border-radius: 0;
 }
 
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-icon-square {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-icon-square {
   width: 2.25rem;
   min-width: 2.25rem;
   padding: 0;
 }
 
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-round {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-round {
   border-radius: 0.5rem;
 }
 
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-pill {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-pill {
   border-radius: 999px;
 }
 
-.mat-mdc-tab-body .mat-mdc-icon-button.demo-icon-small {
+.mat-mdc-tab-body .mat-mdc-icon-button.orange-icon-small {
   --mat-icon-button-state-layer-size: 1.5rem;
   width: 1.5rem;
   height: 1.5rem;
   padding: 0;
 }
 
-.mat-mdc-tab-body .mat-mdc-icon-button.demo-icon-small .mat-icon {
+.mat-mdc-tab-body .mat-mdc-icon-button.orange-icon-small .mat-icon {
   width: 1rem;
   height: 1rem;
   font-size: 1rem;
 }
 
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-danger {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-danger {
   background: #fb2c36;
   color: #ffffff;
 }
 
-.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-destructive-tonal {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.orange-destructive-tonal {
   background: color-mix(in srgb, #fb2c36 20%, transparent);
   color: #fb2c36;
 }
@@ -1429,23 +1617,23 @@ html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
-.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-label-container {
+.mat-mdc-tab-group.orange-tabs .mat-mdc-tab-label-container {
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-labels {
+.mat-mdc-tab-group.orange-tabs .mat-mdc-tab-labels {
   flex-wrap: nowrap;
 }
 
-.mat-mdc-tab-group.demo-tabs .mat-mdc-tab {
+.mat-mdc-tab-group.orange-tabs .mat-mdc-tab {
   flex: 0 0 auto;
 }
 
-.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-list {
+.mat-mdc-tab-group.orange-tabs .mat-mdc-tab-list {
   transform: none !important;
 }
 
-.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-header-pagination {
+.mat-mdc-tab-group.orange-tabs .mat-mdc-tab-header-pagination {
   display: none;
 }

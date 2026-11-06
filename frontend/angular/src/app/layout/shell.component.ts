@@ -139,7 +139,7 @@ export class ShellComponent {
       root.style.removeProperty('--mat-sys-primary-container');
       root.style.setProperty('--app-sidebar-active', isDark ? '#27272a' : '#e7e7e7');
       root.style.setProperty('--app-sidebar-active-foreground', isDark ? '#fafafa' : '#18181b');
-      root.style.setProperty('--demo-card', isDark ? '#0a0a0a' : '#ffffff');
+      root.style.setProperty('--orange-card-surface', isDark ? '#0a0a0a' : '#ffffff');
     } else {
       const hex = isDark && 'darkHex' in item ? item.darkHex : item.hex;
       const foreground =
@@ -157,7 +157,7 @@ export class ShellComponent {
       root.style.setProperty('--mat-sys-primary', hex);
       root.style.setProperty('--mat-sys-primary-fixed', hex);
       root.style.setProperty('--mat-sys-primary-container', hex);
-      root.style.setProperty('--demo-card', isDark ? '#18181b' : '#ffffff');
+      root.style.setProperty('--orange-card-surface', isDark ? '#18181b' : '#ffffff');
       root.style.setProperty(
         '--app-sidebar-active',
         this.mixColor(hex, isDark ? '#18181b' : '#fafafa', 0.3),

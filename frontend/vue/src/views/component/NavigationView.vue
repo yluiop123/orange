@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import DemoSection from '@/components/demo/DemoSection.vue'
+import SectionCard from '@/components/showcase/SectionCard.vue'
 
 
 const tab = ref('anchor')
@@ -136,7 +136,7 @@ const email = ref('')
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="anchor">Anchor</v-tab>
@@ -153,8 +153,8 @@ const email = ref('')
     <v-window v-model="tab">
       <!-- Anchor -->
       <v-window-item value="anchor">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Scroll spy / 滚动监听"
             subtitle="The active link follows the section currently visible in the panel"
           >
@@ -192,12 +192,12 @@ const email = ref('')
                 </section>
               </div>
             </div>
-            <div class="demo-note">
+            <div class="orange-note">
               Active anchor: <code class="mono">#{{ activeAnchor }}</code>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Anchor buttons / 锚点按钮"
             subtitle="Jump directly to a section from a horizontal action row"
           >
@@ -213,17 +213,17 @@ const email = ref('')
                 {{ section.title }}
               </v-btn>
             </div>
-            <div class="demo-note">
+            <div class="orange-note">
               Clicking a button smooth-scrolls the panel above and updates the active state.
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Breadcrumb -->
       <v-window-item value="breadcrumb">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Basic & custom separators"
             subtitle="The default chevron and a custom slash divider"
           >
@@ -240,9 +240,9 @@ const email = ref('')
                 <span class="crumb-sep">/</span>
               </template>
             </v-breadcrumbs>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Icons & per-item separators"
             subtitle="A home icon plus a different separator for one item"
           >
@@ -257,9 +257,9 @@ const email = ref('')
                 </v-icon>
               </template>
             </nav>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Dropdown breadcrumb"
             subtitle="A middle crumb opens a menu of sibling destinations"
           >
@@ -290,18 +290,18 @@ const email = ref('')
               <v-icon size="16" class="crumb-icon">mdi-chevron-right</v-icon>
               <span class="crumb crumb--current">Breadcrumb</span>
             </nav>
-            <p class="demo-note">
+            <p class="orange-note">
               Breadcrumbs describe the path, not the navigation history. The last crumb is never a
               link.
             </p>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Dropdown -->
       <v-window-item value="dropdown">
-        <div class="demo-grid">
-          <DemoSection title="Button trigger / 按钮触发" subtitle="A simple action menu with icons">
+        <div class="orange-grid">
+          <SectionCard title="Button trigger / 按钮触发" subtitle="A simple action menu with icons">
             <div class="row">
               <v-menu location="bottom start">
                 <template #activator="{ props: activatorProps }">
@@ -329,12 +329,12 @@ const email = ref('')
                 </v-list>
               </v-menu>
             </div>
-            <div class="demo-note">
+            <div class="orange-note">
               Choosing an item raises a snackbar with the selected action.
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Group & disabled / 分组与禁用"
             subtitle="Section labels, separators and a disabled entry"
           >
@@ -367,9 +367,9 @@ const email = ref('')
                 </v-list>
               </v-menu>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Submenu / 子菜单"
             subtitle="A nested menu opens beside its parent item"
           >
@@ -398,9 +398,9 @@ const email = ref('')
                 </v-list>
               </v-menu>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Menu locations / 弹出位置"
             subtitle="Open the same list toward each edge of the trigger"
           >
@@ -419,14 +419,14 @@ const email = ref('')
                 </v-list>
               </v-menu>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- ContextMenu -->
       <v-window-item value="contextMenu">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Right-click menu / 右键菜单"
             subtitle="Right-click inside the dashed area to open the menu"
           >
@@ -444,7 +444,7 @@ const email = ref('')
                 >
                   <v-icon size="30">mdi-cursor-default-click-outline</v-icon>
                   <div class="context-zone__title">Right click here</div>
-                  <div class="demo-note">右键点击此区域 / Open the context menu</div>
+                  <div class="orange-note">右键点击此区域 / Open the context menu</div>
                 </div>
               </template>
 
@@ -499,9 +499,9 @@ const email = ref('')
                 </v-list-item>
               </v-list>
             </v-menu>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Selection state"
             subtitle="The menu reports the last action and its checkbox options"
           >
@@ -525,17 +525,17 @@ const email = ref('')
                 hide-details
               />
             </div>
-            <p class="demo-note">
+            <p class="orange-note">
               Checkbox items keep the menu open, while action items close it and raise a snackbar.
             </p>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Sidebar -->
       <v-window-item value="sidebar">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Embedded sidebar / 内嵌侧边栏"
             subtitle="A local vertical menu that does not affect the global layout"
           >
@@ -577,9 +577,9 @@ const email = ref('')
                 </div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Rail mode / 折叠栏"
             subtitle="Collapse the labels to leave an icon-only rail"
           >
@@ -615,19 +615,19 @@ const email = ref('')
                 <p class="text-body-2 text-medium-emphasis">
                   The rail keeps the icons reachable while reclaiming horizontal space for content.
                 </p>
-                <div class="demo-note mono">
+                <div class="orange-note mono">
                   rail: {{ sidebarRail }} · active: {{ sidebarActive }}
                 </div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- NavigationMenu -->
       <v-window-item value="navigationMenu">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Horizontal navigation / 横向导航"
             subtitle="Rich dropdown menus with descriptions and featured content"
           >
@@ -775,9 +775,9 @@ const email = ref('')
               </v-chip>
               <v-btn size="small" variant="text" @click="selectNav('Docs')">Reset to Docs</v-btn>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Compact navigation / 紧凑导航"
             subtitle="The same destinations collapse behind a single trigger"
           >
@@ -802,18 +802,18 @@ const email = ref('')
                 </v-list>
               </v-menu>
             </div>
-            <p class="demo-note">
+            <p class="orange-note">
               In a real shell the trigger appears below the md breakpoint; here the menu is always
               available.
             </p>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Pagination -->
       <v-window-item value="pagination">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Pagination example / 分页示例"
             subtitle="A controlled page bound to a content panel"
           >
@@ -826,9 +826,9 @@ const email = ref('')
                 </div>
               </div>
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Compact & custom icons"
             subtitle="Density and navigation icons adapt to tight toolbars"
           >
@@ -844,9 +844,9 @@ const email = ref('')
               <div class="pager-center__hint mono">compact page: {{ compactPage }}</div>
               <v-pagination v-model="readonlyPage" :length="6" :total-visible="5" disabled />
             </div>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Page size / 每页条数"
             subtitle="Combine pagination with a page-size selector"
           >
@@ -859,21 +859,21 @@ const email = ref('')
                 hide-details
                 style="max-width: 120px"
               />
-              <span class="demo-note">
+              <span class="orange-note">
                 Page {{ page }} · {{ perPage }} rows · records {{ (page - 1) * perPage + 1 }}–{{
                   page * perPage
                 }}
               </span>
             </div>
             <v-pagination v-model="page" :length="8" :total-visible="6" />
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Steps -->
       <v-window-item value="steps">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Horizontal steps / 横向步骤条"
             subtitle="Linear onboarding flow with validation state"
           >
@@ -901,10 +901,10 @@ const email = ref('')
                 </div>
               </template>
             </v-stepper>
-            <div class="demo-note mono">current step: {{ step }}</div>
-          </DemoSection>
+            <div class="orange-note mono">current step: {{ step }}</div>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Vertical steps / 纵向步骤条"
             subtitle="Success, process and error statuses in a compact timeline"
           >
@@ -928,14 +928,14 @@ const email = ref('')
                 </div>
               </v-timeline-item>
             </v-timeline>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
 
       <!-- Tabs -->
       <v-window-item value="tabs">
-        <div class="demo-grid">
-          <DemoSection
+        <div class="orange-grid">
+          <SectionCard
             title="Basic usage / 基础用法"
             subtitle="Nested tabs switch two simple panels"
           >
@@ -951,9 +951,9 @@ const email = ref('')
                 <div class="tab-panel">内容 B (Content B)</div>
               </v-window-item>
             </v-window>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Business scenario / 业务场景"
             subtitle="Profile, security and notification settings inside tabs"
           >
@@ -994,9 +994,9 @@ const email = ref('')
                 </p>
               </v-window-item>
             </v-window>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Controlled tabs / 受控模式"
             subtitle="External buttons drive the active tab"
           >
@@ -1024,9 +1024,9 @@ const email = ref('')
                 </div>
               </v-window-item>
             </v-window>
-          </DemoSection>
+          </SectionCard>
 
-          <DemoSection
+          <SectionCard
             title="Icon tabs & card / 图标与卡片"
             subtitle="Icons and tab panels wrapped in a card"
           >
@@ -1048,7 +1048,7 @@ const email = ref('')
                 </v-window-item>
               </v-window>
             </v-card>
-          </DemoSection>
+          </SectionCard>
         </div>
       </v-window-item>
     </v-window>

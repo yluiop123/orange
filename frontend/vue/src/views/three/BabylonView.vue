@@ -107,9 +107,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.three.babylon')" />
-    <div class="demo-3d">
+    <div class="orange-3d">
       <div ref="el" class="babylon-canvas" />
       <v-card class="babylon-card" variant="flat">
         <div class="babylon-title">Babylon.js · ArcRotateCamera</div>

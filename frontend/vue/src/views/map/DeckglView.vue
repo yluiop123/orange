@@ -77,9 +77,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="demo-page">
+  <div class="orange-page">
     <PageHeader :title="title" :subtitle="t('page.map.deckgl')" />
-    <div class="demo-map deck-map">
+    <div class="orange-map deck-map">
       <div ref="el" class="map-canvas" />
       <v-card class="deck-card" variant="flat">
         <div class="deck-title">deck.gl · ColumnLayer</div>
