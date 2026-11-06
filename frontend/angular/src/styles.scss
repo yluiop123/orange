@@ -1,5 +1,19 @@
 @use '@angular/material' as mat;
 
+:root {
+  --demo-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --demo-background: var(--app-background);
+  --demo-foreground: var(--app-foreground);
+  --demo-card: var(--app-card);
+  --demo-muted: var(--app-muted);
+  --demo-muted-foreground: var(--app-muted-foreground);
+  --demo-border: var(--app-border);
+  --demo-primary: var(--app-primary);
+  --demo-primary-foreground: var(--app-primary-foreground);
+  --demo-secondary: var(--app-muted);
+  --demo-secondary-foreground: var(--app-foreground);
+}
+
 /* Use the outlined Material icon set across the app; it matches the
    stroke-based lucide icons used by the React reference. */
 .material-icons {

@@ -1,4 +1,17 @@
+@import '../../../shared/demo.css';
+
 :root {
+  --demo-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --demo-background: rgb(var(--v-theme-background));
+  --demo-foreground: rgb(var(--v-theme-on-surface));
+  --demo-card: rgb(var(--v-theme-surface));
+  --demo-muted: rgb(var(--v-theme-surface-variant));
+  --demo-muted-foreground: rgb(var(--v-theme-on-surface-variant));
+  --demo-border: rgba(var(--v-border-color), var(--v-border-opacity));
+  --demo-primary: rgb(var(--v-theme-primary));
+  --demo-primary-foreground: rgb(var(--v-theme-on-primary));
+  --demo-secondary: rgb(var(--v-theme-secondary));
+  --demo-secondary-foreground: rgb(var(--v-theme-on-secondary));
   --orange-radius: 0.65rem;
   --orange-sidebar-width: 16rem;
   --orange-sidebar-rail-width: 3rem;

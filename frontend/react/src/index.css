@@ -1,4 +1,19 @@
 @import "tailwindcss";
+@import "../../shared/demo.css";
+
+:root {
+  --demo-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --demo-background: var(--background);
+  --demo-foreground: var(--foreground);
+  --demo-card: var(--card);
+  --demo-muted: var(--muted);
+  --demo-muted-foreground: var(--muted-foreground);
+  --demo-border: var(--border);
+  --demo-primary: var(--primary);
+  --demo-primary-foreground: var(--primary-foreground);
+  --demo-secondary: var(--secondary);
+  --demo-secondary-foreground: var(--secondary-foreground);
+}
 
 @plugin "tailwindcss-animate";
 @plugin "tailwind-scrollbar";

@@ -1,0 +1,148 @@
+/* Shared demo primitives used by all three frontends.
+   Map the --demo-* tokens in each app's global stylesheet. */
+
+.demo-root {
+  padding: 0.75rem;
+}
+
+.demo-tabbar {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0.1875rem;
+  border-radius: 0.625rem;
+  background: var(--demo-muted);
+  color: var(--demo-muted-foreground);
+}
+
+.demo-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.5625rem;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  font: 500 0.875rem/1.25rem var(--demo-font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.demo-tab[aria-selected='true'] {
+  border-color: var(--demo-border);
+  background: var(--demo-card);
+  color: var(--demo-foreground);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.demo-body {
+  padding: 1.5rem;
+}
+
+.demo-body > * + * {
+  margin-top: 1.5rem;
+}
+
+.demo-title {
+  margin: 0;
+  color: var(--demo-foreground);
+  font: 700 1.25rem/1.75rem var(--demo-font);
+}
+
+.demo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.demo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2.25rem;
+  padding: 0 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: var(--demo-primary);
+  color: var(--demo-primary-foreground);
+  font: 500 0.875rem/1.25rem var(--demo-font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.demo-btn--sm {
+  height: 2rem;
+}
+
+.demo-btn--lg {
+  height: 2.5rem;
+}
+
+.demo-btn--icon {
+  width: 2.25rem;
+  padding: 0;
+}
+
+.demo-btn--primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.demo-btn--secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.demo-btn--destructive {
+  background: #dc2626;
+  color: #fff;
+}
+
+.demo-btn--success {
+  background: #16a34a;
+  color: #fff;
+}
+
+.demo-btn--outline {
+  border-color: var(--demo-border);
+  background: var(--demo-background);
+  color: var(--demo-foreground);
+}
+
+.demo-btn--secondary-variant {
+  background: var(--demo-secondary);
+  color: var(--demo-secondary-foreground);
+}
+
+.demo-btn--ghost {
+  background: transparent;
+  color: var(--demo-foreground);
+}
+
+.demo-btn--link {
+  background: transparent;
+  color: var(--demo-primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.demo-btn--square {
+  border-radius: 0;
+}
+
+.demo-btn--round {
+  border-radius: 0.5rem;
+}
+
+.demo-btn--pill {
+  border-radius: 9999px;
+}
+
+.demo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
