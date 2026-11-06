@@ -158,3 +158,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Dark active tab: lift the muted pill 10% so the selection stays visible
+   on card surfaces. The selected label uses the theme color. */
+.dark [data-slot="tabs-trigger"][data-active] {
+  background: color-mix(in oklab, var(--foreground) 10%, var(--muted));
+  border-color: var(--border);
+}
+
+[data-slot="tabs-trigger"][data-active] {
+  color: var(--primary);
+}

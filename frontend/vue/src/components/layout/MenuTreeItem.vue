@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { getMenuIcon } from '@/config/menu-icons'
 import { menuTitle } from '@/lib/menu-title'
-import { isSamePath } from '@/lib/path'
+import { isPathWithin, isSamePath } from '@/lib/path'
 import type { MenuNode } from '@/lib/access'
 
 defineOptions({ name: 'MenuTreeItem' })
@@ -18,6 +18,9 @@ const title = computed(() => menuTitle(props.node.path, props.node.name, locale.
 const leafActive = computed(
   () => props.node.children.length === 0 && isSamePath(route.path, props.node.path),
 )
+const branchActive = computed(
+  () => props.node.children.length > 0 && isPathWithin(route.path, props.node.path),
+)
 </script>
 
 <template>
@@ -28,6 +31,7 @@ const leafActive = computed(
         :prepend-icon="icon"
         :title="title"
         class="menu-item"
+        :class="{ 'menu-item--branch-active': branchActive }"
       />
     </template>
     <MenuTreeItem v-for="child in node.children" :key="child.id" :node="child" />

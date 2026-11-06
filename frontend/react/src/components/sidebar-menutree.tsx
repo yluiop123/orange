@@ -44,7 +44,7 @@ export function SidebarMenuTree({ item }: { item: MenuNode }) {
             "px-4 py-2 flex items-center",
             "hover:bg-sidebar hover:text-sidebar-active-foreground",
             defaultOpen
-              ? "bg-sidebar text-sidebar-active-foreground"
+              ? "bg-sidebar text-primary font-medium"
               : "text-sidebar-foreground",
           )}
         >
@@ -79,7 +79,7 @@ export function SidebarMenuTree({ item }: { item: MenuNode }) {
         className={cn(
           "px-4 py-2 flex items-center",
           active
-            ? "bg-sidebar-active hover:bg-sidebar hover:text-sidebar-active-foreground"
+            ? "bg-sidebar-active hover:bg-sidebar hover:text-sidebar-active-foreground font-medium"
             : "hover:bg-sidebar hover:text-sidebar-active-foreground",
         )}
       >

@@ -251,20 +251,26 @@ async function logout() {
 .menu-list :deep(.v-list-item--active) {
   background: rgb(var(--v-theme-sidebar-active));
   color: rgb(var(--v-theme-on-surface));
+  font-weight: 500;
 }
 
-.menu-list :deep(.v-list-group--active > .v-list-group__header) {
-  color: rgb(var(--v-theme-sidebar-active-foreground));
+.menu-list :deep(.v-list-item--active .v-list-item-title) {
+  font-weight: 500;
 }
 
+.menu-list :deep(.menu-item--branch-active),
 .menu-list :deep(.v-list-group--active > .v-list-group__header) {
-  background: transparent !important;
-  color: rgb(var(--v-theme-sidebar-active-foreground));
+  background: transparent;
+  color: rgb(var(--v-theme-primary));
+  font-weight: 500;
+}
+
+.menu-list :deep(.v-list-group--active > .v-list-group__header .v-list-item-title) {
   font-weight: 400;
 }
 
 .menu-list :deep(.v-list-item:hover:not(.v-list-item--active)) {
-  background: rgb(var(--v-theme-surface-variant));
+  background: rgb(var(--v-theme-sidebar-hover, var(--v-theme-surface-variant)));
 }
 
 .menu-list :deep(.v-list-group__items) {

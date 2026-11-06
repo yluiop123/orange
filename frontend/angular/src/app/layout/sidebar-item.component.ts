@@ -90,11 +90,16 @@ import type { MenuNode } from '../core/models';
       }
       .nav-item.active {
         background: var(--app-sidebar-active);
+        color: var(--app-foreground);
+        font-weight: 500;
       }
       .nav-item.active.branch {
         background: transparent;
-        color: var(--app-sidebar-active-foreground);
-        font-weight: 400;
+        color: var(--app-primary);
+        font-weight: 500;
+      }
+      .nav-item.active .nav-label {
+        font-weight: 500;
       }
       .nav-icon {
         flex: none;

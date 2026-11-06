@@ -179,6 +179,48 @@ a:focus-visible,
   line-height: 1rem;
 }
 
+/* Demo tab content: align native Vuetify controls with React without
+   touching page templates. Scoped to v-window so header/system buttons keep
+   their compact variants. */
+.v-window .v-btn.v-btn {
+  --v-btn-height: 2.25rem;
+  height: var(--v-btn-height);
+  min-height: var(--v-btn-height);
+  padding: 0 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.v-window .v-btn.v-btn--size-small {
+  --v-btn-height: 2rem;
+}
+
+.v-window .v-btn.v-btn--size-large {
+  --v-btn-height: 2.5rem;
+}
+
+.v-window .v-btn.v-btn--icon {
+  width: var(--v-btn-height);
+  padding: 0;
+}
+
+.v-window .v-card {
+  border-radius: 0.75rem;
+}
+
+.v-window .v-field {
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.v-window .v-field__input {
+  min-height: 2.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
 /* Tables: muted header, 2.5rem rows, 1px dividers. */
 .v-table,
 .v-table.v-table--density-default,
@@ -396,14 +438,19 @@ code {
 .v-tabs .v-tab--selected.v-tab.v-btn {
   border-color: rgb(var(--v-theme-border));
   background: rgb(var(--v-theme-surface));
-  color: rgb(var(--v-theme-on-surface));
+  color: rgb(var(--v-theme-primary));
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
-/* React keeps the active pill at muted/30 in dark, which reads as the track. */
+/* React keeps the active pill at muted/30 in dark; lift it 10% so the
+   selection stays visible on card surfaces. */
 .v-theme--dark .v-tabs .v-tab--selected.v-tab.v-btn {
-  border-color: rgb(var(--v-theme-secondary));
-  background: rgb(var(--v-theme-secondary));
+  border-color: rgba(var(--v-border-color), var(--v-border-opacity));
+  background: color-mix(
+    in srgb,
+    rgb(var(--v-theme-on-surface)) 10%,
+    rgb(var(--v-theme-surface-variant))
+  );
 }
 
 .v-tabs .v-tab__slider {
