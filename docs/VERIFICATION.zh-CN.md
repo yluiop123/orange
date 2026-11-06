@@ -2,7 +2,7 @@
 
 # 验证
 
-> 日期：2026-11-05
+> 日期：2026-11-06
 > 本页记录实际执行过的内容。此处未列出的项目只是静态审查，不构成运行时保证。
 
 ## 1. 技术栈
@@ -166,6 +166,30 @@ Vue 和 Angular 的列集合、状态渲染和底部分页已与 React 对齐。
 - 三端菜单路径与路由一致；Vue 使用 MDI outline 图标，Angular 使用 Material
   outlined 字体，与 React 的 lucide 线框图标一致；
 - 组织与权限选择在三端均为树形下拉；Angular 使用 fixed 定位，避免对话框裁剪。
+
+### 组件库与 Recharts（2026-11-06）
+
+Vue 和 Angular 现在按相同顺序渲染与 React 相同的页签集合：
+
+| 页面 | 页签数 |
+| --- | ---: |
+| 组件 / 通用 | 4 |
+| 组件 / 布局 | 6 |
+| 组件 / 导航 | 9 |
+| 组件 / 显示 | 16 |
+| 组件 / 反馈 | 10 |
+| 组件 / 表单 | 18 |
+| 组件 / 表格 | 7 |
+| 图表 / Recharts | 7 |
+
+每个前端共 77 个页签。Playwright 已在三端确认页签文案与数量完全一致，
+没有控制台错误或页面异常。长页签条（显示、表单）在 Angular 中横向滚动，
+在 Vue 中使用 Vuetify slide-group 箭头；Recharts 在 Vue/Angular 中分别用
+Chart.js/ECharts 渲染，因为 Recharts 只支持 React，卡片数据与变体与 React 页签对应。
+
+仪表盘、图表、地图和三维路由也已在三端加载：所有路由均能渲染内容，未记录运行时错误。
+可视化使用各栈原生库（React：Recharts/Leaflet/Three；Vue：Chart.js/ECharts/Leaflet；
+Angular：ECharts/Leaflet），因此图表内部为等价实现，而非逐像素一致。
 
 仍存在的差异：Angular 使用单月 Material 范围日历，而 React 使用双月日历。
 

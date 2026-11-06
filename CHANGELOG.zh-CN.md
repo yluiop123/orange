@@ -11,7 +11,8 @@
 - 文档拆分为与技术栈无关的 `docs/`、`frontend/docs/` 和 `backend/docs/`。
   数据库设计只在 `docs/DATABASE.zh-CN.md` 中描述一次。
 - 统一 React、Vue、Angular 的登录页、页签样式和深色背景 token。
-  Vue/Angular 的页签内容移植仍在进行中。
+  Vue/Angular 现在与 React 一样提供 70 个组件页签和 7 个 Recharts 页签，
+  文案与顺序一致。
 - 每个后端都补充了中文 README（`README.zh-CN.md`）。
 
 ## 1.0.0 — 2026-11-04

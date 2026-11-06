@@ -11,7 +11,8 @@
 - Documentation is split into technology-agnostic `docs/`, `frontend/docs/` and
   `backend/docs/`. Database design is documented once in `docs/DATABASE.md`.
 - React, Vue and Angular login pages, tab styling and dark surface tokens were
-  aligned. Vue and Angular tab content migration is still in progress.
+  aligned. Vue and Angular now render the same 70 component tabs and 7 Recharts
+  tabs as React, with the same labels and order.
 - Every backend now has a Chinese README (`README.zh-CN.md`).
 
 ## 1.0.0 — 2026-11-04

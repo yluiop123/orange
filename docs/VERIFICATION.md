@@ -2,7 +2,7 @@
 
 # Verification
 
-> Date: 2026-11-05
+> Date: 2026-11-06
 > This page records what was actually executed. Anything not listed here is a static review, not a runtime guarantee.
 
 ## 1. Stacks
@@ -180,6 +180,34 @@ has also been aligned:
 - organization and permission pickers are tree dropdowns on all three frontends;
   Angular positions the tree popover with fixed coordinates so dialogs do not
   clip it.
+
+### Component gallery and Recharts (2026-11-06)
+
+Vue and Angular now render the same tab set as React, in the same order:
+
+| Page | Tabs |
+| --- | ---: |
+| Component / General | 4 |
+| Component / Layout | 6 |
+| Component / Navigation | 9 |
+| Component / Display | 16 |
+| Component / Feedback | 10 |
+| Component / Form | 18 |
+| Component / Table | 7 |
+| Chart / Recharts | 7 |
+
+That is 77 tabs per frontend. Playwright checks on all three apps confirmed the
+exact tab labels and counts, with no console or page errors. Long strips
+(display, form) scroll horizontally in Angular and use Vuetify slide-group
+arrows in Vue. The Recharts gallery is rendered with ECharts/Chart.js on Vue and
+Angular because Recharts is React-only; card data and variants mirror the React
+tabs.
+
+Dashboard, chart, map and 3D routes were also loaded in all three apps: every
+route renders content and no runtime errors were recorded. Their visualizations
+use the stack-native libraries (React: Recharts/Leaflet/Three, Vue: Chart.js/
+ECharts/Leaflet, Angular: ECharts/Leaflet), so chart internals are equivalent
+rather than pixel-identical.
 
 Known remaining difference: Angular uses a single-month Material range calendar
 instead of React's two-month calendar.

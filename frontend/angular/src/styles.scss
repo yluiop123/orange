@@ -1243,3 +1243,25 @@ html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
 .mat-mdc-tab-body-wrapper {
   margin-top: 8px;
 }
+
+/* Long demo tab strips scroll horizontally instead of shrinking labels. */
+.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-label-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-labels {
+  flex-wrap: nowrap;
+}
+
+.mat-mdc-tab-group.demo-tabs .mat-mdc-tab {
+  flex: 0 0 auto;
+}
+
+.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-list {
+  transform: none !important;
+}
+
+.mat-mdc-tab-group.demo-tabs .mat-mdc-tab-header-pagination {
+  display: none;
+}
