@@ -2,14 +2,14 @@
 
 # Stacks
 
-Every stack implements the same product. The contract is [API.md](./API.md); the parity checklist is [PORTING.md](./PORTING.md).
+Every stack implements the same product. The contract is [API.md](./API.md); the parity checklist is [PORTING.md](./PORTING.md). Frontend-specific design lives in [frontend/docs](../frontend/docs/README.md); backend-specific design lives in [backend/docs](../backend/docs/README.md).
 
 ## 1. Matrix
 
 | Layer | Stack | Directory | Port | Status |
 | --- | --- | --- | --- | --- |
 | Frontend | React 19 + Vite + shadcn/ui | `frontend/react` | 5173 | Implemented, deployed to GitHub Pages |
-| Frontend | Angular + Angular Material | `frontend/angular` | 4200 | Implemented, 19 tests pass |
+| Frontend | Angular + Angular Material | `frontend/angular` | 4200 | Implemented, 26 tests pass |
 | Frontend | Vue 3 + Vuetify | `frontend/vue` | 5174 | Implemented, 20 tests pass |
 | Backend | Java 25 + Spring Boot | `backend/springboot` | 8080 | Implemented |
 | Backend | Go + Gin + GORM | `backend/go-gin-gorm` | 8081 | Implemented |

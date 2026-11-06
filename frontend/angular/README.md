@@ -5,8 +5,12 @@ same product scope as `frontend/react`: authentication, RBAC view filtering,
 system management, operation log and the demo pages (dashboards, charts, maps,
 3D, component gallery).
 
+Design docs: [frontend/docs](../docs/README.md) · configuration:
+[frontend/docs/CONFIGURATION.md](../docs/CONFIGURATION.md).
+
 - Framework: **Angular 21.2.25**, standalone components, Angular Router, signals
-- UI: **Angular Material 21.2.14** (Material 3 theme, orange palette)
+- UI: **Angular Material 21.2.14** (Material 3 theme, neutral palette with an
+  orange brand mark)
 - Charts: **ECharts 6**, **d3 7** (hand-built SVG)
 - Maps: **Leaflet 1.9**, **OpenLayers 10**, **deck.gl 9**, **Cesium** (CDN runtime)
 - 3D: **Three.js 0.187**, **Babylon.js 9**

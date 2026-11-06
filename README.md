@@ -41,14 +41,20 @@ English | [简体中文](./README.zh-CN.md)
 ├── contracts/                # Cross-stack contracts
 │   └── openapi.json          # API contract consumed by every frontend/backend
 ├── docs/                     # Technology-agnostic project documentation
+│   ├── README.md             # Documentation index
 │   ├── FEATURES.md           # Product scope and permission model
 │   ├── API.md                # API contract
 │   ├── DATABASE.md           # Schema and invariants
 │   ├── STACKS.md             # Stack matrix, ports and run commands
 │   ├── validation-rules.md   # Validation rules across layers
+│   ├── VERIFICATION.md       # What was actually executed
 │   ├── adr/                  # Architecture decisions
 │   ├── audits/               # Audits
 │   └── security/             # Security notes
+├── frontend/
+│   └── docs/                 # Frontend startup, configuration and architecture
+├── backend/
+│   └── docs/                 # Backend startup, configuration and architecture
 ├── scripts/                  # Cross-stack scripts (seed sync, JWT keys)
 └── .github/workflows/        # CI: backend tests + React-only Pages deploy
 ```
@@ -57,6 +63,7 @@ Rules for the layout:
 
 - Anything tied to a technology stack lives under `frontend/<stack>` or `backend/<stack>`.
 - `docs/`, `contracts/`, `database/` and the root READMEs are technology-agnostic.
+- Frontend-specific design lives in `frontend/docs/`; backend-specific design lives in `backend/docs/`.
 - `database/<engine>` contains only DDL and seed data. Runtime connection settings belong to each backend.
 - Only `frontend/react` is deployed to GitHub Pages. Angular and Vue are built and tested locally, but are not part of the Pages workflow.
 
@@ -65,7 +72,7 @@ Rules for the layout:
 | Layer | Stack | Directory | Status |
 | --- | --- | --- | --- |
 | Frontend | React 19 + Vite + shadcn/ui | `frontend/react` | Implemented, deployed |
-| Frontend | Angular + Angular Material | `frontend/angular` | Implemented, 19 tests pass |
+| Frontend | Angular + Angular Material | `frontend/angular` | Implemented, 26 tests pass |
 | Frontend | Vue 3 + Vuetify | `frontend/vue` | Implemented, 20 tests pass |
 | Backend | Java 25 + Spring Boot | `backend/springboot` | Implemented with PostgreSQL |
 | Backend | Go + Gin + GORM | `backend/go-gin-gorm` | Implemented |
@@ -82,11 +89,14 @@ Rules for the layout:
 
 | Document | Content |
 | --- | --- |
+| [docs/README.md](./docs/README.md) | Documentation index and placement rules |
 | [docs/FEATURES.md](./docs/FEATURES.md) | Product scope, roles, page inventory |
 | [docs/API.md](./docs/API.md) | Endpoints, auth, errors, pagination |
 | [docs/DATABASE.md](./docs/DATABASE.md) | ER model, invariants, dialect matrix |
 | [docs/STACKS.md](./docs/STACKS.md) | Which stack runs on which port, how to start |
 | [docs/VERIFICATION.md](./docs/VERIFICATION.md) | What was built, tested and left unverified |
+| [frontend/docs/README.md](./frontend/docs/README.md) | Frontend startup, configuration, architecture, visual guide |
+| [backend/docs/README.md](./backend/docs/README.md) | Backend startup, configuration, shared architecture |
 | [config/README.md](./config/README.md) | Single-source configuration and generated files |
 | [contracts/openapi.json](./contracts/openapi.json) | Machine-readable API contract |
 | [PROJECT_ISSUES.md](./PROJECT_ISSUES.md) | Decisions, accepted trade-offs, verification log |

@@ -2,14 +2,14 @@
 
 # 技术栈
 
-每个技术栈都实现同一个产品。契约见 [API.md](./API.md)；一致性检查清单见 [PORTING.md](./PORTING.md)。
+每个技术栈都实现同一个产品。契约见 [API.md](./API.md)；一致性检查清单见 [PORTING.md](./PORTING.md)。前端专项设计见 [frontend/docs](../frontend/docs/README.zh-CN.md)；后端专项设计见 [backend/docs](../backend/docs/README.zh-CN.md)。
 
 ## 1. 矩阵
 
 | 层 | 技术栈 | 目录 | 端口 | 状态 |
 | --- | --- | --- | --- | --- |
 | 前端 | React 19 + Vite + shadcn/ui | `frontend/react` | 5173 | 已实现，已部署到 GitHub Pages |
-| 前端 | Angular + Angular Material | `frontend/angular` | 4200 | 已实现，19 个测试通过 |
+| 前端 | Angular + Angular Material | `frontend/angular` | 4200 | 已实现，26 个测试通过 |
 | 前端 | Vue 3 + Vuetify | `frontend/vue` | 5174 | 已实现，20 个测试通过 |
 | 后端 | Java 25 + Spring Boot | `backend/springboot` | 8080 | 已实现 |
 | 后端 | Go + Gin + GORM | `backend/go-gin-gorm` | 8081 | 已实现 |

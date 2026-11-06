@@ -1,11 +1,12 @@
-# Orange
+# ORANGE — React frontend
 
-ORANGE is a Shadcn Admin UI built with `Shadcn` , `Vite` , `React`,`Zustand`,`React-Router`
-
-Branch Description: main branch is based on base-ui, radix-ui branch is based on radix-ui.
-
+React 19 implementation of the ORANGE admin console. This port is the reference
+for page content and interaction across `frontend/react`, `frontend/vue` and
+`frontend/angular`.
 
 English | [简体中文](./README.zh-CN.md)
+
+Design docs: [frontend/docs](../docs/README.md) · API contract: [docs/API.md](../../docs/API.md)
 
 <img height="500" src="./readme/images/dashboard.png">
 <img height="500" src="./readme/images/disaster-command.png">
@@ -16,68 +17,69 @@ English | [简体中文](./README.zh-CN.md)
 
 ### 1) Environment
 
-- **Node.js**: v18+  
-- **pnpm**: v10.28.2  
+- **Node.js**: 20.19+ or 22.12+ (Vite 8)
+- **pnpm**: 10+
 
 ---
 
 ### 2) Tech Stack
 
-- **Framework**: React 19 + Vite 6  
-- **State Management**: Zustand  
-- **UI Library**: ShadCN + TailwindCSS  
-- **Internationalization**: react-intl  
-- **Routing**: React Router v7  
-- **Mock API**: Mock Service Worker (MSW)  
-- **Build Tool**: Vite 6  
+- **Framework**: React 19 + Vite 8
+- **State Management**: Zustand
+- **UI Library**: Tailwind CSS + shadcn/Base UI
+- **Internationalization**: react-intl
+- **Routing**: React Router 8, fixed `HashRouter`
+- **Mock API**: Mock Service Worker (MSW)
+- **Tests**: Vitest
 
 ---
 
 ### 3) Installation & Run
 
 ```bash
-# Clone repository
-git clone https://github.com/yluiop123/orange.git
-cd <project-directory>/frontend/react
-
-# Install dependencies
+cd frontend/react
 pnpm install
-
-# Start development server
-pnpm dev
-
-# Visit http://localhost:3000/
-# Swagger-UI address http://localhost:3000/swagger
+pnpm dev            # http://localhost:5173
 ```
-### 4）CLI Commands
 
-| Command        | Description                        | Notes                                |
-| -------------- | ---------------------------------- | ------------------------------------ |
-| dev            | vite                               | Start dev server with hot reload     |
-| build          | tsc -b && vite build               | Type check then build for production |
-| build:github   | tsc -b && vite build --mode github | Build for GitHub Pages               |
-| lint           | eslint .                           | Run ESLint checks                    |
-| preview        | vite preview                       | Preview production build             |
-| preview:github | vite preview --mode github         | Preview GitHub Pages build           |
-| analyze        | cross-env ANALYZE=true vite build  | Bundle size analysis                 |
+The dev server proxies `/api` to the target from the generated local config
+(`.env.local`). Start the backend first, or enable the mock.
 
+### 4) CLI Commands
 
-### 5）Environment Variables
+| Command | Description |
+| --- | --- |
+| dev | Vite dev server with HMR |
+| build | Type check then production build |
+| build:github | Build for GitHub Pages (`/orange/`) |
+| typecheck | `tsc -b` |
+| lint | ESLint |
+| test / test:watch | Vitest |
+| preview / preview:github | Preview a production build |
+| analyze | Bundle size analysis |
+| db:seed / db:seed:check | Sync or verify the permission seed |
+| gen:api | Regenerate `src/api/schema.d.ts` from `contracts/openapi.json` |
 
-The project uses .env files for environment configuration.
-When using --mode, Vite will automatically load the corresponding .env.[mode] file.
+### 5) Environment Variables
 
-Common environment variables:
+Configuration is generated from `config/app.env`; see
+[frontend/docs/CONFIGURATION.md](../docs/CONFIGURATION.md) for the full layering.
 
-```env
-VITE_BASE=/              # Base path for deployment
-VITE_ROUTE=browserRouter # Routing strategy
-VITE_MOCK_ENABLE=true    # Enable mock services
-VITE_BASE_API=/api/      # API base prefix
-VITE_PROXY_TARGET=http://localhost:8080  # Dev-only proxy target (pnpm dev)
-VITE_CESIUM_TOKEN=###    # Cesium service access token
-
+```bash
+cp config/app.example.env config/app.env
+node scripts/sync-config.mjs
 ```
+
+| Variable | Purpose |
+| --- | --- |
+| `VITE_BASE` | Deployment base path; `/` locally, `/orange/` on Pages |
+| `VITE_BASE_API` | API prefix, default `/api/v1/` |
+| `VITE_PROXY_TARGET` | Dev-only proxy target, default `http://127.0.0.1:8080` |
+| `VITE_MOCK_ENABLE` | Enable MSW; `false` talks to the real backend |
+| `VITE_CESIUM_TOKEN` | Optional Cesium Ion token; empty uses OpenStreetMap |
+
+Do not set `VITE_ROUTE`: routing is always `HashRouter`. Never edit `.env.local`
+by hand; change `config/app.env` and regenerate.
 
 ## Project Structure
 
@@ -147,7 +149,7 @@ orange
 
 ## Routing & Menu
 
-### Route Example (React Router v7)
+### Route Example (React Router 8, HashRouter)
 
 ```ts
 //src\routes.ts
@@ -418,4 +420,4 @@ setColor('blue')
 
 ## 🧾 License
 
-This project is [MIT licensed](./LICENSE).
+This project is [MIT licensed](../../LICENSE).

@@ -27,4 +27,4 @@ JWT_PUBLIC_KEY=file:/run/secrets/jwt_public_key.pem
 
 - `backend/springboot/src/main/java/com/orange/security/config/JwtProperties.java`
 - `backend/springboot/src/main/java/com/orange/security/jwt/JwtKeyConfig.java`
-- `.env.example`
+- `config/app.example.env`（共享模板）与 `config/app.env`（本地，gitignore）

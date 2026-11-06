@@ -2,6 +2,10 @@
 
 One source of truth: `config/app.env`. A generator writes each stack's native config file, so shared values (ports, API base, database, CORS, JWT) are edited once.
 
+`config/app.example.env` is the **only** committed environment template for the
+whole repository. The old root `.env.example` was removed because it duplicated
+this file and had drifted.
+
 ```text
 config/
   app.example.env    # committed template, no real secrets

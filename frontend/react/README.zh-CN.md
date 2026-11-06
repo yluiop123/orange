@@ -1,10 +1,11 @@
-# ORANGE
+# ORANGE — React 前端
 
-ORANGE 是一个基于 `Shadcn` , `Vite` , `React`,`Zustand`,`React-Router` 等构建的SHADCN ADMIN UI 。
-
-分支说明：main 分支为基于base-ui，radix-ui 基于radix-ui。
+ORANGE 管理控制台的 React 19 实现，也是三端页面内容与交互的基准实现
+（`frontend/react`、`frontend/vue`、`frontend/angular`）。
 
 [English](./README.md) | 简体中文
+
+设计文档：[frontend/docs](../docs/README.zh-CN.md) · 接口契约：[docs/API.zh-CN.md](../../docs/API.zh-CN.md)
 
 <img height="500" src="./readme/images/dashboard-zh-CN.png">
 <img height="500" src="./readme/images/disaster-command-zh-CN.png">
@@ -15,61 +16,65 @@ ORANGE 是一个基于 `Shadcn` , `Vite` , `React`,`Zustand`,`React-Router` 等�
 
 ### 1）环境
 
-- **Node.js**: v18+
-- **pnpm**: pnpm v10.28.2
+- **Node.js**：20.19+ 或 22.12+（Vite 8）
+- **pnpm**：10+
 
 ### 2）技术栈
 
-- **框架**: React 19 + Vite6
-- **状态管理**: Zustand
-- **UI 组件库**: ShadCN + TailwindCSS
-- **国际化**: react-intl
-- **路由**: React Router v7
-- **接口模拟**: Mock Service Worker (MSW)
-- **构建工具**: Vite6
+- **框架**：React 19 + Vite 8
+- **状态管理**：Zustand
+- **UI 组件库**：Tailwind CSS + shadcn/Base UI
+- **国际化**：react-intl
+- **路由**：React Router 8，固定 `HashRouter`
+- **接口模拟**：Mock Service Worker (MSW)
+- **测试**：Vitest
 
 ### 3）安装启动
 
 ```bash
-# 克隆项目
-git clone https://github.com/yluiop123/orange.git
-cd <项目目录>/frontend/react
-
-# 安装依赖
-pnpm install   
-
-# 本地开发启动
-pnpm dev    
-
-#项目启动后访问 http://localhost:3000/
-#Swagger-UI地址 http://localhost:3000/swagger
+cd frontend/react
+pnpm install
+pnpm dev            # http://localhost:5173
 ```
+
+开发服务器会把 `/api` 代理到生成的本地配置（`.env.local`）中的地址。先启动后端，
+或启用 Mock。
 
 ### 4）命令行
 
-| 命令  | 描述  | 说明  |
-| --- | --- | --- |
-| dev | vite | 启动开发服务器，支持热重载和实时编译 |
-| build | tsc -b && vite build | 构建生产版本，先进行 TypeScript 类型检查，再打包项目 |
-| build:github | tsc -b && vite build --mode github | 构建 GitHub 部署版本，使用特定的构建配置 |
-| lint | eslint . | 运行 ESLint 检查代码质量，识别潜在问题 |
-| preview | vite preview | 预览生产构建的项目，用于本地测试构建结果 |
-| preview:github | vite preview --mode github | 预览 GitHub 部署版本的构建结果 |
-| analyze | cross-env ANALYZE=true vite build | 分析打包结果，生成 bundle 分析报告 |
+| 命令 | 描述 |
+| --- | --- |
+| dev | Vite 开发服务器，支持热重载 |
+| build | 类型检查后构建生产版本 |
+| build:github | 构建 GitHub Pages 版本（base 为 `/orange/`） |
+| typecheck | `tsc -b` |
+| lint | ESLint |
+| test / test:watch | Vitest |
+| preview / preview:github | 预览生产构建 |
+| analyze | 打包体积分析 |
+| db:seed / db:seed:check | 同步或校验权限种子 |
+| gen:api | 从 `contracts/openapi.json` 重新生成 `src/api/schema.d.ts` |
 
 ### 5）环境变量
 
-项目默认使用 `.env` 文件作为环境变量配置。当通过 `--mode` 参数指定特定模式时，Vite 会自动加载对应的环境变量文件。例如，`build:github` 命令会加载 `.env.github` 文件中的配置。
+配置由 `config/app.env` 生成；完整分层见
+[frontend/docs/CONFIGURATION.zh-CN.md](../docs/CONFIGURATION.zh-CN.md)。
 
-以下是常用的环境变量配置及其说明：
+```bash
+cp config/app.example.env config/app.env
+node scripts/sync-config.mjs
+```
 
-```
-VITE_BASE=/              # 项目部署的相对路径，用于指定应用的基础 URL
-VITE_ROUTE=browserRouter # 路由类型，决定应用使用的路由策略
-VITE_MOCK_ENABLE=true    # 是否启用 Mock 数据服务，用于开发和测试
-VITE_BASE_API=/api/      # API 请求的统一前缀，用于后端接口调用
-VITE_CESIUM_TOKEN=###    # Cesium 地图服务的认证令牌
-```
+| 变量 | 用途 |
+| --- | --- |
+| `VITE_BASE` | 部署 base；本地 `/`，Pages 为 `/orange/` |
+| `VITE_BASE_API` | API 前缀，默认 `/api/v1/` |
+| `VITE_PROXY_TARGET` | 仅开发代理目标，默认 `http://127.0.0.1:8080` |
+| `VITE_MOCK_ENABLE` | 启用 MSW；`false` 时连接真实后端 |
+| `VITE_CESIUM_TOKEN` | 可选 Cesium Ion token；为空时使用 OpenStreetMap |
+
+不要设置 `VITE_ROUTE`：路由固定为 `HashRouter`。不要手工修改 `.env.local`，
+应修改 `config/app.env` 后重新生成。
 
 ## 目录结构
 
@@ -415,4 +420,4 @@ setColor('blue')
 
 ## 🧾 License
 
-[MIT 协议](./LICENSE)
+[MIT 协议](../../LICENSE)

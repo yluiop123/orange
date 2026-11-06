@@ -5,6 +5,9 @@ scope described in [`docs/FEATURES.md`](../../docs/FEATURES.md), the API contrac
 [`docs/API.md`](../../docs/API.md), and the porting checklist in
 [`docs/PORTING.md`](../../docs/PORTING.md).
 
+Design docs: [frontend/docs](../docs/README.md) · configuration:
+[frontend/docs/CONFIGURATION.md](../docs/CONFIGURATION.md).
+
 Stack: Vue 3.5 · Vite 8 · TypeScript · Vuetify 3 · Pinia · Vue Router · vue-i18n · Axios.
 Charts use ECharts, Chart.js and D3; maps use Leaflet, OpenLayers, deck.gl and Cesium; 3D uses
 Three.js and Babylon.js.

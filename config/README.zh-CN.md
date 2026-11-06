@@ -2,6 +2,9 @@
 
 唯一来源是 `config/app.env`。生成器把它写进每个栈自己的配置文件，共享值（端口、API 前缀、数据库、CORS、JWT）只需要改一处。
 
+`config/app.example.env` 是仓库中**唯一**提交的环境变量模板。根目录旧的
+`.env.example` 已移除，因为它与本文件重复并且已经过期。
+
 ```text
 config/
   app.example.env    # 提交的模板，不含真实密钥
