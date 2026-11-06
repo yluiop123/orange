@@ -52,9 +52,10 @@ Blocked by: none
 
 ## Notes
 
-- `frontend/shared/demo.css` gained page-level layout helpers for the four
-  general tabs. They compose framework-native controls; they do not define
-  alternative button or card components. The original spec listed the initial
+- Each app's `src/styles/demo.css` gained page-level layout helpers for the
+  four general tabs. The three copies are intentionally duplicated so the
+  frontends stay independent. They compose framework-native controls; they do
+  not define alternative button or card components. The original spec listed the initial
   five primitives, so this is a deliberate expansion of the shared layout
   vocabulary.
 - Semantic demo button classes (`demo-blue`, `demo-secondary`, `demo-success`,

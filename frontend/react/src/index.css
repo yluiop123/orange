@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "../../shared/demo.css";
+@import "./styles/demo.css";
 
 :root {
   --demo-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,

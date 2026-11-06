@@ -1,6 +1,5 @@
-/* Shared layout primitives used by all three frontends.
-   Components stay framework-native (React Button, Vuetify v-btn,
-   Angular Material mat-button); only layout and spacing are shared here. */
+/* Layout primitives used by this frontend. Components stay framework-native;
+   only layout and spacing live here. */
 
 .demo-root {
   padding: 0.75rem;

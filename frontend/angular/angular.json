@@ -36,7 +36,7 @@
             "styles": [
               "node_modules/leaflet/dist/leaflet.css",
               "node_modules/ol/ol.css",
-              "../shared/demo.css",
+              "src/styles/demo.css",
               "src/styles.scss"
             ],
             "allowedCommonJsDependencies": [

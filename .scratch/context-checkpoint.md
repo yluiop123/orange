@@ -15,7 +15,8 @@ global/common styles; no per-page or per-button classes.
   page chrome.
 - `fb2beb8` — global Vuetify/Material component defaults aligned with React:
   buttons (36/32/40px, 8px radius, 14px/500), inputs (36px, 6px), cards (12px).
-- `6057943` — added `frontend/shared/demo.css` + `--demo-*` token mappings.
+- `6057943` — added per-app `demo.css` + `--demo-*` token mappings (later
+  moved to `<app>/src/styles/demo.css`; no shared frontend file).
 - `9e6abb3` — global alerts, menus, chips, and shared layout tokens.
 - Earlier: login/tab styling `f77114c`, docs/config split `e1f3497`,
   per-stack config + Chinese backend READMEs `224c8e1`.

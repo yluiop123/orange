@@ -15,7 +15,7 @@ add per-button classes.
 
 1. Compare React/Vue/Angular at 1440×900, DPR 1, zh, dark and light.
 2. Align page padding, section spacing, title typography and row gaps via
-   `frontend/shared/demo.css` and global styles.
+   each app's `src/styles/demo.css` and global styles.
 3. Align the visible default Button tab first; then FloatButton/Affix/Typography.
 4. Re-run the screenshot diff after each tab.
 

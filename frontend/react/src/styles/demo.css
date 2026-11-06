@@ -1,0 +1,195 @@
+/* Layout primitives used by this frontend. Components stay framework-native;
+   only layout and spacing live here. */
+
+.demo-root {
+  padding: 0.75rem;
+}
+
+.demo-body {
+  padding: 1.5rem;
+}
+
+.demo-title {
+  margin: 0;
+  color: var(--demo-foreground);
+  font: 700 1.25rem/1.75rem var(--demo-font);
+}
+
+/* Keep this rule after .demo-title: the title resets margin, and this rule
+   restores the 24px rhythm between page sections. */
+.demo-body > * + * {
+  margin-top: 1.5rem;
+}
+
+.demo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.demo-section {
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Page-level layout helpers for the general demos. These describe     */
+/* placement and rhythm only; controls stay framework-native.          */
+/* ------------------------------------------------------------------ */
+
+.demo-page-surface {
+  min-height: 1200px;
+  width: 100%;
+  padding: 1.5rem;
+  background: var(--demo-background);
+  color: var(--demo-foreground);
+}
+
+.demo-float {
+  position: fixed;
+  z-index: 50;
+}
+
+.demo-float-copy {
+  margin: 0 0 3rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.demo-notes {
+  margin-top: 2rem;
+}
+
+.demo-subtitle {
+  margin: 0 0 0.5rem;
+  font: 500 1.125rem/1.75rem var(--demo-font);
+}
+
+.demo-notes ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--demo-muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+}
+
+.demo-affix-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.demo-hero-title {
+  margin: 0;
+  font: 700 1.5rem/2rem var(--demo-font);
+}
+
+.demo-affix-card {
+  padding: 1rem;
+  border-radius: 0.25rem;
+  background: var(--demo-card);
+}
+
+.demo-affix-title {
+  margin: 0;
+  font: 500 1rem/1.5rem var(--demo-font);
+}
+
+.demo-muted {
+  margin: 0.25rem 0 0;
+  color: var(--demo-muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.demo-affix-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background: var(--demo-background);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  font-size: 0.875rem;
+}
+
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.demo-affix-scroll {
+  position: relative;
+  height: 420px;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--demo-border);
+  border-radius: 0.25rem;
+  overflow-y: auto;
+}
+
+.demo-scroll-line {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--demo-border);
+  border-radius: 0.25rem;
+  background: var(--demo-card);
+  font-size: 0.875rem;
+}
+
+.demo-affix-footer {
+  position: sticky;
+  right: auto;
+  bottom: 0;
+  left: auto;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background: var(--demo-background);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.demo-typography {
+  display: block;
+  line-height: 1.5;
+}
+
+.demo-typography > * + * {
+  margin-top: 0.5rem;
+}
+
+.demo-type-h1 {
+  margin: 0;
+  font: 700 2.25rem/2.5rem var(--demo-font);
+}
+
+.demo-type-h2 {
+  margin: 0;
+  font: 600 1.875rem/2.25rem var(--demo-font);
+}
+
+.demo-type-p {
+  margin: 0;
+  color: var(--demo-muted-foreground);
+  font: 400 1rem/1.75rem var(--demo-font);
+}
+
+.demo-type-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
