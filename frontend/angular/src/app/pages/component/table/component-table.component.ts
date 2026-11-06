@@ -10,7 +10,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 
 type PersonStatus = 'relationship' | 'single' | 'complicated';
 
@@ -62,11 +61,9 @@ const STATUS_OPTIONS: PersonStatus[] = ['relationship', 'single', 'complicated']
     MatPaginatorModule,
     MatProgressBarModule,
     MatTabsModule,
-    PageHeaderComponent,
   ],
   template: `
     <div class="page">
-      <app-page-header titleKey="page.component.table.title" descKey="page.component.table.desc" />
 
       <mat-tab-group class="demo-tabs" animationDuration="0ms">
         <mat-tab label="Basic">

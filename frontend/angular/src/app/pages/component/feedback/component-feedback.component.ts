@@ -9,7 +9,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 
 type ToastKind = 'default' | 'success' | 'error' | 'info';
 type ToastVertical = 'top' | 'bottom';
@@ -29,11 +28,9 @@ type ToastHorizontal = 'start' | 'center' | 'end';
     MatSidenavModule,
     MatSnackBarModule,
     MatTabsModule,
-    PageHeaderComponent,
   ],
   template: `
     <div class="page">
-      <app-page-header titleKey="page.component.feedback.title" descKey="page.component.feedback.desc" />
 
       <mat-tab-group class="demo-tabs" animationDuration="0ms">
         <!-- ============================== Alert ============================== -->

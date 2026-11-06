@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Anchor } from 'vuetify'
-import { useI18n } from 'vue-i18n'
-import { usePageTitle } from '@/composables/usePageTitle'
 import { useUiStore } from '@/stores/ui'
-import PageHeader from '@/components/PageHeader.vue'
 import DemoSection from '@/components/demo/DemoSection.vue'
 
-const { t } = useI18n()
 const ui = useUiStore()
-const title = usePageTitle('page.title.component')
 const tab = ref('alert')
 
 /* alert */
@@ -138,7 +133,6 @@ function resetWatermark() {
 
 <template>
   <div class="demo-page">
-    <PageHeader :title="title" :subtitle="t('page.component.feedback')" />
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="alert">Alert</v-tab>

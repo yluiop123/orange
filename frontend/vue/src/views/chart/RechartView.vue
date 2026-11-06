@@ -2,13 +2,10 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ChartData, ChartOptions } from 'chart.js'
-import { usePageTitle } from '@/composables/usePageTitle'
 import ChartJsCard from '@/components/demo/ChartJsCard.vue'
-import PageHeader from '@/components/PageHeader.vue'
 import { useUiStore } from '@/stores/ui'
 
 const { t } = useI18n()
-const title = usePageTitle('page.title.chart')
 const ui = useUiStore()
 
 const tab = ref('area')
@@ -786,7 +783,6 @@ const tooltipSingleData = computed<ChartData<'bar'>>(() => ({
 
 <template>
   <div class="demo-page">
-    <PageHeader :title="title" :subtitle="t('page.chart.rechart')" />
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="area">{{ t('chart.area') }}</v-tab>

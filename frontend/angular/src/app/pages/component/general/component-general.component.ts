@@ -5,7 +5,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatTabsModule } from '@angular/material/tabs';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 
 @Component({
   selector: 'app-component-general',
@@ -17,11 +16,9 @@ import { PageHeaderComponent } from '../../../shared/page-header.component';
     MatIconModule,
     MatSliderModule,
     MatTabsModule,
-    PageHeaderComponent,
   ],
   template: `
     <div class="page">
-      <app-page-header titleKey="page.component.general.title" descKey="page.component.general.desc" />
 
       <mat-tab-group class="demo-tabs" animationDuration="120ms">
         <mat-tab label="Button">

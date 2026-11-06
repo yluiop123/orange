@@ -22,7 +22,6 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 
 interface CascadeNode {
   value: string;
@@ -188,11 +187,9 @@ const SELECT_GROUPS: SelectGroup[] = [
     MatSlideToggleModule,
     MatSnackBarModule,
     MatTabsModule,
-    PageHeaderComponent,
   ],
   template: `
     <div class="page">
-      <app-page-header titleKey="page.component.form.title" descKey="page.component.form.desc" />
 
       <mat-tab-group class="demo-tabs" animationDuration="0ms">
         <mat-tab label="AutoComplete">

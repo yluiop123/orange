@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { usePageTitle } from '@/composables/usePageTitle'
-import PageHeader from '@/components/PageHeader.vue'
 import DemoSection from '@/components/demo/DemoSection.vue'
 
-const { t } = useI18n()
-const title = usePageTitle('page.title.component')
 
 const tab = ref('anchor')
 const snackbar = ref(false)
@@ -142,7 +137,6 @@ const email = ref('')
 
 <template>
   <div class="demo-page">
-    <PageHeader :title="title" :subtitle="t('page.component.navigation')" />
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="anchor">Anchor</v-tab>

@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { usePageTitle } from '@/composables/usePageTitle'
-import PageHeader from '@/components/PageHeader.vue'
 import DemoSection from '@/components/demo/DemoSection.vue'
 
-const { t } = useI18n()
-const title = usePageTitle('page.title.component')
 
 const tab = ref('divider')
 const gap = ref('16')
@@ -24,7 +19,6 @@ const reverseArrow = ref(false)
 
 <template>
   <div class="demo-page">
-    <PageHeader :title="title" :subtitle="t('page.component.layout')" />
 
     <v-tabs v-model="tab" color="primary">
       <v-tab value="divider">Divider</v-tab>

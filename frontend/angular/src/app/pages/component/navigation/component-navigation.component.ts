@@ -10,7 +10,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTabsModule } from '@angular/material/tabs';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 
 interface AnchorSection {
   id: string;
@@ -47,11 +46,9 @@ interface Crumb {
     MatPaginatorModule,
     MatStepperModule,
     MatTabsModule,
-    PageHeaderComponent,
   ],
   template: `
     <div class="page">
-      <app-page-header titleKey="page.component.navigation.title" descKey="page.component.navigation.desc" />
 
       <mat-tab-group class="demo-tabs" animationDuration="120ms">
         <mat-tab label="Anchor">

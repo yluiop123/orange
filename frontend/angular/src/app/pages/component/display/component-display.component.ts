@@ -12,7 +12,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 
 interface TimelineStep {
   title: string;
@@ -43,11 +42,9 @@ interface TagItem {
     MatStepperModule,
     MatTabsModule,
     MatTooltipModule,
-    PageHeaderComponent,
   ],
   template: `
     <div class="page">
-      <app-page-header titleKey="page.component.display.title" descKey="page.component.display.desc" />
 
       <mat-tab-group class="demo-tabs" animationDuration="0ms">
         <!-- ============================== Avatar ============================== -->

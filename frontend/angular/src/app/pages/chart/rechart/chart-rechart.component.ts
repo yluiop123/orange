@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import type { EChartsOption } from 'echarts';
 import { EChartComponent } from '../../../shared/echart.component';
-import { PageHeaderComponent } from '../../../shared/page-header.component';
 import { PALETTE, barOption, lineOption, pieOption, radarOption } from '../../../shared/chart-presets';
 
 interface ChartCard {
@@ -78,12 +77,9 @@ function stackedBarOption(labels: string[], series: NamedSeries[]): EChartsOptio
 @Component({
   selector: 'app-chart-rechart',
   standalone: true,
-  imports: [EChartComponent, MatTabsModule, PageHeaderComponent],
+  imports: [EChartComponent, MatTabsModule],
   template: `
     <div class="page">
-      <app-page-header titleKey="page.chart.rechart.title" descKey="page.chart.rechart.desc">
-        <span class="renderer">ECharts · Recharts layout</span>
-      </app-page-header>
 
       <mat-tab-group animationDuration="0ms" [mat-stretch-tabs]="false">
         <mat-tab label="面积图">
