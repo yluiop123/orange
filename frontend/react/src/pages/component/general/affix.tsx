@@ -11,7 +11,7 @@ export default function AffixPage() {
   const [offsetRight, setOffsetRight] = useState<number | undefined>(0)
 
   return (
-    <div className="min-h-[1200px] p-6 bg-white">
+    <div className="min-h-[1200px] p-6 bg-background">
       <div className="max-w-4xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold">Affix / 固钉</h1>
 
@@ -54,7 +54,7 @@ export default function AffixPage() {
           <div className="mt-4 border rounded p-4" style={{ minHeight: 420 }}>
             <div className="space-y-2">
               {Array.from({ length: 24 }).map((_, i) => (
-                <div key={i} className="p-2 bg-white rounded border">
+                <div key={i} className="p-2 bg-card rounded border">
                   <p className="text-sm">Scroll content {i + 1}</p>
                 </div>
               ))}

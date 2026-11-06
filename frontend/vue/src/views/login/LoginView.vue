@@ -4,15 +4,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { login as loginApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
-import { useUiStore } from '@/stores/ui'
 import { isSafeInternalPath } from '@/lib/path'
-import { setLocale } from '@/i18n'
+import LocaleSwitcher from '@/components/layout/LocaleSwitcher.vue'
+import ThemeToggle from '@/components/layout/ThemeToggle.vue'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const ui = useUiStore()
 
 const form = ref({ username: 'super', password: 'super' })
 const errors = ref<{ username?: string; password?: string; form?: string }>({})
@@ -69,17 +68,8 @@ async function submit() {
 <template>
   <div class="login-page">
     <div class="login-topbar">
-      <v-btn variant="text" size="small" prepend-icon="mdi-translate" @click="setLocale(locale === 'en' ? 'zh' : 'en')">
-        {{ locale === 'en' ? '中文' : 'English' }}
-      </v-btn>
-      <v-btn
-        variant="text"
-        size="small"
-        :prepend-icon="ui.dark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-        @click="ui.setDark(!ui.dark)"
-      >
-        {{ ui.dark ? t('header.theme.light') : t('header.theme.dark') }}
-      </v-btn>
+      <LocaleSwitcher />
+      <ThemeToggle />
     </div>
 
     <div class="login-shell">

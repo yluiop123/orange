@@ -12,19 +12,18 @@ import {
   FieldLabel
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { LocaleSwitcher } from "@/components/locale-switcher"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { isSafeInternalPath } from "@/lib/path"
 import axios from "@/lib/axios"
 import { cn } from "@/lib/utils"
-import { useLocaleStore, useThemeStore, useUserStore } from '@/store'
+import { useUserStore } from '@/store'
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Eye,
   EyeOff,
-  Languages,
   Loader2Icon,
   Lock,
-  Moon,
-  Sun,
   User,
 } from "lucide-react"
 import React, { useState } from 'react'
@@ -60,8 +59,6 @@ export default function Login({
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useUserStore();
-  const { locale, setLocale } = useLocaleStore();
-  const { mode, setMode } = useThemeStore();
 
   // 登录后回到用户原本访问的页面；from 优先取路由 state，其次取 redirect 查询参数
   const stateFrom = (location.state as { from?: string } | null)?.from;
@@ -106,24 +103,8 @@ export default function Login({
       }}
     >
       <div className="absolute right-4 top-3 z-10 flex items-center gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
-        >
-          <Languages className="size-4" />
-          {locale === 'en' ? '中文' : 'English'}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={mode === 'dark' ? 'Light' : 'Dark'}
-          onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
-        >
-          {mode === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </Button>
+        <LocaleSwitcher />
+        <ThemeToggle />
       </div>
 
       <div className="grid w-full max-w-5xl items-center gap-10 md:grid-cols-[1.15fr_0.85fr]">

@@ -37,6 +37,38 @@ Current result (2026-11-05): React 14/14, Vue 15/15, Angular 15/15.
 
 The scripts cover: login, session refresh after reload, menu navigation, user search, all system pages, group create/delete, status toggle plus rejected disable rollback, permission action validation, zh/en switching, logout and protected-route redirect, restricted-role redirect, and forced password change.
 
+## Visual parity capture
+
+`parity.mjs` captures the same route in all three frontends and reports the
+screenshot diff defined in `.scratch/ui-parity/spec.md`: viewport 1440×900, DPR
+1, locale `zh`, animations disabled, same scroll position. It logs in with the
+mock credentials `super/super`, so start the three dev servers first.
+
+```bash
+node parity.mjs                       # all four general tabs, dark/light, default/blue
+node parity.mjs --tabs=button         # one tab
+node parity.mjs --themes=dark --colors=blue
+```
+
+The script writes the screenshots, `diff-*.png`, `diff-content-*.png` and
+`report.json` to `D:/User/Cache/Temp/opencode/parity` by default. `--out=...`
+changes the directory. Each run reports both the full-viewport diff and a
+content-only diff (the page area below the header and right of the sidebar);
+the content number is the one used to judge page work, while the full number
+also includes shell chrome.
+
+## Control checks
+
+`check-controls.mjs` verifies the shared login/header controls in a real
+browser: language switching (zh → en → zh), theme toggling, locale persistence,
+and the Angular color picker's default swatch. It writes screenshots and
+`report.json` to `D:/User/Cache/Temp/opencode/controls` by default
+(`CONTROLS_OUT` overrides the directory).
+
+```bash
+node check-controls.mjs
+```
+
 ## Real backend
 
 Mock mode must be disabled for the real run:

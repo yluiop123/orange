@@ -19,9 +19,9 @@ export default function ButtonDemoFull() {
       <div className="flex gap-4 flex-wrap">
         <Button>Default</Button>
         <Button className="bg-blue-600 text-white hover:bg-blue-700">Primary 主要</Button>
-        <Button className="bg-gray-200 text-gray-900 hover:bg-gray-300">Secondary 次要</Button>
-        <Button className="bg-red-600 text-white hover:bg-red-700">Destructive 危险</Button>
-        <Button className="bg-green-600 text-white hover:bg-green-700">Success 成功</Button>
+        <Button variant="secondary">Secondary 次要</Button>
+        <Button className="bg-red-500 text-white hover:bg-red-600">Destructive 危险</Button>
+        <Button className="bg-green-500 text-white hover:bg-green-600">Success 成功</Button>
         <Button>
           <a href="https://example.com" target="_blank" rel="noopener noreferrer">
             Link 链接
@@ -62,7 +62,7 @@ export default function ButtonDemoFull() {
           <Coffee size={16} />
           Icon Button
         </Button>
-        <Button className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700">
+        <Button className="flex items-center gap-2 bg-green-500 text-white hover:bg-green-600">
           <Check size={16} />
           Success
         </Button>

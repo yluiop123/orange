@@ -102,43 +102,9 @@
 
       <span class="spacer"></span>
 
-      <button
-        mat-button
-        type="button"
-        class="header-chip"
-        [matMenuTriggerFor]="languageMenu"
-        [attr.title]="'header.language' | t"
-      >
-        {{ i18n.locale() === 'en' ? 'EN' : '中文' }}
-      </button>
-      <mat-menu #languageMenu="matMenu" xPosition="before" class="language-menu">
-        <button mat-menu-item type="button" (click)="changeLocale('zh')">
-          <span>中文</span>
-          @if (i18n.locale() === 'zh') {
-            <span class="language-check" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-            </span>
-          }
-        </button>
-        <button mat-menu-item type="button" (click)="changeLocale('en')">
-          <span>EN</span>
-          @if (i18n.locale() === 'en') {
-            <span class="language-check" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-            </span>
-          }
-        </button>
-      </mat-menu>
+      <app-locale-switcher (changed)="onLocaleChanged()" />
 
-      <button
-        type="button"
-        class="theme-switch"
-        [class.on]="dark()"
-        [attr.aria-label]="dark() ? 'Light' : 'Dark'"
-        (click)="toggleDark(!dark())"
-      >
-        <span class="theme-thumb"></span>
-      </button>
+      <app-theme-toggle [dark]="dark()" (toggled)="toggleDark($event)" />
 
       <button
         type="button"
@@ -156,7 +122,7 @@
               type="button"
               class="color-swatch"
               [attr.aria-label]="item.key"
-              [style.background]="item.key === 'default' ? currentColor() : item.hex"
+              [style.background]="swatchColor(item)"
               (click)="setColor(item.key)"
             >
               @if (color() === item.key) {

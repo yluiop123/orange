@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from 'vuetify'
-import { setLocale, type AppLocale } from '@/i18n'
+import LocaleSwitcher from './LocaleSwitcher.vue'
+import ThemeToggle from './ThemeToggle.vue'
 import { useMenuStore } from '@/stores/menu'
 import { useUiStore } from '@/stores/ui'
 import { findMenuChain } from '@/lib/menu'
@@ -16,16 +17,29 @@ const ui = useUiStore()
 const theme = useTheme()
 
 const THEME_COLOR_KEY = 'orange.color'
-const COLORS = [
+type ColorEntry = {
+  key: string
+  hex: string
+  darkHex?: string
+  lightForeground?: string
+  darkForeground?: string
+}
+const COLORS: readonly ColorEntry[] = [
   { key: 'default', hex: '#18181b' },
-  { key: 'blue', hex: '#3b82f6' },
+  {
+    key: 'blue',
+    hex: '#2b7fff',
+    darkHex: '#155dfc',
+    lightForeground: '#eff6ff',
+    darkForeground: '#1c398e',
+  },
   { key: 'green', hex: '#22c55e' },
   { key: 'orange', hex: '#f97316' },
   { key: 'red', hex: '#ef4444' },
   { key: 'rose', hex: '#f43f5e' },
   { key: 'violet', hex: '#8b5cf6' },
   { key: 'yellow', hex: '#eab308' },
-] as const
+]
 
 const color = ref(localStorage.getItem(THEME_COLOR_KEY) ?? 'default')
 const currentColorHex = computed(() => {
@@ -57,10 +71,11 @@ function mixColor(hex: string, base: string, ratio: number) {
 }
 
 function applySidebarColor(next: string) {
-  const hex = next === 'default' ? '' : (COLORS.find((item) => item.key === next)?.hex ?? '')
+  const entry = COLORS.find((item) => item.key === next)
   const themes = theme.themes.value
   for (const name of ['light', 'dark'] as const) {
     const isDark = name === 'dark'
+    const hex = next === 'default' ? '' : (isDark ? (entry?.darkHex ?? entry?.hex) : entry?.hex) ?? ''
     const base = isDark ? '#18181b' : '#fafafa'
     themes[name].colors['sidebar-active'] = hex
       ? mixColor(hex, base, 0.3)
@@ -74,15 +89,33 @@ function applySidebarColor(next: string) {
 function setColor(next: string) {
   color.value = next
   localStorage.setItem(THEME_COLOR_KEY, next)
-  const hex = COLORS.find((item) => item.key === next)?.hex ?? '#18181b'
+  const entry = COLORS.find((item) => item.key === next)
+  const hex = entry?.hex ?? '#18181b'
   const lightPrimary = next === 'default' ? '#18181b' : hex
-  const darkPrimary = next === 'default' ? '#fafafa' : hex
+  const darkPrimary = next === 'default' ? '#fafafa' : (entry?.darkHex ?? hex)
+  const lightForeground = next === 'default' ? '#fafafa' : (entry?.lightForeground ?? '#fafafa')
+  const darkForeground = next === 'default' ? '#18181b' : (entry?.darkForeground ?? '#18181b')
   theme.themes.value.light.colors.primary = lightPrimary
   theme.themes.value.dark.colors.primary = darkPrimary
+  theme.themes.value.light.colors['on-primary'] = lightForeground
+  theme.themes.value.dark.colors['on-primary'] = darkForeground
   theme.themes.value.light.colors['sidebar-primary'] = lightPrimary
   theme.themes.value.dark.colors['sidebar-primary'] = darkPrimary
+  // React keeps cards on the page background for the neutral palette and on
+  // the raised surface for colored palettes.
+  const demoCard = ui.dark
+    ? next === 'default'
+      ? '#0a0a0a'
+      : '#18181b'
+    : '#ffffff'
+  document.documentElement.style.setProperty('--demo-card', demoCard)
   applySidebarColor(next)
 }
+
+watch(
+  () => ui.dark,
+  () => setColor(color.value),
+)
 
 setColor(color.value)
 
@@ -97,8 +130,7 @@ const breadcrumbs = computed(() => {
     : [{ title: route.path === '/' ? 'ORANGE' : route.path, disabled: true }]
 })
 
-function switchLocale(next: AppLocale) {
-  setLocale(next)
+function onLocaleChanged() {
   menuStore.clearMenus()
   void menuStore.fetchMenus()
 }
@@ -123,40 +155,8 @@ function switchLocale(next: AppLocale) {
 
     <v-spacer />
 
-    <v-menu location="bottom end">
-      <template #activator="{ props: activatorProps }">
-        <v-btn
-          v-bind="activatorProps"
-          variant="text"
-          class="header-language"
-          :aria-label="t('header.language')"
-        >
-          {{ locale === 'en' ? 'EN' : '中文' }}
-        </v-btn>
-      </template>
-      <v-list density="compact" class="language-menu">
-        <v-list-item title="中文" @click="switchLocale('zh')">
-          <template v-if="locale === 'zh'" #append>
-            <v-icon size="16">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-        <v-list-item title="EN" @click="switchLocale('en')">
-          <template v-if="locale === 'en'" #append>
-            <v-icon size="16">mdi-check</v-icon>
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <v-switch
-      :model-value="ui.dark"
-      density="compact"
-      hide-details
-      inset
-      class="header-theme"
-      :aria-label="ui.dark ? t('header.theme.light') : t('header.theme.dark')"
-      @update:model-value="(value) => ui.setDark(Boolean(value))"
-    />
+    <LocaleSwitcher @changed="onLocaleChanged" />
+    <ThemeToggle />
 
     <v-menu location="bottom end">
       <template #activator="{ props: activatorProps }">

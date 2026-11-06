@@ -9,11 +9,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ALL_ROLES, AuthService } from '../core/auth.service';
-import { I18nService, Locale } from '../core/i18n.service';
+import { I18nService } from '../core/i18n.service';
 import { menuLabel } from '../core/menu-labels';
 import { NavigationState } from '../core/navigation-state';
 import { TranslatePipe } from '../core/translate.pipe';
 import { ChangePasswordDialogComponent } from '../shared/change-password-dialog.component';
+import { LocaleSwitcherComponent } from '../shared/locale-switcher.component';
+import { ThemeToggleComponent } from '../shared/theme-toggle.component';
 import { SidebarItemComponent } from './sidebar-item.component';
 import type { MenuNode } from '../core/models';
 
@@ -31,6 +33,8 @@ import type { MenuNode } from '../core/models';
     MatDividerModule,
     MatDialogModule,
     TranslatePipe,
+    LocaleSwitcherComponent,
+    ThemeToggleComponent,
     SidebarItemComponent,
   ],
   templateUrl: './shell.component.html',
@@ -52,7 +56,13 @@ export class ShellComponent {
   readonly color = signal(localStorage.getItem('orange.angular.color') ?? 'default');
   readonly colors = [
     { key: 'default', hex: '#18181b' },
-    { key: 'blue', hex: '#3b82f6' },
+    {
+      key: 'blue',
+      hex: '#2b7fff',
+      darkHex: '#155dfc',
+      lightForeground: '#eff6ff',
+      darkForeground: '#1c398e',
+    },
     { key: 'green', hex: '#22c55e' },
     { key: 'orange', hex: '#f97316' },
     { key: 'red', hex: '#ef4444' },
@@ -129,19 +139,30 @@ export class ShellComponent {
       root.style.removeProperty('--mat-sys-primary-container');
       root.style.setProperty('--app-sidebar-active', isDark ? '#27272a' : '#e7e7e7');
       root.style.setProperty('--app-sidebar-active-foreground', isDark ? '#fafafa' : '#18181b');
+      root.style.setProperty('--demo-card', isDark ? '#0a0a0a' : '#ffffff');
     } else {
-      const foreground = isDark ? '#18181b' : '#ffffff';
-      root.style.setProperty('--app-primary', item.hex);
+      const hex = isDark && 'darkHex' in item ? item.darkHex : item.hex;
+      const foreground =
+        isDark && 'darkForeground' in item
+          ? item.darkForeground
+          : !isDark && 'lightForeground' in item
+            ? item.lightForeground
+            : isDark
+              ? '#18181b'
+              : '#fafafa';
+      root.style.setProperty('--app-primary', hex);
       root.style.setProperty('--app-primary-foreground', foreground);
-      root.style.setProperty('--app-ring', item.hex);
-      root.style.setProperty('--mat-sys-primary', item.hex);
-      root.style.setProperty('--mat-sys-primary-fixed', item.hex);
-      root.style.setProperty('--mat-sys-primary-container', item.hex);
+      root.style.setProperty('--mat-sys-on-primary', foreground);
+      root.style.setProperty('--app-ring', hex);
+      root.style.setProperty('--mat-sys-primary', hex);
+      root.style.setProperty('--mat-sys-primary-fixed', hex);
+      root.style.setProperty('--mat-sys-primary-container', hex);
+      root.style.setProperty('--demo-card', isDark ? '#18181b' : '#ffffff');
       root.style.setProperty(
         '--app-sidebar-active',
-        this.mixColor(item.hex, isDark ? '#18181b' : '#fafafa', 0.3),
+        this.mixColor(hex, isDark ? '#18181b' : '#fafafa', 0.3),
       );
-      root.style.setProperty('--app-sidebar-active-foreground', item.hex);
+      root.style.setProperty('--app-sidebar-active-foreground', hex);
     }
   }
 
@@ -184,11 +205,13 @@ export class ShellComponent {
     return menuLabel(node.path, node.name, this.i18n.locale());
   }
 
-  changeLocale(locale: Locale): void {
-    if (locale === this.i18n.locale()) return;
-    this.i18n.setLocale(locale);
+  onLocaleChanged(): void {
     // Backend menu and role names are localized by the Locale header.
     void this.auth.refreshLocalized();
+  }
+
+  swatchColor(item: { key: string; hex: string }): string {
+    return item.key === 'default' ? (this.dark() ? '#fafafa' : '#18181b') : item.hex;
   }
 
   openChangePassword(): void {

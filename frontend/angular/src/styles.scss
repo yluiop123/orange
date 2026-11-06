@@ -1,10 +1,11 @@
 @use '@angular/material' as mat;
 
 :root {
-  --demo-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --demo-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
   --demo-background: var(--app-background);
   --demo-foreground: var(--app-foreground);
-  --demo-card: var(--app-card);
+  --demo-card: var(--app-background);
   --demo-muted: var(--app-muted);
   --demo-muted-foreground: var(--app-muted-foreground);
   --demo-border: var(--app-border);
@@ -26,11 +27,11 @@
    ------------------------------------------------------------------ */
 
 $app-font: (
-  system-ui,
   -apple-system,
-  '"Segoe UI"',
+  BlinkMacSystemFont,
+  'Segoe UI',
   Roboto,
-  '"Helvetica Neue"',
+  'Helvetica Neue',
   Arial,
   sans-serif
 );
@@ -321,7 +322,6 @@ body {
   font-family: $app-font;
   background: var(--app-background);
   color: var(--app-foreground);
-  -webkit-font-smoothing: antialiased;
 }
 
 h1,
@@ -463,6 +463,13 @@ p {
 
 .mono {
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.code-inline {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--app-muted);
+  font-size: 0.85em;
 }
 
 .empty-state {
@@ -1211,7 +1218,7 @@ html.dark .system-table .mat-mdc-header-cell {
   flex: 0 0 auto;
   align-items: center;
   height: 26px;
-  gap: 2px;
+  gap: 0;
 }
 
 .mat-mdc-tab-header .mat-mdc-tab {
@@ -1234,7 +1241,7 @@ html.dark .system-table .mat-mdc-header-cell {
 }
 
 .mat-mdc-tab-header .mat-mdc-tab .mdc-tab__text-label {
-  line-height: 23px;
+  line-height: 20px;
 }
 
 .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
@@ -1301,12 +1308,13 @@ html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
 /* Demo tab content: align native Material controls with React without
    touching page templates. Scoped to the tab body so header/system buttons
    keep their compact variants. */
-.mat-tab-body .mat-mdc-button.mat-mdc-button,
-.mat-tab-body .mat-mdc-unelevated-button.mat-mdc-unelevated-button,
-.mat-tab-body .mat-mdc-raised-button.mat-mdc-raised-button,
-.mat-tab-body .mat-mdc-outlined-button.mat-mdc-outlined-button,
-.mat-tab-body .mat-mdc-tonal-button.mat-mdc-tonal-button {
+.mat-mdc-tab-body .mat-mdc-button.mat-mdc-button,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.mat-mdc-unelevated-button,
+.mat-mdc-tab-body .mat-mdc-raised-button.mat-mdc-raised-button,
+.mat-mdc-tab-body .mat-mdc-outlined-button.mat-mdc-outlined-button,
+.mat-mdc-tab-body .mat-mdc-tonal-button.mat-mdc-tonal-button {
   height: 2.25rem;
+  min-width: 0;
   min-height: 2.25rem;
   padding: 0 0.625rem;
   border-radius: 0.5rem;
@@ -1316,32 +1324,107 @@ html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
   letter-spacing: 0;
 }
 
-.mat-tab-body .mat-mdc-button .mdc-button__label {
+/* React's Button reserves a 1px transparent border on filled and text
+   variants, which contributes to its measured width. */
+.mat-mdc-tab-body .mat-mdc-button.mat-mdc-button,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.mat-mdc-unelevated-button,
+.mat-mdc-tab-body .mat-mdc-raised-button.mat-mdc-raised-button {
+  border: 1px solid transparent;
+}
+
+.mat-mdc-tab-body .mat-mdc-button .mdc-button__label {
   font-size: 0.875rem;
   line-height: 1.25rem;
 }
 
-.mat-tab-body .mat-mdc-unelevated-button.size-sm,
-.mat-tab-body .mat-mdc-button.size-sm,
-.mat-tab-body .mat-mdc-raised-button.size-sm,
-.mat-tab-body .mat-mdc-outlined-button.size-sm {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.size-sm,
+.mat-mdc-tab-body .mat-mdc-button.size-sm,
+.mat-mdc-tab-body .mat-mdc-raised-button.size-sm,
+.mat-mdc-tab-body .mat-mdc-outlined-button.size-sm {
   height: 2rem;
   min-height: 2rem;
 }
 
-.mat-tab-body .mat-mdc-unelevated-button.size-lg,
-.mat-tab-body .mat-mdc-button.size-lg,
-.mat-tab-body .mat-mdc-raised-button.size-lg,
-.mat-tab-body .mat-mdc-outlined-button.size-lg {
+.mat-mdc-tab-body .mat-mdc-unelevated-button.size-lg,
+.mat-mdc-tab-body .mat-mdc-button.size-lg,
+.mat-mdc-tab-body .mat-mdc-raised-button.size-lg,
+.mat-mdc-tab-body .mat-mdc-outlined-button.size-lg {
   height: 2.5rem;
   min-height: 2.5rem;
 }
 
-.mat-tab-body .mat-mdc-card {
+/* Demo semantic colors and shapes for framework-native buttons. These live
+   here, not in a page stylesheet, so the component demos share one source. */
+.mat-mdc-tab-body .mat-mdc-button.demo-blue,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-blue,
+.mat-mdc-tab-body .mat-mdc-raised-button.demo-blue,
+.mat-mdc-tab-body .mat-mdc-outlined-button.demo-blue {
+  background: #155dfc;
+  color: #ffffff;
+}
+
+.mat-mdc-tab-body .mat-mdc-button.demo-secondary,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-secondary,
+.mat-mdc-tab-body .mat-mdc-raised-button.demo-secondary,
+.mat-mdc-tab-body .mat-mdc-outlined-button.demo-secondary {
+  background: var(--app-muted);
+  color: var(--app-foreground);
+}
+
+.mat-mdc-tab-body .mat-mdc-button.demo-success,
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-success,
+.mat-mdc-tab-body .mat-mdc-raised-button.demo-success,
+.mat-mdc-tab-body .mat-mdc-outlined-button.demo-success {
+  background: #00c950;
+  color: #ffffff;
+}
+
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-square {
+  border-radius: 0;
+}
+
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-icon-square {
+  width: 2.25rem;
+  min-width: 2.25rem;
+  padding: 0;
+}
+
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-round {
+  border-radius: 0.5rem;
+}
+
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-pill {
+  border-radius: 999px;
+}
+
+.mat-mdc-tab-body .mat-mdc-icon-button.demo-icon-small {
+  --mat-icon-button-state-layer-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+}
+
+.mat-mdc-tab-body .mat-mdc-icon-button.demo-icon-small .mat-icon {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+}
+
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-danger {
+  background: #fb2c36;
+  color: #ffffff;
+}
+
+.mat-mdc-tab-body .mat-mdc-unelevated-button.demo-destructive-tonal {
+  background: color-mix(in srgb, #fb2c36 20%, transparent);
+  color: #fb2c36;
+}
+
+.mat-mdc-tab-body .mat-mdc-card {
   border-radius: 0.75rem;
 }
 
-.mat-tab-body .mat-mdc-form-field .mat-mdc-form-field-infix {
+.mat-mdc-tab-body .mat-mdc-form-field .mat-mdc-form-field-infix {
   min-height: 2.25rem;
   font-size: 0.875rem;
   line-height: 1.25rem;

@@ -109,6 +109,8 @@ export default {
     'page.system.operationLog.requestBody':'请求体',
     'button.refresh':'刷新',
     'header.language':'中文',
+    'header.theme.light':'浅色',
+    'header.theme.dark':'深色',
     'button.add':'新增',
     'button.edit':'编辑',
     'button.delete':'删除',

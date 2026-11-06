@@ -7,12 +7,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from '../../core/auth.service';
-import { I18nService, Locale } from '../../core/i18n.service';
+import { I18nService } from '../../core/i18n.service';
 import { NotificationService } from '../../core/notification.service';
 import { isSafeInternalPath } from '../../core/path';
 import { TranslatePipe } from '../../core/translate.pipe';
+import { LocaleSwitcherComponent } from '../../shared/locale-switcher.component';
+import { ThemeToggleComponent } from '../../shared/theme-toggle.component';
 
 @Component({
   selector: 'app-login',
@@ -25,8 +26,9 @@ import { TranslatePipe } from '../../core/translate.pipe';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSelectModule,
     TranslatePipe,
+    LocaleSwitcherComponent,
+    ThemeToggleComponent,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -53,19 +55,10 @@ export class LoginComponent {
     password: ['super', [Validators.required, Validators.minLength(4)]],
   });
 
-  changeLocale(locale: Locale): void {
-    this.i18n.setLocale(locale);
-  }
-
-  toggleLocale(): void {
-    this.i18n.setLocale(this.i18n.locale() === 'en' ? 'zh' : 'en');
-  }
-
-  toggleTheme(): void {
-    const next = !this.dark();
-    this.dark.set(next);
-    localStorage.setItem('orange.angular.theme', next ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', next);
+  toggleTheme(value: boolean): void {
+    this.dark.set(value);
+    localStorage.setItem('orange.angular.theme', value ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', value);
   }
 
   async submit(): Promise<void> {

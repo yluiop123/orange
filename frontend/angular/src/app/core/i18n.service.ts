@@ -1,6 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
-
-export type Locale = 'zh' | 'en';
+import { Injectable, signal } from '@angular/core';
 
 type Dict = Record<string, string>;
 
@@ -8,6 +6,8 @@ const EN: Dict = {
   'app.name': 'ORANGE',
   'app.subtitle': 'Admin console',
   'header.language': 'Language',
+  'header.theme.light': 'Light',
+  'header.theme.dark': 'Dark',
   'header.switchRole': 'View as role',
   'header.allRoles': 'All roles',
   'header.changePassword': 'Change password',
@@ -304,6 +304,8 @@ const ZH: Dict = {
   'app.name': 'ORANGE',
   'app.subtitle': '管理控制台',
   'header.language': '语言',
+  'header.theme.light': '浅色',
+  'header.theme.dark': '深色',
   'header.switchRole': '切换角色视角',
   'header.allRoles': '全部角色',
   'header.changePassword': '修改密码',
@@ -595,21 +597,34 @@ const ZH: Dict = {
   'demo.loading': '演示加载中…',
 };
 
-const DICTIONARIES: Record<Locale, Dict> = { en: EN, zh: ZH };
+export const DICTIONARIES = { en: EN, zh: ZH } as const;
+export type Locale = keyof typeof DICTIONARIES;
 const STORAGE_KEY = 'locale';
 
 @Injectable({ providedIn: 'root' })
 export class I18nService {
   private readonly _locale = signal<Locale>(readInitialLocale());
   readonly locale = this._locale.asReadonly();
-  readonly languages = computed(() => [
-    { id: 'zh' as Locale, label: '中文' },
-    { id: 'en' as Locale, label: 'English' },
-  ]);
+  readonly languages = [
+    { id: 'zh' as Locale, label: '中文', htmlLang: 'zh-CN' },
+    { id: 'en' as Locale, label: 'English', htmlLang: 'en' },
+  ] as const;
 
   setLocale(locale: Locale): void {
     this._locale.set(locale);
     localStorage.setItem(STORAGE_KEY, locale);
+    this.applyDocumentLang(locale);
+  }
+
+  constructor() {
+    this.applyDocumentLang(this._locale());
+  }
+
+  private applyDocumentLang(locale: Locale): void {
+    if (typeof document !== 'undefined') {
+      const tag = this.languages.find((item) => item.id === locale)?.htmlLang ?? locale;
+      document.documentElement.lang = tag;
+    }
   }
 
   t(key: string, params?: Record<string, unknown>): string {
@@ -624,6 +639,7 @@ export class I18nService {
 
 function readInitialLocale(): Locale {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'zh' || stored === 'en') return stored;
-  return navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  if (stored && stored in DICTIONARIES) return stored as Locale;
+  const language = navigator.language.toLowerCase().split('-')[0];
+  return language in DICTIONARIES ? (language as Locale) : 'en';
 }

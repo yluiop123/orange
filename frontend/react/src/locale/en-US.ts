@@ -109,6 +109,8 @@ export default {
     'page.system.operationLog.requestBody':'Request Body',
     'button.refresh':'Refresh',
     'header.language':'EN',
+    'header.theme.light':'Light',
+    'header.theme.dark':'Dark',
     'button.add':'Add',
     'button.edit':'Edit',
     'button.delete':'Delete',

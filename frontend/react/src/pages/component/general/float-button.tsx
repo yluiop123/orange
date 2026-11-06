@@ -3,7 +3,7 @@ import { Edit, Plus, Trash } from "lucide-react";
 
 export default function FloatButtonPage() {
   return (
-    <div className="min-h-[1200px] bg-gray-50 p-6 w-full">
+    <div className="min-h-[1200px] bg-background p-6 w-full">
       <p className="mb-12">页面内容很长，可以滚动。示例展示回到顶部、不同位置与展开方向。</p>
 
       {/* 回到顶部按钮 */}

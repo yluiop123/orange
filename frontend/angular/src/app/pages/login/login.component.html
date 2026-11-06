@@ -1,17 +1,7 @@
 <div class="login-page">
   <div class="login-topbar">
-    <button mat-button type="button" class="topbar-button" (click)="toggleLocale()">
-      <mat-icon>translate</mat-icon>
-      {{ i18n.locale() === 'en' ? '中文' : 'English' }}
-    </button>
-    <button
-      mat-icon-button
-      type="button"
-      [attr.aria-label]="dark() ? 'Light' : 'Dark'"
-      (click)="toggleTheme()"
-    >
-      <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-    </button>
+    <app-locale-switcher />
+    <app-theme-toggle [dark]="dark()" (toggled)="toggleTheme($event)" />
   </div>
 
   <div class="login-shell">

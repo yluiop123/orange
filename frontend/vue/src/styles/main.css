@@ -1,10 +1,11 @@
 @import '../../../shared/demo.css';
 
 :root {
-  --demo-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --demo-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
   --demo-background: rgb(var(--v-theme-background));
   --demo-foreground: rgb(var(--v-theme-on-surface));
-  --demo-card: rgb(var(--v-theme-surface));
+  --demo-card: rgb(var(--v-theme-background));
   --demo-muted: rgb(var(--v-theme-surface-variant));
   --demo-muted-foreground: rgb(var(--v-theme-on-surface-variant));
   --demo-border: rgba(var(--v-border-color), var(--v-border-opacity));
@@ -36,20 +37,21 @@ body,
 body {
   margin: 0;
   font-family:
-    ui-sans-serif,
-    system-ui,
     -apple-system,
+    BlinkMacSystemFont,
     'Segoe UI',
-    'PingFang SC',
-    'Microsoft YaHei',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
     sans-serif;
   background: rgb(var(--v-theme-background));
   color: rgb(var(--v-theme-on-surface));
-  -webkit-font-smoothing: antialiased;
 }
 
 .v-application {
   font-family: inherit;
+  -webkit-font-smoothing: auto;
+  text-rendering: auto;
 }
 
 /* Cards, buttons and inputs share the shadcn-style radius (0.75rem). */
@@ -105,6 +107,20 @@ body {
 .v-btn .v-ripple__container,
 .v-btn .v-btn__underlay {
   display: none;
+}
+
+/* Links rendered inside a native button inherit the button's color and do
+   not add the browser's default underline. */
+.v-btn a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Tonal destructive action: React uses bg-destructive/20 with destructive
+   text. Vuetify's tonal variant paints through the hidden underlay, so give
+   this one an explicit tint. */
+.v-btn.demo-destructive-tonal {
+  background: color-mix(in srgb, #fb2c36 20%, transparent);
 }
 
 .v-btn.v-btn--variant-elevated,
@@ -185,6 +201,7 @@ a:focus-visible,
 .v-window .v-btn.v-btn {
   --v-btn-height: 2.25rem;
   height: var(--v-btn-height);
+  min-width: 0;
   min-height: var(--v-btn-height);
   padding: 0 0.625rem;
   border-radius: 0.5rem;
@@ -203,6 +220,17 @@ a:focus-visible,
 
 .v-window .v-btn.v-btn--icon {
   width: var(--v-btn-height);
+  padding: 0;
+}
+
+.v-window .v-btn .v-btn__content {
+  flex: 0 0 auto;
+}
+
+.v-btn.demo-icon-small {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
   padding: 0;
 }
 
@@ -308,7 +336,7 @@ code {
 .demo-page {
   display: flex;
   flex-direction: column;
-  gap: var(--orange-content-gap);
+  gap: 0.5rem;
 }
 
 .demo-grid {
@@ -418,7 +446,7 @@ code {
 .v-tabs .v-slide-group__content {
   align-items: center;
   height: 26px;
-  gap: 2px;
+  gap: 0;
 }
 
 .v-tabs .v-tab.v-tab.v-btn {
@@ -430,7 +458,7 @@ code {
   color: rgb(var(--v-theme-on-surface-variant));
   font-size: 14px;
   font-weight: 500;
-  line-height: 1;
+  line-height: 20px;
   letter-spacing: 0;
   text-transform: none;
 }

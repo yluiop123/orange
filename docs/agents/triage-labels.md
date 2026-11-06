@@ -13,3 +13,9 @@ The skills speak in terms of five canonical triage roles. This file maps those r
 When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table.
 
 Edit the right-hand column to match whatever vocabulary you actually use.
+
+## Lifecycle status
+
+Tickets also use `Status: resolved` as the terminal state once the work is
+implemented and verified (see `.scratch/ui-parity/issues/01-*` and `02-*`). It
+is a lifecycle state, not a triage label.
