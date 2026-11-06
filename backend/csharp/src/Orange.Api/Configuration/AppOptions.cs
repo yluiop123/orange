@@ -19,6 +19,7 @@ public sealed class AppOptions
     public string DatabaseSource { get; init; } = "DB_*";
 
     public required string JwtSecret { get; init; }
+    public required string JwtIssuer { get; init; }
     public required string[] CorsOrigins { get; init; }
     public required int Port { get; init; }
     public int AccessTokenSeconds { get; init; } = 900;
@@ -31,20 +32,24 @@ public sealed class AppOptions
     public string CookieDomain { get; init; } = "";
     public int OperationLogRetentionDays { get; init; } = 90;
 
+    private const string DevJwtSecret = "orange-dev-secret-change-me-in-production";
+
     public static AppOptions FromEnvironment()
     {
         var database = DatabaseConnection.Resolve();
-        return new AppOptions
+        var options = new AppOptions
         {
             Driver = database.Driver,
             ConnectionString = database.ConnectionString,
             DatabaseSource = database.Source,
-            // Development-only default. Production must set JWT_SECRET.
-            JwtSecret = Env("JWT_SECRET", "orange-development-secret-change-me-0123456789abcdef"),
+            JwtSecret = Env("JWT_SECRET", DevJwtSecret),
+            JwtIssuer = Env("JWT_ISSUER", "orange"),
             CorsOrigins = Env("CORS_ORIGINS", Env("CORS_ALLOWED_ORIGINS", "http://localhost:5173"))
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             Port = EnvInt("APP_PORT", EnvInt("PORT", 8082)),
-            AccessTokenSeconds = EnvInt("JWT_ACCESS_EXPIRE", EnvInt("ACCESS_TOKEN_SECONDS", 900)),
+            AccessTokenSeconds = EnvInt(
+                "JWT_ACCESS_EXPIRE",
+                EnvInt("ACCESS_TOKEN_EXPIRE_SECONDS", EnvInt("ACCESS_TOKEN_SECONDS", 900))),
             RefreshTokenSeconds = EnvInt("JWT_REFRESH_EXPIRE", 604800),
             LoginMaxAttempts = EnvInt("LOGIN_MAX_ATTEMPTS", 5),
             LoginIpMaxAttempts = EnvInt("LOGIN_IP_MAX_ATTEMPTS", 20),
@@ -54,6 +59,19 @@ public sealed class AppOptions
             CookieDomain = Env("COOKIE_DOMAIN", ""),
             OperationLogRetentionDays = EnvInt("LOG_RETENTION_DAYS", EnvInt("OPERATION_LOG_RETENTION_DAYS", 90))
         };
+
+        if (IsProduction() && options.JwtSecret == DevJwtSecret)
+        {
+            throw new InvalidOperationException(
+                "JWT_SECRET must be set to a non-default value in production");
+        }
+        return options;
+    }
+
+    private static bool IsProduction()
+    {
+        var environment = Env("APP_ENV", "local").ToLowerInvariant();
+        return environment is "production" or "prod";
     }
 
     private static string Env(string key, string fallback)

@@ -103,6 +103,7 @@ public class LoginLockoutTests
         {
             ConnectionString = "Host=localhost;Port=5432;Database=orange;Username=postgres;Password=postgres",
             JwtSecret = "test-secret-0123456789",
+            JwtIssuer = "orange",
             CorsOrigins = new[] { "http://localhost:5173" },
             Port = 8082,
             LoginMaxAttempts = 5,

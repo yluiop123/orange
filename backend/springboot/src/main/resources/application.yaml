@@ -45,6 +45,7 @@ jwt:
   public-key: ${JWT_PUBLIC_KEY:classpath:keys/public_key.pem}
   access-expire: ${JWT_ACCESS_EXPIRE:900}        # 15分钟
   refresh-expire: ${JWT_REFRESH_EXPIRE:604800}   # 7天
+  issuer: ${JWT_ISSUER:orange}
 springdoc:
   # 默认关闭接口文档；本地联调时显式设置 SPRINGDOC_ENABLED=true
   swagger-ui:

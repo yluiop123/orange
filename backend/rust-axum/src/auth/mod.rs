@@ -102,7 +102,11 @@ pub async fn authenticate_token(
     state: &AppState,
     token: &str,
 ) -> Result<(AuthUser, AccessClaims), AppError> {
-    let claims = jwt::decode(token, &state.config.jwt_secret)
+    let claims = jwt::decode(
+        token,
+        &state.config.jwt_secret,
+        &state.config.jwt_issuer,
+    )
         .map_err(|_| AppError::unauthorized("未登录"))?;
 
     if claims.typ != jwt::TYPE_ACCESS {

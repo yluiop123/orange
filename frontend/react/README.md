@@ -75,7 +75,9 @@ cp .env .env.local   # optional local override (gitignored)
 | `VITE_BASE_API` | API prefix, default `/api/v1/` |
 | `VITE_PROXY_TARGET` | Dev-only proxy target, default `http://127.0.0.1:8080` |
 | `VITE_MOCK_ENABLE` | Enable MSW; `false` talks to the real backend |
-| `VITE_CESIUM_TOKEN` | Optional Cesium Ion token; empty uses OpenStreetMap |
+
+The Cesium page uses bundled CesiumJS and OpenStreetMap imagery, so no Cesium
+Ion token is required.
 
 Do not set `VITE_ROUTE`: routing is always `HashRouter`. `.env` and
 `.env.development` are committed defaults; keep machine-specific values in

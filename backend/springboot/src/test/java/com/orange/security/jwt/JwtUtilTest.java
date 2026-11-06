@@ -32,7 +32,7 @@ class JwtUtilTest {
         generator.initialize(2048);
         keyPair = generator.generateKeyPair();
         jwtUtil = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(),
-                new JwtProperties(300, 600, null, null));
+                new JwtProperties(300, 600, "orange", null, null));
         user = new AuthUser(
                 "user-id",
                 "alice",
@@ -91,7 +91,7 @@ class JwtUtilTest {
     @Test
     void expiredTokenIsRejectedWhenParsed() {
         JwtUtil shortLived = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(),
-                new JwtProperties(-60, 600, null, null));
+                new JwtProperties(-60, 600, "orange", null, null));
         String token = shortLived.generateJwtToken(user);
 
         assertThrows(JwtException.class, () -> shortLived.parseAccessToken(token));
@@ -105,6 +105,7 @@ class JwtUtilTest {
                 .claim("typ", "access")
                 .claim("ver", 3)
                 .subject("alice")
+                .issuer("orange")
                 .issuedAt(issuedAt)
                 .expiration(Date.from(Instant.ofEpochMilli(issuedAt.getTime()).plusSeconds(60)))
                 .signWith(keyPair.getPrivate(), Jwts.SIG.RS256)

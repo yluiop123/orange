@@ -64,7 +64,9 @@ mock off. Set `mock: true` in `environment.local.ts` to run without a backend.
 | `VITE_BASE_API` (React) / `VITE_API_BASE` (Vue) | API prefix, default `/api/v1/` |
 | `VITE_PROXY_TARGET` | Vite dev proxy target, default `http://127.0.0.1:8080` |
 | `VITE_MOCK_ENABLE` | In-browser mock switch |
-| `VITE_CESIUM_TOKEN` | Optional Cesium Ion token; empty falls back to OpenStreetMap |
+
+The Cesium page uses bundled CesiumJS and OpenStreetMap imagery, so no Cesium
+Ion token is required.
 
 Angular has no `VITE_*`: edit `apiBase` and `mock` in the environment file.
 `proxy.conf.json` forwards `/api` to the backend during `npm start`.
@@ -85,6 +87,6 @@ port. The default is `http://127.0.0.1:8080` (Spring Boot / FastAPI demo).
 - React always uses `HashRouter`; there is no routing-mode variable. Do not add
   `VITE_ROUTE` back.
 - Use `127.0.0.1`, not `localhost`, for proxy targets on Windows.
-- Never commit `.env.local` or a real secret such as a Cesium token.
+- Never commit `.env.local` or a real secret.
 - `.env` / `.env.development` are the committed defaults; keep them free of
   machine-specific values.

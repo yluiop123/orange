@@ -22,6 +22,7 @@ public sealed class JwtService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = null };
     private readonly byte[] _key;
+    private readonly string _issuer;
 
     public JwtService(AppOptions options)
     {
@@ -30,6 +31,7 @@ public sealed class JwtService
             throw new InvalidOperationException("JWT_SECRET must not be empty");
         }
         _key = Encoding.UTF8.GetBytes(options.JwtSecret);
+        _issuer = options.JwtIssuer;
         AccessExpireSeconds = options.AccessTokenSeconds;
         RefreshExpireSeconds = options.RefreshTokenSeconds;
     }
@@ -63,6 +65,7 @@ public sealed class JwtService
             ["ver"] = version,
             ["username"] = username,
             ["sub"] = userId,
+            ["iss"] = _issuer,
             ["iat"] = issuedAt.ToUnixTimeSeconds(),
             ["exp"] = expiresAt.ToUnixTimeSeconds()
         };
@@ -101,6 +104,11 @@ public sealed class JwtService
         var type = root.GetProperty("typ").GetString() ?? throw new ArgumentException("missing typ");
         var username = root.GetProperty("username").GetString() ?? throw new ArgumentException("missing username");
         var subject = root.GetProperty("sub").GetString() ?? throw new ArgumentException("missing sub");
+        var issuer = root.TryGetProperty("iss", out var iss) ? iss.GetString() : null;
+        if (!string.Equals(issuer, _issuer, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("invalid issuer");
+        }
         var version = root.GetProperty("ver").GetInt32();
         var issuedAt = DateTimeOffset.FromUnixTimeSeconds(root.GetProperty("iat").GetInt64());
         var expiresAt = DateTimeOffset.FromUnixTimeSeconds(root.GetProperty("exp").GetInt64());

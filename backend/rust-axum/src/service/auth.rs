@@ -21,7 +21,7 @@ fn expires_at(seconds: i64) -> chrono::DateTime<Utc> {
 
 fn issue_tokens(state: &AppState, user: &User) -> Result<LoginSuccess, AppError> {
     let access_claims = jwt::issue(
-        &state.config.jwt_secret,
+        &state.config.jwt_issuer,
         &user.id,
         &user.username,
         user.token_version,
@@ -29,7 +29,7 @@ fn issue_tokens(state: &AppState, user: &User) -> Result<LoginSuccess, AppError>
         state.config.access_expire,
     )?;
     let refresh_claims = jwt::issue(
-        &state.config.jwt_secret,
+        &state.config.jwt_issuer,
         &user.id,
         &user.username,
         user.token_version,
@@ -109,7 +109,11 @@ pub async fn refresh(
     state: &AppState,
     refresh_token: &str,
 ) -> Result<LoginSuccess, AppError> {
-    let claims = jwt::decode(refresh_token, &state.config.jwt_secret)
+    let claims = jwt::decode(
+        refresh_token,
+        &state.config.jwt_secret,
+        &state.config.jwt_issuer,
+    )
         .map_err(|_| AppError::unauthorized("登录已过期"))?;
     if claims.typ != jwt::TYPE_REFRESH {
         return Err(AppError::unauthorized("登录已过期"));
@@ -149,7 +153,11 @@ pub async fn logout(
     let mut username: Option<String> = None;
 
     if let Some(token) = refresh_token {
-        if let Ok(claims) = jwt::decode(&token, &state.config.jwt_secret) {
+        if let Ok(claims) = jwt::decode(
+            &token,
+            &state.config.jwt_secret,
+            &state.config.jwt_issuer,
+        ) {
             if claims.typ == jwt::TYPE_REFRESH {
                 username = Some(claims.username.clone());
                 let _ = security::revoke(

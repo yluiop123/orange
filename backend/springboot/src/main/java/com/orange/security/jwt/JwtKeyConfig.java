@@ -4,6 +4,8 @@ import com.orange.security.config.JwtProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
@@ -29,9 +31,11 @@ public class JwtKeyConfig {
     private static final int RSA_KEY_SIZE = 2048;
 
     private final JwtProperties properties;
+    private final Environment environment;
 
-    public JwtKeyConfig(JwtProperties properties) {
+    public JwtKeyConfig(JwtProperties properties, Environment environment) {
         this.properties = properties;
+        this.environment = environment;
     }
 
     /**
@@ -42,6 +46,10 @@ public class JwtKeyConfig {
     public KeyPair jwtKeyPair() throws GeneralSecurityException, IOException {
         if (resourceExists(properties.privateKey()) && resourceExists(properties.publicKey())) {
             return new KeyPair(loadPublicKey(), loadPrivateKey());
+        }
+        if (isProduction()) {
+            throw new IllegalStateException(
+                    "JWT key files are missing in production; configure jwt.private-key and jwt.public-key");
         }
         log.warn("JWT key files are missing; generating an ephemeral RSA key pair. "
                 + "Old tokens will be invalid after restart. Configure jwt.private-key and jwt.public-key in production.");
@@ -70,6 +78,13 @@ public class JwtKeyConfig {
         byte[] decoded = decodeKey(properties.publicKey(), PUBLIC_KEY_TYPE);
         return KeyFactory.getInstance(RSA_ALGORITHM)
                 .generatePublic(new X509EncodedKeySpec(decoded));
+    }
+
+    private boolean isProduction() {
+        String appEnv = environment.getProperty("APP_ENV", "local").toLowerCase();
+        return "production".equals(appEnv)
+                || "prod".equals(appEnv)
+                || environment.acceptsProfiles(Profiles.of("prod"));
     }
 
     private boolean resourceExists(Resource resource) {

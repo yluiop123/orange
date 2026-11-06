@@ -19,12 +19,14 @@ pub struct Claims {
     /// `sys_user.token_version` at issue time.
     pub ver: i32,
     pub username: String,
+    /// Issuer, validated on every decode.
+    pub iss: String,
     pub iat: i64,
     pub exp: i64,
 }
 
 pub fn issue(
-    secret: &str,
+    issuer: &str,
     user_id: &str,
     username: &str,
     token_version: i32,
@@ -38,6 +40,7 @@ pub fn issue(
         typ: token_type.to_string(),
         ver: token_version,
         username: username.to_string(),
+        iss: issuer.to_string(),
         iat: issued_at,
         exp: issued_at + expires_in,
     };
@@ -56,8 +59,9 @@ pub fn encode_token(secret: &str, claims: &Claims) -> Result<String, AppError> {
     })
 }
 
-pub fn decode(token: &str, secret: &str) -> Result<Claims, AppError> {
-    let validation = Validation::new(Algorithm::HS256);
+pub fn decode(token: &str, secret: &str, issuer: &str) -> Result<Claims, AppError> {
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.set_issuer(&[issuer]);
     jwt_decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret.as_bytes()),

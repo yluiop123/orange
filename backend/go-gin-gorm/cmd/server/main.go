@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -24,6 +25,11 @@ func main() {
 	// Local generated configuration; absent in containers that inject env vars.
 	_ = godotenv.Load(".env.local")
 	cfg := config.Load()
+
+	if environment := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV"))); (environment == "production" || environment == "prod") &&
+		cfg.JWT.Secret == "orange-dev-secret-change-me-in-production" {
+		log.Fatal("JWT_SECRET must be set to a non-default value in production")
+	}
 
 	tokens, err := auth.NewTokenService(cfg.JWT)
 	if err != nil {

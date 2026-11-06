@@ -35,7 +35,9 @@ export class TokenService {
   }
 
   verify(token: string): Promise<TokenClaims> {
-    return this.jwt.verifyAsync<TokenClaims>(token);
+    return this.jwt.verifyAsync<TokenClaims>(token, {
+      issuer: this.config.jwt.issuer,
+    });
   }
 
   async parseAccess(token: string): Promise<TokenClaims> {
@@ -71,7 +73,7 @@ export class TokenService {
         username: user.username,
         sub: user.id,
       },
-      { expiresIn },
+      { expiresIn, issuer: this.config.jwt.issuer },
     );
   }
 }

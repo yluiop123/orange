@@ -25,6 +25,7 @@ public class JwtUtil {
     private final PublicKey publicKey;
     private final long accessExpire;
     private final long refreshExpire;
+    private final String issuer;
 
     public JwtUtil(PrivateKey privateKey,
                    PublicKey publicKey,
@@ -33,6 +34,7 @@ public class JwtUtil {
         this.publicKey = publicKey;
         this.accessExpire = properties.accessExpire();
         this.refreshExpire = properties.refreshExpire();
+        this.issuer = properties.issuer();
     }
 
     public String generateJwtToken(UserDetails userDetails) {
@@ -76,6 +78,7 @@ public class JwtUtil {
                 .claim(CLAIM_VERSION, tokenVersion(userDetails))
                 .claim(CLAIM_USERNAME, userDetails.getUsername())
                 .subject(subject(userDetails))
+                .issuer(issuer)
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(expiresAt))
                 .signWith(privateKey, Jwts.SIG.RS256)
@@ -85,6 +88,7 @@ public class JwtUtil {
     private JwtClaims parseToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(publicKey)
+                .requireIssuer(issuer)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

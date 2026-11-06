@@ -70,7 +70,8 @@ cp .env .env.local   # 可选的本地覆盖（gitignore）
 | `VITE_BASE_API` | API 前缀，默认 `/api/v1/` |
 | `VITE_PROXY_TARGET` | 仅开发代理目标，默认 `http://127.0.0.1:8080` |
 | `VITE_MOCK_ENABLE` | 启用 MSW；`false` 时连接真实后端 |
-| `VITE_CESIUM_TOKEN` | 可选 Cesium Ion token；为空时使用 OpenStreetMap |
+
+Cesium 页面使用本地打包的 CesiumJS 和 OpenStreetMap 底图，不需要 Cesium Ion token。
 
 不要设置 `VITE_ROUTE`：路由固定为 `HashRouter`。`.env` 与
 `.env.development` 是提交的默认值，本机特定配置放在 `.env.local`。

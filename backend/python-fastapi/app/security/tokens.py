@@ -47,6 +47,7 @@ def create_token(user: User, token_type: str, expires_seconds: int) -> IssuedTok
         "typ": token_type,
         "ver": user.token_version or 0,
         "jti": jti,
+        "iss": settings.jwt_issuer,
         "iat": int(now.timestamp()),
         "exp": int(expires_at.timestamp()),
     }
@@ -60,7 +61,8 @@ def decode_token(token: str, expected_type: str) -> TokenClaims:
             token,
             settings.jwt_secret,
             algorithms=[settings.jwt_algorithm],
-            options={"require": ["exp", "iat", "sub", "jti"]},
+            issuer=settings.jwt_issuer,
+            options={"require": ["exp", "iat", "sub", "jti", "iss"]},
         )
     except jwt.ExpiredSignatureError as exc:
         raise unauthorized("登录已过期") from exc

@@ -47,11 +47,17 @@ win. In containers the platform injects the environment instead.
 | --- | --- |
 | Port | `PORT` (Spring: `APP_PORT` / `server.port`) |
 | Database | `DB_DRIVER`, `DATABASE_URL` (Spring: `DB_URL` / `SPRING_DATASOURCE_URL`), `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSLMODE` |
-| JWT | `JWT_SECRET`, access/refresh TTL, issuer; Spring uses RSA PEM paths |
+| JWT | `JWT_SECRET` (HS256 stacks), `JWT_ISSUER`, `JWT_ACCESS_EXPIRE`, `JWT_REFRESH_EXPIRE`; Spring Boot uses RS256 PEM keys |
 | Cookie | `COOKIE_SECURE`, `COOKIE_SAME_SITE`, `COOKIE_DOMAIN` |
 | CORS | `CORS_ORIGINS` |
 | Operations | operation-log retention |
 | Lockout | `LOGIN_MAX_ATTEMPTS`, `LOGIN_IP_MAX_ATTEMPTS`, `LOGIN_LOCK_MINUTES` |
+
+The JWT contract is the same in every stack: `iss=orange`, access 900s, refresh
+604800s, and the claims `jti/typ/ver/username/sub/iss/iat/exp`. Spring Boot
+signs with RS256; the other stacks use HS256 by default (Go can also use RS256
+when `JWT_PRIVATE_KEY_PATH` / `JWT_PUBLIC_KEY_PATH` are set). Run
+`node scripts/check-config.mjs` to verify the committed templates.
 
 ## Switching the database
 

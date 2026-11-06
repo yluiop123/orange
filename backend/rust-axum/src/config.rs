@@ -14,6 +14,7 @@ pub struct Config {
     /// `DB_DRIVER` when set; otherwise the URL scheme decides.
     pub db_driver: Option<String>,
     pub jwt_secret: String,
+    pub jwt_issuer: String,
     pub cors_origins: Vec<String>,
     pub port: u16,
     pub access_expire: i64,
@@ -43,6 +44,18 @@ impl Config {
             }
         };
 
+        let environment = optional_env("APP_ENV")
+            .unwrap_or_else(|| "local".to_string())
+            .to_ascii_lowercase();
+        if matches!(environment.as_str(), "production" | "prod")
+            && jwt_secret == DEV_JWT_SECRET
+        {
+            panic!("JWT_SECRET must be set to a non-default value in production");
+        }
+
+        let jwt_issuer =
+            optional_env("JWT_ISSUER").unwrap_or_else(|| "orange".to_string());
+
         let origins = optional_env("CORS_ORIGINS")
             .or_else(|| optional_env("CORS_ALLOWED_ORIGINS"))
             .unwrap_or_else(|| "http://localhost:5173,http://localhost:5174,http://localhost:4200".to_string());
@@ -57,6 +70,7 @@ impl Config {
             database_url,
             db_driver,
             jwt_secret,
+            jwt_issuer,
             cors_origins,
             port: parse_env_any(&["APP_PORT", "PORT"], 8083u16),
             access_expire: parse_env_any(&["JWT_ACCESS_EXPIRE", "ACCESS_TOKEN_EXPIRE_SECONDS"], 900i64),

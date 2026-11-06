@@ -18,7 +18,11 @@ export interface JwtConfig {
   secret: string;
   accessExpire: number;
   refreshExpire: number;
+  issuer: string;
 }
+
+/** Shared development fallback. Production must override it. */
+const DEV_JWT_SECRET = 'orange-dev-secret-change-me-in-production';
 
 export interface CookieConfig {
   secure: boolean;
@@ -45,11 +49,19 @@ export interface OperationLogConfig {
 export class AppConfig {
   readonly port = int(process.env.APP_PORT ?? process.env.PORT, 3000);
   readonly db: DbConfig = buildDbConfig();
-  readonly jwt: JwtConfig = {
-    secret: process.env.JWT_SECRET || 'orange-dev-secret-change-me',
-    accessExpire: int(process.env.JWT_ACCESS_EXPIRE, 900),
-    refreshExpire: int(process.env.JWT_REFRESH_EXPIRE, 604800),
-  };
+  readonly jwt: JwtConfig = (() => {
+    const secret = process.env.JWT_SECRET || DEV_JWT_SECRET;
+    const environment = (process.env.APP_ENV || process.env.NODE_ENV || 'local').toLowerCase();
+    if ((environment === 'production' || environment === 'prod') && secret === DEV_JWT_SECRET) {
+      throw new Error('JWT_SECRET must be set to a non-default value in production');
+    }
+    return {
+      secret,
+      accessExpire: int(process.env.JWT_ACCESS_EXPIRE, 900),
+      refreshExpire: int(process.env.JWT_REFRESH_EXPIRE, 604800),
+      issuer: process.env.JWT_ISSUER || 'orange',
+    };
+  })();
   readonly corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:5174,http://localhost:4200')
     .split(',')
     .map((origin) => origin.trim())

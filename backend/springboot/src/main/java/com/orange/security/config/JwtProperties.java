@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 public record JwtProperties(
         long accessExpire,
         long refreshExpire,
+        String issuer,
         Resource privateKey,
         Resource publicKey) {
 }
