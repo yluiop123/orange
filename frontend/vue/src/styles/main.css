@@ -148,6 +148,37 @@ a:focus-visible,
   color: rgb(var(--v-theme-primary));
 }
 
+/* Alerts follow React: rounded-lg, px-4 py-3, text-sm. */
+.v-alert {
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Menu/popover surfaces follow React: rounded-md, p-1. */
+.v-menu > .v-overlay__content > .v-list,
+.v-menu > .v-overlay__content > .v-sheet,
+.v-select > .v-overlay__content > .v-list {
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+}
+
+/* Badges/chips follow React: h-5, px-2, text-xs, pill. */
+.v-chip {
+  height: 1.25rem;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+}
+
+.v-chip .v-chip__content {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
 /* Tables: muted header, 2.5rem rows, 1px dividers. */
 .v-table,
 .v-table.v-table--density-default,

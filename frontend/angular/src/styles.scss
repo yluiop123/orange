@@ -208,9 +208,15 @@ html {
   --mat-paginator-form-field-container-height: 2rem;
   --mat-paginator-form-field-container-vertical-padding: 0.25rem;
 
-  --mat-menu-container-shape: var(--app-radius);
+  --mat-menu-container-shape: 0.375rem;
 
-  --mat-dialog-container-shape: var(--app-radius);
+  --mat-dialog-container-shape: 0.75rem;
+
+  /* Chips follow the React Badge metrics. */
+  --mat-chip-container-height: 1.25rem;
+  --mat-chip-container-shape: 9999px;
+  --mat-chip-label-text-size: 0.75rem;
+  --mat-chip-label-text-weight: 500;
 }
 
 @mixin dark-tokens {
