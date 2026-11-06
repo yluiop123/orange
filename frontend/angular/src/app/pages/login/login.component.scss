@@ -3,112 +3,123 @@
 }
 
 .login-page {
-  display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  min-height: 100vh;
-  background: var(--app-background);
-}
-
-.brand-panel {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 48px 56px;
-  color: #f8fafc;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
   background:
-    radial-gradient(900px 600px at 10% 0%, rgba(249, 115, 22, 0.32), transparent 60%),
-    radial-gradient(700px 500px at 90% 100%, rgba(249, 115, 22, 0.18), transparent 60%),
-    #0f141d;
+    radial-gradient(
+      circle at 12% 18%,
+      color-mix(in srgb, var(--app-primary) 22%, transparent),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 88% 82%,
+      color-mix(in srgb, var(--app-primary) 16%, transparent),
+      transparent 46%
+    ),
+    var(--app-background);
 }
 
-.brand-top {
+.login-topbar {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 10;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
 }
 
-.brand-mark {
+.topbar-button {
+  min-width: 0;
+  font-size: 0.75rem;
+}
+
+.login-shell {
   display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--app-radius);
-  background: linear-gradient(135deg, #f97316, #ea580c);
+  width: 100%;
+  max-width: 1040px;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  gap: 40px;
+}
+
+.login-hero h1 {
+  margin: 20px 0 16px;
+  font-size: clamp(2.125rem, 4vw, 3.375rem);
   font-weight: 800;
-  font-size: 1.25rem;
-}
-
-.brand-name {
-  letter-spacing: 0.22em;
-  font-weight: 700;
-}
-
-.brand-copy h1 {
-  margin: 0 0 12px;
-  font-size: clamp(2rem, 3vw, 2.9rem);
+  line-height: 1.05;
   letter-spacing: -0.02em;
 }
 
-.brand-copy p {
-  margin: 0 0 28px;
-  color: #aab2c0;
+.hero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
 }
 
-.brand-copy ul {
+.hero-mark {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: var(--app-radius);
+  background: linear-gradient(135deg, #fb923c, var(--app-primary));
+  color: var(--app-primary-foreground);
+  font-weight: 800;
+}
+
+.hero-desc {
+  max-width: 460px;
+  margin: 0;
+  color: var(--app-muted-foreground);
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 36px;
+  margin-top: 36px;
+}
+
+.hero-stats div {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: #cbd5e1;
-  font-size: 0.92rem;
+  gap: 2px;
 }
 
-.brand-copy li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.hero-stats strong {
+  font-size: 1.5rem;
+  line-height: 1.2;
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--app-primary);
-  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.16);
-}
-
-.brand-foot {
-  color: #6b7484;
+.hero-stats span {
+  color: var(--app-muted-foreground);
   font-size: 0.75rem;
-  letter-spacing: 0.06em;
-}
-
-.form-panel {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  background: var(--app-muted);
-}
-
-.locale {
-  position: absolute;
-  top: 20px;
-  right: 24px;
-  width: 104px;
 }
 
 .login-card {
-  width: min(420px, 92vw);
-  padding: 0.5rem 0.25rem 0.125rem;
+  width: 100%;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: color-mix(in srgb, var(--app-card) 88%, transparent);
+  box-shadow: 0 25px 65px -35px rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(12px);
 }
 
 mat-card-title {
-  font-size: 1.55rem;
+  font-size: 1.5rem;
   font-weight: 700;
+}
+
+mat-card-subtitle {
+  margin-top: 4px;
 }
 
 .login-form {
@@ -119,8 +130,8 @@ mat-card-title {
 }
 
 .submit {
+  height: 2.25rem;
   margin-top: 0.5rem;
-  height: 2rem;
 }
 
 .form-error {
@@ -132,17 +143,20 @@ mat-card-title {
 .demo-hint {
   margin: 1.125rem 0 0.25rem;
   color: var(--app-muted-foreground);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
-@media (max-width: 860px) {
-  .login-page {
+@media (max-width: 900px) {
+  .login-shell {
     grid-template-columns: 1fr;
   }
-  .brand-panel {
+
+  .login-hero {
     display: none;
   }
-  .form-panel {
-    min-height: 100vh;
+
+  .login-card {
+    max-width: 420px;
+    margin: 0 auto;
   }
 }

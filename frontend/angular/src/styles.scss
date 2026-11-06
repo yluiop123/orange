@@ -39,8 +39,8 @@ html {
    a token swap rather than a second set of component rules. */
 :root {
   --app-radius: 0.65rem;
-  --app-primary: #f97316;
-  --app-primary-foreground: #fff7ed;
+  --app-primary: #18181b;
+  --app-primary-foreground: #fafafa;
   --app-background: #ffffff;
   --app-card: #ffffff;
   --app-foreground: #18181b;
@@ -49,7 +49,7 @@ html {
   --app-border: #e4e4e7;
   --app-input: #e4e4e7;
   --app-destructive: #ef4444;
-  --app-ring: #f97316;
+  --app-ring: #18181b;
   --app-sidebar: #fafafa;
   --app-sidebar-foreground: #18181b;
   --app-sidebar-active: #e7e7e7;
@@ -77,15 +77,15 @@ html {
   --mat-sys-surface-container: #f4f4f5;
   --mat-sys-surface-container-high: #ededef;
   --mat-sys-surface-container-highest: #e4e4e7;
-  --mat-sys-surface-tint: #f97316;
-  --mat-sys-primary: #f97316;
-  --mat-sys-on-primary: #fff7ed;
-  --mat-sys-primary-container: #ffedd5;
-  --mat-sys-on-primary-container: #7c2d12;
-  --mat-sys-primary-fixed: #ffedd5;
-  --mat-sys-primary-fixed-dim: #fdba74;
-  --mat-sys-on-primary-fixed: #7c2d12;
-  --mat-sys-on-primary-fixed-variant: #9a3412;
+  --mat-sys-surface-tint: #18181b;
+  --mat-sys-primary: #18181b;
+  --mat-sys-on-primary: #fafafa;
+  --mat-sys-primary-container: #e4e4e7;
+  --mat-sys-on-primary-container: #18181b;
+  --mat-sys-primary-fixed: #e4e4e7;
+  --mat-sys-primary-fixed-dim: #d4d4d8;
+  --mat-sys-on-primary-fixed: #18181b;
+  --mat-sys-on-primary-fixed-variant: #3f3f46;
   --mat-sys-secondary: #f4f4f5;
   --mat-sys-on-secondary: #18181b;
   --mat-sys-secondary-container: #f4f4f5;
@@ -110,7 +110,7 @@ html {
   --mat-sys-outline-variant: #e4e4e7;
   --mat-sys-inverse-surface: #27272a;
   --mat-sys-inverse-on-surface: #fafafa;
-  --mat-sys-inverse-primary: #fb923c;
+  --mat-sys-inverse-primary: #fafafa;
   --mat-sys-scrim: #000000;
   --mat-sys-shadow: #000000;
   --mat-sys-neutral10: #18181b;
@@ -202,15 +202,15 @@ html {
 @mixin dark-tokens {
   color-scheme: dark;
 
-  --app-background: #18181b;
-  --app-card: #27272a;
+  --app-background: #0a0a0a;
+  --app-card: #18181b;
   --app-foreground: #fafafa;
   --app-muted: #27272a;
   --app-muted-foreground: #a1a1aa;
   --app-border: #3f3f46;
   --app-input: #3f3f46;
   --app-destructive: #ef4444;
-  --app-ring: #f97316;
+  --app-ring: #fafafa;
   --app-sidebar: #18181b;
   --app-sidebar-foreground: #fafafa;
   --app-sidebar-active: #27272a;
@@ -218,9 +218,9 @@ html {
   --app-sidebar-hover: #27272a;
   --app-sidebar-border: #3f3f46;
 
-  --mat-sys-background: #18181b;
+  --mat-sys-background: #0a0a0a;
   --mat-sys-on-background: #fafafa;
-  --mat-sys-surface: #27272a;
+  --mat-sys-surface: #18181b;
   --mat-sys-on-surface: #fafafa;
   --mat-sys-surface-variant: #3f3f46;
   --mat-sys-on-surface-variant: #a1a1aa;
@@ -231,15 +231,15 @@ html {
   --mat-sys-surface-container: #27272a;
   --mat-sys-surface-container-high: #2e2e33;
   --mat-sys-surface-container-highest: #3f3f46;
-  --mat-sys-surface-tint: #f97316;
-  --mat-sys-primary: #f97316;
-  --mat-sys-on-primary: #fff7ed;
-  --mat-sys-primary-container: #7c2d12;
-  --mat-sys-on-primary-container: #ffedd5;
-  --mat-sys-primary-fixed: #ffedd5;
-  --mat-sys-primary-fixed-dim: #fdba74;
-  --mat-sys-on-primary-fixed: #7c2d12;
-  --mat-sys-on-primary-fixed-variant: #9a3412;
+  --mat-sys-surface-tint: #fafafa;
+  --mat-sys-primary: #fafafa;
+  --mat-sys-on-primary: #18181b;
+  --mat-sys-primary-container: #3f3f46;
+  --mat-sys-on-primary-container: #fafafa;
+  --mat-sys-primary-fixed: #3f3f46;
+  --mat-sys-primary-fixed-dim: #52525b;
+  --mat-sys-on-primary-fixed: #fafafa;
+  --mat-sys-on-primary-fixed-variant: #e4e4e7;
   --mat-sys-secondary: #27272a;
   --mat-sys-on-secondary: #fafafa;
   --mat-sys-secondary-container: #3f3f46;
@@ -1060,8 +1060,8 @@ html.dark {
   color-scheme: dark;
   --app-primary: #fafafa;
   --app-primary-foreground: #18181b;
-  --app-background: #18181b;
-  --app-card: #27272a;
+  --app-background: #0a0a0a;
+  --app-card: #18181b;
   --app-foreground: #fafafa;
   --app-muted: #27272a;
   --app-muted-foreground: #a1a1aa;
@@ -1076,7 +1076,7 @@ html.dark {
   --app-sidebar-hover: #27272a;
   --app-sidebar-border: #3f3f46;
 
-  --mat-sys-background: #18181b;
+  --mat-sys-background: #0a0a0a;
   --mat-sys-on-background: #fafafa;
   --mat-sys-surface: #18181b;
   --mat-sys-on-surface: #fafafa;
@@ -1167,4 +1167,79 @@ html.dark .system-table .mat-mdc-header-cell {
   display: flex;
   align-items: center;
   width: 100%;
+}
+
+/* Tabs: match the React segmented pill list (32px track, 25px pill). */
+.mat-mdc-tab-header {
+  --mat-tab-container-height: 25px;
+  --mat-tab-header-divider-height: 0;
+  width: fit-content;
+  max-width: 100%;
+  height: 32px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--app-muted);
+}
+
+.mat-mdc-tab-header .mat-mdc-tab-label-container,
+.mat-mdc-tab-header .mat-mdc-tab-list {
+  height: 26px;
+}
+
+.mat-mdc-tab-header .mat-mdc-tab-labels {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 26px;
+  gap: 2px;
+}
+
+.mat-mdc-tab-header .mat-mdc-tab {
+  flex: 0 0 auto;
+  min-width: 0;
+  height: 25px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--app-muted-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+  opacity: 1;
+}
+
+.mat-mdc-tab-header .mat-mdc-tab .mdc-tab__content {
+  height: 23px;
+}
+
+.mat-mdc-tab-header .mat-mdc-tab .mdc-tab__text-label {
+  line-height: 23px;
+}
+
+.mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
+  border-color: var(--app-border);
+  background: var(--app-card);
+  color: var(--app-foreground);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+/* React keeps the active pill at muted/30 in dark, which reads as the track. */
+html.dark .mat-mdc-tab-header .mat-mdc-tab.mdc-tab--active {
+  border-color: var(--app-muted);
+  background: var(--app-muted);
+}
+
+.mat-mdc-tab-header .mat-mdc-tab.mat-mdc-tab-disabled {
+  opacity: 0.5;
+}
+
+.mat-mdc-tab-header .mat-mdc-tab .mdc-tab-indicator,
+.mat-mdc-tab-header .mat-mdc-tab-header-pagination {
+  display: none;
+}
+
+/* Material renders the tab body directly under the header. */
+.mat-mdc-tab-body-wrapper {
+  margin-top: 8px;
 }

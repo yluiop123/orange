@@ -24,6 +24,8 @@ export default {
   'page.login.username.valid': 'Username must be at least 4 characters',
   'page.login.password': 'Password',
   'page.login.password.valid': 'Password must be at least 4 characters',
+  'page.login.showPassword': 'Show password',
+  'page.login.hidePassword': 'Hide password',
   'page.login.login': 'Sign in',
   'page.login.failed': 'Sign in failed',
   'page.login.demoHint': 'Demo accounts: super / super, admin / admin, user / user',

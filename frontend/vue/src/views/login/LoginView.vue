@@ -17,6 +17,7 @@ const ui = useUiStore()
 const form = ref({ username: 'super', password: 'super' })
 const errors = ref<{ username?: string; password?: string; form?: string }>({})
 const submitting = ref(false)
+const showPassword = ref(false)
 
 const redirectTo = computed(() => {
   const queryRedirect = route.query.redirect
@@ -114,11 +115,24 @@ async function submit() {
               v-model="form.password"
               :label="t('page.login.password')"
               prepend-inner-icon="mdi-lock-outline"
-              type="password"
+              :type="showPassword ? 'text' : 'password'"
               :error-messages="errors.password"
               autocomplete="current-password"
               required
-            />
+            >
+              <template #append-inner>
+                <v-icon
+                  :aria-label="
+                    showPassword
+                      ? t('page.login.hidePassword')
+                      : t('page.login.showPassword')
+                  "
+                  @click="showPassword = !showPassword"
+                >
+                  {{ showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
+                </v-icon>
+              </template>
+            </v-text-field>
             <v-alert v-if="errors.form" type="error" variant="tonal" density="compact" class="mt-3">
               {{ errors.form }}
             </v-alert>
@@ -144,8 +158,16 @@ async function submit() {
 .login-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 12% 18%, rgba(251, 146, 60, 0.22), transparent 42%),
-    radial-gradient(circle at 88% 82%, rgba(234, 88, 12, 0.18), transparent 46%),
+    radial-gradient(
+      circle at 12% 18%,
+      color-mix(in srgb, rgb(var(--v-theme-primary)) 22%, transparent),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 88% 82%,
+      color-mix(in srgb, rgb(var(--v-theme-primary)) 16%, transparent),
+      transparent 46%
+    ),
     rgb(var(--v-theme-background));
   display: flex;
   align-items: center;

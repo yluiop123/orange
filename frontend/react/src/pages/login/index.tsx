@@ -15,9 +15,18 @@ import { Input } from "@/components/ui/input"
 import { isSafeInternalPath } from "@/lib/path"
 import axios from "@/lib/axios"
 import { cn } from "@/lib/utils"
-import { useUserStore } from '@/store'
+import { useLocaleStore, useThemeStore, useUserStore } from '@/store'
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2Icon } from "lucide-react"
+import {
+  Eye,
+  EyeOff,
+  Languages,
+  Loader2Icon,
+  Lock,
+  Moon,
+  Sun,
+  User,
+} from "lucide-react"
 import React, { useState } from 'react'
 import { Controller, useForm } from "react-hook-form"
 import { useIntl } from "react-intl"
@@ -47,9 +56,12 @@ export default function Login({
     },
   })
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useUserStore();
+  const { locale, setLocale } = useLocaleStore();
+  const { mode, setMode } = useThemeStore();
 
   // 登录后回到用户原本访问的页面；from 优先取路由 state，其次取 redirect 查询参数
   const stateFrom = (location.state as { from?: string } | null)?.from;
@@ -86,25 +98,95 @@ export default function Login({
       });
   }
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className={cn("flex flex-col gap-6", className)} {...props}>
-          <Card>
-            <CardHeader>
-              <CardTitle>{intl.formatMessage({ id: 'page.login.title' })}</CardTitle>
-              <CardDescription>
-                {intl.formatMessage({ id: 'page.login.desc' })}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+    <div
+      className="relative flex min-h-svh items-center justify-center overflow-hidden p-6 md:p-10"
+      style={{
+        background:
+          "radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--primary) 22%, transparent), transparent 42%), radial-gradient(circle at 88% 82%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 46%), var(--background)",
+      }}
+    >
+      <div className="absolute right-4 top-3 z-10 flex items-center gap-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
+        >
+          <Languages className="size-4" />
+          {locale === 'en' ? '中文' : 'English'}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={mode === 'dark' ? 'Light' : 'Dark'}
+          onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
+        >
+          {mode === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+        </Button>
+      </div>
+
+      <div className="grid w-full max-w-5xl items-center gap-10 md:grid-cols-[1.15fr_0.85fr]">
+        <section className="hidden md:block">
+          <div className="inline-flex items-center gap-3 text-sm font-extrabold tracking-[0.16em]">
+            <span className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-orange-400 to-primary text-lg font-black text-primary-foreground shadow-lg">
+              O
+            </span>
+            ORANGE
+          </div>
+          <h1 className="mt-6 text-[clamp(2.125rem,4vw,3.375rem)] font-extrabold leading-[1.05] tracking-tight">
+            {intl.formatMessage({ id: 'page.login.hero.title' })}
+          </h1>
+          <p className="mt-5 max-w-lg whitespace-pre-line text-base leading-7 text-muted-foreground">
+            {intl.formatMessage({ id: 'page.login.hero.desc' })}
+          </p>
+          <div className="mt-9 flex gap-9">
+            {[
+              ['31+', 'page.login.hero.pages'],
+              ['2', 'page.login.hero.languages'],
+              ['RBAC', 'page.login.hero.rbac'],
+            ].map(([value, key]) => (
+              <div key={key} className="flex flex-col gap-0.5">
+                <strong className="text-2xl font-bold">{value}</strong>
+                <span className="text-xs text-muted-foreground">
+                  {intl.formatMessage({ id: key })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="mx-auto w-full max-w-sm md:max-w-none">
+          <div className={cn("flex flex-col gap-6", className)} {...props}>
+            <Card className="border-border/70 bg-card/85 shadow-2xl backdrop-blur">
+              <CardHeader>
+                <CardTitle className="text-2xl">
+                  {intl.formatMessage({ id: 'page.login.title' })}
+                </CardTitle>
+                <CardDescription>
+                  {intl.formatMessage({ id: 'page.login.desc' })}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                   <Controller
                     name="username"
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor={field.name}>{intl.formatMessage({ id: 'page.login.username' })}</FieldLabel>
-                        <Input placeholder="super" {...field} id={field.name} aria-invalid={fieldState.invalid} />
+                        <FieldLabel htmlFor={field.name}>
+                          {intl.formatMessage({ id: 'page.login.username' })}
+                        </FieldLabel>
+                        <div className="relative">
+                          <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            className="pl-9"
+                            placeholder="super"
+                            {...field}
+                            id={field.name}
+                            aria-invalid={fieldState.invalid}
+                          />
+                        </div>
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -114,19 +196,43 @@ export default function Login({
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor={field.name}>{intl.formatMessage({ id: 'page.login.password' })}</FieldLabel>
-                        <Input type="password" placeholder="super" {...field} id={field.name} aria-invalid={fieldState.invalid} />
+                        <FieldLabel htmlFor={field.name}>
+                          {intl.formatMessage({ id: 'page.login.password' })}
+                        </FieldLabel>
+                        <div className="relative">
+                          <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            className="pl-9 pr-9"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="super"
+                            {...field}
+                            id={field.name}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-2 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded text-muted-foreground transition-colors hover:text-foreground"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            onClick={() => setShowPassword((value) => !value)}
+                          >
+                            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                          </button>
+                        </div>
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
                   />
-                  <Button type="submit" disabled={loading}>
-                    {loading && <Loader2Icon className='animate-spin' />}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2Icon className="animate-spin" />}
                     {intl.formatMessage({ id: 'page.login.login' })}
                   </Button>
                 </form>
-            </CardContent>
-          </Card>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  {intl.formatMessage({ id: 'page.login.demoHint' })}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>

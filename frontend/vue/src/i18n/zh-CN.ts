@@ -24,6 +24,8 @@ export default {
   'page.login.username.valid': '用户名至少4个字符',
   'page.login.password': '密码',
   'page.login.password.valid': '密码至少4个字符',
+  'page.login.showPassword': '显示密码',
+  'page.login.hidePassword': '隐藏密码',
   'page.login.login': '登录',
   'page.login.failed': '登录失败',
   'page.login.demoHint': '演示账号：super / super，admin / admin，user / user',

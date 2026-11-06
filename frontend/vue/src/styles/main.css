@@ -271,3 +271,61 @@ code {
     grid-column: span 1;
   }
 }
+
+/* Tabs: match the React segmented pill list (32px track, 25px pill). */
+.v-tabs {
+  /* Vuetify sizes the tab from --v-tabs-height, so override the token too. */
+  --v-tabs-height: 25px;
+  width: fit-content;
+  max-width: 100%;
+  height: 32px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgb(var(--v-theme-surface-variant));
+}
+
+.v-tabs .v-slide-group {
+  height: 26px;
+}
+
+.v-tabs .v-slide-group__content {
+  align-items: center;
+  height: 26px;
+  gap: 2px;
+}
+
+.v-tabs .v-tab.v-tab.v-btn {
+  min-width: 0;
+  height: 25px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.v-tabs .v-tab--selected.v-tab.v-btn {
+  border-color: rgb(var(--v-theme-border));
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+/* React keeps the active pill at muted/30 in dark, which reads as the track. */
+.v-theme--dark .v-tabs .v-tab--selected.v-tab.v-btn {
+  border-color: rgb(var(--v-theme-secondary));
+  background: rgb(var(--v-theme-secondary));
+}
+
+.v-tabs .v-tab__slider {
+  display: none;
+}
+
+/* Vuetify's default tab window adds a gap the React shell does not have. */
+.v-tabs-window {
+  margin-top: 8px;
+}

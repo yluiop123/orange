@@ -60,7 +60,7 @@ async function step(name, fn) {
 async function login(username, password) {
   await page.goto(`${base}/login`);
   await page.getByLabel('用户名').fill(username);
-  await page.getByLabel('密码').fill(password);
+  await page.getByLabel('密码', { exact: true }).fill(password);
   await page.getByRole('button', { name: /登录|Login/ }).click();
   await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20000 });
   await page.getByRole('button', { name: /收起侧边栏/ }).waitFor({ timeout: 20000 });

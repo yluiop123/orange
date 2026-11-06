@@ -41,6 +41,12 @@ export class LoginComponent {
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly showPassword = signal(false);
+  readonly dark = signal(localStorage.getItem('orange.angular.theme') !== 'light');
+
+  constructor() {
+    document.documentElement.classList.toggle('dark', this.dark());
+  }
 
   readonly form = this.fb.nonNullable.group({
     username: ['super', [Validators.required, Validators.minLength(4)]],
@@ -49,6 +55,17 @@ export class LoginComponent {
 
   changeLocale(locale: Locale): void {
     this.i18n.setLocale(locale);
+  }
+
+  toggleLocale(): void {
+    this.i18n.setLocale(this.i18n.locale() === 'en' ? 'zh' : 'en');
+  }
+
+  toggleTheme(): void {
+    const next = !this.dark();
+    this.dark.set(next);
+    localStorage.setItem('orange.angular.theme', next ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', next);
   }
 
   async submit(): Promise<void> {

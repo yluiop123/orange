@@ -1,32 +1,33 @@
 <div class="login-page">
-  <section class="brand-panel">
-    <div class="brand-top">
-      <span class="brand-mark">O</span>
-      <span class="brand-name">{{ 'app.name' | t }}</span>
-    </div>
-    <div class="brand-copy">
-      <h1>{{ 'app.subtitle' | t }}</h1>
-      <p>RBAC · Auditing · Dashboards · Charts · Maps · 3D</p>
-      <ul>
-        <li><span class="dot"></span> In-memory access token, rotating refresh cookie</li>
-        <li><span class="dot"></span> Menu tree and permissions from the backend</li>
-        <li><span class="dot"></span> Chinese &amp; English</li>
-      </ul>
-    </div>
-    <div class="brand-foot">ORANGE · Angular + Angular Material</div>
-  </section>
-
-  <section class="form-panel">
-    <mat-select
-      class="locale"
-      [value]="i18n.locale()"
-      [attr.aria-label]="'header.language' | t"
-      (selectionChange)="changeLocale($event.value)"
+  <div class="login-topbar">
+    <button mat-button type="button" class="topbar-button" (click)="toggleLocale()">
+      <mat-icon>translate</mat-icon>
+      {{ i18n.locale() === 'en' ? '中文' : 'English' }}
+    </button>
+    <button
+      mat-icon-button
+      type="button"
+      [attr.aria-label]="dark() ? 'Light' : 'Dark'"
+      (click)="toggleTheme()"
     >
-      @for (language of i18n.languages(); track language.id) {
-        <mat-option [value]="language.id">{{ language.label }}</mat-option>
-      }
-    </mat-select>
+      <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="login-shell">
+    <section class="login-hero">
+      <div class="hero-brand">
+        <span class="hero-mark">O</span>
+        <span>{{ 'app.name' | t }}</span>
+      </div>
+      <h1>{{ 'login.hero.title' | t }}</h1>
+      <p class="hero-desc">{{ 'login.hero.desc' | t }}</p>
+      <div class="hero-stats">
+        <div><strong>31+</strong><span>{{ 'login.hero.pages' | t }}</span></div>
+        <div><strong>2</strong><span>{{ 'login.hero.languages' | t }}</span></div>
+        <div><strong>RBAC</strong><span>{{ 'login.hero.rbac' | t }}</span></div>
+      </div>
+    </section>
 
     <mat-card appearance="outlined" class="login-card">
       <mat-card-header>
@@ -47,8 +48,23 @@
 
           <mat-form-field appearance="outline">
             <mat-label>{{ 'login.password' | t }}</mat-label>
-            <input matInput type="password" formControlName="password" autocomplete="current-password" placeholder="super" />
+            <input
+              matInput
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="super"
+            />
             <mat-icon matPrefix>lock</mat-icon>
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+              (click)="showPassword.set(!showPassword())"
+            >
+              <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
             @if (form.controls.password.touched && form.controls.password.invalid) {
               <mat-error>{{ 'login.password.valid' | t }}</mat-error>
             }
@@ -71,5 +87,5 @@
         <p class="demo-hint">{{ 'login.demoHint' | t }}</p>
       </mat-card-content>
     </mat-card>
-  </section>
+  </div>
 </div>
