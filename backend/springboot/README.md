@@ -139,83 +139,10 @@ backend/springboot/
 └── pom.xml                      # Maven dependencies
 ```
 ## Database Design
-### Relationships
-The core entities include: User, Role, Permission, and Group.
 
-Many-to-one: User → Group (a user belongs to one group)
-Many-to-many: User ↔ Role (via sys_user_role)
-Many-to-many: Role ↔ Permission (via sys_role_permission)
-Many-to-many: User ↔ Permission (via sys_user_permission, used to grant extra permissions beyond roles)
-### Core Tables
-#### Group Table (`sys_group`)
-| Field       | Type      | Required | Default | Description            |
-| :---------- | :-------- | :------- | :------ | :--------------------- |
-| id          | varchar   | Yes      | -       | Group ID (primary key) |
-| name        | varchar   | No       | -       | Group name             |
-| order_num   | int4      | No       | -       | Order number           |
-| status      | varchar   | No       | -       | Status                 |
-| parent_id   | varchar   | No       | -       | Parent group ID        |
-| create_time | timestamp | No       | now()   | Creation time          |
-| update_time | timestamp | No       | now()   | Update time            |
-
-
-#### User Table (`sys_user`)
-| Field       | Type         | Required | Default | Description           |
-| :---------- | :----------- | :------- | :------ | :-------------------- |
-| id          | varchar(255) | Yes      | -       | User ID (primary key) |
-| username    | varchar(255) | Yes      | -       | Username (unique)     |
-| password    | varchar      | No       | -       | Encrypted password    |
-| name        | varchar(255) | No       | -       | Name                  |
-| email       | varchar(255) | No       | -       | Email                 |
-| phone       | varchar(255) | No       | -       | Phone                 |
-| group_id    | varchar      | No       | -       | Group ID              |
-| status      | varchar(255) | No       | -       | Status                |
-| create_time | timestamp    | No       | now()   | Creation time         |
-| update_time | timestamp    | No       | now()   | Update time           |
-
-
-#### Role Table (`sys_role`)
-| Field       | Type      | Required | Default | Description           |
-| :---------- | :-------- | :------- | :------ | :-------------------- |
-| id          | varchar   | Yes      | -       | Role ID (primary key) |
-| name        | varchar   | No       | -       | Role name             |
-| status      | varchar   | No       | -       | Status                |
-| create_time | timestamp | No       | now()   | Creation time         |
-| update_time | timestamp | No       | now()   | Update time           |
-
-
-#### Permission Table (`sys_permission`)
-| Field       | Type      | Required | Default | Description            |
-| :---------- | :-------- | :------- | :------ | :--------------------- |
-| id          | varchar   | Yes      | -       | Permission ID          |
-| name        | varchar   | No       | -       | Permission name        |
-| path        | varchar   | No       | -       | Path (route/URL)       |
-| action      | varchar   | No       | -       | Action (GET/POST etc.) |
-| type        | varchar   | No       | -       | Type (MENU/BUTTON)     |
-| status      | varchar   | No       | -       | Status                 |
-| parent_id   | varchar   | No       | -       | Parent permission ID   |
-| order_num   | int4      | No       | -       | Order number           |
-| create_time | timestamp | No       | now()   | Creation time          |
-| update_time | timestamp | No       | now()   | Update time            |
-
-
----
-
-### Relation Tables
-#### User-Role (`sys_user_role`)
-Used to record roles assigned to users.
-- `user_id`: User ID
-- `role_id`: Role ID
-
-#### Role-Permission (`sys_role_permission`)
-Used to record permissions granted to roles.
-- `role_id`: Role ID
-- `permission_id`: Permission ID
-
-#### User-Permission (`sys_user_permission`)
-Used to record permissions granted to users.
-- `user_id`: User ID
-- `permission_id`: Permission ID
+The schema model, invariants and dialect differences are documented once in
+[`docs/DATABASE.md`](../../docs/DATABASE.md). This backend only selects a
+connection and never creates tables; see [Database Configuration](#database-configuration).
 
 ## Permission Control
 

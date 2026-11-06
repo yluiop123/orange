@@ -24,14 +24,21 @@ mysql -uroot -proot orange < database/mysql/dml.sql
 SQLite 使用 `database/sqlite/ddl.sql` 与 `dml.sql`，通过对应引擎的命令行工具加载。
 后端启动时不会自动建表或写入种子数据。
 
-## 2. 生成本地配置
+## 2. 配置选定的技术栈
+
+每个技术栈的代码目录下都有已提交的配置示例。复制一次，然后修改本地文件：
 
 ```bash
-cp config/app.example.env config/app.env   # 只需一次
-node scripts/sync-config.mjs
+cp backend/go-gin-gorm/.env.example backend/go-gin-gorm/.env.local
+cp backend/node-nestjs/.env.example backend/node-nestjs/.env.local
+cp backend/csharp/.env.example backend/csharp/.env.local
+cp backend/rust-axum/.env.example backend/rust-axum/.env
+cp backend/python-fastapi/.env.example backend/python-fastapi/.env
+cp backend/springboot/src/main/resources/application-local.example.yaml \
+   backend/springboot/src/main/resources/application-local.yaml
 ```
 
-生成器会写入各技术栈被 gitignore 的本地配置文件。完整映射见
+变量名、优先级和数据库切换见
 [CONFIGURATION.zh-CN.md](./CONFIGURATION.zh-CN.md)。
 
 ## 3. 启动一个技术栈

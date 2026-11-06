@@ -57,12 +57,11 @@ pnpm dev            # http://localhost:5173
 
 ### 5）环境变量
 
-配置由 `config/app.env` 生成；完整分层见
+配置就在本目录；完整分层见
 [frontend/docs/CONFIGURATION.zh-CN.md](../docs/CONFIGURATION.zh-CN.md)。
 
 ```bash
-cp config/app.example.env config/app.env
-node scripts/sync-config.mjs
+cp .env .env.local   # 可选的本地覆盖（gitignore）
 ```
 
 | 变量 | 用途 |
@@ -73,8 +72,8 @@ node scripts/sync-config.mjs
 | `VITE_MOCK_ENABLE` | 启用 MSW；`false` 时连接真实后端 |
 | `VITE_CESIUM_TOKEN` | 可选 Cesium Ion token；为空时使用 OpenStreetMap |
 
-不要设置 `VITE_ROUTE`：路由固定为 `HashRouter`。不要手工修改 `.env.local`，
-应修改 `config/app.env` 后重新生成。
+不要设置 `VITE_ROUTE`：路由固定为 `HashRouter`。`.env` 与
+`.env.development` 是提交的默认值，本机特定配置放在 `.env.local`。
 
 ## 目录结构
 

@@ -100,79 +100,10 @@ backend/springboot/
 └── pom.xml                       # Maven依赖配置
 ```
 ## 数据库设计
-### 表关系
-    系统的核心逻辑包含：用户 (User)、角色 (Role)、权限 (Permission) 和 组织 (Group)。
-    其关联关系如下：
-    多对一：用户->组织 (一个用户属于一个组织)。
-    多对多：用户<-> 角色 (通过 sys_user_role 关联)。
-    多对多：角色<->权限 (通过 sys_role_permission 关联)。
-    多对多：用户<->权限 (通过 sys_user_permission 关联，用于授予用户超出其角色的额外权限)。
-### 核心表结构
-#### 组织机构表 (`sys_group`)
-| 字段名 | 类型 | 必填 | 默认值 | 备注 |
-| :--- | :--- | :--- | :--- | :--- |
-| id | varchar | 是 | - | 组织id (主键) |
-| name | varchar | 否 | - | 组织名 |
-| order_num | int4 | 否 | - | 序号 |
-| status | varchar | 否 | - | 状态 |
-| parent_id | varchar | 否 | - | 父组织id |
-| create_time | timestamp | 否 | now() | 创建时间 |
-| update_time | timestamp | 否 | now() | 更新时间 |
 
-#### 用户表 (`sys_user`)
-| 字段名 | 类型 | 必填 | 默认值 | 备注 |
-| :--- | :--- | :--- | :--- | :--- |
-| id | varchar(255) | 是 | - | 用户id (主键) |
-| username | varchar(255) | 是 | - | 用户名 (唯一) |
-| password | varchar | 否 | - | 用户密码 (加密存储) |
-| name | varchar(255) | 否 | - | 用户姓名 |
-| email | varchar(255) | 否 | - | 用户邮箱 |
-| phone | varchar(255) | 否 | - | 用户电话 |
-| group_id | varchar | 否 | - | 用户组织id |
-| status | varchar(255) | 否 | - | 用户状态 |
-| create_time | timestamp | 否 | now() | 创建时间 |
-| update_time | timestamp | 否 | now() | 更新时间 |
-
-#### 角色表 (`sys_role`)
-| 字段名 | 类型 | 必填 | 默认值 | 备注 |
-| :--- | :--- | :--- | :--- | :--- |
-| id | varchar | 是 | - | 角色id (主键) |
-| name | varchar | 否 | - | 角色名 |
-| status | varchar | 否 | - | 角色状态 |
-| create_time | timestamp | 否 | now() | 创建时间 |
-| update_time | timestamp | 否 | now() | 更新时间 |
-
-#### 权限表 (`sys_permission`)
-| 字段名 | 类型 | 必填 | 默认值 | 备注 |
-| :--- | :--- | :--- | :--- | :--- |
-| id | varchar | 是 | - | 权限id |
-| name | varchar | 否 | - | 权限名 |
-| path | varchar | 否 | - | 权限路径 (路由/URL) |
-| action | varchar | 否 | - | 权限动作 (GET/POST等) |
-| type | varchar | 否 | - | 权限类型 (MENU/BUTTON) |
-| status | varchar | 否 | - | 权限状态 |
-| parent_id | varchar | 否 | - | 父权限id |
-| order_num | int4 | 否 | - | 序号 |
-| create_time | timestamp | 否 | now() | 创建时间 |
-| update_time | timestamp | 否 | now() | 更新时间 |
-
----
-
-### 中间关联表
-#### 用户-角色表 (`sys_user_role`)
-用于记录用户被授予的角色。
-- `user_id`: 用户ID
-- `role_id`: 角色ID
-
-#### 角色-权限表 (`sys_role_permission`)
-用于记录角色包含的资源访问权。
-- `role_id`: 角色ID
-- `permission_id`: 权限ID
-
-####  用户-权限表 (`sys_user_permission`)
-用于针对单一用户直接授予特定权限（覆盖或补充角色权限）。
-- `user_id`: 用户ID
-- `permission_id`: 权限ID
+表结构模型、约束和方言差异只在
+[`docs/DATABASE.zh-CN.md`](../../docs/DATABASE.zh-CN.md) 中描述一次。
+本后端只负责选择连接，不创建表；见[数据库配置](#数据库配置)。
 
 ## 权限控制说明
 

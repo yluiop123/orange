@@ -44,15 +44,21 @@ DB_PASSWORD=postgres
 | OceanBase | `database/oceanbase` | 静态检查，兼容 MySQL |
 | GoldenDB | `database/goldendb` | 静态检查，兼容 MySQL |
 
-目前六个后端都只连接 PostgreSQL；尚未接入 MySQL 或 SQLite 驱动。提供 MySQL/SQLite 脚本是为了 schema 可移植性以及未来的运行时支持。openGauss、OceanBase 和 GoldenDB 是兼容性目标，需要通过 PostgreSQL/MySQL 兼容驱动访问；这一切换尚未实现。
+目前六个后端都通过驱动开关支持 PostgreSQL、MySQL、MariaDB 和 SQLite。openGauss、OceanBase 和 GoldenDB 是通过 PostgreSQL/MySQL 兼容驱动访问的兼容性目标；它们的 SQL 继续维护，但不参与真实矩阵测试。
 
 ## 3. 运行命令
 
-以下命令假设 `config/app.env` 已存在，并已运行 `node scripts/sync-config.mjs`：
+每个技术栈读取自己的本地配置。先复制对应目录下的示例；见
+[backend/docs/CONFIGURATION.zh-CN.md](../backend/docs/CONFIGURATION.zh-CN.md)。
 
 ```bash
-cp config/app.example.env config/app.env
-node scripts/sync-config.mjs
+cp backend/springboot/src/main/resources/application-local.example.yaml \
+   backend/springboot/src/main/resources/application-local.yaml
+cp backend/go-gin-gorm/.env.example backend/go-gin-gorm/.env.local
+cp backend/node-nestjs/.env.example backend/node-nestjs/.env.local
+cp backend/csharp/.env.example backend/csharp/.env.local
+cp backend/rust-axum/.env.example backend/rust-axum/.env
+cp backend/python-fastapi/.env.example backend/python-fastapi/.env
 ```
 
 ### Spring Boot

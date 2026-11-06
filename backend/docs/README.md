@@ -31,6 +31,10 @@ reference when two implementations disagree.
 
 ## Contract and data
 
+Database design is **public** and technology-agnostic. Schema, seed and the model
+description belong to the repository root; backend documents only explain how to
+select a database and run each stack.
+
 | Source | Purpose |
 | --- | --- |
 | [`../../docs/API.md`](../../docs/API.md) | Human-readable contract |

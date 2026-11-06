@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Configuration is per stack. The root `config/` directory and
+  `scripts/sync-config.mjs` were removed; each frontend/backend now documents and
+  ships its own example (`frontend/<stack>/.env*`,
+  `backend/<stack>/.env.example`, `application-local.example.yaml`).
+- Documentation is split into technology-agnostic `docs/`, `frontend/docs/` and
+  `backend/docs/`. Database design is documented once in `docs/DATABASE.md`.
+- React, Vue and Angular login pages, tab styling and dark surface tokens were
+  aligned. Vue and Angular tab content migration is still in progress.
+- Every backend now has a Chinese README (`README.zh-CN.md`).
+
 ## 1.0.0 — 2026-11-04
 
 First repository-wide parity release.

@@ -37,9 +37,9 @@ npm install
 npm start           # http://localhost:4200, `local` configuration
 ```
 
-Each dev server proxies `/api` to the backend target from the generated local
-config. If the backend runs elsewhere, change `config/app.env` and regenerate
-(see [CONFIGURATION.md](./CONFIGURATION.md)).
+Each dev server proxies `/api` to the target configured in the app itself. If
+the backend runs elsewhere, edit the app's local config file and restart (see
+[CONFIGURATION.md](./CONFIGURATION.md)).
 
 ## Demo accounts
 
@@ -75,8 +75,8 @@ mock. Both start and stop their own browser.
   can resolve to IPv6 while the backend listens on IPv4.
 - **Blank page in dev**: check that the backend target is reachable and that
   `VITE_MOCK_ENABLE` / `ANGULAR_MOCK_ENABLE` matches the mode you want.
-- **Stale generated config**: re-run `node scripts/sync-config.mjs`; never edit
-  `.env.local` or `environment.local.ts` by hand.
+- **Config changes not applied**: stop and restart the dev server. Vite and
+  Angular read their config at startup; there is no generator to re-run.
 - **Port already in use**: stop the previous dev server instead of starting a
   second one on a different port, because GitHub Pages and the proxy config
   assume the documented ports.

@@ -1,5 +1,7 @@
 # ORANGE backend — Rust + Axum
 
+English | [简体中文](./README.zh-CN.md)
+
 A port of `backend/springboot` to **Rust 2021 / Axum 0.8 / Tokio / SQLx**.
 It serves the canonical API from [`docs/API.md`](../../docs/API.md) under
 `/api/v1` on port **8083** and uses the existing `database/{postgres,mysql,mariadb,sqlite}`

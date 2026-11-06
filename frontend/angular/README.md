@@ -51,7 +51,7 @@ The API base is configured in:
 
 - `src/environments/environment.ts` (production, default `/api/v1`)
 - `src/environments/environment.development.ts` (development, default `/api/v1`)
-- `src/environments/environment.local.ts` (generated from `config/app.env` for `npm start`)
+- `src/environments/environment.local.ts` (local, used by `npm start`)
 
 `environment.apiBase` is used by the HTTP interceptor, the login/refresh/logout
 calls and `ApiService`. Trailing slashes are normalized. Requests send
@@ -59,9 +59,8 @@ calls and `ApiService`. Trailing slashes are normalized. Requests send
 
 ## Mock mode
 
-Set `ANGULAR_MOCK_ENABLE=true` in `config/app.env`, then run
-`node scripts/sync-config.mjs`. `npm start` uses the generated
-`environment.local.ts`, so the app signs in and manages data without a backend.
+Set `mock: true` in `environment.local.ts` and restart. `npm start` uses that
+file, so the app signs in and manages data without a backend.
 `environment.development.ts` also enables mock mode by default.
 
 You can also open any build with `?mock=1`; the flag is persisted in

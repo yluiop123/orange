@@ -44,15 +44,21 @@ Per-engine scripts:
 | OceanBase | `database/oceanbase` | Static, MySQL-compatible |
 | GoldenDB | `database/goldendb` | Static, MySQL-compatible |
 
-All six backends currently connect to PostgreSQL only; no MySQL or SQLite driver is wired in yet. The MySQL/SQLite scripts are provided for schema portability and for future runtime support. openGauss, OceanBase and GoldenDB are compatibility targets that would be reached through a PostgreSQL/MySQL-compatible driver; that switch is not implemented.
+All six backends support PostgreSQL, MySQL, MariaDB and SQLite through a driver switch. openGauss, OceanBase and GoldenDB are compatibility targets reached through a PostgreSQL/MySQL-compatible driver; their SQL is maintained but not covered by the live matrix.
 
 ## 3. Run commands
 
-All commands assume `config/app.env` exists and `node scripts/sync-config.mjs` has run:
+Each stack reads its own local configuration. Copy the example next to the stack
+first; see [backend/docs/CONFIGURATION.md](../backend/docs/CONFIGURATION.md).
 
 ```bash
-cp config/app.example.env config/app.env
-node scripts/sync-config.mjs
+cp backend/springboot/src/main/resources/application-local.example.yaml \
+   backend/springboot/src/main/resources/application-local.yaml
+cp backend/go-gin-gorm/.env.example backend/go-gin-gorm/.env.local
+cp backend/node-nestjs/.env.example backend/node-nestjs/.env.local
+cp backend/csharp/.env.example backend/csharp/.env.local
+cp backend/rust-axum/.env.example backend/rust-axum/.env
+cp backend/python-fastapi/.env.example backend/python-fastapi/.env
 ```
 
 ### Spring Boot

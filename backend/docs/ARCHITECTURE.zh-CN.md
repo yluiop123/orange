@@ -60,6 +60,9 @@ RBAC 基于路径：菜单路径就是权限标识。角色授予路径，用户
 
 ## 数据库可移植性
 
+表结构模型只在 [`../../docs/DATABASE.zh-CN.md`](../../docs/DATABASE.zh-CN.md)
+中描述一次。本节只说明技术栈如何连接它。
+
 - `database/<engine>/ddl.sql` 与 `dml.sql` 是唯一的表结构和种子来源。
 - 任何技术栈都不在启动时建表或执行迁移。
 - 通过驱动开关选择 PostgreSQL、MySQL、MariaDB 或 SQLite；不同引擎的 SQL 不通用。

@@ -1,11 +1,15 @@
 # ORANGE
+
+[![CI](https://github.com/yluiop123/orange/actions/workflows/main.yml/badge.svg)](https://github.com/yluiop123/orange/actions/workflows/main.yml)
+
 <img height="80" src="./readme/images/orange.png">
 
-ORANGE 是一个前后端分离项目，前端在vite-shadcn目录下（react版本），后端在springboot目录下（java版本），数据库在database目录下（已实现postgres版本）。后期前端会扩展vue、angular等，后端会扩展（go、python、node、rust、c#、c++等），数据库会扩展mysql、mariadb等。
+ORANGE 是一个全栈权限管理演示项目。同一个产品实现了三个前端（React、Vue、
+Angular）、六个后端（Spring Boot、Go、NestJS、C#、Rust、FastAPI），并支持多种
+数据库引擎。所有技术栈提供相同的 API 契约和相同的外壳：登录、RBAC 菜单树、
+仪表盘、图表、地图、三维场景、组件库和系统管理。
 
-项目访问地址： https://yluiop123.github.io/orange
-
-swagger 地址： https://yluiop123.github.io/orange/#/swagger
+项目地址：https://yluiop123.github.io/orange
 
 [English](./README.md) | 简体中文
 
@@ -14,40 +18,137 @@ swagger 地址： https://yluiop123.github.io/orange/#/swagger
 <img height="500" src="./readme/images/form-zh-CN.png">
 <img height="500" src="./readme/images/rechart-zh-CN.png">
 
+## 包含内容
+
+- **认证**：JWT access token、轮换的 HttpOnly refresh cookie、登录限流、
+  首次登录强制修改密码。
+- **RBAC**：基于路径的菜单与权限树，用户、角色、用户组、权限和操作日志。
+- **演示页面**：6 个仪表盘，ECharts/Recharts/AntV/D3 图表，Leaflet/
+  OpenLayers/deck.gl/Cesium 地图，Three.js/Babylon.js 三维场景，以及
+  shadcn 组件库。
+- **两种数据模式**：浏览器内 Mock 用于演示；通过开发代理连接真实后端。
+- **一致性**：React 是页面内容基准；Vue 和 Angular 对齐其路由、菜单树、图标、
+  主题变量和页签样式。
+
 ## 目录结构
 
-### 1）vite-shadcn
+```text
+.
+├── frontend/                 # 前端实现，一个框架一个目录
+│   ├── react/                # React 19 + Vite + shadcn/Base UI（部署到 Pages）
+│   ├── angular/              # Angular 21 + Angular Material
+│   ├── vue/                  # Vue 3 + Vuetify
+│   └── docs/                 # 前端启动、配置、架构文档
+├── backend/                  # 后端实现，一个技术栈一个目录
+│   ├── springboot/           # Java 25 + Spring Boot（行为基准）
+│   ├── go-gin-gorm/          # Go + Gin + GORM
+│   ├── node-nestjs/          # Node.js + NestJS
+│   ├── csharp/               # C# + ASP.NET Core
+│   ├── rust-axum/            # Rust + Axum
+│   ├── python-fastapi/       # Python + FastAPI
+│   └── docs/                 # 后端启动、配置、架构文档
+├── database/                 # DDL 与种子数据，一个引擎一个目录
+│   ├── postgres/ mysql/ mariadb/ sqlite/
+│   └── opengauss/ oceanbase/ goldendb/
+├── contracts/                # 跨栈契约
+│   └── openapi.json          # 机器可读 API 契约
+├── docs/                     # 与技术栈无关的公共文档
+│   ├── README.zh-CN.md       # 文档索引与放置规则
+│   ├── FEATURES.zh-CN.md API.zh-CN.md DATABASE.zh-CN.md STACKS.zh-CN.md
+│   ├── validation-rules.md VERIFICATION.zh-CN.md PORTING.zh-CN.md
+│   ├── adr/ audits/ security/ agents/
+└── scripts/                  # 跨栈脚本（种子同步、E2E、JWT 密钥）
+```
 
-- **框架**: React 19 + Vite6
-- **状态管理**: Zustand
-- **UI 组件库**: ShadCN + TailwindCSS
-- **国际化**: react-intl
-- **路由**: React Router v7
-- **接口模拟**: Mock Service Worker (MSW)
-- **构建工具**: Vite6
+目录规则：
 
-[vite-shadcn README](./vite-shadcn/README.zh-CN.md)
+- `docs/`、`contracts/`、`database/` 和根目录 README 与技术栈无关。
+- 前端专项设计在 `frontend/docs/`；后端专项设计在 `backend/docs/`。
+- 配置跟随代码：`frontend/<stack>/.env*`、
+  `frontend/angular/src/environments/`、`backend/<stack>/.env.example` /
+  `application-local.example.yaml`。
+- `database/<engine>` 只放 DDL 和种子数据；运行时连接配置属于各后端。
+- 只有 `frontend/react` 部署到 GitHub Pages。
 
----
+## 技术栈矩阵
 
-### 2）database
-    此文件夹包含数据库相关DDL、DDM脚本。
-    文件夹类型即为数据库类型，如postgres、mysql等。
-    
----
-### 3）springboot
+### 前端
 
-- **后端框架**: Spring Boot 4.0.2
-- **Java版本**: 25
-- **数据库**: PostgreSQL
-- **安全框架**: Spring Security + JWT
-- **API文档**: SpringDoc OpenAPI 3.0
-- **缓存**: Caffeine
-- **ORM**: Spring Data JPA
-- **构建工具**: Maven
-- **开发工具**: Lombok
+| 技术栈 | 目录 | 端口 | 说明 |
+| --- | --- | --- | --- |
+| React 19 + Vite 8 + shadcn/Base UI | `frontend/react` | 5173 | 基准实现，部署到 Pages |
+| Vue 3.5 + Vuetify 3 | `frontend/vue` | 5174 | 20 个单元测试 |
+| Angular 21 + Angular Material | `frontend/angular` | 4200 | 26 个单元测试 |
 
-[springboot README](./springboot/README.zh-CN.md)
+### 后端
+
+| 技术栈 | 目录 | 端口 | 数据库支持 |
+| --- | --- | --- | --- |
+| Java 25 + Spring Boot | `backend/springboot` | 8080 | PostgreSQL、MySQL、MariaDB、SQLite |
+| Go + Gin + GORM | `backend/go-gin-gorm` | 8081 | PostgreSQL、MySQL、MariaDB、SQLite |
+| C# + ASP.NET Core | `backend/csharp` | 8082 | PostgreSQL、MySQL、MariaDB、SQLite |
+| Rust + Axum | `backend/rust-axum` | 8083 | PostgreSQL、MySQL、MariaDB、SQLite |
+| Node.js + NestJS | `backend/node-nestjs` | 3000 | PostgreSQL、MySQL、MariaDB、SQLite |
+| Python + FastAPI | `backend/python-fastapi` | 8000 | PostgreSQL、MySQL、MariaDB、SQLite |
+
+### 数据库
+
+| 引擎 | 目录 | 运行时矩阵 |
+| --- | --- | --- |
+| PostgreSQL | `database/postgres` | 已测试 |
+| MySQL | `database/mysql` | 已测试 |
+| MariaDB | `database/mariadb` | 已测试 |
+| SQLite | `database/sqlite` | 已测试 |
+| openGauss / OceanBase / GoldenDB | `database/<engine>` | 仅静态 SQL |
+
+数据库设计是公共的、与引擎无关的：见
+[docs/DATABASE.zh-CN.md](./docs/DATABASE.zh-CN.md)。
+
+## 文档
+
+| 文档 | 内容 |
+| --- | --- |
+| [docs/README.zh-CN.md](./docs/README.zh-CN.md) | 文档索引与放置规则 |
+| [docs/FEATURES.zh-CN.md](./docs/FEATURES.zh-CN.md) | 产品范围、角色、页面清单 |
+| [docs/API.zh-CN.md](./docs/API.zh-CN.md) | 端点、认证、错误、分页 |
+| [docs/DATABASE.zh-CN.md](./docs/DATABASE.zh-CN.md) | ER 模型、约束、方言矩阵 |
+| [docs/STACKS.zh-CN.md](./docs/STACKS.zh-CN.md) | 端口与运行命令 |
+| [docs/VERIFICATION.zh-CN.md](./docs/VERIFICATION.zh-CN.md) | 实际执行过与尚未验证的内容 |
+| [frontend/docs/README.zh-CN.md](./frontend/docs/README.zh-CN.md) | 前端启动、配置、架构与视觉规范 |
+| [backend/docs/README.zh-CN.md](./backend/docs/README.zh-CN.md) | 后端启动、配置与共享架构 |
+| [contracts/openapi.json](./contracts/openapi.json) | 机器可读 API 契约 |
+| [PROJECT_ISSUES.md](./PROJECT_ISSUES.md) | 决策、已接受的取舍、验证记录 |
+| [CONTEXT.md](./CONTEXT.md) | 领域词汇 |
+
+## 快速开始（React + Spring Boot + PostgreSQL）
+
+```bash
+# 1. 数据库
+psql -U postgres -c "CREATE DATABASE orange;"
+psql -U postgres -d orange -f database/postgres/ddl.sql
+psql -U postgres -d orange -f database/postgres/dml.sql
+
+# 2. 后端配置
+cp backend/springboot/src/main/resources/application-local.example.yaml \
+   backend/springboot/src/main/resources/application-local.yaml
+# 如果 PostgreSQL 不在 localhost:5432，修改 datasource
+
+# 3. 启动后端
+cd backend/springboot
+SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+
+# 4. 启动前端
+cd frontend/react
+pnpm install
+pnpm dev            # http://localhost:5173
+```
+
+使用 `super / super`、`admin / admin` 或 `user / user` 登录。
+
+其他技术栈见
+[frontend/docs/GETTING-STARTED.zh-CN.md](./frontend/docs/GETTING-STARTED.zh-CN.md)
+和
+[backend/docs/GETTING-STARTED.zh-CN.md](./backend/docs/GETTING-STARTED.zh-CN.md)。
 
 ## 🧾 License
 

@@ -1,5 +1,19 @@
 # 变更记录
 
+## 未发布
+
+### 变更
+
+- 配置改为按技术栈独立维护。删除根目录 `config/` 与
+  `scripts/sync-config.mjs`；前端/后端各自提供并说明示例配置
+  （`frontend/<stack>/.env*`、`backend/<stack>/.env.example`、
+  `application-local.example.yaml`）。
+- 文档拆分为与技术栈无关的 `docs/`、`frontend/docs/` 和 `backend/docs/`。
+  数据库设计只在 `docs/DATABASE.zh-CN.md` 中描述一次。
+- 统一 React、Vue、Angular 的登录页、页签样式和深色背景 token。
+  Vue/Angular 的页签内容移植仍在进行中。
+- 每个后端都补充了中文 README（`README.zh-CN.md`）。
+
 ## 1.0.0 — 2026-11-04
 
 首个全仓库功能对等版本。

@@ -1,5 +1,7 @@
 # ORANGE backend — Node.js + NestJS
 
+English | [简体中文](./README.zh-CN.md)
+
 A port of the reference Spring Boot backend to **Node.js LTS + NestJS 11**, with
 TypeORM, `@nestjs/jwt`, BCrypt and a rotating HttpOnly refresh cookie. It runs
 against PostgreSQL, MySQL, MariaDB and SQLite through one connection switch.
@@ -35,8 +37,8 @@ With npm, scripts run automatically: `npm install`.
 
 ## Environment
 
-Copy `.env.example` if you want a reference; the app reads **process
-environment variables only** (it does not parse `.env` by itself).
+Copy `.env.example` to `.env.local`; the app loads it with `dotenv`
+(`src/config/env.ts`), and real environment variables win.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |

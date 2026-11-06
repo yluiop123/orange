@@ -62,12 +62,11 @@ The dev server proxies `/api` to the target from the generated local config
 
 ### 5) Environment Variables
 
-Configuration is generated from `config/app.env`; see
+Configuration lives in this directory; see
 [frontend/docs/CONFIGURATION.md](../docs/CONFIGURATION.md) for the full layering.
 
 ```bash
-cp config/app.example.env config/app.env
-node scripts/sync-config.mjs
+cp .env .env.local   # optional local override (gitignored)
 ```
 
 | Variable | Purpose |
@@ -78,8 +77,9 @@ node scripts/sync-config.mjs
 | `VITE_MOCK_ENABLE` | Enable MSW; `false` talks to the real backend |
 | `VITE_CESIUM_TOKEN` | Optional Cesium Ion token; empty uses OpenStreetMap |
 
-Do not set `VITE_ROUTE`: routing is always `HashRouter`. Never edit `.env.local`
-by hand; change `config/app.env` and regenerate.
+Do not set `VITE_ROUTE`: routing is always `HashRouter`. `.env` and
+`.env.development` are committed defaults; keep machine-specific values in
+`.env.local`.
 
 ## Project Structure
 

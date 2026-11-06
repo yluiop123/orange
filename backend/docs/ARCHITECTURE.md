@@ -66,6 +66,10 @@ features.
 
 ## Database portability
 
+The schema model itself is documented once in
+[`../../docs/DATABASE.md`](../../docs/DATABASE.md). This section only covers how
+a stack connects to it.
+
 - `database/<engine>/ddl.sql` and `dml.sql` are the only schema and seed sources.
 - No stack runs migrations or creates tables at startup.
 - One driver switch selects PostgreSQL, MySQL, MariaDB or SQLite; the SQL in

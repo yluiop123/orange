@@ -54,8 +54,9 @@
 | 入口 | 内容 |
 | --- | --- |
 | [../frontend/docs/README.zh-CN.md](../frontend/docs/README.zh-CN.md) | 前端启动、配置、架构与视觉规范 |
+| [../frontend/docs/CONFIGURATION.zh-CN.md](../frontend/docs/CONFIGURATION.zh-CN.md) | 前端环境文件与 Mock/真实模式切换 |
 | [../backend/docs/README.zh-CN.md](../backend/docs/README.zh-CN.md) | 后端启动、配置与共享架构 |
-| [../config/README.zh-CN.md](../config/README.zh-CN.md) | 配置单一来源与生成文件 |
+| [../backend/docs/CONFIGURATION.zh-CN.md](../backend/docs/CONFIGURATION.zh-CN.md) | 各技术栈环境文件与数据库切换 |
 
 ## Agent 说明
 

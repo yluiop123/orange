@@ -1,0 +1,34 @@
+# Copy to `application-local.yaml` next to this file and edit for your machine.
+# Run with `SPRING_PROFILES_ACTIVE=local`.
+# Real environment variables still win over every value here.
+# `application-local.yaml` is gitignored.
+
+server:
+  port: 8080
+
+spring:
+  datasource:
+    # PostgreSQL by default. For MySQL/MariaDB use jdbc:mysql://... and set DB_DRIVER.
+    url: jdbc:postgresql://127.0.0.1:5432/orange
+    username: postgres
+    password: postgres
+
+jwt:
+  private-key: classpath:keys/private_key.pem
+  public-key: classpath:keys/public_key.pem
+  access-expire: 900
+  refresh-expire: 604800
+  issuer: orange
+
+app:
+  cors:
+    allowed-origins: http://localhost:5173,http://localhost:5174,http://localhost:4200
+  auth:
+    cookie-secure: false
+    cookie-same-site: Lax
+    cookie-domain: ""
+    login-max-attempts: 5
+    login-ip-max-attempts: 20
+    login-lock-minutes: 15
+  operation-log:
+    retention-days: 90

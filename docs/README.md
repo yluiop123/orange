@@ -55,8 +55,9 @@ Angular, Spring Boot or FastAPI, it belongs in this directory.
 | Entry point | Content |
 | --- | --- |
 | [../frontend/docs/README.md](../frontend/docs/README.md) | Frontend startup, configuration, architecture and visual guide |
+| [../frontend/docs/CONFIGURATION.md](../frontend/docs/CONFIGURATION.md) | Frontend env files and mock/real switch |
 | [../backend/docs/README.md](../backend/docs/README.md) | Backend startup, configuration and shared architecture |
-| [../config/README.md](../config/README.md) | Single-source configuration and generated files |
+| [../backend/docs/CONFIGURATION.md](../backend/docs/CONFIGURATION.md) | Per-stack env files and database switching |
 
 ## Agent instructions
 

@@ -37,8 +37,8 @@ npm install
 npm start           # http://localhost:4200，使用 local 配置
 ```
 
-三个开发服务器都会把 `/api` 代理到生成的本地配置中的后端地址。如果后端不在默认
-地址，修改 `config/app.env` 后重新生成配置（见
+三个开发服务器都会把 `/api` 代理到应用自己的配置中的后端地址。如果后端不在默认
+地址，修改该应用的本地配置文件并重启（见
 [CONFIGURATION.zh-CN.md](./CONFIGURATION.zh-CN.md)）。
 
 ## 演示账号
@@ -74,7 +74,7 @@ node scripts/e2e/real-angular.mjs
   IPv6，而后端只监听 IPv4。
 - **开发环境白屏**：确认后端地址可达，并且 `VITE_MOCK_ENABLE` /
   `ANGULAR_MOCK_ENABLE` 与期望模式一致。
-- **生成的配置过期**：重新执行 `node scripts/sync-config.mjs`；不要手工修改
-  `.env.local` 或 `environment.local.ts`。
+- **配置修改未生效**：停止并重启开发服务器。Vite 与 Angular 在启动时读取配置，
+  没有生成器需要重新执行。
 - **端口被占用**：先停止旧开发服务器，不要为了避开占用而换端口，因为 GitHub
   Pages 和代理配置都假设使用文档中的端口。

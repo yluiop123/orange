@@ -53,12 +53,12 @@ backend/csharp/**/obj/
 *.sqlite
 *.sqlite3
 
-# Generated local configuration (source: config/app.env)
-config/app.env
+# Browser automation artifacts
 .playwright-mcp/
+
+# Local configuration (never commit real secrets)
 frontend/react/.env.local
 frontend/vue/.env.local
-frontend/angular/src/environments/environment.local.ts
 backend/springboot/src/main/resources/application-local.yaml
 backend/go-gin-gorm/.env.local
 backend/node-nestjs/.env.local
