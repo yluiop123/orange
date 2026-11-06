@@ -7,17 +7,15 @@ export default function TypographyPage() {
              <br/>
             <Typography.Title level={2}>Text 文本</Typography.Title>
             <Typography.Paragraph>
-                <Typography.Text strong>Strong 加粗</Typography.Text> ·
-                <Typography.Text underline>Underline 下划线</Typography.Text> ·
-                <Typography.Text delete>Delete 删除线</Typography.Text> ·
-                <Typography.Text code>Code 代码</Typography.Text> ·
-                <Typography.Text italic>Italic 斜体</Typography.Text>
+                <strong>Strong 加粗</strong> ·
+                <span className="underline">Underline 下划线</span> ·
+                <span className="line-through">Delete 删除线</span> ·
+                <code className="rounded bg-muted px-1 py-0.5 font-mono text-sm">Code 代码</code> ·
+                <em>Italic 斜体</em>
             </Typography.Paragraph>
              <br/>
             <Typography.Title level={2}>copyable/editable 复制/编辑</Typography.Title>
-            <Typography.Paragraph>
                 <Typography.Text copyable>Copyable 支持复制</Typography.Text>
-            </Typography.Paragraph>
             <Typography.Text
                 copyable
                 copyIcon={<Copy size={16} />}
@@ -25,16 +23,12 @@ export default function TypographyPage() {
             >
                 Copyable withIcon 自定义图标复制
             </Typography.Text>
-            <Typography.Paragraph>
                 <Typography.Text editable>Editable 支持编辑</Typography.Text>
-            </Typography.Paragraph>
             <br/>
             <Typography.Title level={2}>ellipsis 省略</Typography.Title>
-            <Typography.Paragraph>
                 <Typography.Text ellipsis={{ rows: 1, expandable: true }}>
                     {`这是一段很长的文本很长的文本很长的文本很长的文本很长的文本很长的文本很长的文本`.repeat(10)}
                 </Typography.Text>
-            </Typography.Paragraph>
 
             <Typography.Text ellipsis={{ rows: 2, expandable: true, type: "end" }}>
                 {`这是一段很长的文本很长的文本很长的文本很长的文本很长的文本很长的文本很长的文本`.repeat(10)}
