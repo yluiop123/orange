@@ -4,8 +4,8 @@ English | [简体中文](README.zh-CN.md)
 
 Orange is a permission, menu and role management admin console. It is built as
 one product with nine implementations: three frontends (React, Vue, Angular)
-and six backends (Spring Boot, Go, NestJS, C#, Rust, FastAPI), all serving the
-same HTTP contract and the same data model, with SQL for seven database
+and six backends (Spring Boot, Go, NestJS, C#, Rust, FastAPI), all built
+against one HTTP contract and one data model, with SQL for seven database
 dialects.
 
 The product is not the point. The point is a contract-first reference for

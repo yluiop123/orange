@@ -27,9 +27,7 @@ func NewRouter(svc *service.Service, st *store.Store, cfg config.Config) *gin.En
 	router.Use(Recovery(), TraceID(), CORS(cfg.CORSOrigins), h.operationLog())
 
 	// Documentation endpoints are anonymous and live outside the /api/v1 group.
-	initSwagger()
-	router.GET("/openapi.json", h.openapiJSON)
-	router.GET("/swagger", h.swaggerUI)
+	registerSwaggerRoutes(router)
 
 	api := router.Group("/api/v1")
 
