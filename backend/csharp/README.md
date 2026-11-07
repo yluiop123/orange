@@ -1,72 +1,72 @@
-# Orange · C# / ASP.NET Core 后端
+# Orange · C# / ASP.NET Core backend
 
-本栈用 .NET 10 + ASP.NET Core + EF Core 实现同一份接口契约，行为以 Spring Boot 基准为准；一个二进制通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
+This stack implements the same API contract with .NET 10 + ASP.NET Core + EF Core, following the Spring Boot reference for behaviour; one binary connects to one database via `DB_DRIVER` / `DATABASE_URL`.
 
-## 技术栈与版本
+## Tech stack and versions
 
-| 项 | 版本 / 说明 | 来源 |
+| Item | Version / notes | Source |
 | --- | --- | --- |
-| 运行时 | .NET 10（`net10.0`） | `src/Orange.Api/Orange.Api.csproj`、`tests/Orange.Tests/Orange.Tests.csproj` |
-| Web | ASP.NET Core（`Microsoft.NET.Sdk.Web`，控制器 + 中间件） | `Orange.Api.csproj` |
-| ORM | EF Core 9：`Microsoft.EntityFrameworkCore.Sqlite` 9.0.22、`Npgsql.EntityFrameworkCore.PostgreSQL` 9.0.4、`Pomelo.EntityFrameworkCore.MySql` 9.0.0 | `Orange.Api.csproj` |
-| 密码 | `BCrypt.Net-Next` 4.2.0 | `Orange.Api.csproj` |
-| 测试 | xUnit 2.9.3、`Microsoft.NET.Test.Sdk` 17.14.1、`coverlet.collector` 6.0.4 | `Orange.Tests.csproj` |
-| 解决方案 | `Orange.slnx`（`/src/` 与 `/tests/` 两个 Folder） | `Orange.slnx` |
-| 接口文档 | 无 Swashbuckle / OpenAPI 依赖 | `Orange.Api.csproj` |
-| 启动配置 | 无 `Properties/launchSettings.json` | 全仓文件清单 |
+| Runtime | .NET 10 (`net10.0`) | `src/Orange.Api/Orange.Api.csproj`, `tests/Orange.Tests/Orange.Tests.csproj` |
+| Web | ASP.NET Core (`Microsoft.NET.Sdk.Web`, controllers + middleware) | `Orange.Api.csproj` |
+| ORM | EF Core 9: `Microsoft.EntityFrameworkCore.Sqlite` 9.0.22, `Npgsql.EntityFrameworkCore.PostgreSQL` 9.0.4, `Pomelo.EntityFrameworkCore.MySql` 9.0.0 | `Orange.Api.csproj` |
+| Passwords | `BCrypt.Net-Next` 4.2.0 | `Orange.Api.csproj` |
+| Tests | xUnit 2.9.3, `Microsoft.NET.Test.Sdk` 17.14.1, `coverlet.collector` 6.0.4 | `Orange.Tests.csproj` |
+| Solution | `Orange.slnx` (two folders, `/src/` and `/tests/`) | `Orange.slnx` |
+| API documentation | unified `/swagger` + `/openapi.json` (no extra package) | `Swagger/SwaggerSupport.cs` |
+| Launch settings | no `Properties/launchSettings.json` | repository-wide file list |
 
-## 命令
+## Commands
 
-| 用途 | 命令 | 来源 / 说明 |
+| Purpose | Command | Source / notes |
 | --- | --- | --- |
-| 安装 | 无独立安装步骤 | `dotnet` 在 `build` 时还原 NuGet 包 |
-| 启动 | `dotnet run --project src/Orange.Api` | `Orange.slnx` 的项目路径；`.env.local` 由 `DotEnv` 加载 |
-| 测试 | `dotnet build Orange.slnx` 后 `dotnet test Orange.slnx --no-build` | `main.yml`（backend job, csharp） |
-| 构建 | `dotnet build Orange.slnx` | `main.yml` 同 job |
-| 发布 | `dotnet publish src/Orange.Api/Orange.Api.csproj -c Release -o out` | `main.yml` 同 job |
+| Install | no separate install step | `dotnet` restores NuGet packages during `build` |
+| Start | `dotnet run --project src/Orange.Api` | project path from `Orange.slnx`; `.env.local` is loaded by `DotEnv` |
+| Test | `dotnet build Orange.slnx` then `dotnet test Orange.slnx --no-build` | `main.yml` (backend job, csharp) |
+| Build | `dotnet build Orange.slnx` | same job in `main.yml` |
+| Publish | `dotnet publish src/Orange.Api/Orange.Api.csproj -c Release -o out` | same job in `main.yml` |
 
-端口来源变量：`APP_PORT` → `PORT` → 8082（`src/Orange.Api/Configuration/AppOptions.cs:49`）；`.env.example` 写 `APP_PORT=8082`。监听地址由 `Program.cs:16` 的 `UseUrls($"http://0.0.0.0:{options.Port}")` 决定。
+Port source variable: `APP_PORT` → `PORT` → 8082 (`src/Orange.Api/Configuration/AppOptions.cs:49`); `.env.example` sets `APP_PORT=8082`. The listening address comes from `UseUrls($"http://0.0.0.0:{options.Port}")` in `Program.cs:16`.
 
-CI 用 `setup-dotnet` 的 `10.0.x`。本栈没有提交 `launchSettings.json`，`dotnet run` 不读 IDE 的启动配置。
+CI uses `setup-dotnet`'s `10.0.x`. This stack does not commit `launchSettings.json`, so `dotnet run` does not read IDE launch profiles.
 
-## 目录结构与分层
+## Directory structure and layering
 
 ```text
 Orange.slnx
 src/Orange.Api/
-├── Program.cs             主机、DI、中间件管道、JSON 选项
-├── Configuration/         AppOptions（环境变量）、数据库驱动选择、DotEnv
-├── Contracts/             请求与响应 DTO
-├── Controllers/           auth、user、role、group、permission、operation-log
-├── Data/                  DbContext、provider 切换、方言辅助、查询谓词
-├── Domain/                实体、错误码、异常、树与权限策略、锁定与审计规则
-├── Middleware/            TraceId、异常、校验、审计
-├── Security/              JWT、刷新 cookie、认证中间件、RBAC 守卫、锁定
-└── Services/              业务逻辑、菜单树、查询工具、审计清理
-tests/Orange.Tests/        xUnit 单元测试
+├── Program.cs              host, DI, middleware pipeline, JSON options
+├── Configuration/         AppOptions (environment variables), database driver selection, DotEnv
+├── Contracts/             request and response DTOs
+├── Controllers/           auth, user, role, group, permission, operation-log
+├── Data/                  DbContext, provider switching, dialect helpers, query predicates
+├── Domain/                entities, error codes, exceptions, tree and permission policy, lockout and audit rules
+├── Middleware/            TraceId, exceptions, validation, audit
+├── Security/              JWT, refresh cookie, authentication middleware, RBAC guards, lockout
+└── Services/              business logic, menu tree, query utilities, audit cleanup
+tests/Orange.Tests/        xUnit unit tests
 ```
 
-## 配置入口
+## Configuration entry point
 
-复制 `.env.example` 为 `.env.local`（被 gitignore）；`Program.cs` 首行 `DotEnv.Load(".env.local")` 读入，真实环境变量优先。`appsettings.json` 与 `appsettings.Development.json` 只含日志级别和 `AllowedHosts`，业务配置全部来自环境变量。连接优先级、变量清单与跨栈对照见 [docs/backend/configuration.md](../../docs/backend/configuration.md)。
+Copy `.env.example` to `.env.local` (gitignored); the first line of `Program.cs`, `DotEnv.Load(".env.local")`, loads it, and real environment variables take precedence. `appsettings.json` and `appsettings.Development.json` contain only log levels and `AllowedHosts`; all business configuration comes from environment variables. Connection precedence, the variable list and the cross-stack comparison are in the [backend configuration conventions](../../backend/README.md).
 
-## 本栈偏差
+## Deviations of this stack
 
-1. 仓库里没有 `Properties/launchSettings.json`（`git ls-files backend/csharp` 中不存在该文件），因此 `dotnet run` 的监听地址只来自 `AppOptions.Port` 与 `UseUrls`，没有 IDE profile 参与。
-2. 目标框架是 `net10.0`，但 EF Core 锁在 9.x：`Orange.Api.csproj` 注释说明 `Pomelo.EntityFrameworkCore.MySql` 9.0.0 要求 EF Core 9，因此三个 provider 与 EF Core 必须同版本移动；升级 EF Core 10 需要等 Pomelo 10。
-3. JWT 只用 HS256（`src/Orange.Api/Security/JwtService.cs:58`、`:75`），与 Spring 的 RS256 不同；访问令牌与刷新令牌由本文件手写签发与校验，不使用第三方 JWT 包。
-4. 审计保留清理每 6 小时执行一次（`src/Orange.Api/Services/OperationLogService.cs:107` 的类注释），不是可配置 cron，与其他端口的每日清理节奏不同。
-5. 无 OpenAPI/Swagger UI，也无迁移工具：schema 只来自 `database/<engine>/ddl.sql` 与 `dml.sql`。
+1. The repository has no `Properties/launchSettings.json` (the file does not appear in `git ls-files backend/csharp`), so `dotnet run`'s listening address comes only from `AppOptions.Port` and `UseUrls`, with no IDE profile involved.
+2. The target framework is `net10.0` but EF Core is pinned to 9.x: a comment in `Orange.Api.csproj` explains that `Pomelo.EntityFrameworkCore.MySql` 9.0.0 requires EF Core 9, so the three providers and EF Core must move together; upgrading to EF Core 10 has to wait for Pomelo 10.
+3. JWT is HS256 only (`src/Orange.Api/Security/JwtService.cs:58`, `:75`), unlike Spring's RS256; access and refresh tokens are issued and validated by hand in this file, with no third-party JWT package.
+4. Audit-retention cleanup runs every 6 hours (class comment at `src/Orange.Api/Services/OperationLogService.cs:107`), not on a configurable cron, which differs from the daily cleanup cadence of the other ports.
+5. No third-party OpenAPI package and no migration tool: `/swagger` + `/openapi.json` are hand-wired in `Swagger/SwaggerSupport.cs`; the schema comes only from `database/<engine>/ddl.sql` and `dml.sql`.
 
-## 规模与测试
+## Size and tests
 
-| 指标 | 数值 |
+| Metric | Value |
 | --- | --- |
-| 受版本控制的文件 | 61 |
-| C# 源文件 | 53（`src/Orange.Api` 46、`tests/Orange.Tests` 7） |
-| 测试文件 | 7 个 `*Tests.cs`，另 1 个测试 csproj；测试数量未在本轮复跑，待核 |
+| Version-controlled files | 61 |
+| C# source files | 53 (`src/Orange.Api` 46, `tests/Orange.Tests` 7) |
+| Test files | 7 `*Tests.cs` files plus 1 test csproj; the test count was not re-run in this round and is pending verification |
 
-统计口径：`git ls-files backend/csharp`。端点、方言与验证结论见 [docs/reference/api.md](../../docs/reference/api.md)、[docs/reference/db-dialects.md](../../docs/reference/db-dialects.md)、[docs/reference/stacks.md](../../docs/reference/stacks.md)。
+Counting basis: `git ls-files backend/csharp`. Endpoints, dialects and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md).
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: `Orange.slnx`、`src/Orange.Api/Orange.Api.csproj`、`tests/Orange.Tests/Orange.Tests.csproj`、`src/Orange.Api/Program.cs`、`src/Orange.Api/Configuration/AppOptions.cs`、`.env.example`、`.github/workflows/main.yml`
+> Sources: `Orange.slnx`, `src/Orange.Api/Orange.Api.csproj`, `tests/Orange.Tests/Orange.Tests.csproj`, `src/Orange.Api/Program.cs`, `src/Orange.Api/Configuration/AppOptions.cs`, `.env.example`, `.github/workflows/main.yml`

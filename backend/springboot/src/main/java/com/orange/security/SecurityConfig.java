@@ -33,7 +33,9 @@ public class SecurityConfig {
             "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout"
     };
     private static final String[] SWAGGER_ENDPOINTS = {
-            "/swagger-ui/**", "/api-docs/**", "/swagger-ui.html"
+            "/swagger-ui/**", "/api-docs/**", "/swagger-ui.html",
+            // 统一 Swagger 入口（与其余后端一致，匿名可访问）
+            "/swagger", "/openapi.json"
     };
 
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;

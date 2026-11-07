@@ -1,95 +1,93 @@
-# ORANGE Vue 前端
+# ORANGE Vue frontend
 
-Vue 3 + Vuetify 实现，产品范围与 React 参考实现一致；本页只列安装、命令、目录、依赖与偏差。
+Vue 3 + Vuetify implementation with the same product scope as the React reference; this page covers installation, commands, layout, dependencies and deviations only.
 
-## 环境与安装
+## Environment and installation
 
-- Node.js（版本由 Vite 8 决定）与 pnpm；`package.json` 的 `packageManager` 为 `pnpm@12.15.0`。
-- 本目录自带 `pnpm-lock.yaml`。
+- Node.js (version pinned by Vite 8) and pnpm; `package.json` sets `packageManager` to `pnpm@12.15.0`.
+- This directory ships its own `pnpm-lock.yaml`.
 
 ```bash
 cd frontend/vue
 pnpm install
 ```
 
-`.env.development` 默认 `VITE_MOCK_ENABLE=true`，无后端也能登录；账号 `super / super`、`admin / admin`、`user / user`。`.env.local` 被 `*.local` 规则忽略。
+`.env.development` sets `VITE_MOCK_ENABLE=true` by default, so login works without a backend; accounts are `super / super`, `admin / admin` and `user / user`. `.env.local` is ignored by the `*.local` rule.
 
-## 命令
+## Commands
 
-| 命令 | 实际执行 | 用途 |
+| Command | Actually runs | Purpose |
 | --- | --- | --- |
-| `pnpm dev` | `vite --port 5174` | 开发服务器，固定 5174 |
-| `pnpm build` | `vue-tsc -b && vite build` | 类型检查后生产构建 |
-| `pnpm preview` | `vite preview --port 5174` | 预览构建产物 |
-| `pnpm typecheck` | `vue-tsc -b` | 只做类型检查 |
-| `pnpm test` | `vitest run` | 单测（`src/**/*.test.ts`，node 环境） |
-| `pnpm test:watch` | `vitest` | 监听模式 |
-| `pnpm lint` | `eslint . --max-warnings=0` | ESLint，零警告 |
-| `pnpm format` | `prettier --write .` | 格式化 |
+| `pnpm dev` | `vite --port 5174` | Dev server, fixed at 5174 |
+| `pnpm build` | `vue-tsc -b && vite build` | Production build after type checking |
+| `pnpm preview` | `vite preview --port 5174` | Preview the build output |
+| `pnpm typecheck` | `vue-tsc -b` | Type checking only |
+| `pnpm test` | `vitest run` | Unit tests (`src/**/*.test.ts`, node environment) |
+| `pnpm test:watch` | `vitest` | Watch mode |
+| `pnpm lint` | `eslint . --max-warnings=0` | ESLint, zero warnings |
+| `pnpm format` | `prettier --write .` | Formatting |
 
-## 目录结构
+## Directory structure
 
 ```text
 frontend/vue/
   src/
-    api/            axios 实例、auth 与各资源请求、手写类型
-    auth/           token、refresh、session hint、强制改密标记
-    components/     ActionAuth、FormDialog、ResourceTable、layout/、showcase/
-    composables/    useAccess、useResourcePage、usePageTitle
-    config/         permissions.json（同步副本）、menu-icons.ts
-    i18n/           index.ts、zh-CN.ts、en-US.ts
+    api/            axios instance, auth and per-resource requests, hand-written types
+    auth/           token, refresh, session hint, forced password-change flag
+    components/     ActionAuth, FormDialog, ResourceTable, layout/, showcase/
+    composables/    useAccess, useResourcePage, usePageTitle
+    config/         permissions.json (synced copy), menu-icons.ts
+    i18n/           index.ts, zh-CN.ts, en-US.ts
     layouts/        AppLayout.vue
-    lib/            access、menu、menu-title、path、tree-code、validation
-    mock/           axios adapter 与内存种子
-    router/         路由表与全局守卫
-    stores/         auth、menu、ui、pinia
-    styles/         main.css、system.css
-    views/          system、dashboard、chart、map、three、component、login、errors
+    lib/            access, menu, menu-title, path, tree-code, validation
+    mock/           axios adapter and in-memory seed
+    router/         route table and global guards
+    stores/         auth, menu, ui, pinia
+    styles/         main.css, system.css
+    views/          system, dashboard, chart, map, three, component, login, errors
     App.vue / main.ts
   .env / .env.development
   vite.config.ts / vitest.config.ts
 ```
 
-## 本栈依赖
+## Dependencies of this stack
 
-`package.json` 共 17 个运行时依赖、18 个开发依赖。
+`package.json` has 17 runtime dependencies and 18 dev dependencies.
 
-| 类别 | 依赖 |
+| Category | Dependencies |
 | --- | --- |
-| 框架与 UI | `vue`、`vuetify`、`@mdi/font` |
-| 路由、状态、i18n | `vue-router`、`pinia`、`vue-i18n` |
+| Framework and UI | `vue`, `vuetify`, `@mdi/font` |
+| Routing, state, i18n | `vue-router`, `pinia`, `vue-i18n` |
 | HTTP | `axios` |
-| 图表 | `echarts`、`chart.js`、`d3` |
-| 地图 | `leaflet`、`ol`、`@deck.gl/core`、`@deck.gl/layers`、`cesium` |
-| 3D | `three`、`@babylonjs/core` |
+| Charts | `echarts`, `chart.js`, `d3` |
+| Maps | `leaflet`, `ol`, `@deck.gl/core`, `@deck.gl/layers`, `cesium` |
+| 3D | `three`, `@babylonjs/core` |
 
-Vuetify 组件全量注册在 `src/main.ts`，默认表单变体为 `outlined`、`density: comfortable`，图标集为 MDI。
+Vuetify components are registered globally in `src/main.ts`, the default form variant is `outlined`, `density: comfortable`, and the icon set is MDI.
 
-## 与契约的关系
+## Relationship to the contract
 
-- 契约是 `contracts/openapi.json`，但本栈没有代码生成脚本；`src/api/types.ts` 手写 `Envelope`、`PageResult` 与实体类型，`src/api/*.ts` 返回 `response.data.data`。
-- `src/api/http.ts` 的基地址是 `VITE_API_BASE`（默认 `/api/v1/`），统一带 `Authorization` 与 `Locale`，`withCredentials: true` 以携带 refresh Cookie。
-- 401 时单飞 `POST /auth/refresh` 后重试一次；403 打开 forbidden 对话框，`40302` 打开强制改密。
-- 端点与错误码见 [API 参考](../../docs/reference/api.md)。
+- The contract is `contracts/openapi.json`, but this stack has no code-generation script; `src/api/types.ts` hand-writes `Envelope`, `PageResult` and the entity types, and `src/api/*.ts` returns `response.data.data`.
+- `src/api/http.ts` uses `VITE_API_BASE` as its base URL (default `/api/v1/`), always sends `Authorization` and `Locale`, and sets `withCredentials: true` so the refresh cookie is carried.
+- On 401 it performs a single-flight `POST /auth/refresh` and retries once; 403 opens the forbidden dialog and `40302` opens forced password change.
+- Endpoints and error codes are in the [HTTP contract](../../contracts/openapi.json).
 
-## 本栈约定与偏差
+## Conventions and deviations of this stack
 
-- 路由用 `createWebHistory`；页面在 `src/router/index.ts` 手工登记，容器路径 `CONTAINER_PATHS` 也是手写清单，新增容器必须同步改它。
-- 全局守卫 `router.beforeEach` 检查 public 路由、token、user-info、菜单与 `canView`；动作权限由 `ActionAuth` 组件控制。
-- mock 不是 MSW，而是替换 `http.defaults.adapter` 的 Axios adapter（`src/mock/index.ts` + `seed.ts`），状态在内存中。
-- 菜单标题由 `src/lib/menu-title.ts` 从 `src/config/permissions.json` 按 Page Path 取中英文，缺失时回退后端名称。
-- 主题是 Vuetify 的 `light` / `dark` 主题对象；颜色选择器直接改 `theme.themes.value`，持久化 key 为 `orange.theme` / `orange.color`。
-- 图表页有替换：AntV 页面用 ECharts 渲染，Recharts 页面用 Chart.js；`/map/l7` 不加载 L7，使用 tokenless 的点层卡片演示。
-- Cesium 由 `vite-plugin-cesium-build` 复制到 `cesium-package/`，只在 `/map/cesium` 动态加载，使用 OpenStreetMap 影像，不需要 Ion token。
-- 单测 4 个文件，覆盖 access、path、tree-code、page-clamp；没有 DOM 组件测试。
+- Routing uses `createWebHistory`; pages are registered by hand in `src/router/index.ts`, and the container paths `CONTAINER_PATHS` are a hand-written list too — a new container must update it.
+- The global guard `router.beforeEach` checks public routes, token, user-info, menus and `canView`; action permissions are controlled by the `ActionAuth` component.
+- Mocking is not MSW but an Axios adapter replacing `http.defaults.adapter` (`src/mock/index.ts` + `seed.ts`), with state kept in memory.
+- Menu titles are taken from `src/config/permissions.json` by Page Path, in Chinese and English, by `src/lib/menu-title.ts`; when missing it falls back to the backend name.
+- Theming uses Vuetify's `light` / `dark` theme objects; the colour picker writes `theme.themes.value` directly, and persistence keys are `orange.theme` / `orange.color`.
+- Some chart pages are substituted: AntV pages render with ECharts and Recharts pages with Chart.js; `/map/l7` does not load L7 and uses a tokenless point-layer card demo instead.
+- Cesium is copied to `cesium-package/` by `vite-plugin-cesium-build`, loaded dynamically only at `/map/cesium`, uses OpenStreetMap imagery and needs no Ion token.
+- Unit tests are 4 files covering access, path, tree-code and page-clamp; there are no DOM component tests.
 
-## 延伸阅读
+## Further reading
 
-- [前端架构](../../docs/frontend/architecture.md)
-- [设计系统](../../docs/frontend/design-system.md)
-- [在 Vue 与 Angular 里新增同一个页面](../../docs/frontend/add-a-page.md)
-- [在 mock 与真实后端之间切换](../../docs/frontend/connect-api-and-mocks.md)
-- [技术栈参考](../../docs/reference/stacks.md)
+- [Frontend overview: architecture, design system, permission visibility, adding a page, mock switching](../../frontend/README.md)
+- [Repository stack and command matrix](../../README.md)
+- [HTTP contract](../../contracts/openapi.json)
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: frontend/vue/package.json、frontend/vue/vite.config.ts、frontend/vue/vitest.config.ts、frontend/vue/.env*、frontend/vue/src/main.ts、frontend/vue/src/router/index.ts、frontend/vue/src/api/http.ts、frontend/vue/src/lib/menu-title.ts、frontend/vue/src/mock/index.ts、frontend/vue/src/views/chart/AntvView.vue、frontend/vue/src/views/chart/RechartView.vue、frontend/vue/src/views/map/CesiumView.vue、frontend/vue/src/views/map/L7View.vue
+> Sources: frontend/vue/package.json, frontend/vue/vite.config.ts, frontend/vue/vitest.config.ts, frontend/vue/.env*, frontend/vue/src/main.ts, frontend/vue/src/router/index.ts, frontend/vue/src/api/http.ts, frontend/vue/src/lib/menu-title.ts, frontend/vue/src/mock/index.ts, frontend/vue/src/views/chart/AntvView.vue, frontend/vue/src/views/chart/RechartView.vue, frontend/vue/src/views/map/CesiumView.vue, frontend/vue/src/views/map/L7View.vue

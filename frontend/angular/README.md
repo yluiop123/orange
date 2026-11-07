@@ -1,91 +1,89 @@
-# ORANGE Angular 前端
+# ORANGE Angular frontend
 
-Angular 21 + Angular Material 实现，产品范围与 React 参考实现一致；本页只列安装、命令、目录、依赖与偏差。
+Angular 21 + Angular Material implementation with the same product scope as the React reference; this page covers installation, commands, layout, dependencies and deviations only.
 
-## 环境与安装
+## Environment and installation
 
-- Node.js 与 npm；`package.json` 的 `packageManager` 为 `npm@11.6.0`。
-- 本目录自带 `package-lock.json`，用 `npm ci` 复现锁定版本。
+- Node.js and pnpm; `package.json` sets `packageManager` to `pnpm@12.15.0`.
+- This directory ships its own `pnpm-lock.yaml`; use `pnpm install --frozen-lockfile` to reproduce the locked versions.
 
 ```bash
 cd frontend/angular
-npm ci
+pnpm install --frozen-lockfile
 ```
 
-`npm start` 使用 `local` 配置并替换 `src/environments/environment.ts`。该配置的 `mock` 默认为 `false`，指向 8080 的真实后端；要脱离后端，把 `environment.local.ts` 的 `mock` 改为 `true` 并重启。
+`pnpm start` uses the `local` configuration and swaps in `src/environments/environment.ts`. That configuration defaults `mock` to `false` and points at the real backend on 8080; to run without a backend, set `mock` to `true` in `environment.local.ts` and restart.
 
-## 命令
+## Commands
 
-| 命令 | 实际执行 | 用途 |
+| Command | Actually runs | Purpose |
 | --- | --- | --- |
-| `npm start` | `ng serve --port 4200 --configuration local` | 开发服务器，端口 4200，带 `proxy.conf.json` |
-| `npm run build` | `ng build` | 生产构建（默认 `production` 配置） |
-| `npm run watch` | `ng build --watch --configuration development` | 开发配置监听构建 |
-| `npm test` | `ng test --watch=false` | 单测（`@angular/build:unit-test`，Vitest） |
-| `npm run lint` | `ng lint` | ESLint + angular-eslint |
-| `npm run ng` | `ng` | 直接调用 Angular CLI |
+| `pnpm start` | `ng serve --port 4200 --configuration local` | Dev server, port 4200, with `proxy.conf.json` |
+| `pnpm build` | `ng build` | Production build (default `production` configuration) |
+| `pnpm run watch` | `ng build --watch --configuration development` | Watch build with the development configuration |
+| `pnpm test` | `ng test --watch=false` | Unit tests (`@angular/build:unit-test`, Vitest) |
+| `pnpm lint` | `ng lint` | ESLint + angular-eslint |
+| `pnpm run ng` | `ng` | Invoke the Angular CLI directly |
 
-没有独立 `typecheck` 脚本；`ng build` 与 `ng test` 都会做严格模板类型检查。
+There is no separate `typecheck` script; `ng build` and `ng test` both perform strict template type checking.
 
-## 目录结构
+## Directory structure
 
 ```text
 frontend/angular/
-  public/                      静态资源（品牌图等）
+  public/                      static assets (brand images etc.)
   src/
     environments/              environment.ts / .development.ts / .local.ts
     app/
-      core/                    auth、interceptor、access、menu、i18n、models、tree-code
-      layout/                  shell、sidebar-item、menu-redirect
-      mock/                    in-memory backend、mock-data、interceptor
-      pages/                   login、system、dashboard、chart、map、three、component
-      shared/                  dialogs、EChart 包装、选择器、chart-presets
-      app.config.ts            providers 与 app initializer
-      app.routes.ts            路由表
+      core/                    auth, interceptor, access, menu, i18n, models, tree-code
+      layout/                  shell, sidebar-item, menu-redirect
+      mock/                    in-memory backend, mock-data, interceptor
+      pages/                   login, system, dashboard, chart, map, three, component
+      shared/                  dialogs, EChart wrapper, pickers, chart-presets
+      app.config.ts            providers and app initializer
+      app.routes.ts            route table
     main.ts / styles.scss
   angular.json / proxy.conf.json / tsconfig*.json
 ```
 
-## 本栈依赖
+## Dependencies of this stack
 
-`package.json` 共 20 个运行时依赖、14 个开发依赖。
+`package.json` has 20 runtime dependencies and 14 dev dependencies.
 
-| 类别 | 依赖 |
+| Category | Dependencies |
 | --- | --- |
-| 框架与 UI | `@angular/{animations,cdk,common,compiler,core,forms,material,platform-browser,router}`（21.2.x） |
-| 响应式与运行时 | `rxjs`、`tslib` |
-| 图表 | `echarts`、`d3` |
-| 地图 | `leaflet`、`ol`、`@deck.gl/core`、`@deck.gl/geo-layers`、`@deck.gl/layers` |
-| 3D | `three`、`@babylonjs/core` |
+| Framework and UI | `@angular/{animations,cdk,common,compiler,core,forms,material,platform-browser,router}` (21.2.x) |
+| Reactive and runtime | `rxjs`, `tslib` |
+| Charts | `echarts`, `d3` |
+| Maps | `leaflet`, `ol`, `@deck.gl/core`, `@deck.gl/geo-layers`, `@deck.gl/layers` |
+| 3D | `three`, `@babylonjs/core` |
 
-Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载固定的 1.147 版本，离线时显示静态回退。Material 使用 Material 3 主题，主色与圆角在 `src/styles.scss` 中被覆盖为与 React 一致的中性色。
+Cesium is not listed as a dependency: `/map/cesium` loads a fixed 1.147 version from the Cesium CDN at runtime, and shows a static fallback when offline. Material uses a Material 3 theme, whose primary colour and radii are overridden in `src/styles.scss` to the same neutral palette as React.
 
-## 与契约的关系
+## Relationship to the contract
 
-- 契约是 `contracts/openapi.json`；本栈没有生成脚本，`src/app/core/models.ts` 手写镜像 `Envelope`、`PageResult`、`UserInfo`、`MenuNode` 等类型。
-- `ApiService` 统一解包 `{ code, message, data }`，非 200 代码转成 `ApiError`；`system-api.service.ts` 按资源封装调用。
-- `auth.interceptor.ts` 用 `environment.apiBase` 给相对 URL 加前缀，并附加 `Authorization` 与 `Locale`；401 时通过 `RefreshService` 单飞刷新后重试一次。
-- `RefreshService` 用 `fetch` 而不是 `HttpClient`，避免 refresh 请求再次进入拦截器造成递归。
-- 端点与错误码见 [API 参考](../../docs/reference/api.md)。
+- The contract is `contracts/openapi.json`; this stack has no generation script, and `src/app/core/models.ts` hand-mirrors types such as `Envelope`, `PageResult`, `UserInfo` and `MenuNode`.
+- `ApiService` unwraps `{ code, message, data }` uniformly and turns non-200 codes into `ApiError`; `system-api.service.ts` wraps calls per resource.
+- `auth.interceptor.ts` prefixes relative URLs with `environment.apiBase` and attaches `Authorization` and `Locale`; on 401 it refreshes single-flight through `RefreshService` and retries once.
+- `RefreshService` uses `fetch` rather than `HttpClient`, so the refresh request does not re-enter the interceptor and recurse.
+- Endpoints and error codes are in the [HTTP contract](../../contracts/openapi.json).
 
-## 本栈约定与偏差
+## Conventions and deviations of this stack
 
-- 路由在 `src/app/app.routes.ts` 手工登记。`page(path, permissionPath, loader)` 会挂 `permissionGuard`，`container('system')` 等负责容器跳转；新增页面与容器都要改这里。
-- mock 是 `mock.interceptor.ts` + `mock-backend.ts` 的内存实现，排在 auth 拦截器之后；`?mock=1` 会持久化到 `orange.mock.enabled`，`?mock=0` 清除。
-- 权限目录 `src/app/core/permission-catalog.ts` 是手写镜像，不随根目录的 `permissions:sync` 更新；新增权限必须同时改它和 `ROLE_PERMISSIONS`。
-- i18n 字典在 `src/app/core/i18n.service.ts` 的 `EN` / `ZH` 常量里，没有独立 locale 文件；菜单标题由 `menu-labels.ts` 从权限目录取。
-- 主题与配色切换存在（`ThemeToggleComponent`、颜色菜单），持久化 key 为 `orange.angular.theme`、`orange.angular.color`，默认深色。
-- 图表页有替换：AntV 与 Recharts 页面都用 ECharts 渲染，`/map/l7` 用 Leaflet 底图加 SVG 流线，不加载 L7。
-- 根工作流的 `deploy` 只发布 React；本栈只跑 build/lint/test，没有独立 GitHub Pages 配置。
-- 单测 4 个 spec，覆盖 access、page-clamp、tree-code 与 mock backend；没有端到端套件，E2E 由 `scripts/e2e/*` 外部驱动。
+- Routes are registered by hand in `src/app/app.routes.ts`. `page(path, permissionPath, loader)` attaches `permissionGuard`, and `container('system')` and friends handle container redirects; both new pages and new containers require editing it.
+- Mocking is the in-memory implementation in `mock.interceptor.ts` + `mock-backend.ts`, ordered after the auth interceptor; `?mock=1` persists to `orange.mock.enabled` and `?mock=0` clears it.
+- The permission catalog `src/app/core/permission-catalog.ts` is a hand-written mirror that the root `permissions:sync` does not update; a new permission must be added there and to `ROLE_PERMISSIONS` at the same time.
+- The i18n dictionary lives in the `EN` / `ZH` constants of `src/app/core/i18n.service.ts`, with no separate locale files; menu titles come from the permission catalog via `menu-labels.ts`.
+- Theme and palette switching exist (`ThemeToggleComponent`, colour menu), with persistence keys `orange.angular.theme` and `orange.angular.color`, defaulting to dark.
+- Some chart pages are substituted: both the AntV and Recharts pages render with ECharts, and `/map/l7` uses a Leaflet base map with SVG flow lines instead of loading L7.
+- The root workflow's `deploy` publishes React only; this stack only runs build/lint/test and has no separate GitHub Pages configuration.
+- Unit tests are 4 specs covering access, page-clamp, tree-code and the mock backend; there is no end-to-end suite, and E2E is driven externally by `scripts/e2e/*`.
 
-## 延伸阅读
+## Further reading
 
-- [前端架构](../../docs/frontend/architecture.md)
-- [设计系统](../../docs/frontend/design-system.md)
-- [在 Vue 与 Angular 里新增同一个页面](../../docs/frontend/add-a-page.md)
-- [在 mock 与真实后端之间切换](../../docs/frontend/connect-api-and-mocks.md)
-- [技术栈参考](../../docs/reference/stacks.md)
+- [Frontend overview: architecture, design system, permission visibility, adding a page, mock switching](../../frontend/README.md)
+- [Repository stack and command matrix](../../README.md)
+- [HTTP contract](../../contracts/openapi.json)
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: frontend/angular/package.json、frontend/angular/angular.json、frontend/angular/proxy.conf.json、frontend/angular/src/environments/environment*.ts、frontend/angular/src/app/app.config.ts、frontend/angular/src/app/app.routes.ts、frontend/angular/src/app/core/guards.ts、frontend/angular/src/app/core/auth.interceptor.ts、frontend/angular/src/app/core/refresh.service.ts、frontend/angular/src/app/core/permission-catalog.ts、frontend/angular/src/app/core/i18n.service.ts、frontend/angular/src/app/mock/mock-backend.ts、frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts、frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts、frontend/angular/src/styles.scss
+> Sources: frontend/angular/package.json, frontend/angular/angular.json, frontend/angular/proxy.conf.json, frontend/angular/src/environments/environment*.ts, frontend/angular/src/app/app.config.ts, frontend/angular/src/app/app.routes.ts, frontend/angular/src/app/core/guards.ts, frontend/angular/src/app/core/auth.interceptor.ts, frontend/angular/src/app/core/refresh.service.ts, frontend/angular/src/app/core/permission-catalog.ts, frontend/angular/src/app/core/i18n.service.ts, frontend/angular/src/app/mock/mock-backend.ts, frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts, frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts, frontend/angular/src/styles.scss

@@ -1,94 +1,171 @@
+English | [简体中文](README.zh-CN.md)
+
 # Orange
 
-Orange is a permission-management admin product — users, groups, roles and a
-permission-driven menu tree — implemented **nine times**: three frontends and
-six backends sharing one contract and one database model.
+Orange is a permission, menu and role management admin console. It is built as
+one product with nine implementations: three frontends (React, Vue, Angular)
+and six backends (Spring Boot, Go, NestJS, C#, Rust, FastAPI), all serving the
+same HTTP contract and the same data model, with SQL for seven database
+dialects.
 
-The point is not the product. The point is a **reference baseline for comparing
-stacks**: every implementation must serve the same HTTP contract, the same
-schema and the same behaviour, so differences between frameworks are isolated
-from differences between designs.
+The product is not the point. The point is a contract-first reference for
+comparing stacks: the same screens, endpoints, error codes and permission
+semantics must be reproduced in every stack, so a difference between
+implementations is a difference between frameworks or languages, not between
+product designs. Nothing is shared at runtime: no frontend imports another, no
+backend shares a package. What is shared is verifiable and lives outside the
+stack directories — [contracts/openapi.json](contracts/openapi.json),
+[database/](database/) and [scripts/](scripts/).
 
-## Repository layout
+## Product scope
 
-```text
-frontend/          three UI implementations + shared frontend docs
-backend/           six API implementations + shared backend docs
-database/          canonical DDL and seed data, one directory per engine
-contracts/         openapi.json — the machine-readable contract
-docs/              technology-agnostic documentation (Chinese)
-scripts/           cross-stack checks, database matrix, E2E helpers
-.scratch/          issue tracker and archive (internal, not documentation)
-```
+- **Authentication** — password login, short-lived access tokens, a rotating HttpOnly refresh cookie, logout, forced password change on first login, database-backed login lockout.
+- **Authorization** — users, roles, organizations and permissions, plus direct grants, role fusion and a UI-only role switch.
+- **System management** — CRUD for the four resources, trees ordered by business code, and a read-only operation log.
+- **Demo pages** — dashboards, charts, maps, 3D scenes and component galleries; they exercise the shell and design system and add no backend endpoints.
+- **Seed roles** — `super` (all permissions; only it may grant `super` or reset a `super` password), `admin` (system management without `super`) and `user` (read-only demo pages).
+- **Pages** — 30 menu pages: 6 dashboards, 8 component pages, 4 chart pages, 2 3D pages, 5 map pages and 5 system pages, plus `/login`, `/forbidden` and `/not-found`.
+- **Permission model** — a permission is `type + path + action`; effective permissions are the union of enabled roles and direct grants minus disabled permissions; directory permissions affect menu visibility only.
 
-Boundary rule: `contracts/`, `database/` and `docs/` describe the product and
-must stay true after swapping React, Vue, Angular, Spring Boot, Go, NestJS,
-.NET, Rust or FastAPI.
+## Stack matrix
 
-## Stacks
+| Stack | Port | Start | Test |
+| --- | --- | --- | --- |
+| React 19 + Vite + shadcn/Base UI | 5173 | `pnpm dev` | `pnpm test` |
+| Vue 3 + Vuetify 3 + Vite | 5174 | `pnpm dev` | `pnpm test` |
+| Angular 21 + Material | 4200 | `pnpm start` | `pnpm test -- --watch=false` |
+| Spring Boot 4 (Java 25) | 8080 | `mvn spring-boot:run` | `mvn -B test` |
+| Go + Gin + GORM | 8081 | `go run ./cmd/server` | `go test ./...` |
+| NestJS | 3000 | `pnpm start:dev` | `pnpm test` |
+| ASP.NET Core (.NET 10) | 8082 | `dotnet run --project src/Orange.Api` | `dotnet test Orange.slnx --no-build` |
+| Rust + Axum | 8083 | `cargo run` | `cargo test` |
+| Python + FastAPI | 8000 | `python -m app.main` | `python -m pytest -q` |
 
-| Layer | Reference | Other implementations |
-| --- | --- | --- |
-| Frontend | React 19 + Vite + shadcn/Base UI (deployed to GitHub Pages) | Vue 3 + Vuetify, Angular 21 + Material |
-| Backend | Java 25 + Spring Boot (behaviour reference) | Go + Gin + GORM, NestJS, ASP.NET Core (.NET 10), Rust + Axum, Python + FastAPI |
-| Database | PostgreSQL | MySQL, MariaDB, SQLite (tested); openGauss, OceanBase, GoldenDB (static SQL) |
-
-Ports, commands, dependency notes and per-stack database support live in one
-place: [`docs/reference/stacks.md`](./docs/reference/stacks.md).
+Backend ports come from `APP_PORT`, with `PORT` as fallback; a local Spring
+Boot run usually also sets `SPRING_PROFILES_ACTIVE=local`. Every Node project
+uses pnpm: `pnpm install` for React, Vue, Angular and Nest; FastAPI uses
+`pip install -r requirements-dev.txt`. Maven, Go modules, Cargo and
+`dotnet restore` are handled by their toolchains.
 
 ## Quick start
 
-```bash
-# frontend (mock mode, no backend needed)
-cd frontend/react && pnpm install && pnpm dev
+React + FastAPI + SQLite, from a clean checkout:
 
-# backend + database (FastAPI + SQLite example)
+```bash
+# terminal 1 — backend
 cd backend/python-fastapi
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements-dev.txt
 sqlite3 app.db < ../../database/sqlite/ddl.sql
 sqlite3 app.db < ../../database/sqlite/dml.sql
-python -m app.main
+DB_DRIVER=sqlite DB_NAME=app.db python -m app.main   # http://127.0.0.1:8000
+
+# terminal 2 — frontend
+cd frontend/react
+pnpm install
+pnpm dev                                             # http://localhost:5173
 ```
 
-Then sign in with the seed account and explore the menu tree. The full walkthrough
-is [`docs/tutorials/quickstart.md`](./docs/tutorials/quickstart.md).
+Without the `sqlite3` CLI, run both scripts through Python's `sqlite3` module
+on one connection. React serves mocks by default; to use the backend above, put
+`VITE_MOCK_ENABLE=false` and `VITE_PROXY_TARGET=http://127.0.0.1:8000` in
+`frontend/react/.env.development.local` and restart the dev server. Sign in
+with `super` / `super`, `admin` / `admin` or `user` / `user`.
+
+## API and Swagger
+
+Every backend exposes two framework-independent endpoints: `GET /swagger`
+serves Swagger UI and `GET /openapi.json` returns the contract. Both read
+[contracts/openapi.json](contracts/openapi.json) from the repository root at
+startup; the contract is hand-maintained and is not generated from any
+framework's route metadata, so every stack documents the same API. Swagger UI
+assets load from the unpkg CDN.
+
+Spring Boot additionally serves springdoc's `/swagger-ui.html` and `/api-docs`
+when `SPRINGDOC_ENABLED=true`; FastAPI keeps `/docs` as a redirect to
+`/swagger`. Any backend will do — with FastAPI running:
+
+```bash
+cd backend/python-fastapi
+DB_DRIVER=sqlite DB_NAME=app.db python -m app.main
+# open http://127.0.0.1:8000/swagger
+curl -s http://127.0.0.1:8000/openapi.json | head
+```
+
+Replace the port with the one from the matrix to use another backend.
+
+## Database design
+
+One logical model, ten tables, all prefixed `sys_`: `sys_group`,
+`sys_permission`, `sys_role`, `sys_role_permission`, `sys_user`,
+`sys_user_permission`, `sys_user_role`, `sys_revoked_token`,
+`sys_login_attempt` and `sys_operation_log`. Structure is canonical in
+[database/postgres/ddl.sql](database/postgres/ddl.sql); every other engine
+directory is a port. Each directory contains exactly `ddl.sql` (tables, keys,
+indexes, checks) and `dml.sql` (seed data).
+
+| Engine | Files | Verification |
+| --- | --- | --- |
+| PostgreSQL 16 | [ddl.sql](database/postgres/ddl.sql), [dml.sql](database/postgres/dml.sql) | CI matrix and contract acceptance |
+| MySQL 8.0.16+ | [ddl.sql](database/mysql/ddl.sql), [dml.sql](database/mysql/dml.sql) | CI matrix |
+| MariaDB 11 | [ddl.sql](database/mariadb/ddl.sql), [dml.sql](database/mariadb/dml.sql) | CI matrix |
+| SQLite 3 | [ddl.sql](database/sqlite/ddl.sql), [dml.sql](database/sqlite/dml.sql) | CI matrix and contract acceptance |
+| openGauss 5/6 | [ddl.sql](database/opengauss/ddl.sql), [dml.sql](database/opengauss/dml.sql) | static review only |
+| OceanBase 4 (MySQL mode) | [ddl.sql](database/oceanbase/ddl.sql), [dml.sql](database/oceanbase/dml.sql) | static review only |
+| GoldenDB 6 | [ddl.sql](database/goldendb/ddl.sql), [dml.sql](database/goldendb/dml.sql) | static review only |
+
+- The business code `id` is both the primary key and the tree position: roots
+  are 2 digits for organizations and 4 for permissions, a child appends 2
+  digits to its parent, and sibling order is the code's lexicographic order.
+  There is no order column; changing a code changes identity.
+- Permission identity is `(type, path, action)`. PostgreSQL enforces it with
+  two partial unique indexes; MySQL and MariaDB use a generated `action_key`
+  column instead.
+- PostgreSQL, MySQL, MariaDB and SQLite run in CI. openGauss, OceanBase and
+  GoldenDB ship static SQL only and are not runtime-verified.
+- SQLite foreign keys are per-connection and off by default, so `ddl.sql` and
+  `dml.sql` must run in that order on a single connection.
 
 ## Documentation
 
-Deep documentation is written in **Chinese**; this README is the English entry
-point. Start at [`docs/index.md`](./docs/index.md), which maps every document to
-one of four Diátaxis roles and gives reading paths for newcomers, single-stack
-users and maintainers.
+Start with the two shared documents, then open the stack you are working on.
 
-- **Tutorials** — run a stack, make a first contribution
-- **How-to** — add a stack, change the contract, run the database matrix, port a page
-- **Reference** — stack matrix, HTTP contract, data model, dialects, permission fields, configuration, scripts
-- **Explanation** — architecture, permission model, validation layering, auth lifecycle, porting trade-offs
+- [frontend/README.md](frontend/README.md) — shared frontend conventions: routing, permission visibility, API and mock switching, design tokens.
+- [backend/README.md](backend/README.md) — shared backend layering, response envelope, errors and configuration.
+- Frontends: [React](frontend/react/README.md), [Vue](frontend/vue/README.md), [Angular](frontend/angular/README.md).
+- Backends: [Spring Boot](backend/springboot/README.md), [Go](backend/go-gin-gorm/README.md), [NestJS](backend/node-nestjs/README.md), [C#](backend/csharp/README.md), [Rust](backend/rust-axum/README.md), [FastAPI](backend/python-fastapi/README.md).
+- Every stack README ships as `README.md` (English) and `README.zh-CN.md` (Chinese).
 
-Architecture decisions are recorded in [`docs/adr/`](./docs/adr/). Domain
-vocabulary is fixed in [`CONTEXT.md`](./CONTEXT.md); AI agents enter through
-[`AGENTS.md`](./AGENTS.md).
+## Design decisions
 
-## Verification
+- **Path is permission identity.** A permission is `type + path + action`, with no separate permission code. The page path is a stable contract; renaming a route is a permission-data migration.
+- **The backend owns the menu tree.** `GET /api/v1/auth/menus` returns every enabled `menu` and `directory` node, ordered by code. The frontend renders and filters the tree but never generates routes from it, so a menu failure degrades the sidebar instead of blocking navigation.
+- **Business code is the tree order.** Numeric codes encode both the parent prefix and the sibling position, so there is no order column and no runtime reordering.
+- **Validation has three layers.** The database enforces invariants for every writer, the backend turns failures into readable business errors, and the frontend pre-checks only to save a round trip; it never grants access.
+- **Roles fuse; switching is a view.** Effective permissions are the union of enabled roles plus direct grants, minus disabled permissions. Role switching filters menus and buttons in the UI only and never reduces backend authority.
+- **Visibility is not authorization.** Directory permissions control whether a menu appears; API access still requires the matching `menu` or `action` authority, and disabling a permission removes both.
+- **Contract first.** A change starts in `contracts/openapi.json`, then reaches the six backends, then the three frontends; schema changes land in the same commit.
 
-CI runs three categories of checks on every push and pull request:
+## Verification and CI
 
-- **Configuration** — `scripts/check-config.mjs` and `npm run permissions:check`
-- **Per-stack** — lint, type-check, tests and production build for all nine stacks
-- **Contract and matrix** — on `main`, each backend is exercised against
-  PostgreSQL, MySQL, MariaDB and SQLite, then checked against `contracts/openapi.json`
+Run the commands for the stack you changed (matrix above), then the root
+checks: `node scripts/check-config.mjs`, `pnpm run permissions:check` and
+`pnpm run docs:check` (local relative-link check).
 
-Only the React frontend is deployed to GitHub Pages.
+[.github/workflows/main.yml](.github/workflows/main.yml) runs on pull requests
+to `main`, pushes to `main` and manual dispatch:
 
-## Contributing
+- `config` — check-config and permissions:check.
+- `frontend-react`, `frontend-vue`, `frontend-angular` — install, lint, type-check (React and Vue), test and build; React also builds the Pages artifact on push.
+- `backend` — test and build matrix over the six stacks; on push the same job also runs the four-engine database matrix and contract acceptance on SQLite.
+- `deploy` — publishes the React build to GitHub Pages; the other frontends are never deployed.
 
-Read [`docs/index.md`](./docs/index.md) → "维护者" path, then
-[`docs/how-to/verify-a-change.md`](./docs/how-to/verify-a-change.md) for the
-checks to run before opening a pull request. Issues and specs live as Markdown
-files under [`.scratch/`](./.scratch/).
+There is no path filter, so a documentation-only change still runs every job.
+Pull requests skip the database matrix, contract acceptance and deployment, so
+a green PR does not prove backend behaviour.
 
-This project follows the [Contributor Covenant](./CODE_OF_CONDUCT.md).
+## License and code of conduct
 
-## License
-
-See [`LICENSE`](./LICENSE).
+Orange is released under the MIT License; see [LICENSE](LICENSE). Participation
+is governed by the Contributor Covenant in
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

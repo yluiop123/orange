@@ -1,74 +1,74 @@
-# Orange · Python + FastAPI 后端
+# Orange · Python + FastAPI backend
 
-本栈用 Python + FastAPI 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
+This stack implements the same API contract with Python + FastAPI, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER` / `DATABASE_URL`.
 
-## 技术栈与版本
+## Tech stack and versions
 
-| 项 | 版本 / 说明 | 来源 |
+| Item | Version / notes | Source |
 | --- | --- | --- |
-| Python | `>=3.13`（CI 用 3.13） | `pyproject.toml`、`main.yml` |
-| Web | FastAPI `>=0.115,<1.0`、`uvicorn[standard]` `>=0.32,<1.0` | `requirements.txt` |
-| ORM 与驱动 | SQLAlchemy `>=2.0,<3.0`、`psycopg[binary]` `>=3.2,<4.0`、`PyMySQL` `>=1.1,<2.0` | `requirements.txt` |
-| 校验 | pydantic `>=2.9,<3.0` | `requirements.txt` |
-| 认证 | PyJWT `>=2.9,<3.0`（HS256）、`bcrypt` `>=4.2,<6.0` | `requirements.txt` |
-| 其他 | `python-dotenv` `>=1.0,<2.0` | `requirements.txt` |
-| 测试依赖 | pytest `>=8.3,<10.0`、httpx `>=0.27,<1.0`（在 `requirements-dev.txt`，含 `-r requirements.txt`） | `requirements-dev.txt` |
-| 接口文档 | 框架自带：`FastAPI()` 未改 `docs_url`，`/docs` 默认可用 | `app/main.py:61` |
-| 构建 | 无构建/打包步骤（解释型，`pyproject.toml` 只含元数据与 pytest 配置） | `pyproject.toml` |
+| Python | `>=3.13` (CI uses 3.13) | `pyproject.toml`, `main.yml` |
+| Web | FastAPI `>=0.115,<1.0`, `uvicorn[standard]` `>=0.32,<1.0` | `requirements.txt` |
+| ORM and drivers | SQLAlchemy `>=2.0,<3.0`, `psycopg[binary]` `>=3.2,<4.0`, `PyMySQL` `>=1.1,<2.0` | `requirements.txt` |
+| Validation | pydantic `>=2.9,<3.0` | `requirements.txt` |
+| Auth | PyJWT `>=2.9,<3.0` (HS256), `bcrypt` `>=4.2,<6.0` | `requirements.txt` |
+| Other | `python-dotenv` `>=1.0,<2.0` | `requirements.txt` |
+| Test dependencies | pytest `>=8.3,<10.0`, httpx `>=0.27,<1.0` (in `requirements-dev.txt`, which includes `-r requirements.txt`) | `requirements-dev.txt` |
+| API documentation | built in: `FastAPI()` leaves `docs_url` untouched, so `/docs` works by default | `app/main.py:61` |
+| Build | no build/packaging step (interpreted; `pyproject.toml` holds metadata and pytest configuration only) | `pyproject.toml` |
 
-## 命令
+## Commands
 
-| 用途 | 命令 | 来源 / 说明 |
+| Purpose | Command | Source / notes |
 | --- | --- | --- |
-| 安装 | `pip install -r requirements-dev.txt` | `main.yml`（backend job, fastapi）；需先建 venv |
-| 启动 | `python -m app.main` | `app/main.py` 的 `__main__` 分支调用 `uvicorn.run(port=settings.port)` |
-| 启动（CLI） | `uvicorn app.main:app --port 8000` | CLI 自带 `--port`，此时 `PORT` / `APP_PORT` 不生效 |
-| 测试 | `python -m pytest -q` | `main.yml`；`pyproject.toml` 设 `testpaths=["tests"]`、`pythonpath=["."]`、`addopts="-q"` |
-| 构建 | 无 | 解释型语言，CI 只安装并测试 |
-| 冒烟 | `python scripts/smoke_http.py --base-url http://127.0.0.1:8000` | `scripts/smoke_http.py`；需先起服务与已 seed 的库 |
+| Install | `pip install -r requirements-dev.txt` | `main.yml` (backend job, fastapi); create a venv first |
+| Start | `python -m app.main` | the `__main__` branch of `app/main.py` calls `uvicorn.run(port=settings.port)` |
+| Start (CLI) | `uvicorn app.main:app --port 8000` | the CLI supplies `--port`, so `PORT` / `APP_PORT` do not apply |
+| Test | `python -m pytest -q` | `main.yml`; `pyproject.toml` sets `testpaths=["tests"]`, `pythonpath=["."]`, `addopts="-q"` |
+| Build | none | interpreted language; CI only installs and tests |
+| Smoke | `python scripts/smoke_http.py --base-url http://127.0.0.1:8000` | `scripts/smoke_http.py`; needs a running service and a seeded database |
 
-端口来源变量：`_env_int("APP_PORT", _env_int("PORT", 8000))`（`app/config.py:209`），默认 8000；`.env.example` 写 `PORT=8000`。
+Port source variable: `_env_int("APP_PORT", _env_int("PORT", 8000))` (`app/config.py:209`), default 8000; `.env.example` sets `PORT=8000`.
 
-## 目录结构与分层
+## Directory structure and layering
 
 ```text
-app/main.py            应用工厂、CORS、TraceId、审计中间件、路由挂载、__main__ 入口
-app/config.py          Settings：环境变量、驱动归一化、URL 组装
+app/main.py            application factory, CORS, TraceId, audit middleware, router mounting, __main__ entry
+app/config.py          Settings: environment variables, driver normalization, URL assembly
 app/db.py              SQLAlchemy engine / session
-app/envelope.py        响应包体
-app/errors.py          错误码与异常处理器
-app/middleware.py      审计中间件
-app/models/            共享 schema 的 ORM 模型
-app/policies/          编码形状、权限形状、有效权限、树索引
-app/schemas/           请求与响应模型
-app/routers/           auth、users、roles、groups、permissions、operation_logs
-app/security/          JWT、刷新 cookie、锁定、密码、授权依赖
-app/services/          业务逻辑与守卫、菜单树、查询工具
-tests/                 pytest 用例与 conftest
-scripts/               smoke_http.py、smoke_pg.py
+app/envelope.py        response envelope
+app/errors.py          error codes and exception handlers
+app/middleware.py      audit middleware
+app/models/            ORM models for the shared schema
+app/policies/          code shape, permission shape, effective permissions, tree index
+app/schemas/           request and response models
+app/routers/           auth, users, roles, groups, permissions, operation_logs
+app/security/          JWT, refresh cookie, lockout, password, authorization dependencies
+app/services/          business logic and guards, menu tree, query utilities
+tests/                 pytest cases and conftest
+scripts/               smoke_http.py, smoke_pg.py
 ```
 
-## 配置入口
+## Configuration entry point
 
-复制 `.env.example` 为 `.env`（`app/config.py` 用 `load_dotenv(".env")` 读入，真实环境变量优先）。连接优先级为 `DATABASE_URL` → `DB_DRIVER` + `DB_*` → PostgreSQL 默认值；`DATABASE_URL` 支持其他端口的短写 scheme 并自动补全 SQLAlchemy 方言。完整变量清单与跨栈对照见 [docs/backend/configuration.md](../../docs/backend/configuration.md)。
+Copy `.env.example` to `.env` (`app/config.py` loads it with `load_dotenv(".env")`, and real environment variables take precedence). Connection precedence is `DATABASE_URL` → `DB_DRIVER` + `DB_*` → PostgreSQL defaults; `DATABASE_URL` accepts the short schemes of the other ports and fills in the SQLAlchemy dialect automatically. The full variable list and cross-stack comparison are in the [backend configuration conventions](../../backend/README.md).
 
-## 本栈偏差
+## Deviations of this stack
 
-1. 唯一默认暴露 OpenAPI UI 的后端：`FastAPI()` 未覆盖 `docs_url`，`/docs` 与 `/openapi.json` 可用（`app/main.py:61`）；Spring 有 springdoc 但默认关闭，其余四栈没有 UI。
-2. 唯一没有构建步骤的栈：CI 仅 `pip install -r requirements-dev.txt` 加 `python -m pytest -q`。
-3. 校验失败返回 `40002`、畸形 JSON 返回 `40001`（`app/errors.py:19`、`:20`），与 Java 基准一致（Spring 的 bean validation 失败同样记 `40002`）。
-4. 审计保留清理是进程内 asyncio 任务：启动后延迟 60 秒首跑，之后每日一次（`app/main.py` 的 `_retention_loop`）；C# 为每 6 小时。
-5. 测试全部走内存 SQLite（`tests/conftest.py` 用 `sqlite+pysqlite:///:memory:` 加 `StaticPool`），不需要数据库服务；其余端口的数据库行为靠真实库脚本（Go、Nest、Rust）或 Docker 集成测试（Spring）。
+1. The generated schema is disabled (`openapi_url=None`): `/swagger` and `/openapi.json` serve the committed contract, and `/docs` redirects (302) to `/swagger` (`app/routers/docs.py`).
+2. The only stack with no build step: CI only runs `pip install -r requirements-dev.txt` plus `python -m pytest -q`.
+3. Validation failures return `40002` and malformed JSON returns `40001` (`app/errors.py:19`, `:20`), consistent with the Java reference (Spring's bean validation failures are likewise recorded as `40002`).
+4. Audit-retention cleanup is an in-process asyncio task: it first runs 60 seconds after startup and then once per day (`_retention_loop` in `app/main.py`); C# runs every 6 hours.
+5. Tests all run on in-memory SQLite (`tests/conftest.py` uses `sqlite+pysqlite:///:memory:` with `StaticPool`) and need no database server; the other ports verify database behaviour with real-database scripts (Go, Nest, Rust) or Docker integration tests (Spring).
 
-## 规模与测试
+## Size and tests
 
-| 指标 | 数值 |
+| Metric | Value |
 | --- | --- |
-| 受版本控制的文件 | 63 |
-| Python 文件 | 57 |
-| 测试文件 | 10 个 `test_*.py`，另 `conftest.py` |
+| Version-controlled files | 63 |
+| Python files | 57 |
+| Test files | 10 `test_*.py` files plus `conftest.py` |
 
-统计口径：`git ls-files backend/python-fastapi`。端点、方言与验证结论见 [docs/reference/api.md](../../docs/reference/api.md)、[docs/reference/db-dialects.md](../../docs/reference/db-dialects.md)、[docs/reference/stacks.md](../../docs/reference/stacks.md)。
+Counting basis: `git ls-files backend/python-fastapi`. Endpoints, dialects and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md).
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: `requirements.txt`、`requirements-dev.txt`、`pyproject.toml`、`.env.example`、`app/config.py`、`app/main.py`、`app/errors.py`、`tests/conftest.py`、`.github/workflows/main.yml`
+> Sources: `requirements.txt`, `requirements-dev.txt`, `pyproject.toml`, `.env.example`, `app/config.py`, `app/main.py`, `app/errors.py`, `tests/conftest.py`, `.github/workflows/main.yml`

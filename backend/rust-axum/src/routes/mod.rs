@@ -196,6 +196,10 @@ pub fn router(state: AppState) -> Router {
     let cors = cors_layer(&state.config);
 
     Router::new()
+        // Documentation endpoints stay outside the `/api/v1` routers, so no auth
+        // middleware wraps them.
+        .route("/openapi.json", get(crate::swagger::openapi_json))
+        .route("/swagger", get(crate::swagger::swagger_ui))
         .merge(system)
         .merge(auth_protected)
         .merge(public)

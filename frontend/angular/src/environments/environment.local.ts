@@ -1,4 +1,4 @@
-﻿// Local development configuration selected by `npm start` (`local` configuration).
+// Local development configuration selected by `pnpm start` (`local` configuration).
 // Edit `mock` to true to run without a backend.
 export const environment = {
   production: false,

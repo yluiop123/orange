@@ -8,6 +8,7 @@ using Orange.Api.Domain;
 using Orange.Api.Middleware;
 using Orange.Api.Security;
 using Orange.Api.Services;
+using Orange.Api.Swagger;
 
 DotEnv.Load(".env.local");
 var options = AppOptions.FromEnvironment();
@@ -71,6 +72,9 @@ builder.Services.AddCors(cors => cors.AddPolicy("frontend", policy =>
 
 var app = builder.Build();
 
+// Read the shared contract once; the endpoints reuse these bytes for every request.
+var openApiJson = SwaggerSupport.LoadContract(app.Logger);
+
 app.Logger.LogInformation(
     "Orange API on port {Port} using database driver {Driver} ({Source})",
     options.Port,
@@ -113,5 +117,21 @@ app.UseStatusCodePages(async statusContext =>
 app.UseRouting();
 app.UseMiddleware<AuthenticationMiddleware>();
 app.MapControllers();
+
+// Documentation endpoints are anonymous despite the global authentication middleware.
+app.MapGet("/openapi.json", () =>
+{
+    if (openApiJson is null)
+    {
+        app.Logger.LogError(
+            "GET /openapi.json: contracts/openapi.json was not found at startup; returning 500");
+        return Results.StatusCode(StatusCodes.Status500InternalServerError);
+    }
+    return Results.Text(openApiJson, "application/json");
+}).AllowAnonymous();
+
+app.MapGet("/swagger", () =>
+        Results.Content(SwaggerSupport.UiHtml, "text/html; charset=utf-8"))
+    .AllowAnonymous();
 
 app.Run();

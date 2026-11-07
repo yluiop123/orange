@@ -32,7 +32,7 @@ for (const relative of targets) {
   if (current === rendered) continue;
 
   if (check) {
-    console.error(`${relative} is out of date; run \`npm run permissions:sync\``);
+    console.error(`${relative} is out of date; run \`pnpm run permissions:sync\``);
     failed = true;
   } else {
     fs.mkdirSync(path.dirname(target), { recursive: true });

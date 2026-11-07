@@ -1,10 +1,9 @@
 /**
  * Three-frontend visual parity capture + diff.
  *
- * Implements the screenshot protocol from `.scratch/ui-parity/spec.md`:
- * Chrome, 1440x900, DPR 1, locale zh, animations disabled, same route and
- * scroll position. Diff is reported as mean absolute error (MAE) and the share
- * of pixels whose max channel delta is greater than 12.
+ * Screenshot protocol: Chrome, 1440x900, DPR 1, locale zh, animations disabled,
+ * same route and scroll position. Diff is reported as mean absolute error (MAE)
+ * and the share of pixels whose max channel delta is greater than 12.
  *
  * Usage:
  *   node parity.mjs                         # button tab, dark/light, default/blue

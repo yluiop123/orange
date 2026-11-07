@@ -27,11 +27,14 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
       - run: node scripts/check-config.mjs
-      - run: npm run permissions:check
+      - run: pnpm run permissions:check
 
   frontend-react:
     runs-on: ubuntu-latest
@@ -40,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.28.2
+          version: 12.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -68,18 +71,21 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'
-          cache-dependency-path: './frontend/angular/package-lock.json'
-      - run: npm ci
+          cache: 'pnpm'
+          cache-dependency-path: './frontend/angular/pnpm-lock.yaml'
+      - run: pnpm install --frozen-lockfile
         working-directory: frontend/angular
-      - run: npm run lint
+      - run: pnpm run lint
         working-directory: frontend/angular
-      - run: npm test -- --watch=false
+      - run: pnpm test -- --watch=false
         working-directory: frontend/angular
-      - run: npm run build
+      - run: pnpm run build
         working-directory: frontend/angular
 
   frontend-vue:

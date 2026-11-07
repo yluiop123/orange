@@ -1,75 +1,75 @@
-# Orange · Node.js + NestJS 后端
+# Orange · Node.js + NestJS backend
 
-本栈用 NestJS 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
+This stack implements the same API contract in NestJS, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER` / `DATABASE_URL`.
 
-## 技术栈与版本
+## Tech stack and versions
 
-| 项 | 版本 / 说明 | 来源 |
+| Item | Version / notes | Source |
 | --- | --- | --- |
-| 框架 | NestJS 11（`@nestjs/common`、`core`、`jwt`、`platform-express`、`typeorm` 均为 `^11`） | `package.json` |
+| Framework | NestJS 11 (`@nestjs/common`, `core`, `jwt`, `platform-express`, `typeorm` are all `^11`) | `package.json` |
 | ORM | TypeORM 0.3.20 | `package.json` |
-| 语言与编译 | TypeScript 5.7.2、`@nestjs/cli` 11、`ts-loader` 9.5.1 | `package.json` |
-| 测试 | jest 29.7.0 + ts-jest 29.2.5，配置内联在 `package.json`（`rootDir: src`、`testRegex: .*\.spec\.ts$`） | `package.json` |
-| 数据库客户端 | `pg` 8.13.1、`mysql2` 3.24.6、`better-sqlite3` 13.0.3 | `package.json` |
-| 认证 | `@nestjs/jwt` 11、`bcrypt` 5.1.1（原生模块） | `package.json` |
-| 校验与转换 | `class-validator` 0.14.1、`class-transformer` 0.5.1 | `package.json` |
-| 其他 | `cookie-parser` 1.4.7、`dotenv` 16.4.7、`reflect-metadata` 0.2.2、`rxjs` 7.8.1 | `package.json` |
-| 接口文档 | 无 OpenAPI/Swagger 依赖 | `package.json` |
-| 包管理 | pnpm（`pnpm-lock.yaml`、`pnpm-workspace.yaml`；CI 用 pnpm 12.15.0） | 仓库文件、`main.yml` |
+| Language and compilation | TypeScript 5.7.2, `@nestjs/cli` 11, `ts-loader` 9.5.1 | `package.json` |
+| Tests | jest 29.7.0 + ts-jest 29.2.5, configured inline in `package.json` (`rootDir: src`, `testRegex: .*\.spec\.ts$`) | `package.json` |
+| Database clients | `pg` 8.13.1, `mysql2` 3.24.6, `better-sqlite3` 13.0.3 | `package.json` |
+| Auth | `@nestjs/jwt` 11, `bcrypt` 5.1.1 (native module) | `package.json` |
+| Validation and transformation | `class-validator` 0.14.1, `class-transformer` 0.5.1 | `package.json` |
+| Other | `cookie-parser` 1.4.7, `dotenv` 16.4.7, `reflect-metadata` 0.2.2, `rxjs` 7.8.1 | `package.json` |
+| API documentation | unified `/swagger` + `/openapi.json` (no extra dependency) | `src/main.ts` |
+| Package management | pnpm (`pnpm-lock.yaml`, `pnpm-workspace.yaml`; CI uses pnpm 12.15.0) | repository files, `main.yml` |
 
-## 命令
+## Commands
 
-| 用途 | 命令 | 来源 / 说明 |
+| Purpose | Command | Source / notes |
 | --- | --- | --- |
-| 安装 | `pnpm install --frozen-lockfile` | `main.yml`（backend job, nest） |
-| 启动（开发） | `pnpm start:dev` | `package.json`（`nest start --watch`） |
-| 启动（产物） | `pnpm build` 后 `pnpm start:prod` | `package.json`（`node dist/main.js`） |
-| 测试 | `pnpm test` | `main.yml`；jest 只跑 `src/**/*.spec.ts` |
-| 构建 | `pnpm build` | `main.yml`（`nest build`） |
-| 类型检查 | `pnpm typecheck` | `package.json`（`tsc --noEmit`） |
-| 冒烟 | `pnpm smoke` | `package.json`（`node scripts/smoke.mjs`），需要已 seed 的库和已启动的服务 |
+| Install | `pnpm install --frozen-lockfile` | `main.yml` (backend job, nest) |
+| Start (dev) | `pnpm start:dev` | `package.json` (`nest start --watch`) |
+| Start (artifact) | `pnpm build` then `pnpm start:prod` | `package.json` (`node dist/main.js`) |
+| Test | `pnpm test` | `main.yml`; jest only runs `src/**/*.spec.ts` |
+| Build | `pnpm build` | `main.yml` (`nest build`) |
+| Type check | `pnpm typecheck` | `package.json` (`tsc --noEmit`) |
+| Smoke | `pnpm smoke` | `package.json` (`node scripts/smoke.mjs`), needs a seeded database and a running service |
 
-端口来源变量：`int(process.env.APP_PORT ?? process.env.PORT, 3000)`（`src/config/app-config.ts:50`），默认 3000；`.env.example` 写 `PORT=3000`。
+Port source variable: `int(process.env.APP_PORT ?? process.env.PORT, 3000)` (`src/config/app-config.ts:50`), default 3000; `.env.example` sets `PORT=3000`.
 
-`bcrypt` 与 `better-sqlite3` 是原生模块，安装时要跑构建脚本；`pnpm-workspace.yaml` 已用 `onlyBuiltDependencies` 与 `allowBuilds` 预先批准这两个包，无需再手工 `pnpm approve-builds`。
+`bcrypt` and `better-sqlite3` are native modules, so their build scripts run during installation; `pnpm-workspace.yaml` pre-approves both packages through `onlyBuiltDependencies` and `allowBuilds`, so `pnpm approve-builds` is not needed.
 
-## 目录结构与分层
+## Directory structure and layering
 
 ```text
-src/main.ts              bootstrap：全局前缀 /api/v1、CORS、cookie、TraceId
-src/app.module.ts        TypeORM 连接，全局守卫 / 拦截器 / 过滤器 / 管道
-src/config/              AppConfig（环境变量）、DB 驱动归一化、TypeORM 选项
-src/common/              响应包体、错误码、TraceId、校验、树与编码策略、密码工具
-src/auth/                登录/刷新/登出/user-info/改密、JWT、刷新轮换、登录锁定
-src/menus/               /auth/menus 菜单树
-src/{users,roles,groups,permissions}/   DTO、service、controller
-src/operation-log/       审计拦截器、记录策略、查询
-src/entities/            共享 schema 的 TypeORM 实体
-src/policies/            权限形状与有效权限
-scripts/smoke.mjs        HTTP 级冒烟脚本
+src/main.ts              bootstrap: global prefix /api/v1, CORS, cookies, TraceId
+src/app.module.ts        TypeORM connection, global guards / interceptors / filters / pipes
+src/config/              AppConfig (environment variables), DB driver normalization, TypeORM options
+src/common/              response envelope, error codes, TraceId, validation, tree and code policy, password tools
+src/auth/                login/refresh/logout/user-info/change-password, JWT, refresh rotation, login lockout
+src/menus/               /auth/menus menu tree
+src/{users,roles,groups,permissions}/   DTO, service, controller
+src/operation-log/       audit interceptor, recording policy, queries
+src/entities/            TypeORM entities for the shared schema
+src/policies/            permission shape and effective permissions
+scripts/smoke.mjs        HTTP-level smoke script
 ```
 
-## 配置入口
+## Configuration entry point
 
-复制 `.env.example` 为 `.env.local`（被 gitignore）；`src/config/env.ts` 用 `dotenv` 加载该文件，真实环境变量优先。数据库引擎先看 `DB_DRIVER`，其次看 `DATABASE_URL` 的 scheme，兜底 `postgres`；`DATABASE_URL` 覆盖离散 `DB_*`。完整变量清单与跨栈对照见 [docs/backend/configuration.md](../../docs/backend/configuration.md)。
+Copy `.env.example` to `.env.local` (gitignored); `src/config/env.ts` loads that file with `dotenv`, and real environment variables take precedence. The database engine is taken from `DB_DRIVER` first, then from the `DATABASE_URL` scheme, falling back to `postgres`; `DATABASE_URL` overrides the discrete `DB_*` variables. The full variable list and cross-stack comparison are in the [backend configuration conventions](../../backend/README.md).
 
-## 本栈偏差
+## Deviations of this stack
 
-1. 单元测试只覆盖纯策略：7 个 `.spec.ts`，不启动 Nest、不连数据库；数据库行为靠 `scripts/smoke.mjs` 在真实服务上验证，这与 Go（含路由与冒烟测试）不同。
-2. TypeORM `synchronize: false`（`src/config/database.options.ts:16`）：不建表、不迁移，schema 由 `database/<engine>` 负责。
-3. MariaDB 走 TypeORM 的 `mysql` 驱动和 `mysql2` 客户端（`src/config/database.options.ts`），不需要额外的 `mariadb` 包；SQLite 用 `better-sqlite3`。
-4. JWT 只用 HS256：`JwtModule.registerAsync` 仅传 `secret`（`src/auth/auth.module.ts:21`），不同于 Spring 的 RS256。
-5. 无 OpenAPI/Swagger 生成或 UI。
+1. Unit tests cover pure policy only: 7 `.spec.ts` files that neither boot Nest nor connect to a database; database behaviour is verified by `scripts/smoke.mjs` against a real service, which differs from Go (route and smoke tests included).
+2. TypeORM `synchronize: false` (`src/config/database.options.ts:16`): it neither creates tables nor migrates, and the schema belongs to `database/<engine>`.
+3. MariaDB goes through TypeORM's `mysql` driver and the `mysql2` client (`src/config/database.options.ts`), with no extra `mariadb` package; SQLite uses `better-sqlite3`.
+4. JWT is HS256 only: `JwtModule.registerAsync` receives only `secret` (`src/auth/auth.module.ts:21`), unlike Spring's RS256.
+5. No `@nestjs/swagger`: `/swagger` + `/openapi.json` are registered on the Express adapter in `src/main.ts`, outside the global prefix and guards.
 
-## 规模与测试
+## Size and tests
 
-| 指标 | 数值 |
+| Metric | Value |
 | --- | --- |
-| 受版本控制的文件 | 95 |
-| TypeScript 源文件 | 85（`src/`） |
-| 测试文件 | 7 个 `.spec.ts`（纯单元测试，无需数据库） |
+| Version-controlled files | 95 |
+| TypeScript source files | 85 (`src/`) |
+| Test files | 7 `.spec.ts` files (pure unit tests, no database needed) |
 
-统计口径：`git ls-files backend/node-nestjs`。端点清单、方言差异与验证结论分别见 [docs/reference/api.md](../../docs/reference/api.md)、[docs/reference/db-dialects.md](../../docs/reference/db-dialects.md)、[docs/reference/stacks.md](../../docs/reference/stacks.md)。
+Counting basis: `git ls-files backend/node-nestjs`. The endpoint list, dialect differences and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md) respectively.
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: `package.json`、`pnpm-workspace.yaml`、`.env.example`、`src/config/*.ts`、`src/main.ts`、`src/**/*.spec.ts`、`.github/workflows/main.yml`
+> Sources: `package.json`, `pnpm-workspace.yaml`, `.env.example`, `src/config/*.ts`, `src/main.ts`, `src/**/*.spec.ts`, `.github/workflows/main.yml`
