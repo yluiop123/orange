@@ -31,6 +31,7 @@ jobs:
         with:
           node-version: lts/*
       - run: node scripts/check-config.mjs
+      - run: npm run permissions:check
 
   frontend-react:
     runs-on: ubuntu-latest
@@ -52,8 +53,6 @@ jobs:
       - run: pnpm run typecheck
         working-directory: frontend/react
       - run: pnpm run test
-        working-directory: frontend/react
-      - run: pnpm run db:seed:check
         working-directory: frontend/react
       - run: pnpm run build:github
         working-directory: frontend/react

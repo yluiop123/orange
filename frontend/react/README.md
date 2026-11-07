@@ -57,8 +57,10 @@ The dev server proxies `/api` to the target from the generated local config
 | test / test:watch | Vitest |
 | preview / preview:github | Preview a production build |
 | analyze | Bundle size analysis |
-| db:seed / db:seed:check | Sync or verify the permission seed |
 | gen:api | Regenerate `src/api/schema.d.ts` from `contracts/openapi.json` |
+
+Permission catalog and seed commands live at the repository root:
+`npm run permissions:sync` / `npm run permissions:check`.
 
 ### 5) Environment Variables
 

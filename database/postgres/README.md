@@ -47,9 +47,10 @@ Demo passwords are stored as BCrypt hashes. The seed users are:
 
 Change or delete these before exposing the database.
 
-The permission catalog lives in `frontend/react/src/config/permissions.json`.
-`pnpm db:seed:check` (run from `frontend/react`) verifies that the catalog and
-the generated block in `dml.sql` are in sync.
+The canonical permission catalog lives in `database/permissions.json`. React and
+Vue receive generated copies under `frontend/<app>/src/config/`.
+`npm run permissions:check` (run from the repository root) verifies the copies
+and the generated block in `dml.sql`.
 
 ## Invariants
 

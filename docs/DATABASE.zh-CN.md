@@ -146,12 +146,12 @@ sys_operation_log     (id PK)
 `dml.sql` 会加载：
 
 - 7 个组织（`00` 为根，6 个子节点/孙节点）。
-- 48 个权限（即 `frontend/react/src/config/permissions.json` 中的目录清单）。
+- 48 个权限（即 `database/permissions.json` 中的目录清单；React/Vue 副本由脚本生成）。
 - 角色 `super`、`admin`、`user`。
 - 授权：`super` 拥有全部 48 个；`admin` 拥有系统管理相关子集；`user` 拥有演示子集。
 - 用户：`super`、`admin`、`user`，其密码为演示密码对应的 BCrypt 哈希。
 
-`pnpm db:seed:check`（在 `frontend/react` 中）校验 `permissions.json` 与 `database/postgres/dml.sql` 是否保持同步。
+`npm run permissions:check`（在仓库根目录）校验前端副本和 `database/postgres/dml.sql` 是否与规范目录一致。
 
 种子数据按子节点优先的顺序插入组织。PostgreSQL 允许在同一条多行语句中这样插入；MySQL 系引擎需要在插入前后设置 `FOREIGN_KEY_CHECKS=0`，SQLite 则需要 `PRAGMA foreign_keys=OFF`。各引擎的 `dml.sql` 已处理这一点。
 

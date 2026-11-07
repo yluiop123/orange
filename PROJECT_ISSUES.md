@@ -28,7 +28,7 @@
 | 前端类型检查 | `pnpm exec tsc -b` | 通过 |
 | 前端 lint | `pnpm lint` | 0 errors / 0 warnings |
 | 前端测试 | `pnpm test` | 40 passed |
-| 权限种子一致性 | `pnpm db:seed:check` | 通过 |
+| 权限种子一致性 | `npm run permissions:check` | 通过 |
 | 前端构建 | `pnpm build` | 成功，约 11 秒 |
 | 后端编译 | `mvn -DskipTests compile`（JDK 25） | 成功 |
 | 后端单测 | `mvn -Dtest=JwtUtilTest,... test` | 27 passed |
@@ -271,8 +271,8 @@ pnpm gen:api
 | 前端路由 | `frontend/react/src/App.tsx`、`src/lib/page-routes.ts` |
 | 前端菜单渲染 | `src/components/menu-redirect.tsx`、`src/components/sidebar-menutree.tsx`、`src/config/menu-icons.ts` |
 | 系统列表模块 | `frontend/react/src/components/system/resource-list/` |
-| 权限目录 | `frontend/react/src/config/permissions.json` |
-| 权限种子生成 | `scripts/sync-permission-seed.mjs` |
+| 权限目录 | `database/permissions.json`（前端副本自动生成） |
+| 权限种子生成 | `scripts/sync-permission-catalog.mjs` + `sync-permission-seed.mjs` |
 | 前端测试 | `frontend/react/src/config/permissions.test.ts` 等 |
 | 后端安全配置 | `backend/springboot/src/main/java/com/orange/security/SecurityConfig.java` |
 | 后端安全属性 | `backend/springboot/src/main/java/com/orange/security/config/JwtProperties.java`、`AuthProperties.java`、`CorsProperties.java` |

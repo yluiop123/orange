@@ -11,7 +11,7 @@
 | 后端请求 | `domain/**/req/*.java` | 单字段形状：非空、长度、枚举、正则 | 跨字段组合、引用是否存在 |
 | 后端业务 | `domain/**/policy/*`、`service/**/impl/*` | 跨字段规则、树结构、引用计数、状态守卫 | HTTP 绑定与文案展示 |
 | 前端 | `pages/**` + `lib/tree-code-policy.ts` | 即时反馈、减少无效请求 | 数据完整性、授权 |
-| 种子脚本 | `scripts/sync-permission-seed.mjs` | `permissions.json` 与 `dml.sql` 保持一致 | 规则校验（只做同步） |
+| 种子脚本 | `scripts/sync-permission-catalog.mjs` + `sync-permission-seed.mjs` | `database/permissions.json`、前端副本与 `dml.sql` 保持一致 | 规则校验（只做同步） |
 
 一条规则如果同时出现在多层，说明它**必须永远成立**；只出现在一层，说明它只是**某个入口的便利**。
 
@@ -345,7 +345,7 @@
 | 树索引/删除顺序 | `backend/springboot/src/test/java/com/orange/domain/system/tree/TreeIndexTest.java` |
 | 有效权限 | `backend/springboot/src/test/java/com/orange/domain/system/permission/EffectivePermissionsTest.java` |
 | 编码规则（前端） | `frontend/react/src/lib/tree-code-policy.test.ts` |
-| 权限种子同步 | `scripts/sync-permission-seed.mjs`（`pnpm db:seed:check`） |
+| 权限种子同步 | `scripts/sync-permission-catalog.mjs` + `sync-permission-seed.mjs`（`npm run permissions:check`） |
 | 接口与授权 | `backend/springboot/src/test/java/com/orange/security/SecurityIntegrationTest.java` |
 | 数据库约束（重复身份、空白路径、action 形状） | `SecurityIntegrationTest#databaseEnforcesPermissionIdentityAndShape` |
 

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
-const catalogPath = path.join(root, "frontend/react/src/config/permissions.json");
+const catalogPath = path.join(root, "database/permissions.json");
 const dmlPath = path.join(root, "database/postgres/dml.sql");
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));

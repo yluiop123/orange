@@ -1,0 +1,9 @@
+{
+  "name": "orange",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "permissions:sync": "node scripts/sync-permission-catalog.mjs && node scripts/sync-permission-seed.mjs",
+    "permissions:check": "node scripts/sync-permission-catalog.mjs --check && node scripts/sync-permission-seed.mjs --check"
+  }
+}

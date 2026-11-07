@@ -52,8 +52,9 @@ pnpm dev            # http://localhost:5173
 | test / test:watch | Vitest |
 | preview / preview:github | 预览生产构建 |
 | analyze | 打包体积分析 |
-| db:seed / db:seed:check | 同步或校验权限种子 |
 | gen:api | 从 `contracts/openapi.json` 重新生成 `src/api/schema.d.ts` |
+
+权限目录和种子命令在仓库根目录：`npm run permissions:sync` / `npm run permissions:check`。
 
 ### 5）环境变量
 

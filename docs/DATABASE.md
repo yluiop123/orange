@@ -146,12 +146,12 @@ Every backend must also enforce the reference rules that need queries: no users 
 `dml.sql` loads:
 
 - 7 organizations (`00` root, 6 children/grandchildren).
-- 48 permissions (the catalog in `frontend/react/src/config/permissions.json`).
+- 48 permissions (the catalog in `database/permissions.json`; React/Vue copies are generated).
 - Roles `super`, `admin`, `user`.
 - Grants: `super` has all 48; `admin` has the system-management subset; `user` has the demo subset.
 - Users: `super`, `admin`, `user` with BCrypt hashes for the demo passwords.
 
-`pnpm db:seed:check` (in `frontend/react`) verifies that `permissions.json` and `database/postgres/dml.sql` are in sync.
+`npm run permissions:check` (at the repository root) verifies the generated frontend copies and `database/postgres/dml.sql` against the canonical catalog.
 
 The seed inserts organizations child-first. PostgreSQL accepts this inside one multi-row statement; MySQL-family engines need `FOREIGN_KEY_CHECKS=0` and SQLite needs `PRAGMA foreign_keys=OFF` around the inserts. Each engine's `dml.sql` handles this.
 

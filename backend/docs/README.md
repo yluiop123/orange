@@ -51,8 +51,9 @@ made once in `database/<engine>` and every stack must keep working against it.
 - Unit tests per stack (see each README).
 - `scripts/test-databases.ps1` runs the live matrix against PostgreSQL, MySQL,
   MariaDB and SQLite.
-- `scripts/sync-permission-seed.mjs` keeps the seed and the React permission
-  constants in sync.
+- `scripts/sync-permission-catalog.mjs` and `scripts/sync-permission-seed.mjs`
+  keep the generated frontend copies and the Postgres seed in sync with
+  `database/permissions.json`.
 - Every stack is expected to pass the 327-endpoint contract check recorded in
   [VERIFICATION.md](../../docs/VERIFICATION.md).
 

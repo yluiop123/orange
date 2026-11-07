@@ -46,7 +46,7 @@
 
 - 各技术栈的单元测试（见各自 README）。
 - `scripts/test-databases.ps1` 对 PostgreSQL、MySQL、MariaDB、SQLite 运行真实矩阵。
-- `scripts/sync-permission-seed.mjs` 保持种子数据与 React 权限常量同步。
+- `scripts/sync-permission-catalog.mjs` 与 `sync-permission-seed.mjs` 以 `database/permissions.json` 为准，同步前端副本和 PostgreSQL 种子。
 - 每个技术栈都应通过 [VERIFICATION.zh-CN.md](../../docs/VERIFICATION.zh-CN.md) 中记录的
   327 项接口契约检查。
 
