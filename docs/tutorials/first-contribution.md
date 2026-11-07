@@ -35,7 +35,7 @@ Blocked by: none
 | `ready-for-human` | 需要人来实现 |
 | `wontfix` | 不会处理 |
 
-这些字符串与 `docs/agents/triage-labels.md` 的角色一一对应；`resolved` 是生命周期终态，不是 triage 标签。
+这些字符串与 [triage 标签](../agents/triage-labels.md) 的角色一一对应；`resolved` 是生命周期终态，不是 triage 标签。
 
 ## 3. 认领
 
@@ -45,7 +45,7 @@ Blocked by: none
 2. 如果要改的页面、端点或表不在票据范围内，先在 `## Comments` 下写清你的理解，等确认再扩大范围。
 3. 票据引用的 spec、ADR 与代码路径都要读；`docs/adr/` 里的四个决策是硬约束。
 
-`ready-for-human` 的票不要由代理直接认领——它通常涉及只有人才能做的判断或外部资源。
+`ready-for-human` 的票不要由代理直接认领——它通常涉及只有人才能做的判断或外部依赖。
 
 ## 4. 分支与提交
 
@@ -65,16 +65,17 @@ Blocked by: none
 | 任一后端 | 该栈的 test 与 build；改了路由再加 HTTP 冒烟 |
 | `contracts/openapi.json` | 六个后端的契约验收 + 三个前端的 typecheck/build |
 | `database/**` | 数据库矩阵（至少 SQLite 与一个服务端引擎） |
-| `docs/**` | 相对链接存在、事实能指到代码；不需要跑构建 |
+| `docs/**` | `npm run docs:check`，并确认事实能指到代码；不需要跑构建 |
 
-任何改动都建议先跑根目录两条只读检查：
+任何改动都建议先跑根目录的只读检查：
 
 ```bash
 node scripts/check-config.mjs
 npm run permissions:check
+npm run docs:check
 ```
 
-改了权限目录或种子时先跑 `npm run permissions:sync`，否则 `permissions:check` 会失败。
+`docs:check` 只校验 Markdown 相对链接是否存在，不校验内容；它目前不在 CI 里，属于本地自查。改了权限目录或种子时先跑 `npm run permissions:sync`，否则 `permissions:check` 会失败。
 
 ## 6. 提 PR
 
@@ -87,7 +88,7 @@ npm run permissions:check
 
 如果 PR 只改文档，说明事实出处；如果改了契约，说明六个后端与三个前端各自改了什么。
 
-注意 CI 的边界：PR 阶段只跑 `config`、三个前端 job 与后端矩阵的测试/构建；数据库矩阵、契约验收和 Pages 部署是 `push` 到 `main` 才跑的步骤。改了后端行为时，本地要自己补跑这两步，不能等 PR 的绿勾。
+注意 CI 的边界：PR 阶段只跑 `config`、三个前端 job 与后端矩阵的测试/构建；数据库矩阵、契约验收和 Pages 部署是 `push` 到 `main` 才跑的步骤。改了后端行为时，本地要自己补跑这两步，不能等 PR 通过。
 
 ## 7. 合并之后
 

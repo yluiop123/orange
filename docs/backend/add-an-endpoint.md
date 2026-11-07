@@ -21,7 +21,7 @@
 ```json
 "/api/v1/system/roles/{roleId}/permissions": {
   "put": {
-    "tags": ["角色管理"], "summary": "替换角色权限", "operationId": "setRolePermissions",
+    "tags": ["角色管理"], "summary": "替换角色权限", "operationId": "setPermissions",
     "parameters": [{ "name": "roleId", "in": "path", "required": true, "schema": { "type": "string" } }],
     "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SetRolePermissionsReq" } } }, "required": true },
     "responses": { "200": { "description": "OK", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/ResponseString" } } } } }
@@ -44,7 +44,7 @@
 
 ```python
 import re
-from pydantic import Field, field_validator
+from pydantic import field_validator
 from app.schemas.common import CamelModel
 
 
@@ -168,7 +168,7 @@ Invoke-RestMethod -Method Post -Uri "$base/system/roles" -Headers $h -ContentTyp
 Invoke-RestMethod -Method Put -Uri "$base/system/roles/qa_doc_role/permissions" -Headers $h -ContentType 'application/json' -Body '{"permissions":["00050000"]}'
 ```
 
-预期：`code=200`、`message=操作成功`、`data=操作成功`；响应头 `X-Trace-Id` 非空；`GET /api/v1/system/operation-logs` 能看到这条 PUT 及脱敏后的请求体。
+预期：`code=200`、`message=操作成功`、`data=操作成功`；响应头 `X-Trace-Id` 非空；`GET /api/v1/system/operation-logs` 能看到这条 PUT 的请求体。
 
 3. 冒烟与契约：
 

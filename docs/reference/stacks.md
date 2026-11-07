@@ -37,6 +37,8 @@
 - .NET：`dotnet restore`（`build` 时自动）
 - FastAPI：`pip install -r requirements-dev.txt`
 
+静态检查：前端各自 `lint`（React `pnpm lint`；Vue `pnpm lint`，脚本内含 `--max-warnings=0`；Angular `npm run lint`），React/Vue 另有 `typecheck`；后端只有 Go 有 CI 静态检查（`gofmt -l .`、`go vet ./...`），Nest 提供 `pnpm typecheck`，Spring / .NET / Rust / FastAPI 没有独立 lint 步骤，CI 只跑测试与构建。
+
 各后端的配置入口与环境变量见 [Backend 配置](../backend/configuration.md)；切库见 [切换数据库](../backend/switch-database.md)。
 
 ## 3. 数据库支持
@@ -55,7 +57,7 @@
 
 | 栈 | 独有事实 |
 | --- | --- |
-| Spring Boot | 唯一使用 RS256 + PEM 密钥；唯一有 Caffeine `group` 缓存；唯一在 JPA 层比较乐观锁 `@Version`；有 springdoc 但默认关闭（`SPRINGDOC_ENABLED`）；审计清理每日 03:30 |
+| Spring Boot | 默认 RS256 + PEM 密钥（`jwt.private-key`/`public-key`）；唯一有 Caffeine `group` 缓存；唯一在 JPA 层比较乐观锁 `@Version`；有 springdoc 但默认关闭（`SPRINGDOC_ENABLED`）；审计清理每日 03:30 |
 | Go | JWT 支持 HS256 或 RS256；审计清理每日 |
 | NestJS | 审计清理在启动时 + 每日；测试为纯单测（不启 Nest、不连库） |
 | .NET | JWT 只用 HS256；审计清理每 6 小时；无 `launchSettings.json`，监听地址来自 `UseUrls` |
@@ -70,8 +72,8 @@
 | Spring | 14 个测试类（含 1 个 Testcontainers，无 Docker 自动 skip） |
 | Go | 11 个 `_test.go` |
 | Nest | 7 个 `.spec.ts` |
-| .NET | 7 个测试类（用例数待核） |
-| Rust | 8 个模块内联 40 个 `#[test]` |
+| .NET | 7 个测试类（22 个 `[Fact]` + 9 个 `[Theory]`，共 47 组 `[InlineData]`） |
+| Rust | 8 个文件内联 40 个 `#[test]` |
 | FastAPI | 10 个 `test_*.py` + `conftest`（内存 SQLite） |
 | React / Vue / Angular | 8 / 4 / 4 个测试文件 |
 

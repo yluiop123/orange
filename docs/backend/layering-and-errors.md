@@ -43,7 +43,7 @@
 | Rust | `"success"` | `ApiResponse::ok_text` 同上 | `src/response.rs` |
 | FastAPI | `"success"` | `success("操作成功")` 只设置 `data`，`message` 仍是 `"success"`；要改 `message` 必须显式传 `message=` | `app/envelope.py` |
 
-FastAPI 这一处是唯一不把字符串 `data` 自动复制进 `message` 的实现，跨栈对齐时以显式 `message=` 为准。
+FastAPI 不会从字符串 `data` 推导 `message`，跨栈对齐时以显式 `message=` 为准。
 
 所有栈都接受入站 `X-Trace-Id`（部分栈兼容 `X-Request-Id`）并回显 `X-Trace-Id`；入站值不合法时重新生成。
 
@@ -60,7 +60,7 @@ FastAPI 这一处是唯一不把字符串 `data` 自动复制进 `message` 的�
 | `40302` | 403 | 请先修改初始密码 | `must_change_password=true` 且请求不在白名单（`change-password`/`user-info`/`menus`/`logout`）。Spring `JwtRequestFilter`；Go `requireAuth`；Nest `JwtAuthGuard`；C# `AuthenticationMiddleware`；Rust `require_auth`；FastAPI `get_auth_context` |
 | `40401` | 404 | 数据不存在 | 按 ID 查不到记录，或路由不存在。Spring `resolveBusinessError` 的“不存在”与 `NoResourceFoundException`；Go `NotFound`/`NoRoute`；Nest `BusinessException.notFound` 与 `FallbackController`；C# `BusinessException.ResolveCode` 与 `UseStatusCodePages`；Rust `not_found`/`business` 与 `fallback`；FastAPI `not_found()` 与 Starlette 404 映射 |
 | `40501` | 405 | 方法不允许 | 路径存在但方法不匹配。Spring `HttpRequestMethodNotSupportedException`；Go `NoMethod`；Nest `FallbackController` 按 `CANONICAL_ROUTES` 区分 405/404；C# `UseStatusCodePages`；Rust `method_not_allowed_fallback`；FastAPI Starlette 405 映射 |
-| `40901` | 409 | 数据冲突 | 唯一键/外键冲突、乐观锁失败，或业务消息含“已存在/已被/不能删除/请先禁用子组织（权限）”。Spring `DataIntegrityViolationException`、`ObjectOptimisticLockingFailureException`；Go service 的 `domain.Conflict`；Nest `QueryFailedError`（`23505`/`23503`/`23502`）与 `OptimisticLockVersionMismatchError`；C# `DbUpdateException`/`DbUpdateConcurrencyException`；Rust `integrity_conflict` 与 `AppError::conflict`；FastAPI `IntegrityError`/`StaleDataError` 与 `conflict()` |
+| `40901` | 409 | 数据冲突 | 唯一键/外键冲突、乐观锁失败，或业务消息含“已存在/已被/不能删除/请先禁用子组织”。Spring `DataIntegrityViolationException`、`ObjectOptimisticLockingFailureException`；Go service 的 `domain.Conflict`；Nest `QueryFailedError`（`23505`/`23503`/`23502`）与 `OptimisticLockVersionMismatchError`；C# `DbUpdateException`/`DbUpdateConcurrencyException`；Rust `integrity_conflict` 与 `AppError::conflict`；FastAPI `IntegrityError`/`StaleDataError` 与 `conflict()` |
 | `429` | 429 | 登录失败次数过多，请稍后再试 | 登录锁定阈值命中。注意它不是 Spring `ErrorCode` 枚举成员：`LoginController.rateLimited` 直接写 `429`；NestJS/Go/C#/Rust 有对应常量，FastAPI 在 `routers/auth.py` 直接返回 `failure(429, …)` |
 | `50000` | 500 | 系统异常 | 未捕获异常。Spring `GlobalExceptionHandler.handleException`；Go `Recovery`/`SystemError`；Nest `AllExceptionsFilter` 兜底；C# `ExceptionHandlingMiddleware` 兜底；Rust `AppError::system`；FastAPI `_unhandled_error` |
 
@@ -88,7 +88,7 @@ Spring、Rust、C# 都按业务消息里的关键词决定 40401/40901，而不�
 | 用户名 | `^[A-Za-z0-9_]{4,50}$` | Spring `AddUserReq`/`LoginReq`、Nest `users.dto.ts`、C# `Requests.cs`、Go `bind.go`、Rust `validate.rs`、FastAPI `schemas/user.py` |
 | 手机号 | `^1[3-9]\d{9}$` | 同上 |
 | 邮箱 | 非空 + 邮箱格式 | 同上 |
-| 密码 | 新密码 8–64 位，且同时含字母和数字 | `ChangePasswordReq`/`change-password` DTO/`validate.rs` |
+| 密码 | 新密码 8–64 位，且同时含字母和数字 | 各栈 change-password DTO（`ChangePasswordReq`、`auth.dto.ts`、`ChangePasswordRequest`、`schemas/auth.py`）与 Rust `validate.rs` |
 | 状态 | `0` 或 `1`；列表过滤额外接受 `all` | `StatusReq`/`StatusIn`/`StatusRequest`/`validate_status` |
 | 组织/权限业务编码 | 纯数字，组织 `^[0-9]{2,}$`，权限 `^[0-9]{2,}$` | `AddChildGroupReq`、`AddChildPermissionReq`、`tree_code` 策略 |
 | 权限类型 | `menu`/`action`/`directory`；action 必须有 `action`，menu/directory 必须没有 | `PermissionShapePolicy`/`permission_shape.py`/`permission_shape.rs` |

@@ -12,7 +12,7 @@ cd frontend/react
 pnpm install
 ```
 
-本地开发默认启用 mock：`.env.development` 中 `VITE_MOCK_ENABLE=true`，演示账号 `super / super`。`.env.local` 被 `*.local` 规则忽略，仅影响本机。
+本地开发默认启用 mock：`.env.development` 中 `VITE_MOCK_ENABLE=true`，演示账号 `super / super`。`.env.local` 被 `*.local` 规则忽略，仅影响本机；注意 Vite 的优先级是 `.env` < `.env.local` < `.env.[mode]`，所以关闭 dev mock 要写 `.env.development.local` 或传进程环境变量，写 `.env.local` 会被 `.env.development` 覆盖。
 
 ## 命令
 
@@ -36,7 +36,7 @@ pnpm install
 frontend/react/
   public/mockServiceWorker.js   MSW worker
   src/
-    api/            axios 请求模块；schema.d.ts 为生成文件
+    api/            axios 请求封装；schema.d.ts 为生成文件
     auth/           access token、refresh、session hint
     components/     ui/（shadcn 生成）、ext/、system/、壳组件
     config/         permissions.json（同步副本）、menu-icons.ts

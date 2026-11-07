@@ -42,14 +42,14 @@ HTTP 请求
 | 异常映射 | 异常/消息 → 业务码 + HTTP 状态 | 集中一处才能保证六栈错误码一致 |
 | 操作日志 | 记录非 GET 写操作 | 放在 handler 里会漏掉新增端点，也容易把敏感 body 写进库 |
 
-校验为什么放在最外层，见 [ADR 0004](../adr/0004-validation-layering.md)；权限为什么用 `type#path[:action]` 而不是 ID，见 [ADR 0001](../adr/0001-path-as-permission-identity.md)。本页不重复推导。
+校验职责如何分层（请求形状在边缘、不变量在数据库），见 [ADR 0004](../adr/0004-validation-layering.md)；权限为什么用 `type#path[:action]` 而不是 ID，见 [ADR 0001](../adr/0001-path-as-permission-identity.md)。本页不重复推导。
 
 ## 4. 为什么 Spring Boot 是行为基准
 
 “基准”指行为以它为准，不是指它更正确：
 
 - 错误码枚举、HTTP 状态与中文文案在 `ErrorCode.java` 中定义为一张表，其余五栈逐条复制同一张表。
-- 响应包体 `{code,message,data,timestamp,traceId}`、分页 `{total,list,page,size,totalPages}`、操作日志字段都从 Spring 实现派生。
+- 响应包体 `{code,message,data,timestamp,traceId}`、分页 `{total,list,page,size,totalPages}`、操作日志字段都以 Spring 的行为为准，并由契约测试固定。
 - 其他实现主动对齐它：NestJS 的配置注释写明“Mirrors the Spring Boot `application.yaml` defaults”，Rust 的 `src/error.rs` 写明“mirror docs/API.md and the Spring Boot `ErrorCode` enum”，C# 与 Go 的错误码注释指向同一份契约。
 - 若干细节来自基准实现并被其余栈复制：`Response.ok(String)` 把同一文本同时放进 `message` 和 `data`；业务消息含“不存在/已存在/已被/不能删除”时映射到 40401/40901；登录限流用 429 业务码而不是 `ErrorCode` 成员。
 

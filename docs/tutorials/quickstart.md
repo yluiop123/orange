@@ -1,107 +1,166 @@
 # 30 分钟跑通 React + FastAPI + SQLite
 
-本页带你在本机用种子账号登录，并完成一次“给角色加权限、换账号看到菜单变化”的闭环；第一次接手仓库、想确认前后端确实能通的人按顺序照做即可。
+本页从零启动一条真实链路（React 5173 → FastAPI 8000 → SQLite），并用一次权限状态改动确认菜单树来自数据库；第一次接手仓库、卡在环境上的读者从这里开始。
 
 ## 前置条件
 
 | 项 | 要求 | 依据 |
 | --- | --- | --- |
-| Python | 3.13 | `backend/python-fastapi/README.md` |
 | Node.js | `^20.19.0` 或 `>=22.12.0` | `frontend/react` 所用 vite 8.3.5 的 `engines` |
 | pnpm | 10.28.2 | `frontend/react/package.json` 的 `packageManager` |
-| 浏览器 | 任意现代浏览器 | — |
+| Python | 3.13+ | `backend/python-fastapi/pyproject.toml` 的 `requires-python` |
+| `sqlite3` 命令行 | 可选 | 不想装就用步骤 2 的 Python 写法 |
 
-命令以 PowerShell 为例；macOS/Linux 把 `.\venv\Scripts\python` 换成 `.venv/bin/python`。本教程不装数据库服务：后端默认连 PostgreSQL，下面用环境变量把它覆盖成 SQLite 文件。
+两个终端；命令同时给 bash 与 PowerShell 写法。
 
-## 1. 装前端依赖
+## 步骤 1 · 装依赖
 
-```powershell
+```bash
 cd frontend/react
 pnpm install
 ```
 
-预期：`node_modules` 生成，命令以 `Done` 结束。锁文件是 `pnpm-lock.yaml`，不要改用 npm 安装。
+后端建议用虚拟环境：
 
-## 2. 准备 Python 环境与 SQLite
-
-```powershell
+```bash
 cd backend/python-fastapi
 python -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements-dev.txt
+source .venv/bin/activate        # Windows PowerShell: .venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
 ```
 
-`requirements-dev.txt` 在运行时依赖之上加了 `pytest` 与 `httpx`。然后建库并灌入共享 schema 与种子数据：
+`requirements-dev.txt` 第一行是 `-r requirements.txt`，一次装好运行时与 pytest/httpx。
 
-```powershell
-.\.venv\Scripts\python -c "import sqlite3,pathlib; c=sqlite3.connect('orange-fastapi.db'); c.executescript(pathlib.Path('../../database/sqlite/ddl.sql').read_text(encoding='utf-8')); c.executescript(pathlib.Path('../../database/sqlite/dml.sql').read_text(encoding='utf-8')); c.close()"
+## 步骤 2 · 建库并灌种子数据
+
+`database/sqlite/ddl.sql` 只建表，`dml.sql` 灌种子。两条脚本必须在**同一个连接**里依次执行：`dml.sql` 用 `PRAGMA foreign_keys = OFF/ON` 包住插入（组织子行先于父行出现），末尾还会跑 `foreign_key_check`。
+
+在 `backend/python-fastapi` 目录下执行：
+
+```bash
+sqlite3 app.db < ../../database/sqlite/ddl.sql
+sqlite3 app.db < ../../database/sqlite/dml.sql
 ```
 
-预期：`backend/python-fastapi/orange-fastapi.db` 生成；库中有 10 张 `sys_*` 表、48 条权限、3 个角色、7 个组织。种子账号是 `super/super`、`admin/admin`、`user/user`（`database/sqlite/dml.sql` 与后端 README）。
-
-`database/sqlite/dml.sql` 内部先关闭外键再灌组织（子行先于父行出现），必须在同一个连接里一次执行完；上面的 `executescript` 满足这一点。
-
-## 3. 启动后端并自检
+PowerShell 用管道喂进去：
 
 ```powershell
-$env:DB_DRIVER="sqlite"
-$env:DB_NAME="./orange-fastapi.db"
-.\.venv\Scripts\python -m app.main
+Get-Content ../../database/sqlite/ddl.sql -Raw | sqlite3 app.db
+Get-Content ../../database/sqlite/dml.sql -Raw | sqlite3 app.db
 ```
 
-预期日志出现 `Uvicorn running on http://0.0.0.0:8000`。`DB_NAME` 是相对当前目录的路径；`DATABASE_URL` 若已设置会压过 `DB_DRIVER` 与 `DB_*`，先清掉它。另一个终端自检：
+没有 `sqlite3` 时用 Python 标准库，一次连接跑完两个脚本：
 
 ```powershell
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/v1/auth/login -ContentType 'application/json' -Body '{"username":"super","password":"super"}'
+python -c "import sqlite3,pathlib; c=sqlite3.connect('app.db'); c.executescript(pathlib.Path('../../database/sqlite/ddl.sql').read_text(encoding='utf-8')); c.executescript(pathlib.Path('../../database/sqlite/dml.sql').read_text(encoding='utf-8')); c.close()"
 ```
 
-预期输出的 `code` 是 `200`，`data.token` 非空；交互式接口文档在 `http://127.0.0.1:8000/docs`。用 `curl` 时注意 Windows PowerShell 会吞掉 JSON 里的双引号，优先用上面的 `Invoke-RestMethod`。
+验证：
 
-## 4. 启动前端
+```bash
+sqlite3 app.db "SELECT COUNT(*) FROM sys_user;"
+```
+
+预期输出 `26`；库里共 10 张 `sys_*` 表、48 条权限、3 个角色、7 个组织、26 个用户（其中多数为 `status='0'` 的演示数据，可直接登录的是 `super`）。
+
+为什么库建在 `backend/python-fastapi` 下：FastAPI 把 SQLite 路径当**进程工作目录的相对路径**解析（`app/config.py` 的 `sqlite_url`）。如果把 `app.db` 建在仓库根，请把 `DATABASE_URL` 指到它的绝对路径。
+
+## 步骤 3 · 启动后端（8000）
+
+```bash
+DB_DRIVER=sqlite DB_NAME=app.db python -m app.main
+```
+
+PowerShell：
 
 ```powershell
+$env:DB_DRIVER='sqlite'; $env:DB_NAME='app.db'; python -m app.main
+```
+
+- 端口优先级 `APP_PORT` → `PORT` → 8000（`app/config.py`）；换端口加 `APP_PORT=8010`。
+- **不设 `DB_DRIVER` 时后端按 PostgreSQL 默认值连 `localhost:5432`**，这是最常见的“启动即连接失败”。
+- 环境里若已有 `DATABASE_URL`，它会压过 `DB_DRIVER` 与 `DB_*`，先清掉。
+- 预期日志出现 `Uvicorn running on http://0.0.0.0:8000`；`http://127.0.0.1:8000/docs` 是 OpenAPI UI（六栈中只有 FastAPI 默认开）。
+
+登录接口自检，响应是 `{code,message,data,timestamp,traceId}` 且 `data.token` 非空：
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/auth/login -H "Content-Type: application/json" -d "{\"username\":\"super\",\"password\":\"super\"}"
+```
+
+## 步骤 4 · 启动前端（5173，默认 mock）
+
+另开一个终端：
+
+```bash
 cd frontend/react
-$env:VITE_MOCK_ENABLE="false"
-$env:VITE_PROXY_TARGET="http://127.0.0.1:8000"
 pnpm dev
 ```
 
-预期 Vite 打印 `Local: http://localhost:5173/`。React 用 HashRouter，登录页是 `http://localhost:5173/#/login`。
+打开 `http://localhost:5173/#/login`（HashRouter），用 `super` / `super` 登录，应进入仪表盘并看到左侧菜单树。此时请求被 MSW 在浏览器里拦截（`.env.development` 的 `VITE_MOCK_ENABLE=true`），**后端没有参与**。
 
-`VITE_MOCK_ENABLE` 必须显式设为 `false`：`.env.development` 默认把它设为 `true`，而 Vite 的加载顺序是 `.env` → `.env.local` → `.env.development` → `.env.development.local`，后者覆盖前者，所以改 `.env.local` 不会关掉开发模式的 mock；进程环境变量优先级最高，改完要重启 dev server。`VITE_PROXY_TARGET` 指向刚启动的 FastAPI，浏览器只看到 5173 的同源请求，不需要 CORS。
+## 步骤 5 · 切到真实后端
 
-## 5. 用种子账号登录
+`.env` 里的代理目标是 `http://localhost:8080`（Spring 的默认端口），所以连 FastAPI 必须同时关 mock 并改代理目标。新建 `frontend/react/.env.development.local`（被 `*.local` 规则忽略，不入库）：
 
-打开 `http://localhost:5173/#/login`，输入 `super` / `super`。
+```dotenv
+VITE_MOCK_ENABLE=false
+VITE_PROXY_TARGET=http://127.0.0.1:8000
+```
 
-预期：进入布局，左侧出现 6 个顶级菜单——仪表盘、组件、图表、三维、地图、系统管理。`/api/v1/auth/menus` 返回的是全部启用的 `menu`/`directory` 节点；当前账号能看到哪些，由前端按 `rolePermissions` 过滤（React 在 `src/lib/access.ts`）。
+重启 `pnpm dev`。浏览器请求 `http://localhost:5173/api/v1/...` 由 dev server 代理到 8000，保持同源、不会触发 CORS。
 
-## 6. 改一个权限并验证生效
+为什么不是改 `.env.local`：Vite 的加载顺序是 `.env` → `.env.local` → `.env.<mode>` → `.env.<mode>.local`，后者覆盖前者，`.env.development` 的 `VITE_MOCK_ENABLE=true` 会盖掉 `.env.local`。进程环境变量优先级最高，也可以这样临时覆盖：`$env:VITE_MOCK_ENABLE='false'`；两种都要重启 dev server。
 
-1. 打开“系统管理 → 角色管理”。
-2. 在“用户”角色一行点“编辑”。
-3. 在权限树里勾选“组件”（`/component`）与“通用组件”（`/component/general`），保存。请求是 `PATCH /api/v1/system/roles/user`，`permissions` 是权限 id 数组。
-4. 退出登录，改用 `user` / `user` 登录。
+也可以给绝对地址，此时后端必须放行来源：
 
-预期：登录后左侧出现“组件 → 通用组件”，点开进入 `/component/general`。改动前 `user` 角色只有 `0000`（仪表盘目录权限），所以这个账号原本只看得到仪表盘。
+```dotenv
+VITE_BASE_API=http://127.0.0.1:8000/api/v1/
+```
 
-必须同时勾选父节点与至少一个子节点：`组件` 是 `menu` 类型的容器，子节点都不可见时容器本身也不显示；`/dashboard` 是 `directory` 类型，按路径前缀覆盖子菜单，所以只给 `0000` 就能看到整组仪表盘。
+FastAPI 的 `CORS_ORIGINS` 默认只含 `http://localhost:5173`、`http://localhost:5174`、`http://localhost:4200`；用 `http://127.0.0.1:5173` 打开页面属于另一个来源，要自己加。
 
-## 7. 收尾
+## 步骤 6 · 用种子账号登录
 
-前端 `Ctrl+C` 停 Vite；后端 `Ctrl+C` 停 uvicorn。想保留数据就留着 `orange-fastapi.db`，想重来就删掉它并从第 2 步重灌。
+账号来自 `database/sqlite/dml.sql` 的 `sys_user`，密码存 bcrypt 哈希：
 
-## 常见翻车
-
-| 现象 | 原因 | 处理 |
+| 用户名 | 密码 | 依据 |
 | --- | --- | --- |
-| 后端启动报连不上 `5432` | `DB_DRIVER` 没设，或 `.env`/环境里的 `DATABASE_URL` 仍指向 PostgreSQL | 在同一个终端重设 `DB_DRIVER=sqlite` 与 `DB_NAME`，并清掉 `DATABASE_URL` |
-| 登录页能开，所有接口 404 或一直转圈 | 前端仍在 mock，或代理目标指错端口 | 用进程环境变量设 `VITE_MOCK_ENABLE=false`、`VITE_PROXY_TARGET=http://127.0.0.1:8000`，重启 `pnpm dev` |
-| 改了 `.env.local` 的 mock 开关不生效 | `.env.development` 优先级更高 | 改用 `.env.development.local` 或进程环境变量，并重启 dev server |
-| 浏览器控制台报 CORS | 把 `VITE_BASE_API` 改成绝对地址直连，Origin 不在 `CORS_ORIGINS` 里 | 回到代理写法，或把该 Origin 加进后端 `CORS_ORIGINS` |
-| 8000 被占用 | 上一个 uvicorn 没退，或其他服务占用 | `Get-NetTCPConnection -LocalPort 8000` 找到进程后停掉，或换 `APP_PORT` 并同步改代理目标 |
-| 5173 被占用 | 另一个 dev server 在跑 | 停掉旧进程，或设 `VITE_PORT` 换端口 |
-| 重灌种子报主键冲突 | 表已存在 | 删除 `orange-fastapi.db` 后重新执行第 2 步 |
-| 没装 `sqlite3` 命令行 | 本教程只用 Python 标准库 | 继续用第 2 步的 Python 命令，不需要额外客户端 |
+| `super` | `super` | `scripts/ci/http-smoke.mjs` 与 `scripts/ci/contract-test.mjs` 都用它登录 |
+
+`admin`、`user` 也在同一段种子里，但仓库没有任何脚本出现过它们的密码；需要时用 `super` 在「用户管理」里重置。
+
+登录成功后前端请求 `/api/v1/auth/menus`，后端返回启用中的 `menu` / `directory` 节点，前端据此渲染左侧菜单树。
+
+## 步骤 7 · 验证菜单树来自数据库
+
+1. 左侧展开「系统管理」，确认有「用户管理」。
+2. 进入「权限管理」，找到名称为「用户管理」、路径 `/system/user` 的行（编码 `000500`）。
+3. 点该行的状态开关，把它改成禁用（`status='0'`）。
+4. 按 F5 刷新：左侧「用户管理」消失。
+5. 改回启用（`status='1'`）并再刷新，菜单恢复。
+
+原因：`menu_tree()` 只查询 `status='1'` 且 `type in ('menu','directory')` 的权限；禁用权限不再出现在菜单里，禁用父节点会隐藏整支，刷新会重新请求 `/api/v1/auth/menus`。菜单不跟着变，说明你还在 mock 模式。
+
+## 排错清单
+
+| 现象 | 检查 |
+| --- | --- |
+| `pnpm dev` 报端口占用 | 5173 被别的进程占：`netstat -ano \| findstr :5173` 或 `Get-NetTCPConnection -LocalPort 5173`，或临时 `VITE_PORT=5174` 后重启 |
+| 后端起不来，日志里出现 5432 | 没设 `DB_DRIVER=sqlite`，或环境里的 `DATABASE_URL` 仍指向 PostgreSQL |
+| 8000 被占用 | `APP_PORT=8010` 重启后端，并把 `VITE_PROXY_TARGET` 改成同一端口 |
+| 登录后数据明显是假数据 | mock 仍开：确认 `.env.development.local` 并重启 dev server；关掉后端还能登录就是 mock |
+| 浏览器报 CORS | 用了绝对 `VITE_BASE_API`：来源要精确匹配 `CORS_ORIGINS`（协议+主机+端口，`127.0.0.1` 与 `localhost` 是两个来源） |
+| 重灌种子报主键冲突 | 表已存在：删掉 `app.db` 后从步骤 2 重来 |
+| 手写 SQL 没触发外键约束 | `PRAGMA foreign_keys` 是**每连接**设置且默认关闭，`ddl.sql` 开头那行只对执行它的连接生效。后端在 `app/db.py` 给每个连接执行 `PRAGMA foreign_keys = ON`；用 `sqlite3` 手工改数据时先执行它，再用 `PRAGMA foreign_key_check;` 检查 |
+
+## 下一步
+
+- 换一套后端或前端：[启动任意前后端组合](../how-to/run-a-stack.md)
+- 端口与命令矩阵：[栈矩阵](../reference/stacks.md)
+- 端点与响应包体：[API 参考](../reference/api.md)
+- 表结构：[数据模型](../reference/data-model.md)
+- mock 与真实后端的完整规则：[连接 API 与 Mock](../frontend/connect-api-and-mocks.md)
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: `backend/python-fastapi/README.md`、`backend/python-fastapi/app/{main.py,config.py,db.py}`、`backend/python-fastapi/.env.example`、`backend/python-fastapi/requirements-dev.txt`、`database/sqlite/{ddl.sql,dml.sql}`、`frontend/react/{package.json,vite.config.ts,.env,.env.development}`、`frontend/react/src/{main.tsx,App.tsx,lib/access.ts,lib/page-routes.ts}`、`frontend/react/node_modules/vite/dist/node/chunks/node.js`、`contracts/openapi.json`
+> 事实来源: `frontend/react/.env`、`frontend/react/.env.development`、`frontend/react/vite.config.ts`、`frontend/react/package.json`、`frontend/react/node_modules/vite/package.json`、`backend/python-fastapi/pyproject.toml`、`backend/python-fastapi/requirements-dev.txt`、`backend/python-fastapi/.env.example`、`backend/python-fastapi/app/config.py`、`backend/python-fastapi/app/main.py`、`backend/python-fastapi/app/db.py`、`backend/python-fastapi/app/services/menus.py`、`database/sqlite/ddl.sql`、`database/sqlite/dml.sql`、`scripts/ci/http-smoke.mjs`、`scripts/ci/contract-test.mjs`

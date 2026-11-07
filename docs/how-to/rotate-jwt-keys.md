@@ -1,69 +1,90 @@
-# 轮换 JWT 密钥
+# 生成与轮换 JWT 密钥
 
-本页解决：生成、轮换、验证 JWT 签名密钥，以及轮换后哪些会话会失效。
-读者：部署或运维这套系统的开发者。
+本页说明六套后端各自的签名算法、密钥读取位置、生成命令，以及轮换后旧 token 为什么立即失效；要换密钥、排查“登录后立刻 401”或准备上线的人读这一页。
 
-## 1. 各后端用什么密钥
+## 1. 算法与密钥来源
 
-| 后端 | 算法 | 密钥来源 |
-| --- | --- | --- |
-| Spring Boot | RS256 | `backend/springboot/src/main/resources/keys/private_key.pem` / `public_key.pem`，可用 `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` 覆盖（默认 `classpath:keys/...`） |
-| Go | HS256（默认）或 RS256 | `JWT_SECRET`；设置 `JWT_PRIVATE_KEY_PATH` + `JWT_PUBLIC_KEY_PATH` 后切 RS256 |
-| NestJS | HS256 | `JWT_SECRET` |
-| .NET | HS256 | `JWT_SECRET` |
-| Rust | HS256 | `JWT_SECRET` |
-| FastAPI | HS256 | `JWT_SECRET` |
+| 栈 | 算法 | 密钥来源 | 配置文件 |
+| --- | --- | --- | --- |
+| Spring Boot | RS256（RSA 2048） | PEM 密钥对 | `application.yaml` 的 `jwt.private-key` / `jwt.public-key` |
+| Go | 默认 HS256；配置了 RSA 时 RS256 | `JWT_SECRET`，或 PEM | `.env.local` |
+| NestJS | HS256 | `JWT_SECRET` | `.env.local` |
+| .NET | HS256 | `JWT_SECRET` | `.env.local` |
+| Rust | HS256 | `JWT_SECRET` | `.env` |
+| FastAPI | HS256 | `JWT_SECRET` | `.env` |
 
-共用参数（各栈 `.env.example` 与 Spring `application.yaml` 一致）：`JWT_ISSUER=orange`、`JWT_ACCESS_EXPIRE=900`（15 分钟）、`JWT_REFRESH_EXPIRE=604800`（7 天）。
+六栈的 token 内容一致：`jti`、`typ`（access/refresh）、`ver`（用户的 `token_version`）、`username`、`sub`、issuer、签发与过期时间。算法不同不影响前端，前端只持有 access token 与 HttpOnly refresh Cookie。
 
-**只有 Spring 与 Go 支持非对称密钥**；其余四栈只有共享 secret。跨栈联调时，要么让所有后端都用同一个 `JWT_SECRET`，要么接受“令牌不能跨后端通用”。
-
-## 2. 生成密钥
-
-### Spring（RS256）
+## 2. 生成 Spring 的密钥对
 
 ```bash
 node scripts/generate-jwt-keys.mjs
+node scripts/generate-jwt-keys.mjs --force
 ```
 
-脚本把密钥写到 `backend/springboot/src/main/resources/keys/`：
+脚本用 Node 的 `generateKeyPairSync` 生成 2048 位 RSA，写入：
 
-- 已存在 `private_key.pem` 与 `public_key.pem` 时**不会覆盖**，直接退出并提示
-- 需要重新生成时加 `--force`，此时**所有已签发的 token 立即失效**
+- `backend/springboot/src/main/resources/keys/private_key.pem`（PKCS#8，权限 600）
+- `backend/springboot/src/main/resources/keys/public_key.pem`（SPKI，权限 644）
 
-`*.pem` 已被 `.gitignore` 排除（`backend/springboot/src/main/resources/keys/*.pem`），不要提交。
+两个文件都存在时脚本直接退出，只有 `--force` 才覆盖。它们已被 `.gitignore` 忽略，不要提交；生产环境把密钥挂到容器或密钥管理系统，用 `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` 指向实际位置（Spring Resource 写法，如 `file:/etc/orange/private_key.pem`）。
 
-### 其余后端（HS256）
+Spring 的加载规则（`JwtKeyConfig`）：
+
+- 默认从 `classpath:keys/private_key.pem` 与 `classpath:keys/public_key.pem` 读。
+- 非生产环境缺少文件时生成临时密钥对并打警告；重启后旧 token 全部失效。
+- `APP_ENV=production`/`prod` 或 `prod` profile 下缺少文件直接启动失败，不会静默用临时密钥。
+- 只接受 PKCS#8 私钥与 SPKI 公钥；换其他格式要先转换。
+
+## 3. 生成 HS256 的密钥
+
+五个 HS256 栈只认一个高熵字符串。用标准库生成，不要手写：
 
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-把输出写进对应后端的本地环境文件（`.env.local` / `.env`，均被 gitignore），或部署平台的 secret 配置。`.env.example` 里的 `orange-dev-secret-change-me-in-production` 只用于本地开发。
+把它写进该栈的环境变量（本地文件或部署平台的 secret），真实环境变量优先于 `.env*` 文件。开发默认值是 `orange-dev-secret-change-me-in-production`；当 `APP_ENV` 为 `production`/`prod` 时，Go、NestJS（还看 `NODE_ENV`）、.NET、Rust、FastAPI 都会因为仍是默认值而拒绝启动。
 
-## 3. 轮换步骤
+Go 还支持非对称：同时提供 `JWT_PRIVATE_KEY_PATH` 与 `JWT_PUBLIC_KEY_PATH`（或内联 PEM 的 `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY`）时切到 RS256，此时 `JWT_SECRET` 被忽略；只给其中一半不会生效。
 
-1. **生成新密钥**（Spring 用脚本 + `--force`；其余用上面的命令生成新 secret）。
-2. **更新配置**：Spring 覆盖 `keys/*.pem` 或改 `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY`；Go 改 `JWT_SECRET`（或换 RS256 的两个路径变量）；其余四栈改 `JWT_SECRET`。
-3. **重启后端**：密钥在启动时加载，热改配置不会生效。
-4. **验证**：用旧 token 调 `/api/v1/auth/user-info` 应返回 401；重新登录后拿到的新 token 正常。可跑 `node scripts/ci/http-smoke.mjs <baseUrl>` 做一轮完整冒烟（登录、user-info、菜单、用户列表、组织增删、操作日志、登出）。
-5. **清理**：旧密钥文件/旧 secret 从部署配置中删除，避免回滚时误用。
+## 4. 轮换步骤
 
-## 4. 失效范围
+1. **生成新值**：Spring 用 `--force` 重新生成密钥对；HS256 栈生成新的随机字符串。
+2. **一次只轮换一套栈**：九套实现之间没有共享会话，Spring 的密钥不会影响 FastAPI 的 token。
+3. **分发到该栈的所有实例**：多实例必须使用同一份密钥；只改一台会让 token 在负载均衡后随机 401。
+4. **滚动重启**：新进程用新密钥签发；旧进程未重启前仍用旧密钥，期间新旧 token 并存，重启完成即切换。
+5. **确认旧 token 失效**：旧 access token 验签失败返回 401；旧 refresh Cookie 刷新同样失败，用户需要重新登录。
+6. **保留旧密钥只用于回滚**：确认无异常后再销毁。回滚旧密钥会让尚未过期的旧 token 重新有效；要彻底作废，需递增 `token_version` 或等它们过期。
 
-| 对象 | 轮换后 |
-| --- | --- |
-| 已签发的 access token | 全部失效（签名不再匹配），用户需重新登录 |
-| 已签发的 refresh token | 全部失效，`/api/v1/auth/refresh` 返回 401 |
-| 服务端会话/黑名单 | 无需清理：`sys_revoked_token` 只记录主动吊销，与签名密钥无关 |
-| 其他后端 | 如果它们共用同一 secret，同样全部失效；如果各自独立，只影响被改的那一个 |
+## 5. 旧 token 为什么会失效
 
-## 5. 常见问题
+轮换密钥后，旧 token 的签名无法用新密钥验证，这是第一道也是最主要的一道闸门。仓库里还有两条按需失效路径（细节见 [登录与会话](../explanation/auth-lifecycle.md)）：
 
-- **改了 `.env` 没生效**：确认后端读取的是哪个文件（Spring 用 `application-local.yaml`，其余用 `.env`/`.env.local`），并确认进程已重启。
-- **Spring 启动报找不到密钥**：`classpath:keys/` 下缺少 pem，先跑生成脚本。
-- **跨栈登录后另一个后端 401**：各后端 secret 不一致，或 Spring 用 RS256 而其他栈用 HS256；统一算法与密钥后再试。
-- **想强制所有用户下线**：轮换密钥是最彻底的方式；只登出单个会话用 `/api/v1/auth/logout`（会写 `sys_revoked_token`）。
+| 机制 | 作用范围 | 何时写入 |
+| --- | --- | --- |
+| `sys_revoked_token`（按 `jti`） | 单个 refresh（部分栈也含 access） | 刷新轮换、登出 |
+| `sys_user.token_version` | 该用户全部 token | 登出、改密、重置密码、禁用用户 |
+
+`sys_revoked_token` 的列是 `jti`（主键）、`token_type`、`expires_at`、`create_time`，`expires_at` 上有索引。Spring 与 FastAPI 在写入新吊销记录前会删除已过期的行，所以表不会无限增长；轮换密钥本身不需要清空这张表。
+
+## 6. 验证
+
+用新账号登录，确认拿到 token：
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:<后端端口>/api/v1/auth/login -ContentType 'application/json' -Body '{"username":"super","password":"super"}'
+```
+
+再用轮换前的旧 token 调 `GET /api/v1/auth/user-info`，预期 HTTP 401（而不是 200）。旧 refresh Cookie 调 `POST /api/v1/auth/refresh` 也应返回 401。最后用 `scripts/ci/http-smoke.mjs` 对目标后端跑一遍完整冒烟。
+
+## 7. 注意事项
+
+- 密钥与 secret 永远不进 Git；CI 里没有生产密钥，生产密钥由部署环境注入。
+- `JWT_SECRET` 要有足够熵（至少 32 字节随机值），不要复用数据库密码或示例值。
+- 生产必须开 `COOKIE_SECURE=true`，跨站部署再配 `COOKIE_SAME_SITE=None` 与 `COOKIE_DOMAIN`；否则 refresh Cookie 在 HTTPS 下行为不符合预期。
+- Spring 的公私钥必须成对；只替换其中一个会让新签发的 token 与公钥不匹配、验签失败。
+- 轮换是运维动作，不需要改 `contracts/openapi.json`，也不需要改前端。
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: scripts/generate-jwt-keys.mjs、backend/*/.env.example、backend/springboot/src/main/resources/application.yaml、.gitignore
+> 事实来源: `scripts/generate-jwt-keys.mjs`、`.gitignore`、`backend/springboot/src/main/resources/application.yaml`、`backend/springboot/src/main/java/com/orange/security/jwt/{JwtKeyConfig.java,JwtUtil.java}`、`backend/go-gin-gorm/{.env.example,cmd/server/main.go,internal/config/config.go,internal/auth/token.go}`、`backend/node-nestjs/{.env.example,src/config/app-config.ts}`、`backend/csharp/{.env.example,src/Orange.Api/Configuration/AppOptions.cs}`、`backend/rust-axum/{.env.example,src/config.rs}`、`backend/python-fastapi/{.env.example,app/config.py,app/security/tokens.py}`、`database/postgres/ddl.sql`

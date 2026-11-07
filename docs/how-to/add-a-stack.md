@@ -1,65 +1,97 @@
-# 新增一套栈
+# 新增一套前端或后端
 
-本页解决：给仓库增加一个新前端框架或新后端语言的完整清单。
-读者：维护者。新增实现必须与现有九套共享同一契约、同一数据模型。
+本页是维护者新增第 4 个前端或第 7 个后端时的完整清单：契约、数据库、CI、脚本、文档、测试六处都要接上，缺一处就不算完成。先读 [架构说明](../explanation/architecture.md) 的目录边界规则。
 
-## 1. 先决定加哪一层
+## 0. 先判定你加的是哪一类
 
-| 你要加 | 目录 | 必须满足 |
-| --- | --- | --- |
-| 前端框架 | `frontend/<stack>/` | 消费 `contracts/openapi.json`，实现同一批页面与权限可见性 |
-| 后端语言 | `backend/<stack>/` | 实现 [HTTP 契约](../reference/api.md) 的 34 个规范 operation，行为与 Spring 基准一致 |
-| 数据库方言 | `database/<engine>/` | 复制 `database/postgres/ddl.sql` 与 `dml.sql` 并做方言改写，见 [数据库方言](../reference/db-dialects.md) |
+- **新后端**：实现既有契约，不修改契约。契约是 `contracts/openapi.json`，规范 operation 的数量与清单见 [API 参考](../reference/api.md)。
+- **新前端**：消费既有契约，页面路径、权限身份与现有三端保持一致。
+- **新数据库引擎**：只有确实要新增运行时引擎时才动 `database/`；只提供静态 SQL 的引擎不算运行时支持。
 
-## 2. 后端清单
+## 1. 契约（两类新栈都适用）
 
-### 2.1 代码
+新实现必须满足：
 
-1. 在 `backend/<stack>/` 建工程，选一套分层结构（controller/service/repository/DTO/异常映射），与现有后端保持同样的职责划分，见 [后端架构](../backend/architecture.md)。
-2. 实现 `contracts/openapi.json` 的全部**规范** operation；15 个 deprecated 端点**不要**实现。
-3. 认证：Bearer JWT；登录、刷新、登出、改密、user-info、menus 六个端点缺一不可。JWT 算法与密钥来源见 [轮换 JWT 密钥](./rotate-jwt-keys.md)。
-4. 响应包体、错误码、分页必须与 [HTTP 契约](../reference/api.md) 一致（`40001/40002/40101/40301/40401/429`）。
-5. 操作日志：写 `sys_operation_log`，请求体脱敏截断。
+- `/api/v1` 前缀、`{code, message, data, timestamp, traceId}` 包体、分页 `{total, list, page, size, totalPages}`。
+- `Authorization: Bearer <access token>`；refresh token 走 HttpOnly Cookie `refresh_token`，`Path=/api/v1/auth`。
+- 错误码与 HTTP 状态映射、`X-Trace-Id` 回显、登录锁定与强制改密（40302）行为一致。
+- 不实现 `contracts/openapi.json` 中标记 `deprecated` 的旧路由（Spring 参考实现为兼容旧前端仍保留它们，新实现不要跟随）。
 
-### 2.2 配置
+契约不是为新实现让路的：如果实现与契约冲突，改实现；确需改契约，按 [修改契约](../how-to/change-the-contract.md) 的顺序一次改完六个后端与三个前端。
 
-1. 提供 `.env.example`（Spring 除外，用 `application*.yaml`），变量名与现有栈对齐：`APP_PORT`、`DB_*`/`DATABASE_URL`、`JWT_SECRET`、`JWT_ISSUER`、`JWT_ACCESS_EXPIRE`、`JWT_REFRESH_EXPIRE`、`CORS_ORIGINS`。
-2. 本地真实配置写进被 gitignore 的文件（`.env.local` / `.env`），并在 `.gitignore` 增加对应条目。
-3. 端口默认值选一个未被占用的（现有：8080/8081/8082/8083/3000/8000）。
+## 2. 数据库
 
-### 2.3 测试与 CI
+- 复用 `database/<engine>/{ddl.sql,dml.sql}`，应用不建表、不做迁移；`ddl.sql` 建表，`dml.sql` 灌种子。
+- 新引擎要新增 `database/<engine>/` 两件套，并在 [数据库方言](../reference/db-dialects.md) 登记差异（类型、自增、部分唯一索引、时间戳）。
+- 连接配置沿用现有变量名：`DATABASE_URL` 优先，其次 `DB_DRIVER` 加 `DB_*`；Spring Boot 是 `SPRING_DATASOURCE_URL` / `DB_URL`。变量清单进 [配置参考](../reference/configuration.md)。
 
-1. 单元测试 + 至少一条登录到登出的集成路径。
-2. 在 `.github/workflows/main.yml` 的 `backend` job 矩阵里加栈名，并补 `case` 分支的安装/测试/构建命令。
-3. 本地用 `node scripts/ci/http-smoke.mjs http://127.0.0.1:<port>/api/v1` 与 `node scripts/ci/contract-test.mjs ...` 自证。
-4. 数据库矩阵：确保 `scripts/ci/run-db-matrix.mjs <stack>` 能驱动你的启动命令；需要适配时改脚本而不是改 CI YAML。
+## 3. 新后端的代码与测试
 
-## 3. 前端清单
+按现有六栈的最小分层落目录：
 
-1. 在 `frontend/<stack>/` 建工程，端口选未占用的（现有 5173/5174/4200）。
-2. 实现同一批页面（系统管理五个模块 + 登录 + 错误页），目录组织参考 [前端架构](../frontend/architecture.md)。
-3. API 层：从 `contracts/openapi.json` 生成或手写类型；前缀保持相对路径 `/api/v1/`，dev 用代理连后端，见 [连接 API 与 Mock](../frontend/connect-api-and-mocks.md)。
-4. 权限：按当前用户可见性过滤菜单与按钮；角色切换只做前端视图过滤，不降后端权限。
-5. mock：实现与现有三栈一致的登录、菜单、用户/角色/组织/权限/日志数据，保证无后端可演示。
-6. 测试：单测 + 至少一条登录/菜单可见性用例；接入 `scripts/e2e/`（mock 与 real 两种驱动）。
-7. 在 `.github/workflows/main.yml` 加一个前端 job（lint/typecheck/test/build）。
+```text
+<entry>            进程入口、优雅关闭
+<config>           环境变量、连接串、方言选择
+<auth>             JWT、refresh Cookie、RBAC 守卫、登录锁定
+<controllers>      HTTP 路由、请求校验、响应包体
+<services>         业务规则、树与引用守卫、分页
+<domain|policies>  纯策略：编码形状、权限形状、有效权限、菜单树
+<tests>            单元测试 + 可被冒烟脚本覆盖的 HTTP 入口
+```
 
-## 4. 文档清单（必须同提交）
+现有位置可直接对照：Spring 的 `controller/` 与 `service/`、Go 的 `internal/http/` 与 `internal/domain/`、Nest 的 `src/<area>/`、C# 的 `Controllers/` 与 `Domain/`、Rust 的 `src/routes/` 与 `src/domain/`、FastAPI 的 `app/routers/` 与 `app/schemas/`。策略不要写进 HTTP 层，否则契约测试会先暴露分层问题。
 
-1. `frontend/<stack>/README.md` 或 `backend/<stack>/README.md`：命令、目录、配置入口、本栈偏差。
-2. 在 [Reference: 栈矩阵](../reference/stacks.md) 登记端口、命令、数据库支持、独有事实。
-3. 若引入新环境变量：更新 [Backend 配置](../backend/configuration.md)（后端）或前端配置说明。
-4. 若行为与基准不同：按 [移植取舍与偏差](../explanation/porting-and-deviations.md) 登记，说明为什么允许。
-5. 刷新受影响的文档的 `Last verified`。
+测试至少要覆盖：登录/刷新/登出、RBAC 40301、强制改密 40302、用户/角色/组织/权限四类实体的 CRUD、权限身份冲突 40901、操作日志。HTTP 级行为可以直接复用 `scripts/ci/http-smoke.mjs` 与 `scripts/ci/contract-test.mjs`。
 
-## 5. 验收
+## 4. 新前端的代码与测试
 
-- [ ] 契约测试通过（全部 34 个规范 operation，无 deprecated 端点）
-- [ ] 数据库矩阵通过（PG/MySQL/MariaDB/SQLite）
-- [ ] 冒烟脚本通过（登录到登出）
-- [ ] 三前端页面对齐（如加的是前端）
-- [ ] CI 新 job 绿，配置校验与权限校验仍绿
-- [ ] 栈矩阵与栈 README 已更新
+- **页面与路由**：页面路径必须等于 `database/permissions.json` 里的 `path`；React 由文件树自动注册，Vue/Angular 要显式加路由（见 [同步一个页面](port-a-page.md)）。
+- **权限**：菜单只渲染启用的 `menu`/`directory` 节点，并按当前账号的 `rolePermissions` 过滤；叶子用 `canView(path)`，操作按钮用 `canAct(path, action)`；无权限跳 `/forbidden`。
+- **会话**：内存保存 access token，启动时用 refresh Cookie 恢复；401 只刷新一次；40302 打开不可关闭的改密对话框。
+- **i18n 与主题**：zh/en 两套文案，主题切换与语言菜单要和现有三端一致（`scripts/e2e/check-controls.mjs` 校验这些共享控件）。
+- **mock**：内置 `super/super` 等种子账号，能脱离后端走完登录、菜单、CRUD；mock 开关的写法参考 [连接 API 与 Mock](../frontend/connect-api-and-mocks.md)。
+
+## 5. CI
+
+后端（`.github/workflows/main.yml`）：
+
+1. `backend.strategy.matrix.stack` 加栈名（现有 `spring`、`go`、`nest`、`csharp`、`rust`、`fastapi`）。
+2. `Test and build` 的 `case` 加分支：测试命令 + 构建命令，失败即退出。
+3. 工具链安装步骤按需加 `if: matrix.stack == '<name>'`。
+4. 数据库矩阵与契约验收是 `push` 才跑的步骤，脚本支持后会自动覆盖新栈。
+
+前端：新增 `frontend-<stack>` job，步骤与现有三个 job 对齐：安装（锁文件必须提交）→ lint → 测试 → 构建；如要发布 Pages，再加部署步骤。
+
+## 6. 脚本
+
+- `scripts/ci/run-db-matrix.mjs`：在 `url`、`jdbc`、`startCommand` 三处加新栈。
+- `scripts/ci/run-contract.mjs`：在 `startCommand` 与默认 `stacks` 列表加新栈；SQLite 建库逻辑共用。
+- `scripts/e2e/`：新前端要有 `mock-<stack>.mjs` 与 `real-<stack>.mjs`；`parity.mjs` 的 `APPS` 数组加一项（base、route、等待条件）。
+- 若新前端消费权限目录，把路径加进 `scripts/sync-permission-catalog.mjs` 的 `targets`，否则 `npm run permissions:check` 管不到它。
+
+## 7. 文档
+
+- 新后端/前端目录下的 `README.md`：只写命令、目录、本栈偏差，不重抄端点与端口。
+- [技术栈参考](../reference/stacks.md)：加一行端口/命令；这是端口的唯一事实源。
+- [配置参考](../reference/configuration.md) 或 [Backend 配置](../backend/configuration.md)：加变量与默认值。
+- 新引擎进 [数据库方言](../reference/db-dialects.md)；新脚本进 [脚本参考](../reference/scripts.md)；契约变了才动 [API 参考](../reference/api.md)。
+- 需要从文档地图进入的，补 [文档索引](../index.md)。
+
+## 8. 验收
+
+- 该栈的测试与构建全绿；Go 还要 `gofmt -l .` 为空与 `go vet ./...`。
+- 后端：`http-smoke` 与 `contract-test` 通过；`run-db-matrix` 四引擎通过。
+- 前端：lint/typecheck/test/build 通过；mock 与真实后端 E2E 通过；视觉改动跑 `parity.mjs`。
+- 根检查：`node scripts/check-config.mjs`、`npm run permissions:check` 与 `npm run docs:check` 通过。
+- 没有为了迁就新实现去改契约、改别人的目录或放宽已有断言。
+
+## 反模式
+
+- 先写实现，最后“补一下契约”。
+- 把已标 `deprecated` 的旧路由重新暴露给新客户端。
+- 在 README 里重抄端口表或端点表，制造第二份真相。
+- 只加 CI job，不给矩阵/契约脚本加分支，CI 会静默跳过新栈。
+- 新前端只做页面，不接权限、菜单与 refresh Cookie。
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: .github/workflows/main.yml、contracts/openapi.json、scripts/ci/run-db-matrix.mjs、scripts/ci/contract-test.mjs、backend/*/.env.example、frontend/*/package.json
+> 事实来源: `contracts/openapi.json`、`database/*/{ddl.sql,dml.sql}`、`.github/workflows/main.yml`、`scripts/ci/{run-db-matrix,run-contract,http-smoke,contract-test}.mjs`、`scripts/e2e/parity.mjs`、`scripts/sync-permission-catalog.mjs`、`frontend/*/package.json`、`backend/*/README.md`

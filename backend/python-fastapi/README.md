@@ -56,7 +56,7 @@ scripts/               smoke_http.py、smoke_pg.py
 
 1. 唯一默认暴露 OpenAPI UI 的后端：`FastAPI()` 未覆盖 `docs_url`，`/docs` 与 `/openapi.json` 可用（`app/main.py:61`）；Spring 有 springdoc 但默认关闭，其余四栈没有 UI。
 2. 唯一没有构建步骤的栈：CI 仅 `pip install -r requirements-dev.txt` 加 `python -m pytest -q`。
-3. 校验失败返回 `40002`、畸形 JSON 返回 `40001`（`app/errors.py:19`、`:20`），与 Java 基准把 bean validation 失败记为 `40001` 的口径不同。
+3. 校验失败返回 `40002`、畸形 JSON 返回 `40001`（`app/errors.py:19`、`:20`），与 Java 基准一致（Spring 的 bean validation 失败同样记 `40002`）。
 4. 审计保留清理是进程内 asyncio 任务：启动后延迟 60 秒首跑，之后每日一次（`app/main.py` 的 `_retention_loop`）；C# 为每 6 小时。
 5. 测试全部走内存 SQLite（`tests/conftest.py` 用 `sqlite+pysqlite:///:memory:` 加 `StaticPool`），不需要数据库服务；其余端口的数据库行为靠真实库脚本（Go、Nest、Rust）或 Docker 集成测试（Spring）。
 

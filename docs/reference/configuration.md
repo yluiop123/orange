@@ -30,13 +30,13 @@
 | Spring Boot | `backend/springboot/src/main/resources/application.yaml`（默认值）、`application-local.yaml`（本地，不入库） | `${APP_PORT:8080}` 形式的环境变量占位符；数据库 URL 优先级 `SPRING_DATASOURCE_URL > DB_URL > DB_HOST/DB_PORT/DB_NAME`，引擎由 `DB_DRIVER` 或 JDBC URL 识别 |
 | Go | `backend/go-gin-gorm/.env.example` 为模板；进程环境变量 | `APP_PORT`（回退 `PORT`）、数据库 DSN 相关变量 |
 | NestJS | `backend/node-nestjs/.env.example` 为模板；`src/config/env.ts` 加载 | `src/config/app-config.ts` 读取并校验，端口来自配置对象 |
-| .NET | `backend/csharp/src/Orange.Api/appsettings.json` + `.env.example`；启动配置在 `Properties/launchSettings.json` | ASP.NET Core 配置系统（环境变量覆盖 appsettings） |
+| .NET | `backend/csharp/src/Orange.Api/appsettings.json` + `.env.example`；**仓库没有 `Properties/launchSettings.json`**，监听地址由 `AppOptions` + `Program.cs` 的 `UseUrls` 决定 | ASP.NET Core 配置系统（环境变量覆盖 appsettings） |
 | Rust | `backend/rust-axum/.env.example` 为模板；进程环境变量 | `APP_PORT`/`PORT`、数据库连接由 config 模块解析 |
 | FastAPI | `backend/python-fastapi/.env.example` 为模板；`app/config.py` 读取 | `APP_PORT`（回退 `PORT`）、DSN、JWT 相关 |
 
 后端通用约定：
 
-- **端口**一律优先读 `APP_PORT`，未设置时回退 `PORT` 或各栈默认值；默认端口表只在 [Reference: 栈矩阵](./stacks.md) 维护。
+- **端口**优先读 `APP_PORT`；Spring 只读 `APP_PORT`，其余五栈未设置时回退 `PORT`，再回退各栈默认值。默认端口表只在 [Reference: 栈矩阵](./stacks.md) 维护。
 - **数据库引擎**由驱动名或 DSN 前缀决定，schema 由 `database/<engine>/ddl.sql` 管理，应用不建表（Spring 的 `ddl-auto: none` 是这一约定的显式声明）。
 - **JWT 密钥**由 `scripts/generate-jwt-keys.mjs` 生成，轮换流程见 [轮换 JWT 密钥](../how-to/rotate-jwt-keys.md)。
 

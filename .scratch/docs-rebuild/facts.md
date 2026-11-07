@@ -43,7 +43,7 @@
 
 六栈真实差异（写作时按此，勿写“全部一致”）：JWT 算法（Spring RS256，Go HS256/RS256，其余 HS256）；OpenAPI UI（Spring 默认关、FastAPI 默认开、其余无）；乐观锁（仅 Spring 比较 `@Version`）；缓存（仅 Spring 有 Caffeine group 缓存）；审计清理节奏（Spring 每日 03:30，Nest 启动+每日，C# 每 6 小时，其余每日）；配置载体（仅 Spring 用 YAML，其余 `.env.example`）。
 
-依赖规模：react 63 运行时 + 24 开发依赖；vue 17 运行时；angular 15 运行时。
+依赖规模（以 `package.json` 键计数为准）：react 67 运行时 + 24 开发；vue 17 + 18；angular 20 + 14。
 
 ## 3. 契约（`contracts/openapi.json`）
 
