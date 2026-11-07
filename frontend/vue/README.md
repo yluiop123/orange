@@ -1,188 +1,95 @@
-# ORANGE — Vue 3 + Vuetify frontend
+# ORANGE Vue 前端
 
-A Vue 3 port of the ORANGE admin console, at parity with `frontend/react` for the product
-scope described in [`docs/FEATURES.md`](../../docs/FEATURES.md), the API contract in
-[`docs/API.md`](../../docs/API.md), and the porting checklist in
-[`docs/PORTING.md`](../../docs/PORTING.md).
+Vue 3 + Vuetify 实现，产品范围与 React 参考实现一致；本页只列安装、命令、目录、依赖与偏差。
 
-Design docs: [frontend/docs](../docs/README.md) · configuration:
-[frontend/docs/CONFIGURATION.md](../docs/CONFIGURATION.md).
+## 环境与安装
 
-Stack: Vue 3.5 · Vite 8 · TypeScript · Vuetify 3 · Pinia · Vue Router · vue-i18n · Axios.
-Charts use ECharts, Chart.js and D3; maps use Leaflet, OpenLayers, deck.gl and Cesium; 3D uses
-Three.js and Babylon.js.
-
-## Prerequisites
-
-- Node.js 20.19+ or 22.12+ (Vite 8 requirement)
-- pnpm 10+ (`packageManager` is pinned to `pnpm@12.15.0`)
-- Optional: a running ORANGE backend, default `http://localhost:8080`
-
-## Install and run
+- Node.js（版本由 Vite 8 决定）与 pnpm；`package.json` 的 `packageManager` 为 `pnpm@12.15.0`。
+- 本目录自带 `pnpm-lock.yaml`。
 
 ```bash
 cd frontend/vue
 pnpm install
-pnpm dev
 ```
 
-The dev server listens on **http://localhost:5174**. It proxies `/api` to
-`VITE_PROXY_TARGET` (default `http://localhost:8080`) so the HttpOnly refresh cookie stays
-same-origin in development.
+`.env.development` 默认 `VITE_MOCK_ENABLE=true`，无后端也能登录；账号 `super / super`、`admin / admin`、`user / user`。`.env.local` 被 `*.local` 规则忽略。
 
-Local development enables the in-browser mock by default (`.env.development`), so the demo runs
-without a backend:
+## 命令
 
-| Account | Password | Notes |
+| 命令 | 实际执行 | 用途 |
 | --- | --- | --- |
-| `super` | `super` | all roles and permissions |
-| `admin` | `admin` | system management, no `super` grant |
-| `user` | `user` | dashboards only |
-| `newbie` | `newbie` | forced initial password change |
+| `pnpm dev` | `vite --port 5174` | 开发服务器，固定 5174 |
+| `pnpm build` | `vue-tsc -b && vite build` | 类型检查后生产构建 |
+| `pnpm preview` | `vite preview --port 5174` | 预览构建产物 |
+| `pnpm typecheck` | `vue-tsc -b` | 只做类型检查 |
+| `pnpm test` | `vitest run` | 单测（`src/**/*.test.ts`，node 环境） |
+| `pnpm test:watch` | `vitest` | 监听模式 |
+| `pnpm lint` | `eslint . --max-warnings=0` | ESLint，零警告 |
+| `pnpm format` | `prettier --write .` | 格式化 |
 
-## Environment variables
+## 目录结构
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `VITE_API_BASE` | `/api/v1/` | API root. Keep the trailing slash. Can be absolute for cross-origin. |
-| `VITE_MOCK_ENABLE` | `false` in `.env`, `true` in `.env.development` | Enables the local demo adapter. |
-| `VITE_PROXY_TARGET` | `http://localhost:8080` | Vite dev proxy target for `/api`. |
-
-To run against the real backend:
-
-```bash
-# .env.local
-VITE_MOCK_ENABLE=false
-VITE_API_BASE=/api/v1/
-VITE_PROXY_TARGET=http://localhost:8080
+```text
+frontend/vue/
+  src/
+    api/            axios 实例、auth 与各资源请求、手写类型
+    auth/           token、refresh、session hint、强制改密标记
+    components/     ActionAuth、FormDialog、ResourceTable、layout/、showcase/
+    composables/    useAccess、useResourcePage、usePageTitle
+    config/         permissions.json（同步副本）、menu-icons.ts
+    i18n/           index.ts、zh-CN.ts、en-US.ts
+    layouts/        AppLayout.vue
+    lib/            access、menu、menu-title、path、tree-code、validation
+    mock/           axios adapter 与内存种子
+    router/         路由表与全局守卫
+    stores/         auth、menu、ui、pinia
+    styles/         main.css、system.css
+    views/          system、dashboard、chart、map、three、component、login、errors
+    App.vue / main.ts
+  .env / .env.development
+  vite.config.ts / vitest.config.ts
 ```
 
-Cross-origin direct connections require the backend to allow the frontend origin **with
-credentials**; the access token is sent as `Authorization: Bearer …`, the refresh token is an
-HttpOnly cookie scoped to `/api/v1/auth`.
+## 本栈依赖
 
-## Scripts
+`package.json` 共 17 个运行时依赖、18 个开发依赖。
 
-```bash
-pnpm dev         # Vite dev server on 5174
-pnpm build       # vue-tsc -b && vite build
-pnpm preview     # preview the production build on 5174
-pnpm typecheck   # vue-tsc -b
-pnpm test        # Vitest: access filtering, tree-code policy, path matching, page clamping
-pnpm lint        # ESLint 10 + eslint-plugin-vue + Prettier config, zero warnings allowed
-pnpm format      # Prettier
-```
-
-## Auth and session behavior
-
-- The access token is held **in memory only** (`src/auth/token.ts`) and is never written to
-  `localStorage`.
-- Login stores a non-sensitive session hint and sets the token; a page reload restores the
-  session through the HttpOnly refresh cookie.
-- On `401`, a single-flight `POST /auth/refresh` rotates the token and retries the original
-  request. Concurrent 401s share one refresh. If refresh fails, state is cleared and the user is
-  sent to `/login` with a `redirect` query.
-- `40302` (must change the initial password) opens a non-dismissible change-password dialog. The
-  dialog also offers sign-out. Other `403`s open a forbidden dialog with the server message and
-  path; the failed request is still rejected to the caller.
-- Logout revokes the access token with its own bearer header, clears the refresh cookie
-  server-side, and clears all local state.
-
-## Menus, access and role switch
-
-- `/auth/menus` is the only source of menu names, paths and order. The sidebar renders the
-  backend tree; container nodes expand and all parent chain nodes auto-expand for the active
-  route. Breadcrumbs are built from the same chain.
-- `/` and every container path (`/system`, `/dashboard`, `/chart`, `/map`, `/three`,
-  `/component`) redirect to the first visible leaf for the current role view.
-- `src/lib/access.ts` implements `canView`, `canAct`, `visibleMenuTree`, `firstVisibleLeaf`.
-  Directory permissions control visibility only; actions never appear without the matching
-  `action#path:action` grant (`ActionAuth` component).
-- The header role switch is **UI-only**. It recomputes direct + selected-role grants from
-  `userPermissions` / `rolePermissions` and never changes backend authority. If the active route
-  becomes invisible, it redirects to the first visible leaf or `/forbidden`.
-- The selected role is remembered per username in `localStorage`; the token never is.
-
-## System pages
-
-All five system pages share `useResourceList` / `useResourcePage`:
-
-- 250 ms debounced fetching with `AbortController` cancellation on filter/page changes;
-- server pagination for users, roles and operation logs; client tree pagination for groups and
-  permissions;
-- row selection, bulk delete, labelled delete/status confirmations and page clamping after a
-  delete;
-- `FormDialog` drives add/edit forms, validates the same boundaries as the backend, maps
-  `40002` field errors back to inputs, and closes only after a successful write;
-- group and permission codes are validated by the shared `checkTreeCode` rule (root length,
-  parent prefix, digits) before submit;
-- disabling is confirmed; the self account cannot be deleted or disabled; the UI shows a
-  temporary password once after user creation or reset.
-
-## i18n and theming
-
-- Chinese and English messages live in `src/i18n/zh-CN.ts` and `en-US.ts`. The locale persists in
-  `localStorage` and is sent to the backend as the `Locale` header.
-- Menu titles are **not translated by the frontend**. They come from the backend menu tree. The
-  demo mock localizes them from the `Locale` header; switching language refetches menus and
-  user info.
-- Light/dark theme is a Vuetify theme switch persisted in `localStorage`.
-
-## Page coverage
-
-`docs/FEATURES.md §5` has 33 routes; 31 product pages if the two error routes are excluded.
-Every route below is implemented and reachable through the backend menu (or as a dedicated
-error route):
-
-| Group | Routes |
+| 类别 | 依赖 |
 | --- | --- |
-| Auth / errors | `/login` (login + forced password change), `/forbidden`, `/not-found` |
-| System | `/system/user`, `/system/role`, `/system/group`, `/system/permission`, `/system/operation-log` |
-| Dashboards (6) | `/dashboard/normal`, `/dashboard/network-security`, `/dashboard/military-situational-awareness`, `/dashboard/disaster-command`, `/dashboard/agriculture-forestry`, `/dashboard/industrial` |
-| Charts (4) | `/chart/antv`, `/chart/d3`, `/chart/echart`, `/chart/rechart` |
-| Maps (5) | `/map/cesium`, `/map/deckgl`, `/map/l7`, `/map/leaflet`, `/map/openlayers` |
-| 3D (2) | `/three/three`, `/three/babylon` |
-| Components (8) | `/component/general`, `/component/layout`, `/component/navigation`, `/component/table`, `/component/form`, `/component/display`, `/component/feedback`, `/component/custom` |
+| 框架与 UI | `vue`、`vuetify`、`@mdi/font` |
+| 路由、状态、i18n | `vue-router`、`pinia`、`vue-i18n` |
+| HTTP | `axios` |
+| 图表 | `echarts`、`chart.js`、`d3` |
+| 地图 | `leaflet`、`ol`、`@deck.gl/core`、`@deck.gl/layers`、`cesium` |
+| 3D | `three`、`@babylonjs/core` |
 
-All routes are lazy-loaded. The shell, sidebar, header and error pages remain usable if a demo
-chunk fails to load.
+Vuetify 组件全量注册在 `src/main.ts`，默认表单变体为 `outlined`、`density: comfortable`，图标集为 MDI。
 
-## Demo data
+## 与契约的关系
 
-`VITE_MOCK_ENABLE=true` installs a small Axios adapter (`src/mock/`) that implements the contract
-in memory: login/refresh/logout/change-password, user-info, menus, CRUD for users/roles/groups/
-permissions, operation logs, validation errors, status guards, delete guards, temporary
-passwords and write logging. State is in memory and resets on reload; the current username is
-kept in `localStorage` so refresh-on-reload can resume the demo session. No mock code runs when
-the flag is off.
+- 契约是 `contracts/openapi.json`，但本栈没有代码生成脚本；`src/api/types.ts` 手写 `Envelope`、`PageResult` 与实体类型，`src/api/*.ts` 返回 `response.data.data`。
+- `src/api/http.ts` 的基地址是 `VITE_API_BASE`（默认 `/api/v1/`），统一带 `Authorization` 与 `Locale`，`withCredentials: true` 以携带 refresh Cookie。
+- 401 时单飞 `POST /auth/refresh` 后重试一次；403 打开 forbidden 对话框，`40302` 打开强制改密。
+- 端点与错误码见 [API 参考](../../docs/reference/api.md)。
 
-## Known gaps
+## 本栈约定与偏差
 
-- **AntV page**: AntV G2 is not bundled; `/chart/antv` renders the AntV palette and chart grammar
-  with ECharts. L7/LarkMap itself was not added because it needs a Mapbox/AMap token.
-- **L7 map**: `/map/l7` renders the same POI-layer demo and a dark basemap with Leaflet instead
-  of AntV L7, again to avoid a commercial map token.
-- **Recharts page**: Recharts is React-only, so `/chart/rechart` demonstrates the same chart set
-  with Chart.js.
-- **Cesium**: `/map/cesium` uses `vite-plugin-cesium-build` (assets copied to
-  `dist/cesium-package/`) and loads `Cesium.js` only on that route. It uses OpenStreetMap imagery,
-  so no Ion token is required. The build emits the Cesium package as static files; deploy them
-  with `dist/`.
-- **deck.gl**: the page uses a tokenless dark canvas (like the React reference) rather than a
-  raster basemap.
-- **Maps and 3D** need WebGL and network access for OSM tiles. A failed tile/server does not take
-  down the shell.
-- **Mock vs backend**: mock behavior covers the flows exercised by the UI, not lockout counters,
-  token rotation internals, retention jobs or every backend guard. Production builds expect a
-  real backend.
-- **Operation log** is read-only and uses ordinary offset paging (`page`/`size`), matching the
-  contract; keyset paging is not implemented.
-- **Demo/gallery microcopy**: the shell, auth, system pages and menu chrome are fully bilingual;
-  some component-gallery section labels and sample rows are intentionally English/library names
-  and are not translated.
-- **No E2E suite in CI**: Vitest covers access filtering, path boundaries, tree-code validation
-  and page clamping. Browser smoke checks were run manually during development.
-- **Bundle size**: route-split demo chunks are still large (Babylon.js and ECharts are each
-  around 1.1 MB minified). They are lazy-loaded only on their pages, but the first visit to those
-  pages is heavier than the system pages.
-- No GitHub Pages workflow is added for this stack, by design.
+- 路由用 `createWebHistory`；页面在 `src/router/index.ts` 手工登记，容器路径 `CONTAINER_PATHS` 也是手写清单，新增容器必须同步改它。
+- 全局守卫 `router.beforeEach` 检查 public 路由、token、user-info、菜单与 `canView`；动作权限由 `ActionAuth` 组件控制。
+- mock 不是 MSW，而是替换 `http.defaults.adapter` 的 Axios adapter（`src/mock/index.ts` + `seed.ts`），状态在内存中。
+- 菜单标题由 `src/lib/menu-title.ts` 从 `src/config/permissions.json` 按 Page Path 取中英文，缺失时回退后端名称。
+- 主题是 Vuetify 的 `light` / `dark` 主题对象；颜色选择器直接改 `theme.themes.value`，持久化 key 为 `orange.theme` / `orange.color`。
+- 图表页有替换：AntV 页面用 ECharts 渲染，Recharts 页面用 Chart.js；`/map/l7` 不加载 L7，使用 tokenless 的点层卡片演示。
+- Cesium 由 `vite-plugin-cesium-build` 复制到 `cesium-package/`，只在 `/map/cesium` 动态加载，使用 OpenStreetMap 影像，不需要 Ion token。
+- 单测 4 个文件，覆盖 access、path、tree-code、page-clamp；没有 DOM 组件测试。
+
+## 延伸阅读
+
+- [前端架构](../../docs/frontend/architecture.md)
+- [设计系统](../../docs/frontend/design-system.md)
+- [在 Vue 与 Angular 里新增同一个页面](../../docs/frontend/add-a-page.md)
+- [在 mock 与真实后端之间切换](../../docs/frontend/connect-api-and-mocks.md)
+- [技术栈参考](../../docs/reference/stacks.md)
+
+> Last verified: 24826bb · 2026-11-07
+> 事实来源: frontend/vue/package.json、frontend/vue/vite.config.ts、frontend/vue/vitest.config.ts、frontend/vue/.env*、frontend/vue/src/main.ts、frontend/vue/src/router/index.ts、frontend/vue/src/api/http.ts、frontend/vue/src/lib/menu-title.ts、frontend/vue/src/mock/index.ts、frontend/vue/src/views/chart/AntvView.vue、frontend/vue/src/views/chart/RechartView.vue、frontend/vue/src/views/map/CesiumView.vue、frontend/vue/src/views/map/L7View.vue

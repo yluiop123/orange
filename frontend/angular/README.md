@@ -1,226 +1,91 @@
-# ORANGE — Angular frontend
+# ORANGE Angular 前端
 
-Angular + Angular Material port of the ORANGE admin console. It implements the
-same product scope as `frontend/react`: authentication, RBAC view filtering,
-system management, operation log and the demo pages (dashboards, charts, maps,
-3D, component gallery).
+Angular 21 + Angular Material 实现，产品范围与 React 参考实现一致；本页只列安装、命令、目录、依赖与偏差。
 
-Design docs: [frontend/docs](../docs/README.md) · configuration:
-[frontend/docs/CONFIGURATION.md](../docs/CONFIGURATION.md).
+## 环境与安装
 
-- Framework: **Angular 21.2.25**, standalone components, Angular Router, signals
-- UI: **Angular Material 21.2.14** (Material 3 theme, neutral palette with an
-  orange brand mark)
-- Charts: **ECharts 6**, **d3 7** (hand-built SVG)
-- Maps: **Leaflet 1.9**, **OpenLayers 10**, **deck.gl 9**, **Cesium** (CDN runtime)
-- 3D: **Three.js 0.187**, **Babylon.js 9**
-- Tests: Vitest via `@angular/build:unit-test`
-- Lint: ESLint + `angular-eslint` (Angular default flat config)
-
-## Prerequisites
-
-- Node.js **24.0+** (verified on 24.9.0). Angular 22 requires Node 24.15+, so this
-  port intentionally pins Angular 21.2.x, the latest stable line that runs here.
-- npm 11+
-- A running ORANGE backend for login and system pages (default
-  `backend/springboot` on `http://localhost:8080`).
-
-## Install
+- Node.js 与 npm；`package.json` 的 `packageManager` 为 `npm@11.6.0`。
+- 本目录自带 `package-lock.json`，用 `npm ci` 复现锁定版本。
 
 ```bash
 cd frontend/angular
-npm install
+npm ci
 ```
 
-## Run the dev server
+`npm start` 使用 `local` 配置并替换 `src/environments/environment.ts`。该配置的 `mock` 默认为 `false`，指向 8080 的真实后端；要脱离后端，把 `environment.local.ts` 的 `mock` 改为 `true` 并重启。
 
-```bash
-npm start
+## 命令
+
+| 命令 | 实际执行 | 用途 |
+| --- | --- | --- |
+| `npm start` | `ng serve --port 4200 --configuration local` | 开发服务器，端口 4200，带 `proxy.conf.json` |
+| `npm run build` | `ng build` | 生产构建（默认 `production` 配置） |
+| `npm run watch` | `ng build --watch --configuration development` | 开发配置监听构建 |
+| `npm test` | `ng test --watch=false` | 单测（`@angular/build:unit-test`，Vitest） |
+| `npm run lint` | `ng lint` | ESLint + angular-eslint |
+| `npm run ng` | `ng` | 直接调用 Angular CLI |
+
+没有独立 `typecheck` 脚本；`ng build` 与 `ng test` 都会做严格模板类型检查。
+
+## 目录结构
+
+```text
+frontend/angular/
+  public/                      静态资源（品牌图等）
+  src/
+    environments/              environment.ts / .development.ts / .local.ts
+    app/
+      core/                    auth、interceptor、access、menu、i18n、models、tree-code
+      layout/                  shell、sidebar-item、menu-redirect
+      mock/                    in-memory backend、mock-data、interceptor
+      pages/                   login、system、dashboard、chart、map、three、component
+      shared/                  dialogs、EChart 包装、选择器、chart-presets
+      app.config.ts            providers 与 app initializer
+      app.routes.ts            路由表
+    main.ts / styles.scss
+  angular.json / proxy.conf.json / tsconfig*.json
 ```
 
-The app is served on **http://localhost:4200**.
+## 本栈依赖
 
-`proxy.conf.json` forwards `/api` to `http://localhost:8080`, so the browser sees
-same-origin requests and the HttpOnly refresh cookie works without CORS changes.
-Point it at another backend by editing `proxy.conf.json` (dev) or
-`src/environments/environment.ts` (build).
+`package.json` 共 20 个运行时依赖、14 个开发依赖。
 
-## API base URL
-
-The API base is configured in:
-
-- `src/environments/environment.ts` (production, default `/api/v1`)
-- `src/environments/environment.development.ts` (development, default `/api/v1`)
-- `src/environments/environment.local.ts` (local, used by `npm start`)
-
-`environment.apiBase` is used by the HTTP interceptor, the login/refresh/logout
-calls and `ApiService`. Trailing slashes are normalized. Requests send
-`Locale: zh|en`; the refresh cookie is sent with `credentials: 'include'`.
-
-## Mock mode
-
-Set `mock: true` in `environment.local.ts` and restart. `npm start` uses that
-file, so the app signs in and manages data without a backend.
-`environment.development.ts` also enables mock mode by default.
-
-You can also open any build with `?mock=1`; the flag is persisted in
-`localStorage` (`orange.mock.enabled`). Use `?mock=0` to clear it when
-`environment.mock` is `false`.
-
-Seeded accounts: `super / super`, `admin / admin`, `user / user`,
-`auditor / auditor`, and `newbie / newbie` (temporary password flow). The mock
-covers login, refresh, menus, user/role/group/permission CRUD, operation logs,
-permission-denied `403`, and `40302`.
-
-## Commands
-
-```bash
-npm start          # ng serve on port 4200 with the API proxy
-npm run build      # production build (dist/angular)
-npm test           # ng test --watch=false (Vitest)
-npm run lint       # ng lint (ESLint + angular-eslint)
-```
-
-Type-checking is part of both `ng build` and `ng test` (strict templates).
-
-## Authentication and session
-
-- The access token lives **in memory only** (`TokenStore` signal). It is never
-  written to `localStorage` or `sessionStorage`.
-- A non-sensitive `orange.session` hint lets the app attempt a refresh on reload.
-- `POST /auth/refresh` uses the HttpOnly cookie through `fetch` (outside the
-  interceptor to avoid recursion). Concurrent 401s share one refresh.
-- A 401 retries the original request once after a successful refresh. If refresh
-  fails, local state is cleared and the user is sent to `/login`.
-- `must_change_password` opens a non-dismissible change-password dialog; every
-  other API returns `40302` until it is changed.
-- Logout clears local state immediately, then revokes the token and cookie.
-
-## Menus and access
-
-- Menus load from `GET /api/v1/auth/menus`; the sidebar renders the backend tree.
-  Menu titles are **not translated** — they come from the database.
-- `visibleMenuTree` and `firstVisibleLeaf` handle container redirects
-  (`/`, `/dashboard`, `/system`, …).
-- `canView` and `canAct` come from `createAccess` in `src/app/core/access.ts`.
-  Directory permissions only affect visibility, never API access.
-- The role selector is a **UI-only view filter**: it merges direct permissions
-  with the selected role's `rolePermissions` and recomputes menus and action
-  buttons. It never reduces backend authority.
-- Buttons without permission are hidden (add/edit/delete/reset/status).
-
-## Pages (FEATURES.md §5)
-
-| Path | Implementation |
+| 类别 | 依赖 |
 | --- | --- |
-| `/login` | Login form, forced change-password dialog |
-| `/system/user` | Filter, server paging, selection, add/edit, reset password, status toggle, delete + page clamp |
-| `/system/role` | Filter, server paging, selection, add/edit with permission picker, status, delete |
-| `/system/group` | Tree table, hand-entered codes, add child, edit, status, cascade delete, root paging |
-| `/system/permission` | Tree table, type/path/action form, filter by type, status, cascade delete |
-| `/system/operation-log` | Read-only filters (user/path/status/date range), server paging, detail dialog |
-| `/forbidden` | 403 page with back/home |
-| `/not-found` | 404 page |
-| `/dashboard/normal` | KPI cards, trend, traffic sources, goals, activity |
-| `/dashboard/network-security` | Dark security dashboard, risk gauge, severity, alerts |
-| `/dashboard/military-situational-awareness` | Tactical scatter, readiness radar, unit table |
-| `/dashboard/disaster-command` | Severity, response chart, resources, command timeline |
-| `/dashboard/agriculture-forestry` | Harvest/rainfall/crop charts, field table |
-| `/dashboard/industrial` | Throughput, OEE gauge, line bars, equipment table |
-| `/chart/antv` | Five soft-palette charts (ECharts, AntV-inspired) |
-| `/chart/d3` | Bar, area line, scatter and donut built with d3 scales/shapes |
-| `/chart/echart` | Nine ECharts examples (line, area, bar, pie, radar, gauge, scatter) |
-| `/chart/rechart` | Recharts-style card grid (ECharts equivalents) |
-| `/map/cesium` | Cesium globe loaded from CDN, OSM imagery, camera flight, offline fallback |
-| `/map/deckgl` | deck.gl TileLayer + ScatterplotLayer + ArcLayer |
-| `/map/l7` | L7-style animated flow map (Leaflet + SVG flow lines) |
-| `/map/leaflet` | Markers, popups, circle, polylines, route toggle |
-| `/map/openlayers` | Vector points, line, polygon draw interaction, live coordinates |
-| `/three/three` | Three.js torus knot, lights, orbit controls, satellites |
-| `/three/babylon` | Babylon engine, arc camera, glow, animated meshes |
-| `/component/general` | Buttons, badges, chips, typography, progress, icons, cards |
-| `/component/layout` | Responsive grid, split layout, cards, expansion, grid list |
-| `/component/navigation` | Tabs, menus, breadcrumb, paginator, stepper |
-| `/component/table` | Filter, sorting, selection, pagination |
-| `/component/form` | Reactive form with inputs, select, datepicker, autocomplete, slider, validation |
-| `/component/display` | Avatars, badges, tooltips, list, tree, chips, card |
-| `/component/feedback` | Snackbars, dialog, banners, progress, empty and skeleton states |
-| `/component/custom` | Hero card, KPI rings, service status, timeline, profile, feed |
+| 框架与 UI | `@angular/{animations,cdk,common,compiler,core,forms,material,platform-browser,router}`（21.2.x） |
+| 响应式与运行时 | `rxjs`、`tslib` |
+| 图表 | `echarts`、`d3` |
+| 地图 | `leaflet`、`ol`、`@deck.gl/core`、`@deck.gl/geo-layers`、`@deck.gl/layers` |
+| 3D | `three`、`@babylonjs/core` |
 
-## System page behavior
+Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载固定的 1.147 版本，离线时显示静态回退。Material 使用 Material 3 主题，主色与圆角在 `src/styles.scss` 中被覆盖为与 React 一致的中性色。
 
-- Filters debounce (300 ms) and cancel the previous request.
-- Server-paginated tables (users, roles, logs) clamp the page index after a
-  delete (`src/app/core/page-clamp.ts`, unit-tested).
-- Tree pages (groups, permissions) load the full array, rebuild the tree and
-  page **root nodes** while preserving hierarchy; deleting a node sends the
-  whole subtree deepest-first.
-- Dialogs use reactive forms, disable immutable codes/usernames, validate the
-  business-code shape before submit, and map server `40002` field errors back
-  onto controls.
-- Status changes that disable a row ask for confirmation; delete always asks.
-- Temporary passwords from user creation/reset are shown once in a copyable
-  dialog.
-- Destructive/sensitive interactions are hidden without `canAct`.
+## 与契约的关系
 
-## i18n
+- 契约是 `contracts/openapi.json`；本栈没有生成脚本，`src/app/core/models.ts` 手写镜像 `Envelope`、`PageResult`、`UserInfo`、`MenuNode` 等类型。
+- `ApiService` 统一解包 `{ code, message, data }`，非 200 代码转成 `ApiError`；`system-api.service.ts` 按资源封装调用。
+- `auth.interceptor.ts` 用 `environment.apiBase` 给相对 URL 加前缀，并附加 `Authorization` 与 `Locale`；401 时通过 `RefreshService` 单飞刷新后重试一次。
+- `RefreshService` 用 `fetch` 而不是 `HttpClient`，避免 refresh 请求再次进入拦截器造成递归。
+- 端点与错误码见 [API 参考](../../docs/reference/api.md)。
 
-Chinese and English dictionaries live in `src/app/core/i18n.service.ts`.
-The language selector persists `locale` in `localStorage` and sends the
-`Locale` header. Menu names, user content and backend messages are rendered as
-returned by the server; after a language switch the app refetches menus and
-user-info so the sidebar and breadcrumb update immediately.
+## 本栈约定与偏差
 
-## Project layout
+- 路由在 `src/app/app.routes.ts` 手工登记。`page(path, permissionPath, loader)` 会挂 `permissionGuard`，`container('system')` 等负责容器跳转；新增页面与容器都要改这里。
+- mock 是 `mock.interceptor.ts` + `mock-backend.ts` 的内存实现，排在 auth 拦截器之后；`?mock=1` 会持久化到 `orange.mock.enabled`，`?mock=0` 清除。
+- 权限目录 `src/app/core/permission-catalog.ts` 是手写镜像，不随根目录的 `permissions:sync` 更新；新增权限必须同时改它和 `ROLE_PERMISSIONS`。
+- i18n 字典在 `src/app/core/i18n.service.ts` 的 `EN` / `ZH` 常量里，没有独立 locale 文件；菜单标题由 `menu-labels.ts` 从权限目录取。
+- 主题与配色切换存在（`ThemeToggleComponent`、颜色菜单），持久化 key 为 `orange.angular.theme`、`orange.angular.color`，默认深色。
+- 图表页有替换：AntV 与 Recharts 页面都用 ECharts 渲染，`/map/l7` 用 Leaflet 底图加 SVG 流线，不加载 L7。
+- 根工作流的 `deploy` 只发布 React；本栈只跑 build/lint/test，没有独立 GitHub Pages 配置。
+- 单测 4 个 spec，覆盖 access、page-clamp、tree-code 与 mock backend；没有端到端套件，E2E 由 `scripts/e2e/*` 外部驱动。
 
-```
-src/
-  environments/            apiBase + mock per build
-  app/core/                auth, interceptor, access, menu, list controller,
-                           tree-code policy, page clamp, i18n, models
-  app/mock/                in-memory backend, seeded data, mock interceptor
-  app/layout/              shell, sidebar items, menu redirect
-  app/shared/              dialogs, ECharts wrapper, pickers, chart presets
-  app/pages/               login, system, dashboards, charts, maps, 3D, components
-```
+## 延伸阅读
 
-## Tests
+- [前端架构](../../docs/frontend/architecture.md)
+- [设计系统](../../docs/frontend/design-system.md)
+- [在 Vue 与 Angular 里新增同一个页面](../../docs/frontend/add-a-page.md)
+- [在 mock 与真实后端之间切换](../../docs/frontend/connect-api-and-mocks.md)
+- [技术栈参考](../../docs/reference/stacks.md)
 
-```bash
-npm test -- --watch=false
-```
-
-The suite covers:
-
-- access filtering: exact menu, directory prefix, action permissions,
-  `visibleMenuTree`, `firstVisibleLeaf`, empty permissions;
-- business-code validation: root lengths, digits, blank, child length and prefix;
-- page clamping after single/multi deletion and invalid page sizes;
-- mock backend: login/refresh, localized menus, `403`, `40302`, self-disable,
-  paged users and operation logs.
-
-## Known gaps
-
-- **Angular 21.2.x, not 22**: the newest stable Angular 22 line requires Node
-  24.15+ and this environment has 24.9.0. The code uses standalone components
-  and signals and upgrades cleanly.
-- **Cesium is loaded from the Cesium CDN** at runtime (about 5 MB). Without
-  network access the page shows a static globe fallback instead of failing.
-- **L7 uses a simplified implementation**: `@antv/l7` requires a map-provider
-  token, so `/map/l7` renders animated SVG flow lines over a Leaflet base map.
-- **AntV and Recharts pages use ECharts** (React-only libraries). The pages keep
-  the same datasets and card layout, and say so on screen.
-- **deck.gl** uses a Carto dark raster TileLayer. No basemap token is required.
-- **Demo data is static.** Demo pages call no extra backend endpoints (by design).
-  Some demo chart captions (for example “Revenue and orders over the last twelve
-  months”) remain in English; shell, login, system pages, dialogs and validation
-  messages are fully translated.
-- **Tree pagination pages root nodes.** A very large tree with more than one page
-  of roots shows a subset at a time; deeper nodes stay attached to their root.
-- **No dark/light theme switcher.** The shell follows the light Material 3 theme;
-  the security/military/3D/map pages use their own dark surfaces.
-- **Google Fonts/Material Icons are CDN assets.** Icons may not render offline;
-  layout and functionality still work.
-- **No E2E suite.** The Vitest suite covers access, tree-code validation, page
-  clamping and the in-memory mock backend.
-- **No GitHub Pages workflow** for this stack, as required by the porting rules.
+> Last verified: 24826bb · 2026-11-07
+> 事实来源: frontend/angular/package.json、frontend/angular/angular.json、frontend/angular/proxy.conf.json、frontend/angular/src/environments/environment*.ts、frontend/angular/src/app/app.config.ts、frontend/angular/src/app/app.routes.ts、frontend/angular/src/app/core/guards.ts、frontend/angular/src/app/core/auth.interceptor.ts、frontend/angular/src/app/core/refresh.service.ts、frontend/angular/src/app/core/permission-catalog.ts、frontend/angular/src/app/core/i18n.service.ts、frontend/angular/src/app/mock/mock-backend.ts、frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts、frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts、frontend/angular/src/styles.scss

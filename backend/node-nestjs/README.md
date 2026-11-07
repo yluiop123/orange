@@ -1,297 +1,75 @@
-# ORANGE backend — Node.js + NestJS
-A port of the reference Spring Boot backend to **Node.js LTS + NestJS 11**, with
-TypeORM, `@nestjs/jwt`, BCrypt and a rotating HttpOnly refresh cookie. It runs
-against PostgreSQL, MySQL, MariaDB and SQLite through one connection switch.
-It implements the canonical contract in [`docs/API.md`](../../docs/API.md); the
-deprecated legacy routes are intentionally absent.
+# Orange · Node.js + NestJS 后端
 
-- Base URL: `http://localhost:3000/api/v1`
-- Response envelope: `{ code, message, data, timestamp, traceId }` on every
-  response, including errors
-- Trace id: accepted from `X-Trace-Id` (also `X-Request-Id`), always echoed in
-  the body **and** the `X-Trace-Id` header
+本栈用 NestJS 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
 
-## Prerequisites
+## 技术栈与版本
 
-| Tool | Version |
-| --- | --- |
-| Node.js | 20 or 22 LTS (developed on Node 24) |
-| pnpm | 9+ (`npm` works too) |
-| PostgreSQL | 13+ (optional) |
-| MySQL / MariaDB | 8.0.16+ / 10.4+ (optional) |
-| SQLite | bundled through `better-sqlite3` |
-
-`bcrypt` and `better-sqlite3` are native modules. With recent pnpm versions
-their install scripts must be approved once:
-
-```bash
-pnpm install          # pnpm 12: build approval is stored in pnpm-workspace.yaml
-# if your pnpm asks:
-pnpm approve-builds bcrypt better-sqlite3
-```
-
-With npm, scripts run automatically: `npm install`.
-
-## Environment
-
-Copy `.env.example` to `.env.local`; the app loads it with `dotenv`
-(`src/config/env.ts`), and real environment variables win.
-
-| Variable | Default | Purpose |
+| 项 | 版本 / 说明 | 来源 |
 | --- | --- | --- |
-| `PORT` | `3000` | HTTP port |
-| `DB_DRIVER` | *(from `DATABASE_URL`, else `postgres`)* | `postgres`, `mysql`, `mariadb` or `sqlite` |
-| `DATABASE_URL` | *(unset)* | Full connection URL; wins over the discrete `DB_*` values |
-| `DB_HOST` | `localhost` | Database host |
-| `DB_PORT` | `5432` (PostgreSQL), `3306` (MySQL/MariaDB) | Database port |
-| `DB_NAME` | `orange` (`orange.db` for SQLite) | Database or SQLite file |
-| `DB_USER` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | Database user |
-| `DB_PASSWORD` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | Database password |
-| `DB_SSL` | `false` | `true` enables TLS (PostgreSQL/MySQL) |
-| `JWT_SECRET` | `orange-dev-secret-change-me` | HMAC secret for access/refresh JWTs |
-| `JWT_ACCESS_EXPIRE` | `900` | Access-token lifetime, seconds |
-| `JWT_REFRESH_EXPIRE` | `604800` | Refresh-token lifetime, seconds |
-| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated exact origins, credentials allowed |
-| `COOKIE_SECURE` | `false` | Set `true` behind HTTPS |
-| `COOKIE_SAME_SITE` | `lax` | `lax`, `strict` or `none` |
-| `COOKIE_DOMAIN` | *(unset)* | Optional cookie domain |
-| `LOGIN_MAX_ATTEMPTS` | `5` | Failures per user before lockout |
-| `LOGIN_IP_MAX_ATTEMPTS` | `20` | Failures per IP before lockout |
-| `LOGIN_LOCK_MINUTES` | `15` | Window and lock duration |
-| `OPERATION_LOG_RETENTION_DAYS` | `90` | Operation-log retention |
+| 框架 | NestJS 11（`@nestjs/common`、`core`、`jwt`、`platform-express`、`typeorm` 均为 `^11`） | `package.json` |
+| ORM | TypeORM 0.3.20 | `package.json` |
+| 语言与编译 | TypeScript 5.7.2、`@nestjs/cli` 11、`ts-loader` 9.5.1 | `package.json` |
+| 测试 | jest 29.7.0 + ts-jest 29.2.5，配置内联在 `package.json`（`rootDir: src`、`testRegex: .*\.spec\.ts$`） | `package.json` |
+| 数据库客户端 | `pg` 8.13.1、`mysql2` 3.24.6、`better-sqlite3` 13.0.3 | `package.json` |
+| 认证 | `@nestjs/jwt` 11、`bcrypt` 5.1.1（原生模块） | `package.json` |
+| 校验与转换 | `class-validator` 0.14.1、`class-transformer` 0.5.1 | `package.json` |
+| 其他 | `cookie-parser` 1.4.7、`dotenv` 16.4.7、`reflect-metadata` 0.2.2、`rxjs` 7.8.1 | `package.json` |
+| 接口文档 | 无 OpenAPI/Swagger 依赖 | `package.json` |
+| 包管理 | pnpm（`pnpm-lock.yaml`、`pnpm-workspace.yaml`；CI 用 pnpm 12.15.0） | 仓库文件、`main.yml` |
 
-### Database selection
+## 命令
 
-One switch for every engine, resolved in this order:
-
-1. `DB_DRIVER` when set (`postgres` / `mysql` / `mariadb` / `sqlite`).
-2. Otherwise the `DATABASE_URL` scheme (`postgres://`, `postgresql://`,
-   `mysql://`, `mariadb://`, `sqlite:`, `sqlite3:`, `file:`).
-3. Otherwise `postgres` (the historical default).
-
-`DATABASE_URL` wins over the discrete `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_USER`/
-`DB_PASSWORD` values; the discrete values are the fallback.
-
-| Driver | `DB_DRIVER` | `DATABASE_URL` example |
+| 用途 | 命令 | 来源 / 说明 |
 | --- | --- | --- |
-| PostgreSQL | `postgres` | `postgres://postgres:postgres@localhost:5432/orange` |
-| MySQL | `mysql` | `mysql://root:root@localhost:3306/orange` |
-| MariaDB | `mariadb` | `mysql://root:root@localhost:3306/orange` |
-| SQLite | `sqlite` | `sqlite:./orange.db` |
+| 安装 | `pnpm install --frozen-lockfile` | `main.yml`（backend job, nest） |
+| 启动（开发） | `pnpm start:dev` | `package.json`（`nest start --watch`） |
+| 启动（产物） | `pnpm build` 后 `pnpm start:prod` | `package.json`（`node dist/main.js`） |
+| 测试 | `pnpm test` | `main.yml`；jest 只跑 `src/**/*.spec.ts` |
+| 构建 | `pnpm build` | `main.yml`（`nest build`） |
+| 类型检查 | `pnpm typecheck` | `package.json`（`tsc --noEmit`） |
+| 冒烟 | `pnpm smoke` | `package.json`（`node scripts/smoke.mjs`），需要已 seed 的库和已启动的服务 |
 
-MariaDB is served through TypeORM's `mysql` driver and the `mysql2` client, so
-no extra native package is needed; `DB_DRIVER=mariadb` records the target while
-the URL may keep the `mysql://` scheme.
+端口来源变量：`int(process.env.APP_PORT ?? process.env.PORT, 3000)`（`src/config/app-config.ts:50`），默认 3000；`.env.example` 写 `PORT=3000`。
 
-## Database setup
+`bcrypt` 与 `better-sqlite3` 是原生模块，安装时要跑构建脚本；`pnpm-workspace.yaml` 已用 `onlyBuiltDependencies` 与 `allowBuilds` 预先批准这两个包，无需再手工 `pnpm approve-builds`。
 
-The schema and seed are owned by the shared `database/<engine>` directories and
-are loaded manually (there is no migration tool, exactly like the reference).
-TypeORM runs with `synchronize: false`; it never changes the schema.
-
-PostgreSQL:
-
-```bash
-createdb orange
-psql -U postgres -d orange -v ON_ERROR_STOP=1 -f ../../database/postgres/ddl.sql
-psql -U postgres -d orange -v ON_ERROR_STOP=1 -f ../../database/postgres/dml.sql
-```
-
-MySQL / MariaDB (`database/mysql` or `database/mariadb`):
-
-```bash
-mysql -h 127.0.0.1 -u root -proot orange < ../../database/mysql/ddl.sql
-mysql -h 127.0.0.1 -u root -proot orange < ../../database/mysql/dml.sql
-```
-
-SQLite (`database/sqlite`):
-
-```bash
-sqlite3 orange.db < ../../database/sqlite/ddl.sql
-sqlite3 orange.db < ../../database/sqlite/dml.sql
-```
-
-The `better-sqlite3` driver enables `PRAGMA foreign_keys = ON` on every
-connection, so `ON DELETE RESTRICT/CASCADE` behaves like PostgreSQL.
-
-### Column portability
-
-The entities keep one set of types for every engine:
-
-| PostgreSQL | MySQL / MariaDB | SQLite |
-| --- | --- | --- |
-| `timestamptz` | `datetime(6)` | `TEXT` (ISO-8601 UTC), TypeORM `datetime` codec |
-| `varchar` | `varchar(255)` | `TEXT` |
-| `boolean` | `tinyint(1)` | `INTEGER` 0/1 |
-| `bigserial` | `bigint AUTO_INCREMENT` | `INTEGER PRIMARY KEY AUTOINCREMENT` |
-
-`src/entities/column-types.ts` picks the timestamp type from `DB_DRIVER`
-(`timestamptz` on PostgreSQL, `datetime` elsewhere), so the PostgreSQL schema
-and behaviour are unchanged.
-
-## Run
-
-```bash
-pnpm install
-export JWT_SECRET=change-me
-# PostgreSQL (default)
-pnpm build && pnpm start:prod
-
-# another engine
-export DB_DRIVER=mysql
-export DATABASE_URL=mysql://root:root@localhost:3306/orange
-pnpm start:prod
-
-# SQLite
-export DB_DRIVER=sqlite
-export DATABASE_URL=sqlite:./orange.db
-pnpm start:prod
-```
-
-PowerShell:
-
-```powershell
-$env:JWT_SECRET = "change-me"
-$env:DB_DRIVER = "sqlite"
-$env:DATABASE_URL = "sqlite:./orange.db"
-pnpm build
-node dist/main.js
-```
-
-The server listens on `PORT` (default **3000**). Verify:
-
-```bash
-curl http://localhost:3000/api/v1/auth/menus          # 401 envelope
-curl -X POST http://localhost:3000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"super","password":"super"}'
-```
-
-## Test and build
-
-```bash
-pnpm test      # Jest unit tests
-pnpm build     # type-check + emit dist/
-npm test       # the same scripts work through npm
-npm run build
-```
-
-Unit tests cover the code policy (against the shared fixture), permission
-shape, effective permissions and the login-lockout state machine. They do not
-need a database.
-
-### End-to-end smoke test
-
-With the target schema seeded and the API running on port 3000:
-
-```bash
-pnpm smoke
-# or: SMOKE_BASE_URL=http://localhost:3000/api/v1 node scripts/smoke.mjs
-```
-
-The script logs in as the seeded `super` user, exercises every resource list,
-refresh rotation/replay, the forced-password-change flow, code/permission/tree
-guards, operation-log redaction, logout revocation and login lockout. It
-creates temporary rows and deletes them again. Current result: **78 checks,
-0 failed** on PostgreSQL, MySQL, MariaDB and SQLite (see `scripts/smoke.mjs`).
-
-## Endpoint coverage
-
-All **34** canonical endpoints from `docs/API.md` are implemented:
-
-| Resource | Count | Endpoints |
-| --- | --- | --- |
-| Auth | 6 | `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/user-info`, `POST /auth/change-password`, `GET /auth/menus` |
-| Groups | 7 | `GET /system/groups`, `GET /:groupId`, `PATCH /:groupId`, `PATCH /:groupId/status`, `POST /children`, `DELETE /:groupId`, `DELETE ?ids=` |
-| Permissions | 6 | `GET /system/permissions`, `GET /:permissionId`, `PATCH /:permissionId`, `POST /children`, `DELETE /:permissionId`, `DELETE ?ids=` |
-| Roles | 6 | `GET /system/roles`, `GET /:roleId`, `POST /`, `PATCH /:roleId`, `DELETE /:roleId`, `DELETE ?ids=` |
-| Users | 8 | `GET /system/users`, `GET /:userId`, `POST /`, `PATCH /:userId`, `PATCH /:userId/status`, `POST /:userId/reset-password`, `DELETE /:userId`, `DELETE ?ids=` |
-| Operation logs | 1 | `GET /system/operation-logs` |
-
-Deprecated Java routes (`*/add`, `*/edit`, `*/addChild`, `*/detail/{id}`,
-`/users/reset/{id}`) are not implemented.
-
-## Behavior notes
-
-- **Tokens.** HS256 access token (`jti`, `typ=access`, `ver`, `username`,
-  `sub=user.id`) and refresh token (`typ=refresh`). The refresh token is only
-  delivered as an HttpOnly cookie (`refresh_token`, path `/api/v1/auth`),
-  rotated on every refresh; the old `jti` is inserted into `sys_revoked_token`
-  atomically, so replay returns 401.
-- **Invalidation.** `sys_user.token_version` is embedded as `ver`. Password
-  change, password reset, disabling a user and logout increment it.
-- **Forced password change.** `must_change_password=true` allows only
-  `user-info`, `menus`, `change-password` and `logout`; everything else is
-  `40302`.
-- **Login lockout.** Failures are counted per `user:<lowercased name>` and
-  `ip:<address>` in `sys_login_attempt`: 5/20 failures within 15 minutes lock
-  that key for 15 minutes. A successful login clears only the user counter.
-  Lockout returns HTTP 429 / code 429, like the reference.
-- **Passwords.** BCrypt with the Spring `{bcrypt}` prefix so the seeded users
-  work and the Java backend can read hashes written here. New/reset passwords
-  are 12 characters from the same unambiguous alphabet and set
-  `must_change_password=true`.
-- **RBAC.** Authorities are `type#path` or `type#path:action`; effective
-  permissions are enabled roles ∪ direct grants − disabled permissions. Role
-  ids are also kept in the principal for the `super` checks. Menu/directory
-  permissions gate the menu tree; API calls are checked against the matching
-  authority string.
-- **Trees.** Digit-only codes, root 2/4 digits, child = parent + 2, immutable.
-  Deleting a subtree is deepest-first with reference guards; disabling a parent
-  requires all descendants disabled. Text filters return ancestors.
-- **Menus.** `/auth/menus` returns enabled `menu`/`directory` nodes ordered by
-  code; a branch with a disabled parent is hidden, not promoted.
-- **Operation log.** Non-GET requests to `/api/v1/system/*` and
-  `/auth/change-password` are recorded after the response finishes. Bodies of
-  `login`, `refresh`, `change-password` and `reset-password` are never stored;
-  other bodies redact `password`/`token`/`secret` and truncate to 4000 chars;
-  query strings truncate to 500. Retention is 90 days by default.
-
-## Layout
+## 目录结构与分层
 
 ```text
-src/
-  main.ts                  bootstrap, global prefix, CORS, cookies, trace middleware
-  app.module.ts            TypeORM, global guards/interceptors/filter/pipe
-  common/                  envelope, errors, trace, validation, tree policies, password
-  config/                  environment-backed AppConfig, DB driver + TypeORM options
-  auth/                    login/refresh/logout/user-info/change-password, JWT, lockout
-  menus/                   /auth/menus tree
-  users/ roles/ groups/ permissions/    DTOs, services, controllers
-  operation-log/           interceptor, policy, recorder/query
-  entities/                TypeORM entities for the shared schema
-  policies/                permission shape + effective permissions
-scripts/smoke.mjs          end-to-end smoke test
+src/main.ts              bootstrap：全局前缀 /api/v1、CORS、cookie、TraceId
+src/app.module.ts        TypeORM 连接，全局守卫 / 拦截器 / 过滤器 / 管道
+src/config/              AppConfig（环境变量）、DB 驱动归一化、TypeORM 选项
+src/common/              响应包体、错误码、TraceId、校验、树与编码策略、密码工具
+src/auth/                登录/刷新/登出/user-info/改密、JWT、刷新轮换、登录锁定
+src/menus/               /auth/menus 菜单树
+src/{users,roles,groups,permissions}/   DTO、service、controller
+src/operation-log/       审计拦截器、记录策略、查询
+src/entities/            共享 schema 的 TypeORM 实体
+src/policies/            权限形状与有效权限
+scripts/smoke.mjs        HTTP 级冒烟脚本
 ```
 
-## Known gaps
+## 配置入口
 
-- **No deprecated legacy routes** — intentional per `docs/API.md §7`.
-- **No OpenAPI/Swagger generation or UI.** The contract lives in
-  `contracts/openapi.json`.
-- **No migration tool.** The shared DDL/DML must be loaded manually;
-  `synchronize` is disabled.
-- **MariaDB uses TypeORM's `mysql` driver** (`mysql2` client) rather than the
-  separate `mariadb` package; query behaviour is the same, but MariaDB-only
-  driver features are not used.
-- **SQLite has no native date type.** `timestamptz` columns are `TEXT`
-  ISO-8601 UTC as the shared DDL declares; rows written by `CURRENT_TIMESTAMP`
-  defaults have second precision while application writes keep microseconds.
-  `varchar(n)` limits and numeric ranges are not enforced by SQLite.
-- **No i18n message bundles.** The `Locale` header is accepted, but messages
-  are the reference Chinese strings only.
-- **No email delivery** for the temporary password; it is returned once in the
-  response body (`Cache-Control: no-store` on reset).
-- **Unit tests do not boot Nest or a database.** Database behavior is verified
-  by `scripts/smoke.mjs`, not by Jest e2e tests.
-- **In-process maintenance.** Operation-log retention cleanup runs once at boot
-  and daily per process; it is idempotent but not a distributed scheduler.
-  Expired `sys_login_attempt` rows are ignored but not periodically deleted.
-- **No rate limiting beyond login lockout** (no global request throttling).
-- **Legacy compatibility parameters** (`filterField`, `filterValue`,
-  `orderField`, `orderValue`) are not accepted; use `keyword`/`sort`.
-- **Timestamps are serialized as ISO-8601 UTC** (`...Z`) rather than Java's
-  `yyyy-MM-dd HH:mm:ssXXX` string; they represent the same instants and parse
-  with `Date`/dayjs.
-- **Concurrency conflicts** are mapped to `40901`, but there is no automatic
-  optimistic-lock retry.
+复制 `.env.example` 为 `.env.local`（被 gitignore）；`src/config/env.ts` 用 `dotenv` 加载该文件，真实环境变量优先。数据库引擎先看 `DB_DRIVER`，其次看 `DATABASE_URL` 的 scheme，兜底 `postgres`；`DATABASE_URL` 覆盖离散 `DB_*`。完整变量清单与跨栈对照见 [docs/backend/configuration.md](../../docs/backend/configuration.md)。
+
+## 本栈偏差
+
+1. 单元测试只覆盖纯策略：7 个 `.spec.ts`，不启动 Nest、不连数据库；数据库行为靠 `scripts/smoke.mjs` 在真实服务上验证，这与 Go（含路由与冒烟测试）不同。
+2. TypeORM `synchronize: false`（`src/config/database.options.ts:16`）：不建表、不迁移，schema 由 `database/<engine>` 负责。
+3. MariaDB 走 TypeORM 的 `mysql` 驱动和 `mysql2` 客户端（`src/config/database.options.ts`），不需要额外的 `mariadb` 包；SQLite 用 `better-sqlite3`。
+4. JWT 只用 HS256：`JwtModule.registerAsync` 仅传 `secret`（`src/auth/auth.module.ts:21`），不同于 Spring 的 RS256。
+5. 无 OpenAPI/Swagger 生成或 UI。
+
+## 规模与测试
+
+| 指标 | 数值 |
+| --- | --- |
+| 受版本控制的文件 | 95 |
+| TypeScript 源文件 | 85（`src/`） |
+| 测试文件 | 7 个 `.spec.ts`（纯单元测试，无需数据库） |
+
+统计口径：`git ls-files backend/node-nestjs`。端点清单、方言差异与验证结论分别见 [docs/reference/api.md](../../docs/reference/api.md)、[docs/reference/db-dialects.md](../../docs/reference/db-dialects.md)、[docs/reference/stacks.md](../../docs/reference/stacks.md)。
+
+> Last verified: 24826bb · 2026-11-07
+> 事实来源: `package.json`、`pnpm-workspace.yaml`、`.env.example`、`src/config/*.ts`、`src/main.ts`、`src/**/*.spec.ts`、`.github/workflows/main.yml`

@@ -1,302 +1,69 @@
-# ORANGE Backend — Go + Gin + GORM
-A port of the ORANGE system-management API to Go. It implements the canonical
-contract in [`docs/API.md`](../../docs/API.md) against the committed schemas in
-[`database/`](../../database). PostgreSQL, MySQL, MariaDB and SQLite are all
-supported through one `DB_DRIVER` switch. The Spring Boot implementation in
-`../springboot` is the behavior reference.
+# Orange · Go + Gin + GORM 后端
 
-- Base path: `/api/v1`
-- Default port: **8081**
-- Response envelope: `{ code, message, data, timestamp, traceId }`
-- `X-Trace-Id` is accepted, generated when absent, and returned in both the body
-  and the response header.
+本栈用 Go 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` 连一种数据库。
 
-## Prerequisites
+## 技术栈与版本
 
-- Go **1.23+** (developed and tested with Go 1.24.3)
-- One database, seeded with the matching files under `database/`:
-  PostgreSQL 12+, MySQL 8+, MariaDB 10.6+, or SQLite 3.35+
-- SQLite uses `github.com/glebarez/sqlite` (pure Go), so no cgo or C compiler is
-  required and `CGO_ENABLED=0` builds work.
-- No database server is installed by this project; it uses the SQL files that
-  already exist in the repository.
+| 项 | 版本 / 说明 | 来源 |
+| --- | --- | --- |
+| Go | 1.23.0（CI 用 `1.23.x`） | `go.mod`、`main.yml` |
+| HTTP | Gin 1.10.1 | `go.mod` |
+| ORM | GORM 1.30.1 + `gorm.io/driver/postgres` 1.6.0、`gorm.io/driver/mysql` 1.6.0 | `go.mod` |
+| SQLite | `github.com/glebarez/sqlite` 1.11.0（纯 Go，不依赖 cgo） | `go.mod` |
+| JWT | `github.com/golang-jwt/jwt/v5` 5.2.2 | `go.mod` |
+| 校验 | `go-playground/validator/v10` 10.20.0 | `go.mod` |
+| 其他 | `golang.org/x/crypto`（bcrypt）、`google/uuid`、`joho/godotenv` | `go.mod` |
+| 接口文档 | 无 OpenAPI/Swagger 依赖 | `go.mod` |
+| 构建 | 只有 `go` 工具链，无 Makefile | 目录内容 |
 
-## Project layout
+## 命令
+
+| 用途 | 命令 | 来源 / 说明 |
+| --- | --- | --- |
+| 安装 | `go mod download` | `go.sum` 已提交；CI 直接用 `go build ./...` 解析依赖 |
+| 启动 | `go run ./cmd/server` | `cmd/server/main.go`；`.env.local` 由 godotenv 加载 |
+| 测试 | `go test ./...` | `main.yml`（backend job, go） |
+| 格式与静态检查 | `gofmt -l .` 必须为空、`go vet ./...` | `main.yml` 同 job |
+| 构建 | `go build -o bin/server ./cmd/server` | `main.yml`；另有 `go build ./...` |
+| 可选冒烟 | `ORANGE_SMOKE=1 go test ./internal/http -run TestSmokeAgainstConfiguredDatabase -v` | `internal/http/smoke_test.go:25`；库不可达时跳过 |
+
+端口来源变量：`env("APP_PORT", env("PORT", "8081"))`（`internal/config/config.go:211`），默认 8081；`.env.example` 只写了 `PORT=8081`。
+
+## 目录结构与分层
 
 ```text
-cmd/server              process entry point, graceful shutdown, log retention
-internal/config         environment configuration
-internal/auth           JWT access/refresh tokens, BCrypt, refresh cookie
-internal/domain         pure policies: code shape, permission shape,
-                        effective permissions, tree index, login lockout,
-                        operation-log policy
-internal/store          GORM models and queries
-internal/service        business rules (RBAC guards, tree/reference guards)
-internal/http           Gin router, middleware, handlers, envelope
+cmd/server/            进程入口、优雅关闭、日志保留
+internal/config/       环境变量与连接串
+internal/auth/         JWT、bcrypt、refresh cookie
+internal/domain/       纯策略：编码形状、权限形状、有效权限、树索引、登录锁定、审计规则
+internal/store/        GORM 模型与查询、时间戳序列化
+internal/service/      业务规则：RBAC、树与引用守卫、分页
+internal/http/         Gin 路由、中间件、处理器、响应包体
 ```
 
-Policy and business logic live outside Gin. The required unit tests exercise
-those packages directly.
+策略与业务逻辑不放在 Gin 层；单元测试直接测这些包。端点与数据库矩阵不在本页维护，见 [docs/reference/api.md](../../docs/reference/api.md) 与 [docs/reference/db-dialects.md](../../docs/reference/db-dialects.md)。
 
-## Database setup
+## 配置入口
 
-The schema is not created by the application. Load the committed files once for
-the engine you want:
+复制 `.env.example` 为 `.env.local`（被 gitignore，启动时由 godotenv 读入）；真实环境变量优先于该文件。`DATABASE_URL` 覆盖离散 `DB_*`，`DB_DRIVER` 未设时由 URL scheme 推断引擎。变量清单、优先级与跨栈对照见 [docs/backend/configuration.md](../../docs/backend/configuration.md)。
 
-```powershell
-# PostgreSQL
-psql -U postgres -c "CREATE DATABASE orange;"
-psql -U postgres -d orange -f ../../database/postgres/ddl.sql
-psql -U postgres -d orange -f ../../database/postgres/dml.sql
+## 本栈偏差
 
-# MySQL
-mysql -uroot -proot -e "CREATE DATABASE orange DEFAULT CHARACTER SET utf8mb4;"
-mysql -uroot -proot orange < ../../database/mysql/ddl.sql
-mysql -uroot -proot orange < ../../database/mysql/dml.sql
+1. 无 OpenAPI/Swagger：`go.mod` 没有相关依赖，契约只以 `contracts/openapi.json` 为准。
+2. SQLite 用纯 Go 驱动，`CGO_ENABLED=0` 可构建；为避开 `SQLITE_BUSY` 把 SQLite 连接池压到 1（`internal/store/store.go:57`），其他引擎为 10（同文件 :60）。
+3. JWT 支持两种算法：配置 `JWT_PRIVATE_KEY_PATH` / `JWT_PUBLIC_KEY_PATH`（或内联 PEM）时用 RS256，否则 HS256（`internal/auth/token.go:68`、`token.go:76`）。Spring 只用 RS256，其余四个端口只用 HS256。
+4. 不维护 `version` 乐观锁：模型里有该列（`internal/store/models.go`），创建时写 0，更新时不自增，也不做 `WHERE version` 比较，并发编辑为后写覆盖。Rust 与 Python 会自增但同样不比较。
+5. Go 是六栈中唯一在 CI 里额外要求 `gofmt` 与 `go vet` 通过的端口。
 
-# MariaDB
-mysql -uroot -proot -e "CREATE DATABASE orange DEFAULT CHARACTER SET utf8mb4;"
-mysql -uroot -proot orange < ../../database/mariadb/ddl.sql
-mysql -uroot -proot orange < ../../database/mariadb/dml.sql
+## 规模与测试
 
-# SQLite (no server; the app creates nothing, so run the scripts once)
-sqlite3 orange-go.db ".read ../../database/sqlite/ddl.sql"
-sqlite3 orange-go.db ".read ../../database/sqlite/dml.sql"
-```
-
-The seed creates the demo accounts `super` / `super`, `admin` / `admin` and
-`user` / `user`. The hashes are Spring `{bcrypt}` hashes; this service accepts
-both prefixed and raw BCrypt hashes and writes prefixed hashes.
-
-## Environment
-
-Connection strings are selected with one switch:
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `DB_DRIVER` | `postgres` | `postgres`, `mysql`, `mariadb` or `sqlite`. Also accepts `postgresql`/`pg` and `sqlite3`. |
-| `DATABASE_URL` | — | Full connection string. Overrides every discrete `DB_*` value. |
-| `DB_HOST` | `localhost` | Host for PostgreSQL/MySQL/MariaDB |
-| `DB_PORT` | `5432` (PostgreSQL), `3306` (MySQL/MariaDB) | Port |
-| `DB_NAME` | `orange` | Database name |
-| `DB_USER` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | User |
-| `DB_PASSWORD` | `postgres` (PostgreSQL), `root` (MySQL/MariaDB) | Password |
-| `DB_SSLMODE` | `disable` | PostgreSQL `sslmode` |
-| `DB_TIMEZONE` | `UTC` | PostgreSQL session time zone |
-| `DB_PATH` | `orange-go.db` | SQLite file (alias `SQLITE_PATH`); ignored by the other drivers |
-
-Precedence: `DATABASE_URL` wins over the discrete `DB_*`/`DB_PATH` values, which
-win over the driver defaults. When `DATABASE_URL` is set without `DB_DRIVER`,
-the driver is inferred from the URL scheme (`postgres://`, `mysql://`,
-`mariadb://`); anything without a scheme is treated as a SQLite file.
-
-Accepted `DATABASE_URL` forms:
-
-```text
-postgres://postgres:postgres@localhost:55432/orange_go?sslmode=disable
-mysql://root:root@localhost:53306/orange_go
-mariadb://root:root@localhost:53307/orange_go
-orange-go.db
-sqlite:orange-go.db
-```
-
-`mysql://` and `mariadb://` URLs are rewritten to go-sql-driver syntax and
-always get `parseTime=true&loc=UTC`. SQLite paths get
-`_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)` on every pooled connection;
-SQLite enforces foreign keys per connection, so this is required.
-
-The remaining settings:
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `PORT` | `8081` | HTTP listen port |
-| `JWT_SECRET` | dev fallback | HS256 signing secret. Set this outside local development. |
-| `JWT_PRIVATE_KEY_PATH` | — | RSA private key (PKCS#1 or PKCS#8 PEM); enables RS256 |
-| `JWT_PUBLIC_KEY_PATH` | — | RSA public key (PKIX or PKCS#1 PEM) |
-| `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` | — | Inline PEM alternatives to the paths |
-| `JWT_ISSUER` | `orange` | JWT issuer claim |
-| `ACCESS_TOKEN_EXPIRE_SECONDS` | `900` | Access token lifetime |
-| `REFRESH_TOKEN_EXPIRE_SECONDS` | `604800` | Refresh token / cookie lifetime |
-| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated allowed origins (credentials enabled) |
-| `COOKIE_SECURE` | `false` | Set `true` behind HTTPS |
-| `COOKIE_SAME_SITE` | `Lax` | `Lax`, `Strict` or `None` |
-| `COOKIE_DOMAIN` | — | Optional refresh-cookie domain |
-| `COOKIE_PATH` | `/api/v1/auth` | Refresh-cookie path |
-| `LOGIN_MAX_ATTEMPTS` | `5` | Failures per username before lockout |
-| `LOGIN_IP_MAX_ATTEMPTS` | `20` | Failures per IP before lockout |
-| `LOGIN_LOCK_MINUTES` | `15` | Failure window and lock duration |
-| `OPERATION_LOG_RETENTION_DAYS` | `90` | Operation-log retention |
-
-If RSA keys are configured, RS256 is used and `JWT_SECRET` is ignored.
-
-## Run
-
-```powershell
-cd backend/go-gin-gorm
-$env:JWT_SECRET = "replace-with-a-long-random-value"
-
-# PostgreSQL (default)
-go run ./cmd/server
-
-# MySQL
-$env:DB_DRIVER = "mysql"
-$env:DATABASE_URL = "mysql://root:root@localhost:3306/orange"
-go run ./cmd/server
-
-# MariaDB
-$env:DB_DRIVER = "mariadb"
-$env:DATABASE_URL = "mariadb://root:root@localhost:3306/orange"
-go run ./cmd/server
-
-# SQLite
-$env:DB_DRIVER = "sqlite"
-$env:DATABASE_URL = "orange-go.db"
-go run ./cmd/server
-```
-
-The API is then available at `http://localhost:8081/api/v1`.
-`GET /healthz` returns a small liveness response (outside the business
-envelope).
-
-Build a binary (set `CGO_ENABLED=0` to prove no cgo is needed):
-
-```powershell
-go build -o bin/orange-server ./cmd/server
-```
-
-## Test
-
-```powershell
-go test ./...
-go vet ./...
-```
-
-Unit coverage includes:
-
-- tree business-code shape for groups and permissions,
-- permission `type`/`action` shape and authority rendering,
-- effective permissions (enabled roles + direct grants − disabled),
-- login lockout thresholds, window reset and expiry,
-- operation-log recording, redaction and truncation,
-- connection precedence and per-driver DSN rendering,
-- timestamp parsing across PostgreSQL, MySQL and SQLite text formats,
-- JWT access/refresh typing and tamper rejection,
-- BCrypt temporary passwords and `{bcrypt}` seed compatibility,
-- router envelope, trace header, CORS preflight and 404/401 behavior.
-
-### Optional database smoke test
-
-The smoke test is opt-in and skips automatically when the configured database is
-not reachable. It works for every driver:
-
-```powershell
-$env:ORANGE_SMOKE = "1"
-
-# PostgreSQL
-$env:DB_DRIVER = "postgres"
-$env:DATABASE_URL = "postgres://postgres:postgres@localhost:55432/orange_go?sslmode=disable"
-
-# MySQL / MariaDB
-$env:DB_DRIVER = "mysql"
-$env:DATABASE_URL = "mysql://root:root@localhost:53306/orange_go"
-
-# SQLite
-$env:DB_DRIVER = "sqlite"
-$env:DATABASE_URL = "orange-go.db"
-
-$env:SMOKE_USERNAME = "super"   # optional
-$env:SMOKE_PASSWORD = "super"   # optional
-go test ./internal/http -run TestSmokeAgainstConfiguredDatabase -v
-```
-
-It checks the unauthenticated 401 envelope, login token + HttpOnly refresh
-cookie, `user-info`, `menus`, one list endpoint per resource, and a 403 for the
-demo `user` role.
-
-## Endpoints
-
-All canonical endpoints from `docs/API.md` are implemented (34 routes). Legacy
-deprecated routes (`/add`, `/edit`, `/addChild`, `/detail/{id}`, etc.) are
-intentionally omitted.
-
-| Area | Routes |
+| 指标 | 数值 |
 | --- | --- |
-| Auth | `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/user-info`, `POST /auth/change-password`, `GET /auth/menus` |
-| Groups | `GET /system/groups`, `GET /system/groups/{id}`, `POST /system/groups/children`, `PATCH /system/groups/{id}`, `PATCH /system/groups/{id}/status`, `DELETE /system/groups/{id}`, `DELETE /system/groups?ids=a,b` |
-| Permissions | `GET /system/permissions`, `GET /system/permissions/{id}`, `POST /system/permissions/children`, `PATCH /system/permissions/{id}`, `DELETE /system/permissions/{id}`, `DELETE /system/permissions?ids=a,b` |
-| Roles | `GET /system/roles`, `GET /system/roles/{id}`, `POST /system/roles`, `PATCH /system/roles/{id}`, `DELETE /system/roles/{id}`, `DELETE /system/roles?ids=a,b` |
-| Users | `GET /system/users`, `GET /system/users/{id}`, `POST /system/users`, `PATCH /system/users/{id}`, `PATCH /system/users/{id}/status`, `POST /system/users/{id}/reset-password`, `DELETE /system/users/{id}`, `DELETE /system/users?ids=a,b` |
-| Operation logs | `GET /system/operation-logs` |
+| 受版本控制的文件 | 57 |
+| Go 源文件 | 52 |
+| 测试文件 | 11 个 `_test.go`（含 `internal/http` 的路由测试与可选数据库冒烟） |
 
-Authorities use `type#path` or `type#path:action` (for example
-`menu#/system/user`, `action#/system/user:add`). The effective set is the union
-of all enabled roles and direct user permissions, minus disabled permissions;
-menu/directory authorities only control visibility.
+统计口径：`git ls-files backend/go-gin-gorm`。栈级差异的成因见 [docs/explanation/porting-and-deviations.md](../../docs/explanation/porting-and-deviations.md)。
 
-## Behavior notes
-
-- Access tokens are short-lived JWTs carrying `jti`, `token_version` (`ver`)
-  and the username. Refresh tokens are `HttpOnly` cookies, rotated on every
-  refresh; the previous `jti` is stored in `sys_revoked_token` and replaying it
-  returns `401`.
-- Logout revokes the presented access `jti` and refresh `jti` and increments
-  `token_version` (the reference behavior invalidates other sessions too);
-  password change and password reset also increment `token_version`.
-- `must_change_password` blocks all endpoints except `user-info`, `menus`,
-  `change-password` and `logout` with business code `40302`.
-- Login lockout counters are persisted in `sys_login_attempt` under `user:<name>`
-  and `ip:<addr>`. Five user failures or twenty IP failures within 15 minutes
-  lock the key for 15 minutes and return HTTP 429 / code 429.
-- New and reset passwords are 12-character temporary passwords (ambiguous
-  characters removed) stored as BCrypt and flagged with `must_change_password`.
-- Deletes walk the subtree deepest-first. Reference guards reject deleting a
-  group subtree that still has users, a permission subtree referenced by a role
-  or user, and a role assigned to a user. Disabling a parent requires all
-  descendants to be disabled first.
-- Operation-log writes apply to non-GET requests to `/api/v1/system/*` and
-  `/api/v1/auth/change-password`. Bodies for login/refresh/change-password/
-  reset-password are never stored; other JSON bodies redact
-  `password`/`token`/`secret` and truncate to 4000 characters; query strings
-  truncate to 500.
-- Queries are dialect-neutral: LIKE filters escape wildcards with `ESCAPE '!'`
-  (backslash is not a portable LIKE escape), token/lockout upserts use GORM
-  `clause.OnConflict` (rendered as `ON CONFLICT` on PostgreSQL/SQLite and
-  `ON DUPLICATE KEY UPDATE` on MySQL/MariaDB), and no raw SQL uses
-  `strpos`, `ILIKE`, `RETURNING` or PostgreSQL casts.
-- Timestamps use a GORM serializer because the SQLite schema stores them as
-  `TEXT`; it accepts `time.Time`, driver text formats and NULL, so the same
-  models read correctly from every engine.
-- CORS allows configured origins with credentials (required for the refresh
-  cookie) and supports preflight requests.
-- Logged-in timestamps use the reference bean format
-  `yyyy-MM-dd HH:mm:ss+offset`; operation-log timestamps use RFC 3339.
-
-## Known gaps
-
-- No deprecated legacy routes. Only the canonical `docs/API.md` contract is
-  implemented.
-- No OpenAPI/Swagger UI. `contracts/openapi.json` remains the contract.
-- `version` columns are read and written but optimistic-lock conflicts are not
-  detected; the last write wins, unlike Spring Data's `@Version` check.
-- The operation-log retention job is an in-process daily ticker, not an
-  external scheduler. Multiple instances each run it.
-- Lockout increments use a row lock (`SELECT ... FOR UPDATE`) on
-  PostgreSQL/MySQL/MariaDB. SQLite has no row locks, so it uses one serialized
-  connection instead; two truly simultaneous first failures for the same key
-  can still lose one increment through `ON CONFLICT DO NOTHING`.
-- SQLite runs with `MaxOpenConns(1)` to avoid `SQLITE_BUSY`. It is fine for
-  development and the smoke test, but a high-write deployment should use a
-  server database or a connection pool designed for SQLite.
-- SQLite `TEXT` timestamps are compared lexicographically. Rows written by this
-  service use one format; seed rows written by `CURRENT_TIMESTAMP` have a
-  different precision. Date-range filters remain correct, sub-second ordering
-  between the two formats is not meaningful.
-- `Locale: zh|en` is accepted but messages are Chinese only; no i18n catalog.
-- There is no automatic schema migration. Run `ddl.sql`/`dml.sql` manually for
-  the engine you use.
-- The optional smoke test requires a seeded database; CI without a database runs
-  only the unit tests.
-- CORS defaults are development origins. Set `CORS_ORIGINS` explicitly for any
-  deployment.
-- JWT verification supports a shared HMAC secret or a single RSA key pair; JWKS
-  rotation is not implemented.
+> Last verified: 24826bb · 2026-11-07
+> 事实来源: `go.mod`、`go.sum`、`.env.example`、`cmd/server/main.go`、`internal/**`、`.github/workflows/main.yml`

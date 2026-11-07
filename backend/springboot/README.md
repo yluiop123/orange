@@ -1,172 +1,73 @@
-# Spring Boot Backend Project
+# Orange · Spring Boot 后端
 
-## Project Overview
+本栈是 Orange 的行为基准实现：用 Spring Boot 实现 `contracts/openapi.json` 的规范接口，其余五个后端以它的行为为准。
 
-This project is an enterprise-level permission management system built with Spring Boot 4.0.2. It uses JWT authentication and the RBAC (Role-Based Access Control) model, providing complete user, role, permission, and group management functionality.
+## 技术栈与版本
 
-Swagger API documentation:
-https://yluiop123.github.io/orange/#/swagger
+| 项 | 版本 / 说明 | 来源 |
+| --- | --- | --- |
+| 框架 | Spring Boot 4.0.2（parent） | `pom.xml` |
+| Java | 25（`<java.version>`） | `pom.xml` |
+| Starter | Web、Security、Data JPA、Validation、Cache、Devtools、Test | `pom.xml` |
+| JWT | jjwt 0.13.0（api / impl / jackson），RS256 | `pom.xml`、`security/jwt/JwtUtil.java:84` |
+| 接口文档 | springdoc-openapi 3.0.0（webmvc-ui） | `pom.xml` |
+| JDBC | PostgreSQL、mysql-connector-j、sqlite-jdbc、hibernate-community-dialects | `pom.xml` |
+| 其他 | Lombok 1.18.42、commons-lang3、Caffeine | `pom.xml` |
+| 测试依赖 | spring-boot-starter-test、Testcontainers（postgresql） | `pom.xml` |
+| 构建 | Maven，仓库内无 `mvnw` 包装器 | 目录内容与 `.gitignore` |
 
-## Tech Stack
+## 命令
 
-- **Backend Framework**: Spring Boot 4
-- **Java Version**: Java 17+
-- **Database**: PostgreSQL (default), MySQL, MariaDB, SQLite
-- **Security Framework**: Spring Security + JWT
-- **API Documentation**: SpringDoc OpenAPI 3.0
-- **Cache**: Caffeine
-- **ORM**: Spring Data JPA
-- **Build Tool**: Maven
-- **Development Tool**: Lombok
+| 用途 | 命令 | 来源 / 说明 |
+| --- | --- | --- |
+| 安装 | 无独立安装步骤 | Maven 在 `test` / `package` 时解析 `pom.xml`；无 wrapper，需本机 `mvn` |
+| 启动（开发） | `mvn spring-boot:run` | `spring-boot-maven-plugin` 已在 `pom.xml` 声明；配合 `SPRING_PROFILES_ACTIVE=local` |
+| 测试 | `mvn -B test` | `.github/workflows/main.yml`（backend job, spring） |
+| 构建 | `mvn -B -DskipTests package` | 同上；产物 `target/orange-0.0.1-SNAPSHOT.jar`（`artifactId` + `version`） |
+| 运行产物 | `java -jar target/orange-0.0.1-SNAPSHOT.jar` | `pom.xml` 的 `artifactId=orange`、`version=0.0.1-SNAPSHOT` |
 
-## Quick Start
+端口来源变量：`server.port: ${APP_PORT:8080}`（`src/main/resources/application.yaml`），默认 8080；`application-local.yaml` 里另写死 8080。
 
-### Clone the Project
-```bash
-git clone <repository-url>
-cd backend/springboot
+- 需要 JDK 25；CI 用 `temurin` 25（`main.yml`）。
+- `SecurityIntegrationTest` 标注 `@Testcontainers(disabledWithoutDocker = true)`：本机无 Docker 时自动跳过，不会让 `mvn test` 失败。
+
+## 目录结构与分层
+
+```text
+src/main/java/com/orange/
+├── config/         数据源与驱动选择、Swagger、审计拦截、TraceId、WebMvc
+├── controller/     login/ 与 system/ 两组控制器，GlobalExceptionHandler 统一异常
+├── domain/         common/、login/、system/ 的请求响应模型，树与权限策略
+├── entity/         JPA 实体（含 @Version 乐观锁列）
+├── repository/     system/ 下的 Spring Data 仓储
+├── security/       SecurityConfig、auth/、config/、jwt/
+├── service/        system/ 接口与 impl/ 实现
+└── util/           查询构造、TraceId、数据库取值
+src/main/resources/ application.yaml、application-local.example.yaml、application-prod.yaml、keys/
+src/test/java/com/orange/  测试类（config、domain、security、service、util）
 ```
 
-### Database Configuration
+## 配置入口
 
-Supported engines: PostgreSQL (default), MySQL, MariaDB and SQLite. Each engine has its own
-schema under `database/<engine>/`; the application never creates tables (`spring.jpa.hibernate.ddl-auto: none`).
+`application.yaml` 是唯一配置入口，覆盖端口、数据源与驱动、JWT 密钥、CORS、登录限流、审计保留；`local` profile 叠加被 gitignore 的 `application-local.yaml`（模板为 `application-local.example.yaml`），`prod` profile 用 `application-prod.yaml` 关闭接口文档。变量名、优先级以及与其他栈的对照见 [docs/backend/configuration.md](../../docs/backend/configuration.md)，此处不重复变量表。
 
-| `DB_DRIVER` | JDBC URL example | Schema |
-| :--- | :--- | :--- |
-| `postgres` | `jdbc:postgresql://localhost:5432/orange` | `database/postgres/ddl.sql`, `dml.sql` |
-| `mysql` | `jdbc:mysql://localhost:3306/orange` | `database/mysql/ddl.sql`, `dml.sql` |
-| `mariadb` | `jdbc:mysql://localhost:3307/orange` | `database/mariadb/ddl.sql`, `dml.sql` |
-| `sqlite` | `jdbc:sqlite:/var/lib/orange/orange.db` | `database/sqlite/ddl.sql`, `dml.sql` |
+## 本栈偏差
 
-Configuration precedence (highest first):
+1. 唯一使用非对称签名：RS256 + PEM 密钥对（`security/jwt/JwtUtil.java:84`，密钥在 `src/main/resources/keys/`）。Go 可选 RS256，其余四个后端只用 HS256。
+2. 接口文档默认关闭：`springdoc.*.enabled` 取 `${SPRINGDOC_ENABLED:false}`，`application-prod.yaml` 再关一次。FastAPI 是唯一默认暴露 `/docs` 的栈。
+3. 只有本栈给分组树加缓存：Caffeine `group` 缓存，`service/system/impl/GroupServiceImpl.java` 使用 `@Cacheable` / `@CacheEvict`。
+4. 乐观锁靠 JPA `@Version`（`entity/*.java`）在更新时比较版本；Rust 与 Python 端口只把 `version` 自增、Go 端口创建时写 0 不自增，三者都不做版本比较，并发编辑为后写覆盖。
+5. 六栈中唯一没有 `.env.example` 的后端：配置走 `application*.yaml` 加环境变量覆盖。
 
-1. `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
-2. `DB_URL`, `DB_USER`, `DB_PASSWORD`
-3. `spring.datasource.*` in `application.yaml` or a profile file
-4. Per-engine defaults: PostgreSQL `localhost:5432/orange` + `postgres/postgres`; MySQL/MariaDB
-   `localhost:3306/orange` + `root/root`; SQLite `jdbc:sqlite:orange.db`
+## 规模与测试
 
-`DB_DRIVER` selects the JDBC driver and the Hibernate dialect. When it is omitted, the engine is
-inferred from the JDBC URL. A mismatch between `DB_DRIVER` and the URL is rejected at startup.
-`DB_HOST`, `DB_PORT` and `DB_NAME` are only used to build the default URL.
+| 指标 | 数值 |
+| --- | --- |
+| 受版本控制的文件 | 128 |
+| Java 源文件 | 119（`src/main` 105、`src/test` 14） |
+| 测试类 | 14，其中 1 个 Testcontainers 集成测试需 Docker |
 
-```bash
-# PostgreSQL (default)
-java -jar target/orange-0.0.1-SNAPSHOT.jar
+统计口径：`git ls-files backend/springboot`。端点、数据库方言与验证结论不在本页维护，分别见 [docs/reference/api.md](../../docs/reference/api.md)、[docs/reference/db-dialects.md](../../docs/reference/db-dialects.md)、[docs/reference/stacks.md](../../docs/reference/stacks.md)。
 
-# MySQL
-DB_DRIVER=mysql DB_URL=jdbc:mysql://localhost:53306/orange_spring \
-  DB_USER=root DB_PASSWORD=root java -jar target/orange-0.0.1-SNAPSHOT.jar
-
-# MariaDB (MySQL protocol; jdbc:mariadb: is also accepted and rewritten to jdbc:mysql:)
-DB_DRIVER=mariadb DB_URL=jdbc:mysql://localhost:53307/orange_spring \
-  DB_USER=root DB_PASSWORD=root java -jar target/orange-0.0.1-SNAPSHOT.jar
-
-# SQLite
-DB_DRIVER=sqlite DB_URL=jdbc:sqlite:/var/lib/orange/orange.db \
-  java -jar target/orange-0.0.1-SNAPSHOT.jar
-```
-
-Engine notes:
-
-- **SQLite**: `date_class=text`, `foreign_keys=on` and `busy_timeout=5000` are appended to the
-  JDBC URL automatically. The schema stores timestamps as TEXT and enforces foreign keys per
-  connection; keep the database file writable by the application user.
-- **MariaDB**: connects through `mysql-connector-j`; a separate MariaDB driver is not required.
-- **MySQL/MariaDB**: string comparisons follow the column collation; the default `utf8mb4_*_ci`
-  collations are case-insensitive, unlike PostgreSQL.
-- Do not enable `ddl-auto` for any engine. Apply the matching `database/<engine>/ddl.sql` and
-  `dml.sql` before starting the application.
-### 访问地址
-
-- Application Home Page: http://localhost:8080
-- API Documentation: http://localhost:8080/swagger-ui.html
-- API Interfaces: http://localhost:8080/api-docs
-
-
-### Production Environment Configuration
-
-#### Generate JWT Keys for Production Environment
-
-```bash
-# Generate RSA private key
-openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048
-
-# Generate public key
-openssl rsa -pubout -in private_key.pem -out public_key.pem
-
-```
-Place the generated `private_key.pem` and `public_key.pem` in a custom directory on the server.
-
-Modify application.yaml:
-```yaml
-jwt:
-  private-key: classpath:keys/private_key.pem
-  public-key: classpath:keys/public_key.pem
-```
-
-#### Configure Database Credentials
-Never hard-code production credentials. Set `SPRING_DATASOURCE_PASSWORD` (or `DB_PASSWORD`) in the
-deployment environment; the per-engine defaults are only for local development.
-```yaml
-    # Resolved by DatabaseSettings: SPRING_DATASOURCE_PASSWORD > DB_PASSWORD > spring.datasource.password
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:}}
-```
-## Project Structure
-
-```
-backend/springboot/
-├── src/main/java/com/orange/
-│   ├── config/                    # Configuration classes
-│   ├── controller/               # Controller layer
-│   │   ├── login/               # Login-related controllers
-│   │   └── system/              # System management controllers
-│   ├── domain/                   # Domain model layer
-│   │   ├── common/              # Common models
-│   │   ├── login/               # Login models
-│   │   └── system/              # System models
-│   ├── entity/                   # Entity classes
-│   ├── repository/              # Data access layer
-│   ├── security/                # Security configuration
-│   ├── service/                 # Business logic layer
-│   └── OrangeBootApplication.java # Main application
-├── src/main/resources/
-│   ├── keys/                    # JWT keys (for testing; use custom keys in production)
-│   └── application.yaml         # Configuration file
-└── pom.xml                      # Maven dependencies
-```
-## Database Design
-
-The schema model, invariants and dialect differences are documented once in
-[`docs/DATABASE.md`](../../docs/DATABASE.md). This backend only selects a
-connection and never creates tables; see [Database Configuration](#database-configuration).
-
-## Permission Control
-
-- **RBAC Model**: This system uses the RBAC model to manage users, roles, permissions, and groups via association tables.
-- **API Permission Control**: Uses Spring Security with`@PreAuthorize`。
-  Permission rule format:`type#path:action`（action can also be`type#path`）or permission code 。
-  `type` permission type(menu/directory/action/function/api)，
-  `path` permission path(route/URL)，
-  `action` custom permission action(add/delete/edit etc.)。
-  Permission logic implemented in `com.orange.security.JwtUserDetailsService.java` in the `getPermissionStrs` method.
-```java
-    @Operation(summary = "Query User List", description = "Query users list based on query conditions")
-    @PostMapping
-    @PreAuthorize("hasAuthority('menu#/system/user')") //type#path:action configuration
-//@PreAuthorize("hasAuthority('000500')")  //permission code configuration
-    public Response<PageData<UserBean>> queryUsers(@RequestBody QueryUserReq req) {
-        PageData<UserBean> pageData = userService.queryUsers(req);
-        return Response.ok(pageData);
-    }
-
-    @Operation(summary = "Delete Users", description = "Delete users based on user ID list")
-    @DeleteMapping
-    @PreAuthorize("hasAuthority('menu#/system/user:delete')")
-    public Response<String> deleteUsers(@RequestBody DeleteUserReq req) {
-        userService.deleteUsers(req.getIds());
-        return Response.ok("Delete success");
-    }
-```
-
+> Last verified: 24826bb · 2026-11-07
+> 事实来源: `pom.xml`、`src/main/resources/application*.yaml`、`src/main/java/com/orange/**`、`src/test/java/com/orange/**`、`.github/workflows/main.yml`
