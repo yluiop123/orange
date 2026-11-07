@@ -139,7 +139,7 @@
 | 菜单树 / 容器节点 | `MenuInfo` 树，`children` 非空即容器节点 |
 | 菜单可见性 | `visibleMenuTree` / `canView` |
 | 默认菜单 | `firstVisibleLeaf` |
-| 角色切换 | `switchRole` 与当前角色视角 |
+| 角色切换 | React：`permission.ts` 的 `updateUserInfo` + `computePermissions`；Vue：`setRole`；Angular：`auth.service.ts` 的 `switchRole` |
 | 禁用权限 | `status = '0'` |
 
 字段级表结构见 [数据模型](./data-model.md)，端点清单见 [API](./api.md)。

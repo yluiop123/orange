@@ -17,7 +17,7 @@
 - Vue：`pnpm lint`、`pnpm typecheck`、`pnpm format`
 - Angular：`npm run lint`
 
-三个前端默认都跑 **mock 模式**（无需后端），切换方式见 [连接 API 与 Mock](../frontend/connect-api-and-mocks.md)。只有 React 会部署到 GitHub Pages（`build:github`，base `/orange/`）。
+三个前端默认行为不同：React 与 Vue 在开发模式下默认 mock（`.env.development` 里 `VITE_MOCK_ENABLE=true`，无需后端）；Angular 的 `npm start` 使用 `local` 配置，`environment.local.ts` 默认 `mock: false`，需要后端或手动把 `mock` 改成 `true`（也可用 `?mock=1` 临时打开）。切换方式见 [连接 API 与 Mock](../frontend/connect-api-and-mocks.md)。只有 React 会部署到 GitHub Pages（`build:github`，base `/orange/`）。
 
 ## 2. 后端
 
@@ -73,7 +73,7 @@
 | .NET | 7 个测试类（用例数待核） |
 | Rust | 8 个模块内联 40 个 `#[test]` |
 | FastAPI | 10 个 `test_*.py` + `conftest`（内存 SQLite） |
-| React / Vue / Angular | 8 / 4 / 5 个测试文件 |
+| React / Vue / Angular | 8 / 4 / 4 个测试文件 |
 
 ## 6. 常用组合
 

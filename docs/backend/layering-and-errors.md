@@ -85,7 +85,7 @@ Spring、Rust、C# 都按业务消息里的关键词决定 40401/40901，而不�
 
 | 项 | 约束 | 出处 |
 | --- | --- | --- |
-| 用户名 | `^[A-Za-z0-9_]{4,50}$` | Spring `QueryUserReq`/`AddUserReq`、Nest `users.dto.ts`、C# `Requests.cs`、Go `bind.go`、Rust `validate.rs`、FastAPI `schemas/user.py` |
+| 用户名 | `^[A-Za-z0-9_]{4,50}$` | Spring `AddUserReq`/`LoginReq`、Nest `users.dto.ts`、C# `Requests.cs`、Go `bind.go`、Rust `validate.rs`、FastAPI `schemas/user.py` |
 | 手机号 | `^1[3-9]\d{9}$` | 同上 |
 | 邮箱 | 非空 + 邮箱格式 | 同上 |
 | 密码 | 新密码 8–64 位，且同时含字母和数字 | `ChangePasswordReq`/`change-password` DTO/`validate.rs` |

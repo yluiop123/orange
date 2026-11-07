@@ -52,7 +52,7 @@ React 与 Vue 的开发模式默认 mock（`.env.development` 把 `VITE_MOCK_ENA
 | React / Vue | `.env.local`、`.env.<mode>.local` | 无模板，仓库提交 `.env` 与 `.env.development` | 进程环境变量 > `.env.<mode>.local` > `.env.<mode>` > `.env.local` > `.env` |
 | Angular | `src/environments/environment.local.ts` | 同文件（已提交） | `angular.json` 的 `fileReplacements` 在启动时替换 |
 
-所有后端都遵循同一条连接优先级：`DATABASE_URL` 压过 `DB_DRIVER` 加离散 `DB_*`；都没设时回落到 PostgreSQL 默认值。逐项变量清单见 [配置参考](../reference/configuration.md) 与 [Backend 配置](../backend/configuration.md)。
+连接优先级大体一致但不完全同名：Go、NestJS、.NET、Rust、FastAPI 是 `DATABASE_URL` 压过 `DB_DRIVER` 加离散 `DB_*`；Spring Boot 读 `SPRING_DATASOURCE_URL`，其次 `DB_URL`，再次 `DB_*`，不认 `DATABASE_URL`。都没设时回落到 PostgreSQL 默认值。逐项变量清单见 [配置参考](../reference/configuration.md) 与 [Backend 配置](../backend/configuration.md)。
 
 ## 6. mock 与真实 API
 

@@ -32,7 +32,7 @@
 - csharp 61 文件 / 7 个测试类（另 1 个测试 csproj；用例数未复跑）
 - rust 50 文件 / 0 个独立测试文件，8 个模块内联 40 个 `#[test]`
 - fastapi 63 文件 / 10 个 `test_*.py` + conftest（内存 SQLite）
-- react 8 测试文件 / 188 页面文件；vue 4 / 35；angular 5 / 38
+- react 8 测试文件 / 188 页面文件；vue 4 / 35；angular 4 个 `*.spec.ts`（access、page-clamp、tree-code、mock-backend）/ 38 页面文件
 
 已核实的命令修正（覆盖 §2 表中“待核”项）：
 - spring：`mvn spring-boot:run`（仓库无 `mvnw`），测试 `mvn -B test`，构建产物 `target/orange-0.0.1-SNAPSHOT.jar`
