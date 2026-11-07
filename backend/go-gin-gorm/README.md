@@ -1,7 +1,4 @@
 # ORANGE Backend — Go + Gin + GORM
-
-English | [简体中文](./README.zh-CN.md)
-
 A port of the ORANGE system-management API to Go. It implements the canonical
 contract in [`docs/API.md`](../../docs/API.md) against the committed schemas in
 [`database/`](../../database). PostgreSQL, MySQL, MariaDB and SQLite are all

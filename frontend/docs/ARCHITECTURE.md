@@ -1,5 +1,3 @@
-> English | [简体中文](./ARCHITECTURE.zh-CN.md)
-
 # Frontend Architecture
 
 ## Shape

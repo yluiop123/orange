@@ -60,7 +60,7 @@ English | [简体中文](./README.zh-CN.md)
 │   ├── README.md             # Documentation index and placement rules
 │   ├── FEATURES.md API.md DATABASE.md STACKS.md
 │   ├── validation-rules.md VERIFICATION.md PORTING.md
-│   ├── adr/ audits/ security/ agents/
+│   ├── adr/ security/ agents/
 └── scripts/                  # Cross-stack scripts (seed sync, E2E, JWT keys)
 ```
 
@@ -112,19 +112,21 @@ Database design is public and engine-neutral: see
 
 ## Documentation
 
-| Document | Content |
-| --- | --- |
-| [docs/README.md](./docs/README.md) | Documentation index and placement rules |
-| [docs/FEATURES.md](./docs/FEATURES.md) | Product scope, roles, page inventory |
-| [docs/API.md](./docs/API.md) | Endpoints, auth, errors, pagination |
-| [docs/DATABASE.md](./docs/DATABASE.md) | ER model, invariants, dialect matrix |
-| [docs/STACKS.md](./docs/STACKS.md) | Ports and run commands |
-| [docs/VERIFICATION.md](./docs/VERIFICATION.md) | What was built, tested and left unverified |
-| [frontend/docs/README.md](./frontend/docs/README.md) | Frontend startup, configuration, architecture, visual guide |
-| [backend/docs/README.md](./backend/docs/README.md) | Backend startup, configuration, shared architecture |
-| [contracts/openapi.json](./contracts/openapi.json) | Machine-readable API contract |
-| [PROJECT_ISSUES.md](./PROJECT_ISSUES.md) | Decisions, accepted trade-offs, verification log |
-| [CONTEXT.md](./CONTEXT.md) | Domain vocabulary |
+[docs/README.md](./docs/README.md) is the full documentation map, with reading
+paths for each role. Start there if you are unsure which file to open.
+
+- **New to the project:** [docs/FEATURES.md](./docs/FEATURES.md) →
+  [docs/STACKS.md](./docs/STACKS.md) → quick start below.
+- **Frontend work:** [frontend/docs/README.md](./frontend/docs/README.md) and
+  [frontend/docs/CONFIGURATION.md](./frontend/docs/CONFIGURATION.md).
+- **Backend / API work:** [backend/docs/README.md](./backend/docs/README.md),
+  [docs/API.md](./docs/API.md) and [docs/DATABASE.md](./docs/DATABASE.md).
+- **Agents:** [AGENTS.md](./AGENTS.md), [CONTEXT.md](./CONTEXT.md) and
+  [docs/agents/](./docs/agents/).
+
+Deep documentation is English-first. Chinese is maintained for this README and
+the frontend/backend `GETTING-STARTED` and `CONFIGURATION` guides.
+Historical snapshots live under [`.scratch/archive/`](./.scratch/archive/).
 
 ## Quick start (React + Spring Boot + PostgreSQL)
 

@@ -1,3 +1,6 @@
+> **Archived** — moved from the repository root on 2026-11-07. Links may be stale.
+> See [`.scratch/archive/README.md`](./README.md) and [`docs/README.md`](../../docs/README.md).
+
 # ORANGE 项目问题与取舍清单
 
 > 更新日期：2026-11-03
@@ -137,7 +140,7 @@ pnpm gen:api
 
 ### 1.5 系统管理审计修复进度
 
-完整报告：`docs/audits/system-management-2026-11-01.md`
+完整报告：`audits/system-management-2026-11-01.md`
 
 已修复（2026-11-02）：
 
@@ -259,7 +262,7 @@ pnpm gen:api
 | 菜单树 ADR | `docs/adr/0002-backend-menu-tree.md` |
 | 业务编码 ADR | `docs/adr/0003-code-as-tree-order.md` |
 | 校验分层 ADR | `docs/adr/0004-validation-layering.md` |
-| 系统管理审计 | `docs/audits/system-management-2026-11-01.md` |
+| 系统管理审计 | `audits/system-management-2026-11-01.md` |
 | 校验规则总览 | `docs/validation-rules.md` |
 | 前端请求封装 | `frontend/react/src/lib/axios.ts` |
 | 前端 API 层 | `frontend/react/src/api/` |

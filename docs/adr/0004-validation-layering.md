@@ -29,7 +29,7 @@ The service keeps `assertUniquePermission` so callers still get "权限已存在
 
 ## Consequences
 
-- Existing databases need the manual sync SQL in `PROJECT_ISSUES.md`; the project still has no migration tool.
+- Existing databases need the manual sync SQL in `.scratch/archive/PROJECT_ISSUES.md`; the project still has no migration tool.
 - The code, status, type and action-shape rules remain implemented in more than one place. Changing a boundary means updating `TreeCodePolicy`, `tree-code-policy.ts` and the matching check together.
 - A constraint violation that reaches the client is a bug: every normal write path is expected to pre-validate and return a business message.
 - Tests cover both levels: unit tests for the policies, and integration tests that insert directly to prove the database rejects duplicates, blank paths and wrong action shapes.

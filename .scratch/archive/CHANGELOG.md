@@ -1,3 +1,6 @@
+> **Archived** — moved from the repository root on 2026-11-07.
+> See [`.scratch/archive/README.md`](./README.md).
+
 # Changelog
 
 ## Unreleased

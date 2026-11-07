@@ -1,7 +1,4 @@
 # ORANGE — C# / ASP.NET Core backend
-
-English | [简体中文](./README.zh-CN.md)
-
 A port of the ORANGE permission-management API to **.NET 10 + ASP.NET Core + EF Core**, at parity with the Java reference in [`backend/springboot`](../springboot) and the contract in [`docs/API.md`](../../docs/API.md).
 
 - Base path: `/api/v1`

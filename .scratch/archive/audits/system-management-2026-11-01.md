@@ -3,7 +3,7 @@
 > 日期：2026-11-01
 > 范围：`frontend/react` 系统管理页面与交互、`backend/springboot` 系统管理 API、`database/postgres`
 > 状态：**主体问题已修复（2026-11-02），剩余项见下方“修复进度”**
-> 相关文档：`PROJECT_ISSUES.md`
+> 相关文档：`../PROJECT_ISSUES.md`（归档）
 
 ---
 
@@ -409,4 +409,4 @@
 - 本报告是静态审计结论，未修改代码。
 - 前端问题大多同时存在于 mock 链路；修复时优先保证真实后端契约正确，再同步 mock。
 - 后端问题涉及 DDL 的，需要同时更新 `database/postgres/ddl.sql` 和已有数据库。
-- 部分问题属于“设计取舍”（如角色切换仅前端过滤、菜单树返回全量），已在 `PROJECT_ISSUES.md` §4 单独列出，不混在 bug 里。
+- 部分问题属于“设计取舍”（如角色切换仅前端过滤、菜单树返回全量），已在 `../PROJECT_ISSUES.md` §4 单独列出，不混在 bug 里。

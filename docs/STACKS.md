@@ -1,5 +1,3 @@
-> English | [简体中文](./STACKS.zh-CN.md)
-
 # Stacks
 
 Every stack implements the same product. The contract is [API.md](./API.md); the parity checklist is [PORTING.md](./PORTING.md). Frontend-specific design lives in [frontend/docs](../frontend/docs/README.md); backend-specific design lives in [backend/docs](../backend/docs/README.md).

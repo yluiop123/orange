@@ -53,10 +53,10 @@ Angular）、六个后端（Spring Boot、Go、NestJS、C#、Rust、FastAPI）�
 ├── contracts/                # 跨栈契约
 │   └── openapi.json          # 机器可读 API 契约
 ├── docs/                     # 与技术栈无关的公共文档
-│   ├── README.zh-CN.md       # 文档索引与放置规则
-│   ├── FEATURES.zh-CN.md API.zh-CN.md DATABASE.zh-CN.md STACKS.zh-CN.md
-│   ├── validation-rules.md VERIFICATION.zh-CN.md PORTING.zh-CN.md
-│   ├── adr/ audits/ security/ agents/
+│   ├── README.md             # 文档地图与阅读路径
+│   ├── FEATURES.md API.md DATABASE.md STACKS.md
+│   ├── validation-rules.md VERIFICATION.md PORTING.md
+│   ├── adr/ security/ agents/
 └── scripts/                  # 跨栈脚本（种子同步、E2E、JWT 密钥）
 ```
 
@@ -102,23 +102,19 @@ Angular）、六个后端（Spring Boot、Go、NestJS、C#、Rust、FastAPI）�
 | openGauss / OceanBase / GoldenDB | `database/<engine>` | 仅静态 SQL |
 
 数据库设计是公共的、与引擎无关的：见
-[docs/DATABASE.zh-CN.md](./docs/DATABASE.zh-CN.md)。
+[docs/DATABASE.md](./docs/DATABASE.md)。
 
 ## 文档
 
-| 文档 | 内容 |
-| --- | --- |
-| [docs/README.zh-CN.md](./docs/README.zh-CN.md) | 文档索引与放置规则 |
-| [docs/FEATURES.zh-CN.md](./docs/FEATURES.zh-CN.md) | 产品范围、角色、页面清单 |
-| [docs/API.zh-CN.md](./docs/API.zh-CN.md) | 端点、认证、错误、分页 |
-| [docs/DATABASE.zh-CN.md](./docs/DATABASE.zh-CN.md) | ER 模型、约束、方言矩阵 |
-| [docs/STACKS.zh-CN.md](./docs/STACKS.zh-CN.md) | 端口与运行命令 |
-| [docs/VERIFICATION.zh-CN.md](./docs/VERIFICATION.zh-CN.md) | 实际执行过与尚未验证的内容 |
-| [frontend/docs/README.zh-CN.md](./frontend/docs/README.zh-CN.md) | 前端启动、配置、架构与视觉规范 |
-| [backend/docs/README.zh-CN.md](./backend/docs/README.zh-CN.md) | 后端启动、配置与共享架构 |
-| [contracts/openapi.json](./contracts/openapi.json) | 机器可读 API 契约 |
-| [PROJECT_ISSUES.md](./PROJECT_ISSUES.md) | 决策、已接受的取舍、验证记录 |
-| [CONTEXT.md](./CONTEXT.md) | 领域词汇 |
+完整文档地图见 [docs/README.md](./docs/README.md)，包含新人、前端、后端、Agent 四条阅读路径。
+
+- **产品与运行**：[docs/FEATURES.md](./docs/FEATURES.md)、[docs/STACKS.md](./docs/STACKS.md)
+- **前端**：[frontend/docs/README.md](./frontend/docs/README.md)、[frontend/docs/CONFIGURATION.zh-CN.md](./frontend/docs/CONFIGURATION.zh-CN.md)
+- **后端 / API**：[backend/docs/README.md](./backend/docs/README.md)、[docs/API.md](./docs/API.md)、[docs/DATABASE.md](./docs/DATABASE.md)
+- **领域词汇**：[CONTEXT.md](./CONTEXT.md)
+- **历史快照**：[.scratch/archive/](./.scratch/archive/)
+
+深入文档以英文为主；中文保留本 README 以及前/后端的 `GETTING-STARTED`、`CONFIGURATION`。
 
 ## 快速开始（React + Spring Boot + PostgreSQL）
 

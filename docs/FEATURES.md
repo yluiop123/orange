@@ -1,5 +1,3 @@
-> English | [简体中文](./FEATURES.zh-CN.md)
-
 # Features
 
 This is the product scope shared by every stack in this repository. A new frontend or backend is "at parity" when it satisfies the same flows below, not when it copies the React code.

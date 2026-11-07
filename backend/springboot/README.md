@@ -1,7 +1,5 @@
 # Spring Boot Backend Project
 
-[Simplified Chinese](./README.zh-CN.md) | English
-
 ## Project Overview
 
 This project is an enterprise-level permission management system built with Spring Boot 4.0.2. It uses JWT authentication and the RBAC (Role-Based Access Control) model, providing complete user, role, permission, and group management functionality.

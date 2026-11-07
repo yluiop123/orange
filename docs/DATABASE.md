@@ -1,5 +1,3 @@
-> English | [简体中文](./DATABASE.zh-CN.md)
-
 # Database Design
 
 The schema is identical across engines. Only the dialect differs. Per-engine DDL and seed:
@@ -176,7 +174,8 @@ There is no migration tool. The rules are:
 
 1. Edit `database/postgres/ddl.sql` and `dml.sql` first.
 2. Port the same change to every other engine.
-3. Document the manual sync SQL for existing databases in `PROJECT_ISSUES.md`.
+3. Document the manual sync SQL for existing databases in
+   `.scratch/archive/PROJECT_ISSUES.md`.
 4. Run at least the PostgreSQL integration tests and the SQLite/MySQL load checks.
 
 Accepted trade-off: no Flyway/Liquibase. The schema is small and the project is a demo; a migration tool would add a second source of truth.

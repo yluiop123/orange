@@ -4,8 +4,6 @@ React 19 implementation of the ORANGE admin console. This port is the reference
 for page content and interaction across `frontend/react`, `frontend/vue` and
 `frontend/angular`.
 
-English | [简体中文](./README.zh-CN.md)
-
 Design docs: [frontend/docs](../docs/README.md) · API contract: [docs/API.md](../../docs/API.md)
 
 <img height="500" src="./readme/images/dashboard.png">

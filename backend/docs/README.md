@@ -1,5 +1,3 @@
-> English | [简体中文](./README.zh-CN.md)
-
 # Backend Documentation
 
 Design and operations documentation for the six backend implementations. The API

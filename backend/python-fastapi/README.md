@@ -1,7 +1,4 @@
 # ORANGE — Python / FastAPI backend
-
-English | [简体中文](./README.zh-CN.md)
-
 A Python 3.13 + FastAPI port of the ORANGE system-management API. It implements
 the canonical contract in [`docs/API.md`](../../docs/API.md) at parity with the
 Spring Boot reference (`backend/springboot`) and runs against PostgreSQL,

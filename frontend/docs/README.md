@@ -1,5 +1,3 @@
-> English | [简体中文](./README.zh-CN.md)
-
 # Frontend Documentation
 
 Design and operations documentation for the three frontend implementations. The

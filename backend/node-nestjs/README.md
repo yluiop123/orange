@@ -1,7 +1,4 @@
 # ORANGE backend — Node.js + NestJS
-
-English | [简体中文](./README.zh-CN.md)
-
 A port of the reference Spring Boot backend to **Node.js LTS + NestJS 11**, with
 TypeORM, `@nestjs/jwt`, BCrypt and a rotating HttpOnly refresh cookie. It runs
 against PostgreSQL, MySQL, MariaDB and SQLite through one connection switch.

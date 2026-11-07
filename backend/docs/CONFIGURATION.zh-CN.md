@@ -3,7 +3,7 @@
 # 后端配置
 
 数据库**设计**是公共的、与技术栈无关的：表结构和种子数据在 `database/<engine>/`，
-模型说明见 [`../../docs/DATABASE.zh-CN.md`](../../docs/DATABASE.zh-CN.md)。
+模型说明见 [`../../docs/DATABASE.md`](../../docs/DATABASE.md)。
 本页只说明各技术栈如何配置，以及如何切换数据库连接。
 
 ## 各技术栈的配置文件
