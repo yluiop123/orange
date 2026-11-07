@@ -61,7 +61,7 @@ python -c "import sqlite3,pathlib; c=sqlite3.connect('app.db'); c.executescript(
 sqlite3 app.db "SELECT COUNT(*) FROM sys_user;"
 ```
 
-预期输出 `26`；库里共 10 张 `sys_*` 表、48 条权限、3 个角色、7 个组织、26 个用户（其中多数为 `status='0'` 的演示数据，可直接登录的是 `super`）。
+预期输出 `26`；库里共 10 张 `sys_*` 表、48 条权限、3 个角色、7 个组织、26 个用户（其中多数为 `status='0'` 的演示数据；可直接登录的是 `super`、`admin`、`user` 三个账号）。
 
 为什么库建在 `backend/python-fastapi` 下：FastAPI 把 SQLite 路径当**进程工作目录的相对路径**解析（`app/config.py` 的 `sqlite_url`）。如果把 `app.db` 建在仓库根，请把 `DATABASE_URL` 指到它的绝对路径。
 
@@ -126,9 +126,11 @@ FastAPI 的 `CORS_ORIGINS` 默认只含 `http://localhost:5173`、`http://localh
 
 | 用户名 | 密码 | 依据 |
 | --- | --- | --- |
-| `super` | `super` | `scripts/ci/http-smoke.mjs` 与 `scripts/ci/contract-test.mjs` 都用它登录 |
+| `super` | `super` | 三个账号的密码都等于用户名：`database/postgres/dml.sql` 的 bcrypt 哈希用 `bcrypt.checkpw` 校验通过；CI 脚本 `scripts/ci/http-smoke.mjs`、`contract-test.mjs` 也固定用 `super` 登录 |
+| `admin` | `admin` | 同上（哈希校验通过） |
+| `user` | `user` | 同上（哈希校验通过，且 `user` 只持有 1 个权限，适合观察菜单差异） |
 
-`admin`、`user` 也在同一段种子里，但仓库没有任何脚本出现过它们的密码；需要时用 `super` 在「用户管理」里重置。
+其余 23 个用户多为 `status='0'` 的演示数据；需要其它账号时用 `super` 在「用户管理」里重置密码。
 
 登录成功后前端请求 `/api/v1/auth/menus`，后端返回启用中的 `menu` / `directory` 节点，前端据此渲染左侧菜单树。
 

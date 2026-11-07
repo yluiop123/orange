@@ -48,25 +48,25 @@
 ### React + Spring Boot + SQLite
 
 1. 建库：在仓库根用 `database/sqlite/ddl.sql` 与 `dml.sql` 生成 `app.db`（同一连接跑完两条脚本）。
-2. 起后端（Spring 默认 8080）：`DB_DRIVER=sqlite SPRING_DATASOURCE_URL=jdbc:sqlite:<绝对路径>/app.db mvn spring-boot:run`。不要同时带 `SPRING_PROFILES_ACTIVE=local`——`application-local.yaml` 里写死了 PostgreSQL 连接。
-3. 前端：React 的代理目标默认就是 `http://localhost:8080`，只需在 `.env.development.local` 写 `VITE_MOCK_ENABLE=false`，重启 `pnpm dev` 后 5173 即连真实后端。
+2. 起后端（端口见 [栈矩阵](../reference/stacks.md)）：`DB_DRIVER=sqlite SPRING_DATASOURCE_URL=jdbc:sqlite:<绝对路径>/app.db mvn spring-boot:run`。不要同时带 `SPRING_PROFILES_ACTIVE=local`——`application-local.yaml` 里写死了 PostgreSQL 连接。
+3. 前端：React 的代理目标默认就是 Spring 的默认端口，只需在 `.env.development.local` 写 `VITE_MOCK_ENABLE=false`，重启 `pnpm dev` 后前端默认端口即连真实后端。
 
 ### Vue + Go + SQLite
 
-1. 起后端（默认 8081）：`DB_DRIVER=sqlite DB_PATH=./app.db go run ./cmd/server`。
-2. 前端 `.env.development.local` 写 `VITE_MOCK_ENABLE=false` 与 `VITE_PROXY_TARGET=http://127.0.0.1:8081`。
-3. 打开 5174，用 `super` / `super` 登录。
+1. 起后端（端口见 [栈矩阵](../reference/stacks.md)）：`DB_DRIVER=sqlite DB_PATH=./app.db go run ./cmd/server`。
+2. 前端 `.env.development.local` 写 `VITE_MOCK_ENABLE=false` 与 `VITE_PROXY_TARGET=http://127.0.0.1:<后端端口>`。
+3. 打开 Vue 的默认端口，用 `super` / `super` 登录。
 
 ### Angular + FastAPI + SQLite
 
-1. 把 8080 让给 FastAPI：`APP_PORT=8080 DB_DRIVER=sqlite DB_NAME=app.db python -m app.main`，这样不必改 Angular 的代理文件。
-2. 或者保留 8000：把 `frontend/angular/proxy.conf.json` 的 `target` 改成 `http://127.0.0.1:8000`，重启 `npm start`。
-3. Angular 的 `npm start` 默认不启用 mock，不用动 mock 开关；访问 4200 即可。
+1. 把 Spring 的默认端口让给 FastAPI：`APP_PORT=<Spring 默认端口> DB_DRIVER=sqlite DB_NAME=app.db python -m app.main`，这样不必改 Angular 的代理文件。
+2. 或者保留 FastAPI 的默认端口：把 `frontend/angular/proxy.conf.json` 的 `target` 改成 `http://127.0.0.1:<FastAPI 端口>`，重启 `npm start`。
+3. Angular 的 `npm start` 默认不启用 mock，不用动 mock 开关；访问 Angular 的默认端口即可。
 
 ## 5. 起来之后验一下
 
 ```bash
-node scripts/ci/http-smoke.mjs http://127.0.0.1:8080/api/v1
+node scripts/ci/http-smoke.mjs http://127.0.0.1:<后端端口>/api/v1
 ```
 
 脚本用 `super`/`super` 登录，覆盖响应包体、`user-info`、菜单、用户列表、组织增删、操作日志与登出；登录最多重试 90 秒，适合紧跟后端启动后运行。参数与退出码见 [脚本参考](../reference/scripts.md)。
