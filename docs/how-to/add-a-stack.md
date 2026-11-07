@@ -79,7 +79,7 @@
 
 ## 8. 验收
 
-- 该栈的测试与构建全绿；Go 还要 `gofmt -l .` 为空与 `go vet ./...`。
+- 该栈的测试与构建全部通过；Go 还要 `gofmt -l .` 为空与 `go vet ./...`。
 - 后端：`http-smoke` 与 `contract-test` 通过；`run-db-matrix` 四引擎通过。
 - 前端：lint/typecheck/test/build 通过；mock 与真实后端 E2E 通过；视觉改动跑 `parity.mjs`。
 - 根检查：`node scripts/check-config.mjs`、`npm run permissions:check` 与 `npm run docs:check` 通过。

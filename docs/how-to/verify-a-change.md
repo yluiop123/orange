@@ -96,4 +96,4 @@ node parity.mjs          # 三端截图 + diff
 - `git status` 里没有 `node_modules`、构建产物、本地 `.env*`、密钥或 `*.db`。
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: `frontend/{react,vue,angular}/package.json`、`backend/*/README.md`、`.github/workflows/main.yml`、`scripts/check-config.mjs`、`scripts/check-docs-links.mjs`、根 `package.json`、`scripts/ci/{http-smoke,contract-test,run-contract,run-db-matrix}.mjs`、`scripts/e2e/{package.json,README.md}`
+> 事实来源: `frontend/{react,vue,angular}/package.json`、`backend/*/README.md`、`.github/workflows/main.yml`、`scripts/check-config.mjs`、`scripts/check-docs-links.mjs`、根 `package.json`、`scripts/ci/{http-smoke,contract-test,run-contract,run-db-matrix}.mjs`、`scripts/e2e/package.json`

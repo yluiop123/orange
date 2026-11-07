@@ -71,7 +71,7 @@ mock 账号仍是 `super/super` 等种子账号；从登录到新页面的路径
 
 ## 7. 测试
 
-- 单元测试：页面相关的路径/权限/树策略至少各一条；三端现有测试分别在页面同目录、`src/lib/`、`*.spec.ts`。
+- 单元测试：页面相关的路径/权限/树策略至少各一条；React 的测试与被测文件同目录，Vue 在 `src/lib/`，Angular 在 `*.spec.ts`。
 - mock E2E：启动对应 dev server 后跑 `node scripts/e2e/mock-<stack>.mjs`（Playwright 用本机 Chrome）。
 - 真实后端 E2E：关掉 mock、指向后端后跑 `node scripts/e2e/real-<stack>.mjs`；`E2E_BACKEND`、`E2E_DB` 只是写进结果标签。
 - 改了登录/头部控件时加跑 `node scripts/e2e/check-controls.mjs`。
@@ -98,4 +98,4 @@ node parity.mjs
 三端分别跑 lint、typecheck、test、build（命令见 [提交前验证](verify-a-change.md)），再跑 mock/真实 E2E 与 parity。视觉阈值不达标时先确认是布局/间距问题还是字体与组件库度量差异，不要用放宽阈值代替修复。
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: `database/permissions.json`、`database/postgres/ddl.sql`、`frontend/react/src/{lib/page-routes.ts,lib/menu.ts,lib/access.ts,locale/zh-CN.ts,locale/en-US.ts,mock/login/menu.ts}`、`frontend/vue/src/{router/index.ts,lib/menu-title.ts,mock/seed.ts,i18n/zh-CN.ts,i18n/en-US.ts}`、`frontend/angular/src/app/{app.routes.ts,core/guards.ts,core/menu-labels.ts,core/permission-catalog.ts,core/i18n.service.ts,mock/mock-data.ts}`、`frontend/angular/src/environments/environment.local.ts`、`scripts/e2e/{parity.mjs,mock-react.mjs,real-react.mjs,README.md}`、`.scratch/ui-parity/spec.md`
+> 事实来源: `database/permissions.json`、`database/postgres/ddl.sql`、`frontend/react/src/{lib/page-routes.ts,lib/menu.ts,lib/access.ts,locale/zh-CN.ts,locale/en-US.ts,mock/login/menu.ts}`、`frontend/vue/src/{router/index.ts,lib/menu-title.ts,mock/seed.ts,i18n/zh-CN.ts,i18n/en-US.ts}`、`frontend/angular/src/app/{app.routes.ts,core/guards.ts,core/menu-labels.ts,core/permission-catalog.ts,core/i18n.service.ts,mock/mock-data.ts}`、`frontend/angular/src/environments/environment.local.ts`、`scripts/e2e/{parity.mjs,mock-react.mjs,real-react.mjs}`、`.scratch/ui-parity/spec.md`

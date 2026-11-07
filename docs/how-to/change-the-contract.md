@@ -14,7 +14,7 @@
 该文件是 OpenAPI 3.1.0，人工维护，仓库里没有生成契约本身或校验契约的脚本。改动时保持：
 
 - `paths` 写全 `/api/v1/...`，`security` 仍是 `bearerAuth`。
-- 新端点归入现有中文 tag；不要为省事新建同义 tag。
+- 新端点归入现有 tag（`用户管理`、`操作日志`、`组织管理`、`角色管理`、`权限管理`、`login-controller`、`菜单`）；不要为省事新建同义 tag。
 - 响应仍是 `{code, message, data, timestamp, traceId}`，分页仍是 `{total, list, page, size, totalPages}`。
 - 旧路由继续标 `deprecated`，不要顺手复活；只有 Spring 参考实现保留旧路由映射，其余五个后端不暴露它们。
 - 字段名、必填、长度/正则约束与后端 DTO 对齐；契约里写了但实现不校验，等于没有契约。

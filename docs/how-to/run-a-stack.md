@@ -48,7 +48,7 @@
 ### React + Spring Boot + SQLite
 
 1. 建库：在仓库根用 `database/sqlite/ddl.sql` 与 `dml.sql` 生成 `app.db`（同一连接跑完两条脚本）。
-2. 起后端（端口见 [栈矩阵](../reference/stacks.md)）：`DB_DRIVER=sqlite SPRING_DATASOURCE_URL=jdbc:sqlite:<绝对路径>/app.db mvn spring-boot:run`。不要同时带 `SPRING_PROFILES_ACTIVE=local`——`application-local.yaml` 里写死了 PostgreSQL 连接。
+2. 起后端（端口见 [栈矩阵](../reference/stacks.md)）：`DB_DRIVER=sqlite SPRING_DATASOURCE_URL=jdbc:sqlite:<绝对路径>/app.db mvn spring-boot:run`。不要同时带 `SPRING_PROFILES_ACTIVE=local`——`application-local.example.yaml` 模板里写的是 PostgreSQL 连接。
 3. 前端：React 的代理目标默认就是 Spring 的默认端口，只需在 `.env.development.local` 写 `VITE_MOCK_ENABLE=false`，重启 `pnpm dev` 后前端默认端口即连真实后端。
 
 ### Vue + Go + SQLite

@@ -92,4 +92,4 @@ node scripts/ci/run-contract.mjs spring go    # 指定后端
 - CI 上矩阵与契约都在 `push` 才跑；PR 通过不代表这两步通过，改后端行为时要本地补跑。
 
 > Last verified: 24826bb · 2026-11-07
-> 事实来源: `scripts/test-databases.ps1`、`scripts/prepare-stack-databases.ps1`、`scripts/ci/run-db-matrix.mjs`、`scripts/ci/run-contract.mjs`、`scripts/ci/http-smoke.mjs`、`scripts/ci/README.md`、`.github/workflows/main.yml`、`database/*/{ddl.sql,dml.sql}`
+> 事实来源: `scripts/test-databases.ps1`、`scripts/prepare-stack-databases.ps1`、`scripts/ci/run-db-matrix.mjs`、`scripts/ci/run-contract.mjs`、`scripts/ci/http-smoke.mjs`、`.github/workflows/main.yml`、`database/*/{ddl.sql,dml.sql}`
