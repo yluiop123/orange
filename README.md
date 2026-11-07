@@ -1,161 +1,94 @@
-# ORANGE
+# Orange
 
-[![CI](https://github.com/yluiop123/orange/actions/workflows/main.yml/badge.svg)](https://github.com/yluiop123/orange/actions/workflows/main.yml)
+Orange is a permission-management admin product — users, groups, roles and a
+permission-driven menu tree — implemented **nine times**: three frontends and
+six backends sharing one contract and one database model.
 
-<img height="80" src="./readme/images/orange.png">
-
-ORANGE is a full-stack permission-management demo. One product is implemented
-three times on the frontend (React, Vue, Angular), six times on the backend
-(Spring Boot, Go, NestJS, C#, Rust, FastAPI) and against several database
-engines. Every stack serves the same API contract and renders the same shell:
-login, RBAC menu tree, dashboards, charts, maps, 3D scenes, a component gallery
-and system management.
-
-Project URL: https://yluiop123.github.io/orange
-
-English | [简体中文](./README.zh-CN.md)
-
-<img height="500" src="./readme/images/dashboard.png">
-<img height="500" src="./readme/images/disaster-command.png">
-<img height="500" src="./readme/images/form.png">
-<img height="500" src="./readme/images/rechart.png">
-
-## What is included
-
-- **Authentication**: JWT access token, rotating HttpOnly refresh cookie, login
-  lockout, forced initial password change.
-- **RBAC**: path-based menu and permission tree, users, roles, groups,
-  permissions and operation logs.
-- **Demo pages**: six dashboards, ECharts/Recharts/AntV/D3 charts, Leaflet/
-  OpenLayers/deck.gl/Cesium maps, Three.js/Babylon.js scenes and a shadcn
-  component gallery.
-- **Two data modes**: an in-browser mock for demos and a real backend through the
-  dev proxy.
-- **Parity**: React is the reference for page content; Vue and Angular match its
-  routes, menu tree, icons, theme tokens and tab styling.
+The point is not the product. The point is a **reference baseline for comparing
+stacks**: every implementation must serve the same HTTP contract, the same
+schema and the same behaviour, so differences between frameworks are isolated
+from differences between designs.
 
 ## Repository layout
 
 ```text
-.
-├── frontend/                 # UI implementations, one directory per framework
-│   ├── react/                # React 19 + Vite + shadcn/Base UI (GitHub Pages)
-│   ├── angular/              # Angular 21 + Angular Material
-│   ├── vue/                  # Vue 3 + Vuetify
-│   └── docs/                 # Frontend startup, configuration, architecture
-├── backend/                  # API implementations, one directory per stack
-│   ├── springboot/           # Java 25 + Spring Boot (behaviour reference)
-│   ├── go-gin-gorm/          # Go + Gin + GORM
-│   ├── node-nestjs/          # Node.js + NestJS
-│   ├── csharp/               # C# + ASP.NET Core
-│   ├── rust-axum/            # Rust + Axum
-│   ├── python-fastapi/       # Python + FastAPI
-│   └── docs/                 # Backend startup, configuration, architecture
-├── database/                 # DDL and seed data, one directory per engine
-│   ├── postgres/ mysql/ mariadb/ sqlite/
-│   └── opengauss/ oceanbase/ goldendb/
-├── contracts/                # Cross-stack contracts
-│   └── openapi.json          # Machine-readable API contract
-├── docs/                     # Technology-agnostic project documentation
-│   ├── README.md             # Documentation index and placement rules
-│   ├── FEATURES.md API.md DATABASE.md STACKS.md
-│   ├── validation-rules.md VERIFICATION.md PORTING.md
-│   ├── adr/ security/ agents/
-└── scripts/                  # Cross-stack scripts (seed sync, E2E, JWT keys)
+frontend/          three UI implementations + shared frontend docs
+backend/           six API implementations + shared backend docs
+database/          canonical DDL and seed data, one directory per engine
+contracts/         openapi.json — the machine-readable contract
+docs/              technology-agnostic documentation (Chinese)
+scripts/           cross-stack checks, database matrix, E2E helpers
+.scratch/          issue tracker and archive (internal, not documentation)
 ```
 
-Rules for the layout:
+Boundary rule: `contracts/`, `database/` and `docs/` describe the product and
+must stay true after swapping React, Vue, Angular, Spring Boot, Go, NestJS,
+.NET, Rust or FastAPI.
 
-- `docs/`, `contracts/`, `database/` and the root READMEs are technology-agnostic.
-- Frontend-specific design lives in `frontend/docs/`; backend-specific design
-  lives in `backend/docs/`.
-- Configuration lives next to the code it configures: `frontend/<stack>/.env*`,
-  `frontend/angular/src/environments/`, and `backend/<stack>/.env.example` /
-  `application-local.example.yaml`.
-- `database/<engine>` contains only DDL and seed data. Runtime connection
-  settings belong to each backend.
-- Only `frontend/react` is deployed to GitHub Pages.
+## Stacks
 
-## Stack matrix
-
-### Frontend
-
-| Stack | Directory | Port | Notes |
-| --- | --- | --- | --- |
-| React 19 + Vite 8 + shadcn/Base UI | `frontend/react` | 5173 | Reference, deployed to Pages |
-| Vue 3.5 + Vuetify 3 | `frontend/vue` | 5174 | 20 unit tests |
-| Angular 21 + Angular Material | `frontend/angular` | 4200 | 26 unit tests |
-
-### Backend
-
-| Stack | Directory | Port | Database support |
-| --- | --- | --- | --- |
-| Java 25 + Spring Boot | `backend/springboot` | 8080 | PostgreSQL, MySQL, MariaDB, SQLite |
-| Go + Gin + GORM | `backend/go-gin-gorm` | 8081 | PostgreSQL, MySQL, MariaDB, SQLite |
-| C# + ASP.NET Core | `backend/csharp` | 8082 | PostgreSQL, MySQL, MariaDB, SQLite |
-| Rust + Axum | `backend/rust-axum` | 8083 | PostgreSQL, MySQL, MariaDB, SQLite |
-| Node.js + NestJS | `backend/node-nestjs` | 3000 | PostgreSQL, MySQL, MariaDB, SQLite |
-| Python + FastAPI | `backend/python-fastapi` | 8000 | PostgreSQL, MySQL, MariaDB, SQLite |
-
-### Database
-
-| Engine | Directory | Runtime matrix |
+| Layer | Reference | Other implementations |
 | --- | --- | --- |
-| PostgreSQL | `database/postgres` | tested |
-| MySQL | `database/mysql` | tested |
-| MariaDB | `database/mariadb` | tested |
-| SQLite | `database/sqlite` | tested |
-| openGauss / OceanBase / GoldenDB | `database/<engine>` | static SQL only |
+| Frontend | React 19 + Vite + shadcn/Base UI (deployed to GitHub Pages) | Vue 3 + Vuetify, Angular 21 + Material |
+| Backend | Java 25 + Spring Boot (behaviour reference) | Go + Gin + GORM, NestJS, ASP.NET Core (.NET 10), Rust + Axum, Python + FastAPI |
+| Database | PostgreSQL | MySQL, MariaDB, SQLite (tested); openGauss, OceanBase, GoldenDB (static SQL) |
 
-Database design is public and engine-neutral: see
-[docs/DATABASE.md](./docs/DATABASE.md).
+Ports, commands, dependency notes and per-stack database support live in one
+place: [`docs/reference/stacks.md`](./docs/reference/stacks.md).
+
+## Quick start
+
+```bash
+# frontend (mock mode, no backend needed)
+cd frontend/react && pnpm install && pnpm dev
+
+# backend + database (FastAPI + SQLite example)
+cd backend/python-fastapi
+pip install -r requirements-dev.txt
+sqlite3 app.db < ../../database/sqlite/ddl.sql
+sqlite3 app.db < ../../database/sqlite/dml.sql
+python -m app.main
+```
+
+Then sign in with the seed account and explore the menu tree. The full walkthrough
+is [`docs/tutorials/quickstart.md`](./docs/tutorials/quickstart.md).
 
 ## Documentation
 
-[docs/README.md](./docs/README.md) is the full documentation map, with reading
-paths for each role. Start there if you are unsure which file to open.
+Deep documentation is written in **Chinese**; this README is the English entry
+point. Start at [`docs/index.md`](./docs/index.md), which maps every document to
+one of four Diátaxis roles and gives reading paths for newcomers, single-stack
+users and maintainers.
 
-- **New to the project:** [docs/FEATURES.md](./docs/FEATURES.md) →
-  [docs/STACKS.md](./docs/STACKS.md) → quick start below.
-- **Frontend work:** [frontend/docs/README.md](./frontend/docs/README.md) and
-  [frontend/docs/CONFIGURATION.md](./frontend/docs/CONFIGURATION.md).
-- **Backend / API work:** [backend/docs/README.md](./backend/docs/README.md),
-  [docs/API.md](./docs/API.md) and [docs/DATABASE.md](./docs/DATABASE.md).
-- **Agents:** [AGENTS.md](./AGENTS.md), [CONTEXT.md](./CONTEXT.md) and
-  [docs/agents/](./docs/agents/).
+- **Tutorials** — run a stack, make a first contribution
+- **How-to** — add a stack, change the contract, run the database matrix, port a page
+- **Reference** — stack matrix, HTTP contract, data model, dialects, permission fields, configuration, scripts
+- **Explanation** — architecture, permission model, validation layering, auth lifecycle, porting trade-offs
 
-Deep documentation is English-first. Chinese is maintained for this README and
-the frontend/backend `GETTING-STARTED` and `CONFIGURATION` guides.
-Historical snapshots live under [`.scratch/archive/`](./.scratch/archive/).
+Architecture decisions are recorded in [`docs/adr/`](./docs/adr/). Domain
+vocabulary is fixed in [`CONTEXT.md`](./CONTEXT.md); AI agents enter through
+[`AGENTS.md`](./AGENTS.md).
 
-## Quick start (React + Spring Boot + PostgreSQL)
+## Verification
 
-```bash
-# 1. database
-psql -U postgres -c "CREATE DATABASE orange;"
-psql -U postgres -d orange -f database/postgres/ddl.sql
-psql -U postgres -d orange -f database/postgres/dml.sql
+CI runs three categories of checks on every push and pull request:
 
-# 2. backend configuration
-cp backend/springboot/src/main/resources/application-local.example.yaml \
-   backend/springboot/src/main/resources/application-local.yaml
-# edit the datasource if your PostgreSQL is not localhost:5432
+- **Configuration** — `scripts/check-config.mjs` and `npm run permissions:check`
+- **Per-stack** — lint, type-check, tests and production build for all nine stacks
+- **Contract and matrix** — on `main`, each backend is exercised against
+  PostgreSQL, MySQL, MariaDB and SQLite, then checked against `contracts/openapi.json`
 
-# 3. backend
-cd backend/springboot
-SPRING_PROFILES_ACTIVE=local mvn spring-boot:run
+Only the React frontend is deployed to GitHub Pages.
 
-# 4. frontend
-cd frontend/react
-pnpm install
-pnpm dev            # http://localhost:5173
-```
+## Contributing
 
-Sign in with `super / super`, `admin / admin` or `user / user`.
+Read [`docs/index.md`](./docs/index.md) → "维护者" path, then
+[`docs/how-to/verify-a-change.md`](./docs/how-to/verify-a-change.md) for the
+checks to run before opening a pull request. Issues and specs live as Markdown
+files under [`.scratch/`](./.scratch/).
 
-Other stacks: see [frontend/docs/GETTING-STARTED.md](./frontend/docs/GETTING-STARTED.md)
-and [backend/docs/GETTING-STARTED.md](./backend/docs/GETTING-STARTED.md).
+This project follows the [Contributor Covenant](./CODE_OF_CONDUCT.md).
 
-## 🧾 License
+## License
 
-This project is [MIT licensed](./LICENSE).
+See [`LICENSE`](./LICENSE).
