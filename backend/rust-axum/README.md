@@ -2,75 +2,115 @@ English | [简体中文](README.zh-CN.md)
 
 # Orange · Rust + Axum backend
 
-This stack implements the same API contract with Rust + Axum, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER` / `DATABASE_URL`.
+Implements the shared API contract with Rust + Axum, following the Spring Boot
+reference for behaviour. One process connects to one database selected by
+`DB_DRIVER` / `DATABASE_URL`. Shared backend conventions are in
+[../README.md](../README.md).
 
-## Tech stack and versions
+## Stack and dependencies
 
 | Item | Version / notes | Source |
 | --- | --- | --- |
 | Rust | edition 2021, `rust-version = 1.75` | `Cargo.toml` |
-| Web | axum 0.8, tokio 1 (`features = ["full"]`), tower-http 0.6 (cors, trace) | `Cargo.toml` |
-| Database | sqlx 0.8, `runtime-tokio-rustls` + postgres / mysql / sqlite / chrono / uuid / macros / derive | `Cargo.toml` |
-| Auth | `jsonwebtoken` 9 (RS256 / HS256), `bcrypt` 0.15 (`getrandom`) | `Cargo.toml` |
-| Serialization and time | serde 1, serde_json 1, chrono 0.4 | `Cargo.toml` |
-| Other | uuid 1 (v4), rand 0.8, regex 1, dotenvy 0.15, tracing 0.1, tracing-subscriber 0.3 (env-filter) | `Cargo.toml` |
-| Dependency locking | `Cargo.lock` is committed | repository files |
-| Test dependencies | no `[dev-dependencies]`, all tests are inline in `src` | `Cargo.toml` |
-| API documentation | utoipa 5 derives + utoipa-swagger-ui 9; `/swagger` + `/openapi.json` | `src/swagger.rs`, `Cargo.toml` |
+| Web | axum 0.8, tokio 1, tower-http 0.6 | `Cargo.toml` |
+| Database | sqlx 0.8 with postgres / mysql / sqlite features | `Cargo.toml` |
+| Auth | `jsonwebtoken` 9, `bcrypt` 0.15 | `Cargo.toml` |
+| Serialization | serde 1, serde_json 1, chrono 0.4 | `Cargo.toml` |
+| Other | uuid 1, rand 0.8, regex 1, dotenvy 0.15, tracing | `Cargo.toml` |
+| API documentation | utoipa 5 + utoipa-swagger-ui 9 | `src/swagger.rs` |
 
-## Commands
+`Cargo.lock` is committed. All tests are inline in `src`; there are no
+`[dev-dependencies]`.
 
-| Purpose | Command | Source / notes |
-| --- | --- | --- |
-| Install | no separate install step | `cargo build` fetches crates according to `Cargo.lock` |
-| Start | `cargo run` | `src/main.rs`; `.env` is loaded by `dotenvy::dotenv()` |
-| Test | `cargo test` | `main.yml` (backend job, rust) |
-| Build | `cargo build` | same job in `main.yml` |
+## Requirements and commands
 
-Port source variable: `parse_env_any(&["APP_PORT", "PORT"], 8083u16)` (`src/config.rs`), default 8083; `.env.example` sets `PORT=8083` and notes that this port is reserved by the port-allocation convention.
+| Purpose | Command |
+| --- | --- |
+| Install | no separate step; `cargo build` fetches crates from `Cargo.lock` |
+| Start | `cargo run` |
+| Test | `cargo test` |
+| Build | `cargo build` |
 
-`cargo test` (58 tests) and `cargo build` both pass locally. On Windows without the MSVC linker, install the `stable-x86_64-pc-windows-gnu` toolchain and put MSYS2 `gcc` on `PATH`; CI uses the default Linux toolchain.
+On Windows without the MSVC linker, install the
+`stable-x86_64-pc-windows-gnu` toolchain and put MSYS2 `gcc` on `PATH`; CI uses
+the default Linux toolchain. `.env` is loaded by `dotenvy::dotenv()`.
 
 ## Directory structure and layering
 
 ```text
 src/main.rs          startup, listener, daily audit cleanup
-src/config.rs        environment variables and configuration aggregation
+src/config.rs        environment variables and configuration
 src/db.rs            driver resolution, dialect helpers, repository dispatch
 src/state.rs         Db and Arc<Config>
 src/error.rs         business codes and error envelope
-src/response.rs      response envelope and task-local trace id
+src/response.rs      response envelope and trace id
 src/middleware.rs    TraceId, authentication, optional authentication
 src/operation_log.rs audit policy and middleware
 src/swagger.rs       generated /openapi.json and /swagger UI
-src/auth/            JWT, bcrypt, lockout calculation, cookies
+src/auth/            JWT, bcrypt, lockout, cookies
 src/domain/          entities, DTOs, tree and permission policy, validation
-src/repository/      SQLx queries (one generated set per driver)
+src/repository/      SQLx queries per driver
 src/service/         business rules and guards
 src/routes/          Axum handlers and routes
 ```
 
-## Configuration entry point
+## API, auth and database access
 
-Copy `.env.example` to `.env` (gitignored, loaded by `dotenvy::dotenv()`); real environment variables take precedence. `DB_DRIVER` wins over the `DATABASE_URL` scheme; `DATABASE_URL` wins over the discrete `DB_*` variables, and SQLite has an additional `DB_FILE`. The variable list and cross-stack comparison are in the [backend configuration conventions](../../backend/README.md).
+- Axum handlers bind parameters, declare the Authority and call services; the
+  central response helper writes the envelope and `src/error.rs` maps errors.
+- JWT uses `jsonwebtoken`: RS256 when both RSA keys are set, otherwise HS256 with
+  `JWT_SECRET`. Refresh tokens rotate in an HttpOnly cookie.
+- sqlx queries have one generated copy per driver; dialect differences are
+  concentrated in `src/db.rs`. SQLite timestamps are ISO-8601 text and filtering
+  uses `datetime(...)`.
+- The `version` column is incremented but not compared, so concurrent edits are
+  last-write-wins (same as the Go and Python ports).
 
-## Deviations of this stack
+## Service configuration
 
-1. All tests are inline: 0 standalone test files, no `[dev-dependencies]`, 11 modules contain `#[cfg(test)]` with 58 test functions in total (`cargo test` needs no database). This differs from Go and Python, which have separate test directories.
-2. Organized as a single binary crate: only `src/main.rs`, with no `[lib]` target in `Cargo.toml`, so all modules are private to the binary and tests can only be inline; Go, Python and C# all have a library/module layer that external tests can reference.
-3. JWT follows the shared rule: an RSA pair selects RS256, otherwise `JWT_SECRET` selects HS256 (`src/auth/jwt.rs`). The same OpenSSL-generated RSA pair is accepted by all six stacks.
-4. Each repository query has one generated copy per driver (`*_repository!` macros), with dialect differences concentrated in `src/db.rs`; SQLite timestamps are ISO-8601 text and filtering goes through `datetime(...)`.
-5. utoipa derives and `#[utoipa::path]` annotations generate `/openapi.json`; there is no static contract reader. Database schema still comes only from `database/<engine>`.
+| Item | Current value | Location | How to change |
+| --- | --- | --- | --- |
+| HTTP port | `8083` | `src/config.rs`: `APP_PORT` → `PORT` → 8083 | Set `APP_PORT` in `.env` |
+| Listen address | `0.0.0.0` | `src/main.rs` | Edit `src/main.rs` |
+| API prefix | `/api/v1` | `src/routes/` | — |
+| Swagger | `/swagger`, `/openapi.json` | `src/swagger.rs` | — |
+| CORS | React/NestJS dev origins | `CORS_ORIGINS` | Edit `.env` |
+| Local config | `.env` | this stack's root | Copy `.env.example` |
 
-## Size and tests
+## Database configuration
 
-| Metric | Value |
+| Item | Current value | Location |
+| --- | --- | --- |
+| Engine | PostgreSQL | `DB_DRIVER` or URL scheme |
+| Connection URL | `DATABASE_URL` | `.env.example`, `src/config.rs` |
+| Discrete values | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | `src/config.rs` |
+| SQLite file | `DB_FILE` | `src/config.rs` |
+| Dialect helpers | `src/db.rs` | queries per driver |
+
+## Switching database
+
+| Target | Dependency / driver | Configuration | Initialization | Notes |
+| --- | --- | --- | --- | --- |
+| PostgreSQL | sqlx `postgres` (already in `Cargo.toml`) | `DB_DRIVER=postgres`, `DATABASE_URL=postgres://...` | `database/postgres/ddl.sql` then `dml.sql` | Reference |
+| MySQL | sqlx `mysql` | `DB_DRIVER=mysql`, `mysql://...` | `database/mysql/ddl.sql` then `dml.sql` | — |
+| MariaDB | sqlx `mysql` (MySQL URL form) | `DB_DRIVER=mariadb`, MariaDB URL/port | `database/mariadb/ddl.sql` then `dml.sql` | MariaDB speaks the MySQL protocol |
+| SQLite | sqlx `sqlite` | `DB_DRIVER=sqlite`, `DB_FILE=./orange.db` | `database/sqlite/ddl.sql` then `dml.sql` | Timestamps are text |
+
+Steps: create the database if needed, load `ddl.sql` then `dml.sql`, set the
+driver and URL or discrete values, restart, then verify with the seed accounts.
+`DATABASE_URL` wins over the discrete values; `DB_DRIVER` wins over the URL
+scheme.
+
+## Environment configuration
+
+| Environment | Configuration |
 | --- | --- |
-| Version-controlled files | 52 |
-| Rust source files | 45 (`src/`) |
-| Test files | 0 standalone test files; 11 modules hold 58 inline test functions |
+| Development | `.env` (gitignored), loaded by `dotenvy`; process environment wins |
+| Test | `cargo test`; tests are inline and need no database |
+| Production | process environment; use the RSA pair or a strong `JWT_SECRET` |
 
-Counting basis: `git ls-files backend/rust-axum` plus a count of `#[test]` inside `src`. Endpoints and dialects are in the [HTTP contract](../../frontend/openapi.json) and [database dialects](../../database/).
+## Further reading
 
-> Last verified: c7b6531 · 2026-11-08
-> Sources: `Cargo.toml`, `Cargo.lock`, `.env.example`, `src/main.rs`, `src/config.rs`, `src/db.rs`, `src/auth/jwt.rs`, `.github/workflows/main.yml`
+- [Backend conventions](../README.md)
+- [Database](../../database/README.md)
+- [Repository README](../../README.md)

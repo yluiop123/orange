@@ -2,76 +2,109 @@
 
 # Orange · Node.js + NestJS 后端
 
-本栈用 NestJS 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
+用 NestJS 实现共享 API 契约，行为以 Spring Boot 基准为准。一个进程通过 `DB_DRIVER` /
+`DATABASE_URL` 连接一种数据库。后端共同约定见 [../README.zh-CN.md](../README.zh-CN.md)。
 
-## 技术栈与版本
+## 技术栈与依赖
 
 | 项 | 版本 / 说明 | 来源 |
 | --- | --- | --- |
-| 框架 | NestJS 11（`@nestjs/common`、`core`、`jwt`、`platform-express`、`typeorm` 均为 `^11`） | `package.json` |
+| 框架 | NestJS 11 | `package.json` |
 | ORM | TypeORM 0.3.20 | `package.json` |
-| 语言与编译 | TypeScript 5.7.2、`@nestjs/cli` 11、`ts-loader` 9.5.1 | `package.json` |
-| 测试 | jest 29.7.0 + ts-jest 29.2.5，配置内联在 `package.json`（`rootDir: src`、`testRegex: .*\.spec\.ts$`） | `package.json` |
-| 数据库客户端 | `pg` 8.13.1、`mysql2` 3.24.6、`better-sqlite3` 13.0.3 | `package.json` |
-| 认证 | `@nestjs/jwt` 11、`bcrypt` 5.1.1（原生模块） | `package.json` |
-| 校验与转换 | `class-validator` 0.14.1、`class-transformer` 0.5.1 | `package.json` |
-| 其他 | `cookie-parser` 1.4.7、`dotenv` 16.4.7、`reflect-metadata` 0.2.2、`rxjs` 7.8.1 | `package.json` |
-| 接口文档 | `@nestjs/swagger`（CLI 插件）；`/swagger` + `/openapi.json` | `src/main.ts`、`nest-cli.json` |
-| 包管理 | pnpm（`pnpm-lock.yaml`、`pnpm-workspace.yaml`；CI 用 pnpm 12.15.0） | 仓库文件、`main.yml` |
+| 语言 | TypeScript 5.7、`@nestjs/cli` 11 | `package.json` |
+| 数据库客户端 | `pg` 8.13、`mysql2` 3.24、`better-sqlite3` 13 | `package.json` |
+| 认证 | `@nestjs/jwt` 11、`bcrypt` 5.1（原生模块） | `package.json` |
+| 校验 | `class-validator` 0.14、`class-transformer` 0.5 | `package.json` |
+| 其他 | `cookie-parser`、`dotenv`、`reflect-metadata`、`rxjs` | `package.json` |
+| API 文档 | `@nestjs/swagger` + CLI 插件 | `src/main.ts`、`nest-cli.json` |
+| 包管理 | pnpm 12.15.0 | `package.json` |
 
-## 命令
+## 环境要求与命令
 
-| 用途 | 命令 | 来源 / 说明 |
-| --- | --- | --- |
-| 安装 | `pnpm install --frozen-lockfile` | `main.yml`（backend job, nest） |
-| 启动（开发） | `pnpm start:dev` | `package.json`（`nest start --watch`） |
-| 启动（产物） | `pnpm build` 后 `pnpm start:prod` | `package.json`（`node dist/main.js`） |
-| 测试 | `pnpm test` | `main.yml`；jest 只跑 `src/**/*.spec.ts` |
-| 构建 | `pnpm build` | `main.yml`（`nest build`） |
-| 类型检查 | `pnpm typecheck` | `package.json`（`tsc --noEmit -p tsconfig.json`） |
-| 冒烟 | `pnpm smoke` | `package.json`（`node scripts/smoke.mjs`），需要已 seed 的库和已启动的服务 |
+- Node.js 20.19+ 或 22.12+，pnpm 12.15.0。
+- `bcrypt` 与 `better-sqlite3` 是原生模块；`pnpm-workspace.yaml` 已预批准它们的构建
+  脚本，不需要运行 `pnpm approve-builds`。
 
-端口来源变量：`int(process.env.APP_PORT ?? process.env.PORT, 3000)`（`src/config/app-config.ts:50`），默认 3000；`.env.example` 写 `PORT=3000`。
-
-`bcrypt` 与 `better-sqlite3` 是原生模块，安装时要跑构建脚本；`pnpm-workspace.yaml` 已用 `onlyBuiltDependencies` 与 `allowBuilds` 预先批准这两个包，无需再手工 `pnpm approve-builds`。
+| 用途 | 命令 |
+| --- | --- |
+| 安装 | `pnpm install --frozen-lockfile` |
+| 开发启动 | `pnpm start:dev` |
+| 构建 | `pnpm build` |
+| 运行产物 | `pnpm start:prod`（`node dist/main.js`） |
+| 测试 | `pnpm test` |
+| 类型检查 | `pnpm typecheck` |
+| 冒烟 | `pnpm smoke`（需要已 seed 的库和已启动的服务） |
 
 ## 目录结构与分层
 
 ```text
-src/main.ts              bootstrap：全局前缀 /api/v1、CORS、cookie、TraceId
-src/app.module.ts        TypeORM 连接，全局守卫 / 拦截器 / 过滤器 / 管道
-src/config/              AppConfig（环境变量）、DB 驱动归一化、TypeORM 选项
-src/common/              响应包体、错误码、TraceId、校验、树与编码策略、密码工具
-src/auth/                登录/刷新/登出/user-info/改密、JWT、刷新轮换、登录锁定
+src/main.ts              bootstrap：全局前缀 /api/v1、CORS、Cookie、TraceId
+src/app.module.ts        TypeORM 连接、全局守卫/拦截器/过滤器
+src/config/              AppConfig、数据库驱动归一化、TypeORM 选项
+src/common/              包体、错误码、TraceId、校验、树策略
+src/auth/                登录/刷新/登出/用户信息/改密、JWT、锁定
 src/menus/               /auth/menus 菜单树
 src/{users,roles,groups,permissions}/   DTO、service、controller
-src/operation-log/       审计拦截器、记录策略、查询
+src/operation-log/       审计拦截器与查询
 src/entities/            共享 schema 的 TypeORM 实体
-src/policies/            权限形状与有效权限
+src/policies/            权限结构与有效权限
 scripts/smoke.mjs        HTTP 级冒烟脚本
 ```
 
-## 配置入口
+## API、认证与数据库访问
 
-复制 `.env.example` 为 `.env.local`（被 gitignore）；`src/config/env.ts` 用 `dotenv` 加载该文件，真实环境变量优先。数据库引擎先看 `DB_DRIVER`，其次看 `DATABASE_URL` 的 scheme，兜底 `postgres`；`DATABASE_URL` 覆盖离散 `DB_*`。完整变量清单与跨栈对照见 [后端配置约定](../../backend/README.zh-CN.md)。
+- 控制器声明 Authority 并调用 service；全局拦截器写统一包体，全局过滤器映射错误。
+  错误码在 `src/common/error-code.ts`。
+- JWT 使用 `@nestjs/jwt`：同时配置 RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的
+  HS256。refresh token 在 HttpOnly Cookie 中轮换。
+- TypeORM 使用 `synchronize: false`，既不建表也不迁移；表结构归
+  `database/<engine>`。
+- MariaDB 走 TypeORM 的 `mysql` 驱动与 `mysql2`；SQLite 使用 `better-sqlite3`。
+- 单元测试覆盖纯策略；翻译测试使用内存 SQLite。数据库行为靠 `pnpm smoke` 对真实
+  服务验证。
 
-## 本栈偏差
+## 服务配置
 
-1. 单元测试只覆盖纯策略：11 个 `.spec.ts`；翻译测试使用内存 SQLite，其余不启动 Nest、不连数据库；数据库行为靠 `scripts/smoke.mjs` 在真实服务上验证，这与 Go（含路由与冒烟测试）不同。
-2. TypeORM `synchronize: false`（`src/config/database.options.ts:16`）：不建表、不迁移，schema 由 `database/<engine>` 负责。
-3. MariaDB 走 TypeORM 的 `mysql` 驱动和 `mysql2` 客户端（`src/config/database.options.ts`），不需要额外的 `mariadb` 包；SQLite 用 `better-sqlite3`。
-4. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/auth/auth.module.ts`、`src/auth/token.service.ts`）。用 OpenSSL 生成的同一对 RSA 密钥六栈通用。
-5. `@nestjs/swagger` 从控制器与 DTO 生成文档（CLI 插件推断属性）；`/swagger` + `/openapi.json` 挂在全局前缀与守卫之外（`src/main.ts`）。
+| 配置项 | 当前值 | 配置位置 | 修改方式 |
+| --- | --- | --- | --- |
+| HTTP 端口 | `3000` | `src/config/app-config.ts`：`APP_PORT` → `PORT` → 3000 | 在 `.env.local` 设置 `APP_PORT` 或 `PORT` |
+| API 前缀 | `/api/v1` | `src/main.ts` | — |
+| Swagger | `/swagger`、`/openapi.json` | `src/main.ts`、`nest-cli.json` | — |
+| CORS | React/Vue 开发地址 | `CORS_ORIGINS` | 修改 `.env.local` |
+| 本地配置 | `.env.local` | 本栈根目录 | 从 `.env.example` 复制 |
 
-## 规模与测试
+## 数据库配置
 
-| 指标 | 数值 |
+| 配置项 | 当前值 | 配置位置 |
+| --- | --- | --- |
+| 引擎 | PostgreSQL | `DB_DRIVER`，其次 URL scheme，最后默认值 |
+| 连接 URL | `DATABASE_URL` 覆盖离散值 | `.env.example`、`src/config/` |
+| 离散值 | `DB_HOST`、`DB_PORT`、`DB_NAME`、`DB_USER`、`DB_PASSWORD`、`DB_SSL` | `src/config/` |
+| SQLite 文件 | `DB_NAME` 或 URL 路径 | `src/config/` |
+| 迁移 | 关闭（`synchronize: false`） | `src/config/database.options.ts` |
+
+## 切库
+
+| 目标库 | 依赖 / 驱动 | 配置 | 初始化 | 说明 |
+| --- | --- | --- | --- | --- |
+| PostgreSQL | `pg`（已在 `package.json`） | `DB_DRIVER=postgres`，`DATABASE_URL=postgres://...` | 依次执行 `database/postgres/ddl.sql`、`dml.sql` | 基线 |
+| MySQL | `mysql2` | `DB_DRIVER=mysql`，`mysql://...` | 依次执行 `database/mysql/ddl.sql`、`dml.sql` | — |
+| MariaDB | TypeORM `mysql` 驱动 + `mysql2` | `DB_DRIVER=mariadb`，MariaDB URL/端口 | 依次执行 `database/mariadb/ddl.sql`、`dml.sql` | 不需要额外 `mariadb` 包 |
+| SQLite | `better-sqlite3` | `DB_DRIVER=sqlite`，`sqlite:./orange.db` 或 `DB_NAME` | 依次执行 `database/sqlite/ddl.sql`、`dml.sql` | 原生模块 |
+
+步骤：按引擎建库，先执行 `ddl.sql` 再执行 `dml.sql`，设置驱动与 URL 或 `DB_*`，
+重启后用种子账号验证。`DATABASE_URL` 优先于离散配置。
+
+## 环境配置
+
+| 环境 | 配置 |
 | --- | --- |
-| 受版本控制的文件 | 101 |
-| TypeScript 源文件 | 90（`src/`） |
-| 测试文件 | 11 个 `.spec.ts`（纯单元测试与 SQLite 翻译测试） |
+| 开发 | `.env.local`（已 gitignore）+ 进程环境变量；进程变量优先 |
+| 测试 | `pnpm test`；jest 运行 `src/**/*.spec.ts`，翻译测试使用内存 SQLite |
+| 生产 | 进程环境变量；`pnpm build` 后 `pnpm start:prod` |
 
-统计口径：`git ls-files backend/node-nestjs`。前端接口快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
+## 延伸阅读
 
-> Last verified: c7b6531 · 2026-11-08
-> 事实来源：`package.json`、`pnpm-workspace.yaml`、`.env.example`、`src/config/*.ts`、`src/main.ts`、`src/**/*.spec.ts`、`.github/workflows/main.yml`
+- [后端共同约定](../README.zh-CN.md)
+- [数据库](../../database/README.zh-CN.md)
+- [仓库 README](../../README.zh-CN.md)

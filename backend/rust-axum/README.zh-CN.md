@@ -2,75 +2,109 @@
 
 # Orange · Rust + Axum 后端
 
-本栈用 Rust + Axum 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
+用 Rust + Axum 实现共享 API 契约，行为以 Spring Boot 基准为准。一个进程通过
+`DB_DRIVER` / `DATABASE_URL` 连接一种数据库。后端共同约定见
+[../README.zh-CN.md](../README.zh-CN.md)。
 
-## 技术栈与版本
+## 技术栈与依赖
 
 | 项 | 版本 / 说明 | 来源 |
 | --- | --- | --- |
 | Rust | edition 2021，`rust-version = 1.75` | `Cargo.toml` |
-| Web | axum 0.8、tokio 1（`features = ["full"]`）、tower-http 0.6（cors、trace） | `Cargo.toml` |
-| 数据库 | sqlx 0.8，`runtime-tokio-rustls` + postgres / mysql / sqlite / chrono / uuid / macros / derive | `Cargo.toml` |
-| 认证 | `jsonwebtoken` 9（RS256 / HS256）、`bcrypt` 0.15（`getrandom`） | `Cargo.toml` |
-| 序列化与时间 | serde 1、serde_json 1、chrono 0.4 | `Cargo.toml` |
-| 其他 | uuid 1（v4）、rand 0.8、regex 1、dotenvy 0.15、tracing 0.1、tracing-subscriber 0.3（env-filter） | `Cargo.toml` |
-| 依赖锁定 | `Cargo.lock` 已提交 | 仓库文件 |
-| 测试依赖 | 无 `[dev-dependencies]`，测试全部内联在 `src` | `Cargo.toml` |
-| 接口文档 | utoipa 5 derive + utoipa-swagger-ui 9；`/swagger` + `/openapi.json` | `src/swagger.rs`、`Cargo.toml` |
+| Web | axum 0.8、tokio 1、tower-http 0.6 | `Cargo.toml` |
+| 数据库 | sqlx 0.8，启用 postgres / mysql / sqlite | `Cargo.toml` |
+| 认证 | `jsonwebtoken` 9、`bcrypt` 0.15 | `Cargo.toml` |
+| 序列化 | serde 1、serde_json 1、chrono 0.4 | `Cargo.toml` |
+| 其他 | uuid 1、rand 0.8、regex 1、dotenvy 0.15、tracing | `Cargo.toml` |
+| API 文档 | utoipa 5 + utoipa-swagger-ui 9 | `src/swagger.rs` |
 
-## 命令
+`Cargo.lock` 已入库。所有测试都内联在 `src`，没有 `[dev-dependencies]`。
 
-| 用途 | 命令 | 来源 / 说明 |
-| --- | --- | --- |
-| 安装 | 无独立安装步骤 | `cargo build` 按 `Cargo.lock` 拉取 crate |
-| 启动 | `cargo run` | `src/main.rs`；`.env` 由 `dotenvy::dotenv()` 加载 |
-| 测试 | `cargo test` | `main.yml`（backend job, rust） |
-| 构建 | `cargo build` | `main.yml` 同 job |
+## 环境要求与命令
 
-端口来源变量：`parse_env_any(&["APP_PORT", "PORT"], 8083u16)`（`src/config.rs`），默认 8083；`.env.example` 写 `PORT=8083`，并注明该端口由端口分配约定保留。
+| 用途 | 命令 |
+| --- | --- |
+| 安装 | 无独立步骤；`cargo build` 按 `Cargo.lock` 拉取 crate |
+| 启动 | `cargo run` |
+| 测试 | `cargo test` |
+| 构建 | `cargo build` |
 
-`cargo test`（58 项）与 `cargo build` 已在本地通过。Windows 上没有 MSVC 链接器时，安装 `stable-x86_64-pc-windows-gnu` 工具链并把 MSYS2 的 `gcc` 放进 `PATH`；CI 使用默认的 Linux 工具链。
+Windows 上没有 MSVC linker 时，安装 `stable-x86_64-pc-windows-gnu` 工具链并把
+MSYS2 `gcc` 加入 `PATH`；CI 使用默认 Linux 工具链。`.env` 由
+`dotenvy::dotenv()` 读取。
 
 ## 目录结构与分层
 
 ```text
 src/main.rs          启动、监听、每日审计清理
 src/config.rs        环境变量与配置聚合
-src/db.rs            驱动解析、方言辅助、仓库分发
+src/db.rs            驱动选择、方言 helper、repository 分发
 src/state.rs         Db 与 Arc<Config>
 src/error.rs         业务码与错误包体
-src/response.rs      响应包体与 task-local trace id
+src/response.rs      响应包体与 trace id
 src/middleware.rs    TraceId、认证、可选认证
 src/operation_log.rs 审计策略与中间件
 src/swagger.rs       生成的 /openapi.json 与 /swagger UI
-src/auth/            JWT、bcrypt、锁定计算、cookie
+src/auth/            JWT、bcrypt、锁定、Cookie
 src/domain/          实体、DTO、树与权限策略、校验
-src/repository/      SQLx 查询（按驱动各生成一份）
+src/repository/      每种驱动的 SQLx 查询
 src/service/         业务规则与守卫
-src/routes/          Axum 处理器与路由
+src/routes/          Axum handler 与路由
 ```
 
-## 配置入口
+## API、认证与数据库访问
 
-复制 `.env.example` 为 `.env`（被 gitignore，`dotenvy::dotenv()` 加载）；真实环境变量优先。`DB_DRIVER` 优先于 `DATABASE_URL` 的 scheme；`DATABASE_URL` 优先于离散 `DB_*`，SQLite 另有 `DB_FILE`。变量清单与跨栈对照见 [后端配置约定](../../backend/README.zh-CN.md)。
+- Axum handler 绑定参数、声明 Authority、调用 service；统一响应 helper 写包体，
+  `src/error.rs` 负责错误映射。
+- JWT 使用 `jsonwebtoken`：同时配置 RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的
+  HS256。refresh token 在 HttpOnly Cookie 中轮换。
+- sqlx 查询每种驱动各生成一份，方言差异集中在 `src/db.rs`。SQLite 时间使用
+  ISO-8601 文本，过滤走 `datetime(...)`。
+- `version` 列会递增但不比较，因此并发编辑是最后写入者获胜（与 Go、Python 相同）。
 
-## 本栈偏差
+## 服务配置
 
-1. 测试全部内联：0 个独立测试文件、无 `[dev-dependencies]`，11 个模块内含 `#[cfg(test)]`，共 58 个测试函数（`cargo test` 不需要数据库）。这与 Go、Python 的独立测试目录不同。
-2. 组织为单一二进制 crate：只有 `src/main.rs`，`Cargo.toml` 没有 `[lib]` 目标，模块都是 bin 私有，因此测试只能内联；Go、Python、C# 都有可被外部测试引用的库/模块层。
-3. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/auth/jwt.rs`）。用 OpenSSL 生成的同一对 RSA 密钥六栈通用。
-4. 每个仓库查询按驱动各生成一份（`*_repository!` 宏），方言差异集中在 `src/db.rs`；SQLite 时间戳为 ISO-8601 文本，过滤走 `datetime(...)`。
-5. utoipa derive 与 `#[utoipa::path]` 注解生成 `/openapi.json`；没有静态契约读取器。数据库 schema 仍只来自 `database/<engine>`。
+| 配置项 | 当前值 | 配置位置 | 修改方式 |
+| --- | --- | --- | --- |
+| HTTP 端口 | `8083` | `src/config.rs`：`APP_PORT` → `PORT` → 8083 | 在 `.env` 设置 `APP_PORT` |
+| 监听地址 | `0.0.0.0` | `src/main.rs` | 修改 `src/main.rs` |
+| API 前缀 | `/api/v1` | `src/routes/` | — |
+| Swagger | `/swagger`、`/openapi.json` | `src/swagger.rs` | — |
+| CORS | React/NestJS 开发地址 | `CORS_ORIGINS` | 修改 `.env` |
+| 本地配置 | `.env` | 本栈根目录 | 从 `.env.example` 复制 |
 
-## 规模与测试
+## 数据库配置
 
-| 指标 | 数值 |
+| 配置项 | 当前值 | 配置位置 |
+| --- | --- | --- |
+| 引擎 | PostgreSQL | `DB_DRIVER` 或 URL scheme |
+| 连接 URL | `DATABASE_URL` | `.env.example`、`src/config.rs` |
+| 离散值 | `DB_HOST`、`DB_PORT`、`DB_NAME`、`DB_USER`、`DB_PASSWORD` | `src/config.rs` |
+| SQLite 文件 | `DB_FILE` | `src/config.rs` |
+| 方言 helper | `src/db.rs` | 每种驱动的查询 |
+
+## 切库
+
+| 目标库 | 依赖 / 驱动 | 配置 | 初始化 | 说明 |
+| --- | --- | --- | --- | --- |
+| PostgreSQL | sqlx `postgres`（已在 `Cargo.toml`） | `DB_DRIVER=postgres`，`DATABASE_URL=postgres://...` | 依次执行 `database/postgres/ddl.sql`、`dml.sql` | 基线 |
+| MySQL | sqlx `mysql` | `DB_DRIVER=mysql`，`mysql://...` | 依次执行 `database/mysql/ddl.sql`、`dml.sql` | — |
+| MariaDB | sqlx `mysql`（MySQL URL 形式） | `DB_DRIVER=mariadb`，MariaDB URL/端口 | 依次执行 `database/mariadb/ddl.sql`、`dml.sql` | MariaDB 使用 MySQL 协议 |
+| SQLite | sqlx `sqlite` | `DB_DRIVER=sqlite`，`DB_FILE=./orange.db` | 依次执行 `database/sqlite/ddl.sql`、`dml.sql` | 时间字段是文本 |
+
+步骤：按引擎建库，先执行 `ddl.sql` 再执行 `dml.sql`，设置驱动与 URL 或离散值，
+重启后用种子账号验证。`DATABASE_URL` 优先于离散值；`DB_DRIVER` 优先于 URL scheme。
+
+## 环境配置
+
+| 环境 | 配置 |
 | --- | --- |
-| 受版本控制的文件 | 52 |
-| Rust 源文件 | 45（`src/`） |
-| 测试文件 | 0 个独立测试文件；11 个模块内联 58 个测试函数 |
+| 开发 | `.env`（已 gitignore），由 `dotenvy` 读取；进程环境变量优先 |
+| 测试 | `cargo test`；测试内联，不需要数据库 |
+| 生产 | 进程环境变量；使用 RSA 密钥对或强 `JWT_SECRET` |
 
-统计口径：`git ls-files backend/rust-axum` 与 `src` 内 `#[test]` 计数。端点与方言见 [HTTP 契约](../../frontend/openapi.json)、[数据库方言](../../database/)。
+## 延伸阅读
 
-> Last verified: c7b6531 · 2026-11-08
-> 事实来源：`Cargo.toml`、`Cargo.lock`、`.env.example`、`src/main.rs`、`src/config.rs`、`src/db.rs`、`src/auth/jwt.rs`、`.github/workflows/main.yml`
+- [后端共同约定](../README.zh-CN.md)
+- [数据库](../../database/README.zh-CN.md)
+- [仓库 README](../../README.zh-CN.md)

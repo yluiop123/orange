@@ -3,27 +3,21 @@ English | [简体中文](README.zh-CN.md)
 # Backend
 
 Six API implementations serve one behaviour contract and one database schema.
-Spring Boot is the behavioural reference; the cross-stack contract tests are the
-final authority. The six share no runtime library and never call each other.
-Each backend generates its own OpenAPI document from its own annotations; the
-frontend owns a separate frozen snapshot for its types and Swagger page.
+Spring Boot is the behavioural reference; the other five follow it. They share no
+runtime library and never call each other. Each backend generates its own
+OpenAPI document from its own annotations; the frontend owns a separate frozen
+snapshot for its types and Swagger page.
 
-Repository layout and quick start: [../README.md](../README.md). The frontend
-snapshot is [../frontend/openapi.json](../frontend/openapi.json), schema and seed
-data live in [../database/](../database/), the cross-stack contract runner in
-[../scripts/ci/](../scripts/ci/), and the UI conventions in
-[../frontend/README.md](../frontend/README.md).
+| Stack | Directory | Default port | Documentation |
+| --- | --- | --- | --- |
+| Java 25 + Spring Boot 4 | `backend/springboot` | 8080 | [springboot/README.md](springboot/README.md) |
+| Go + Gin + GORM | `backend/go-gin-gorm` | 8081 | [go-gin-gorm/README.md](go-gin-gorm/README.md) |
+| NestJS 11 | `backend/node-nestjs` | 3000 | [node-nestjs/README.md](node-nestjs/README.md) |
+| ASP.NET Core / .NET 10 | `backend/csharp` | 8082 | [csharp/README.md](csharp/README.md) |
+| Rust + Axum | `backend/rust-axum` | 8083 | [rust-axum/README.md](rust-axum/README.md) |
+| Python + FastAPI | `backend/python-fastapi` | 8000 | [python-fastapi/README.md](python-fastapi/README.md) |
 
-| Stack | Directory | Role |
-| --- | --- | --- |
-| Java 25 + Spring Boot | [springboot/README.md](springboot/README.md) | behaviour reference |
-| Go + Gin + GORM | [go-gin-gorm/README.md](go-gin-gorm/README.md) | second implementation |
-| NestJS | [node-nestjs/README.md](node-nestjs/README.md) | third implementation |
-| ASP.NET Core (.NET 10) | [csharp/README.md](csharp/README.md) | fourth implementation |
-| Rust + Axum | [rust-axum/README.md](rust-axum/README.md) | fifth implementation |
-| Python + FastAPI | [python-fastapi/README.md](python-fastapi/README.md) | sixth implementation |
-
-## 1. Shared layering and responsibilities
+## Request pipeline
 
 Every request takes the same path, and the order is part of the contract:
 
@@ -43,110 +37,102 @@ request
 ```
 
 Authorization precedes DTO validation so an unauthorized caller cannot probe
-parameter rules. Spring enforces this in a `HandlerInterceptor` and FastAPI in
-a `Depends(...)` authority, both of which run before body/argument validation. Error mapping sits outside controllers, so no handler writes its
-own error body. The operation log is written after the response, so a logging
-failure cannot turn a successful request into a failure.
+parameter rules. Error mapping sits outside controllers, so no handler writes its
+own error body. The operation log is written after the response.
 
-| Layer | Only does | Where it lives |
-| --- | --- | --- |
-| Controller / router | binds path and query parameters, declares the Authority, calls the service, wraps the envelope | Spring `controller/`; Go `internal/http/*_handler.go`; NestJS `src/<domain>/*.controller.ts`; ASP.NET Core `Controllers/`; Rust `src/routes/`; FastAPI `app/routers/` |
-| DTO | field shape and format constraints | Spring `domain/<domain>/req/`; Go `*Request` structs and `internal/http/bind.go`; NestJS `*.dto.ts`; ASP.NET Core `Contracts/Requests.cs`; Rust `src/domain/dto.rs`; FastAPI `app/schemas/` |
-| Authentication and authorization | JWT checks, `token_version`, `must_change_password`, Authority checks | Spring `security/`; Go `internal/http/middleware_auth.go`; NestJS `src/auth/*.guard.ts`; ASP.NET Core `Security/AuthenticationMiddleware.cs`; Rust `src/auth/` and `src/middleware.rs`; FastAPI `app/security/dependencies.py` |
-| Service | existence, uniqueness, tree rules, authorization boundaries, transactions | Spring `service/system/impl/`; Go `internal/service/`; NestJS `*.service.ts`; ASP.NET Core `Services/`; Rust `src/service/`; FastAPI `app/services/` |
-| Repository (data access) | queries, writes, dialect branches | Spring `repository/system/`; Go `internal/store/`; NestJS injected TypeORM `Repository`; ASP.NET Core `Data/OrangeDbContext.cs`; Rust `src/repository/`; FastAPI SQLAlchemy `Session` with models in `app/models/` |
-| Error mapping | exception or business message to business code plus HTTP status | Spring `controller/GlobalExceptionHandler.java`; Go `internal/http/response.go` and `internal/domain/errors.go`; NestJS `src/common/all-exceptions.filter.ts`; ASP.NET Core `Middleware/ExceptionHandlingMiddleware.cs`; Rust `src/error.rs`; FastAPI `app/errors.py` |
-| Operation log | records non-GET writes | Spring `config/OperationLogInterceptor.java`; Go `internal/http/middleware.go`; NestJS `src/operation-log/operation-log.interceptor.ts`; ASP.NET Core `Middleware/OperationLogMiddleware.cs`; Rust `src/operation_log.rs`; FastAPI `app/middleware.py` |
+| Layer | Responsibility |
+| --- | --- |
+| Controller / router | binds parameters, declares the Authority, calls the service, wraps the envelope |
+| DTO | field shape and format constraints |
+| Authentication / authorization | JWT checks, `token_version`, `must_change_password`, Authority checks |
+| Service | existence, uniqueness, tree rules, authorization boundaries, transactions |
+| Repository | queries, writes, dialect branches |
+| Error mapping | business message or exception to business code plus HTTP status |
+| Operation log | records non-GET writes |
 
-Go, ASP.NET Core and FastAPI wrap the whole request, so rejected requests
-(401/403/400) are logged too; Spring, NestJS and Rust install the recorder after
-authentication, so only requests that reach the handler are logged.
+Go, ASP.NET Core and FastAPI wrap the whole request, so rejected requests are
+logged too; Spring, NestJS and Rust install the recorder after authentication, so
+only requests that reach the handler are logged. "Repository" is a logical layer,
+not a required directory.
 
-"Repository" is a logical layer, not a required directory: NestJS injects a
-TypeORM `Repository`, ASP.NET Core and FastAPI use `DbContext` and `Session`
-inside the service. A layer may collapse; its responsibility may not. Format
-validation never enters the service, and business rules never enter a controller.
+## Response envelope and error codes
 
-## 2. Response envelope and error codes
-
-Every `/api/v1` response, including errors and unknown routes, has the same shape:
+Every `/api/v1` response, including errors and unknown routes, has the same
+shape:
 
 ```json
 { "code": 200, "message": "success", "data": null, "timestamp": 1762483200000, "traceId": "9f8c1b2d3e4f5a6b" }
 ```
 
-`code` is the business code (`200` on success), `timestamp` is server time in
-milliseconds, `traceId` matches the `X-Trace-Id` response header, and `data` is
-the payload or a `{field: message}` map for validation failures. On success, a
-string payload is copied into both `message` and `data` in every stack.
+`code` is the business code, `timestamp` is server time in milliseconds,
+`traceId` matches the `X-Trace-Id` response header, and `data` is the payload or a
+`{field: message}` map for validation failures.
 
-| code | HTTP | Meaning | Typical trigger |
-| --- | --- | --- | --- |
-| `40001` | 400 | bad request | malformed JSON, missing required query parameter, unconvertible type |
-| `40002` | 400 | validation failed | DTO format violation, or a business message with no mapping keyword |
-| `40101` | 401 | not signed in | missing, invalid or expired token, revoked `jti`, `token_version` mismatch, disabled account, wrong password |
-| `40301` | 403 | forbidden | signed in but missing the Authority the endpoint requires |
-| `40302` | 403 | change the initial password first | `must_change_password=true` and the path is not on the allowlist |
-| `40401` | 404 | not found | lookup by id returns nothing, or the route does not exist |
-| `40501` | 405 | method not allowed | the path exists, but not for this method |
-| `40901` | 409 | conflict | unique or foreign-key violation, optimistic-lock failure, protected delete |
-| `429` | 429 | too many login attempts | the account or IP lockout threshold is reached |
-| `50000` | 500 | internal error | uncaught exception |
-
-The mapping tables are `domain/common/ErrorCode.java` in Spring,
-`internal/domain/errors.go` in Go, `src/common/error-code.ts` in NestJS,
-`Domain/ErrorCodes.cs` in ASP.NET Core, `src/error.rs` in Rust and `app/errors.py`
-in FastAPI. New endpoints reuse these codes and never invent numbers.
-
-Spring, Rust and ASP.NET Core choose `40401` or `40901` from keywords in the
-business message: `不存在` maps to `40401`; `已存在`, `已被`, `不能删除` and
-`请先禁用子组织` map to `40901`; anything else falls back to `40002`. Editing a
-message can therefore change the HTTP status, so search for those keywords first.
-
-`429` is the only code outside the Spring `ErrorCode` enum: `LoginController`
-writes the literal, while NestJS, Go, ASP.NET Core and Rust define a constant and
-FastAPI returns it from the auth router for the same lockout rule.
+| Code | HTTP | Meaning |
+| --- | --- | --- |
+| `40001` | 400 | bad request: malformed JSON, missing parameter, unconvertible type |
+| `40002` | 400 | validation failed |
+| `40101` | 401 | not signed in: missing/invalid token, revoked `jti`, `token_version` mismatch, disabled account, wrong password |
+| `40301` | 403 | signed in but missing the required Authority |
+| `40302` | 403 | initial password change required |
+| `40401` | 404 | resource or route not found |
+| `40501` | 405 | method not allowed |
+| `40901` | 409 | conflict: unique/foreign-key violation, optimistic-lock failure, protected delete |
+| `429` | 429 | login lockout threshold reached |
+| `50000` | 500 | uncaught exception |
 
 Pagination is always `{ total, list, page, size, totalPages }`. `page` defaults to
-1 and `size` to 10; `totalPages` rounds up; a page past the end returns an empty
-list rather than an error. Sorting accepts a whitelist and silently falls back to
-the default field outside it.
+1 and `size` to 10; a page past the end returns an empty list. Sorting accepts a
+whitelist and silently falls back to the default field outside it.
 
-## 3. Configuration
+## Authentication and permissions
+
+- Passwords use bcrypt with cost 10; every stack accepts `{bcrypt}$2a$...`,
+  `{bcrypt}$2b$...` and a bare bcrypt row, so a password changed by one stack
+  verifies in another.
+- Access tokens are short-lived. Refresh tokens are rotated and stored in an
+  HttpOnly cookie. Revoked `jti` values and `token_version` are checked on every
+  request.
+- A permission is `type + path + action`. Effective permissions are the union of
+  enabled roles plus direct grants minus disabled permissions. Role switching is
+  UI-only and never reduces backend Authority.
+- Menus are database rows: `sys_permission.name` is the default name and
+  `sys_permission_i18n` stores one row per locale. `/auth/menus` resolves the
+  `Locale` header through exact locale, language and default-name fallbacks.
+
+## Configuration
 
 Configuration comes from the process environment, optionally seeded from a local
-file at startup. Only the precedence rules are shared. The full variable tables
-live in each stack's `.env.example` or YAML file and in its README, not here.
+file at startup. Only the precedence rules are shared; each stack's README and
+`.env.example` / YAML file list the exact variables.
 
-- Database URL: a complete URL overrides every discrete value. Five stacks read
-  `DATABASE_URL`; Spring Boot orders
+- **Database URL**: a complete URL overrides every discrete value. Five stacks
+  read `DATABASE_URL`; Spring Boot orders
   `SPRING_DATASOURCE_URL > DB_URL > spring.datasource.url` and builds a JDBC URL
-  from `DB_HOST`/`DB_PORT`/`DB_NAME` only when no URL is set. Its credentials are
-  `SPRING_DATASOURCE_USERNAME/PASSWORD > DB_USER/DB_PASSWORD`.
-  Once a URL is set, changing only `DB_PASSWORD` has no effect.
-- Engine: `DB_DRIVER` wins, otherwise the URL scheme decides, otherwise
-  PostgreSQL. MariaDB speaks the MySQL protocol, so `mariadb://` and `mysql://`
-  both connect; Spring also rewrites `jdbc:mariadb:` to `jdbc:mysql:`.
-- Port: every stack reads `APP_PORT`. Spring Boot reads only `APP_PORT`; the other
-  five fall back to `PORT` and then to their own default.
-- JWT: all six stacks apply the same rule. When `JWT_PRIVATE_KEY` and
-  `JWT_PUBLIC_KEY` are both set they sign and verify with RS256; each value may
-  be an inline PEM or a file path. Otherwise they use HS256 with `JWT_SECRET`.
-  Setting only one key is a startup error. In production set the RSA pair
-  (recommended) or a non-default secret of at least 32 bytes.
-- Passwords: all six use bcrypt with cost 10 and store `{bcrypt}$2a$...` /
-  `{bcrypt}$2b$...`; every implementation accepts a bare bcrypt row too, so a
-  password changed by one stack still verifies in another.
-- Generate a development pair with OpenSSL at the repository root
-  (`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out
-  keys/jwt-private.pem`, then `openssl rsa -pubout -in keys/jwt-private.pem -out
-  keys/jwt-public.pem`); both files are gitignored. Point a backend at it with
-  `JWT_PRIVATE_KEY=../../keys/jwt-private.pem` and
-  `JWT_PUBLIC_KEY=../../keys/jwt-public.pem`, or pass the absolute paths. All
-  six then produce `alg: RS256` tokens.
-- Local overrides are never committed: `application-local.yaml` with
+  from `DB_HOST` / `DB_PORT` / `DB_NAME` only when no URL is set.
+- **Engine**: `DB_DRIVER` wins, otherwise the URL scheme, otherwise PostgreSQL.
+  MariaDB speaks the MySQL protocol, so `mariadb://` and `mysql://` both connect;
+  Spring rewrites `jdbc:mariadb:` to `jdbc:mysql:`.
+- **Port**: every stack reads `APP_PORT`. Spring Boot reads only `APP_PORT`; the
+  other five fall back to `PORT` and then their own default.
+- **JWT**: when `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` are both set, the stacks
+  sign and verify with RS256; each value may be an inline PEM or a file path.
+  Otherwise they use HS256 with `JWT_SECRET`. Setting only one key is a startup
+  error. In production use the RSA pair (recommended) or a non-default secret of
+  at least 32 bytes.
+- **Local overrides** are never committed: `application-local.yaml` with
   `SPRING_PROFILES_ACTIVE=local` for Spring Boot, `.env.local` for Go, NestJS and
   ASP.NET Core, `.env` for Rust and FastAPI.
+
+Generate a development RSA pair with OpenSSL at the repository root:
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/jwt-private.pem
+openssl rsa -pubout -in keys/jwt-private.pem -out keys/jwt-public.pem
+```
+
+Point a backend at it with `JWT_PRIVATE_KEY=../../keys/jwt-private.pem` and
+`JWT_PUBLIC_KEY=../../keys/jwt-public.pem`.
 
 | Stack | Committed configuration | Local file |
 | --- | --- | --- |
@@ -158,14 +144,13 @@ Applications never create tables: Spring sets `ddl-auto: none`, NestJS sets
 `synchronize: false`, and the other four only read the existing schema. Schema
 ownership belongs to [../database/](../database/).
 
-## 4. Switching database
+## Switching database
 
 PostgreSQL is the reference; MySQL, MariaDB and SQLite are supported. Before
-switching, create the database if the engine needs one, then load
-`ddl.sql` followed by `dml.sql` from the matching [../database/](../database/)
-engine directory. An empty SQLite file connects, but every query fails until the
-schema is loaded. There is no bundled database launcher; start the engine you
-need and load the matching `ddl.sql` and `dml.sql` yourself.
+switching, create the database if the engine needs one, then load `ddl.sql`
+followed by `dml.sql` from the matching [../database/](../database/) engine
+directory. An empty SQLite file connects, but every query fails until the schema
+is loaded.
 
 | Engine | `DB_DRIVER` | `DATABASE_URL` (five stacks) | Spring JDBC URL |
 | --- | --- | --- | --- |
@@ -180,43 +165,33 @@ Boot enables foreign keys and `date_class=text` itself; hand-written JDBC URLs
 must keep those parameters. MariaDB commonly listens on 3307 in the sample URL,
 so change `DB_DRIVER` and the port together.
 
-Verify a switch by running the server and then
-[../scripts/ci/contract-test.mjs](../scripts/ci/contract-test.mjs) against its
-base URL. A stale `DATABASE_URL` is the usual reason a new `DB_HOST` appears to
-be ignored.
+Each stack's README has the exact driver, ORM and file locations. Verify a switch
+by starting the server and exercising it with the seed credentials; a stale
+`DATABASE_URL` is the usual reason a new `DB_HOST` appears to be ignored.
 
-## 5. Adding an endpoint
+## Adding an endpoint
 
 1. Define the behaviour in the reference implementation first: method, path,
-   Authority, request and response schemas, and every error the endpoint can
-   return. Annotate the Spring controller/DTOs so springdoc includes it, then
-   mirror the annotations in the other five stacks. Update
+   Authority, request/response schemas and every error the endpoint can return.
+   Annotate the Spring controller and DTOs so springdoc includes it, then mirror
+   the annotations in the other five stacks. Update
    [../frontend/openapi.json](../frontend/openapi.json) when the consumer-facing
-   shape changes, because that file drives the frontend types and Swagger page.
-2. Add the DTO and its format constraints. Validation failures return `40002`
-   with `{field: message}` in `data`; a body that is not valid JSON is `40001`.
+   shape changes.
+2. Add the DTO and its constraints. Validation failures return `40002` with
+   `{field: message}` in `data`; malformed JSON is `40001`.
 3. Implement the rule in the service layer: existence, uniqueness, tree and
-   authorization boundaries, transaction. Throw a business message only when the
-   centralized mapping turns it into the intended code.
+   authorization boundaries, transaction.
 4. Wire the controller or handler: declare the Authority
    (`action#/system/role:edit` style), call the service, return the envelope. A
-   Spring `@PreAuthorize` string must exist in the permission catalog
-   `database/permissions.json`, otherwise the authority-coverage test fails.
-5. Write no logging code. A non-GET request under `/api/v1/system/` or
-   `/api/v1/auth/change-password` is recorded automatically; login, refresh and
-   password paths omit the body, and keys containing `password`, `token` or
-   `secret` are masked. Query and body are truncated at 500 and 4000 characters,
-   and a failed log write only produces a warning.
-6. Repeat the change in all six stacks, using the layer table above. The
-   per-stack README lists the exact directories; the Node stack installs and
-   tests with `pnpm install` and `pnpm test`.
-7. Test before merging: service unit tests and `contract-test.mjs` against the
-   running server. The script lives in [../scripts/ci/](../scripts/ci/). The
-   contract test covers a fixed behaviour set
-   and does not discover new paths, so add explicit assertions for the endpoint:
-   the write returns `200`, then a read shows the new state.
+   Spring `@PreAuthorize` string must exist in `database/permissions.json`.
+5. Write no logging code. Non-GET requests under `/api/v1/system/` and
+   `/api/v1/auth/change-password` are recorded automatically; secrets are masked
+   and query/body are truncated.
+6. Repeat the change in all six stacks. Run service unit tests, then start the
+   server and verify the new endpoint manually: the write returns `200`, then a
+   read shows the new state.
 
-## 6. Swagger
+## Swagger
 
 Documentation endpoints sit outside `/api/v1`, do not use the business envelope,
 and are generated by each framework:
@@ -230,8 +205,11 @@ and are generated by each framework:
 | Go | swaggo handler annotations | `/openapi.json`, `/swagger` |
 | Rust | utoipa derives and path annotations | `/openapi.json`, `/swagger` |
 
-There is no shared runtime document. The document reflects the code: a path that
-is not annotated does not appear, so add or update the annotation in each stack
-when the endpoint changes.
+There is no shared runtime document. A path that is not annotated does not
+appear, so update the annotation in each stack when the endpoint changes.
 
-> Last verified: c7b6531 · 2026-11-08
+## Documentation
+
+- [Frontend overview](../frontend/README.md)
+- [Database](../database/README.md)
+- [Repository README](../README.md)

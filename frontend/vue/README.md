@@ -1,48 +1,64 @@
 English | [简体中文](README.zh-CN.md)
 
-# ORANGE Vue frontend
+# Orange · Vue frontend
 
-Vue 3 + Vuetify implementation with the same product scope as the React reference; this page covers installation, commands, layout, dependencies and deviations only.
+Vue 3 + Vuetify implementation with the same product scope as the React
+reference. This page covers installation, commands, layout, configuration and
+stack-specific deviations; shared conventions are in
+[../README.md](../README.md).
 
-## Environment and installation
+## Stack and dependencies
 
-- Node.js (version pinned by Vite 8) and pnpm; `package.json` sets `packageManager` to `pnpm@12.15.0`.
-- This directory ships its own `pnpm-lock.yaml`.
+| Item | Version / notes | Source |
+| --- | --- | --- |
+| Framework | Vue 3.5 | `package.json` |
+| Build | Vite 8, `@vitejs/plugin-vue`, TypeScript 5.9 | `package.json`, `vite.config.ts` |
+| UI | Vuetify 3.13, Material Design Icons | `src/main.ts` |
+| State and routing | Pinia 3, Vue Router 4 (`createWebHistory`) | `src/stores/`, `src/router/` |
+| HTTP | Axios | `src/api/http.ts` |
+| Mock | Custom Axios adapter with in-memory seed data | `src/mock/` |
+| i18n | `vue-i18n` 11 | `src/i18n/` |
+| Tests | Vitest | `vitest.config.ts` |
+| Charts and maps | ECharts, Chart.js, D3, Cesium, deck.gl, Leaflet, OpenLayers, Babylon.js | `package.json` |
+
+## Requirements and installation
+
+- Node.js 20.19+ or 22.12+ and pnpm 12.15.0.
+- This directory has its own `pnpm-lock.yaml`.
 
 ```bash
 cd frontend/vue
 pnpm install
+pnpm dev        # http://127.0.0.1:5174
 ```
-
-`.env.development` sets `VITE_MOCK_ENABLE=true` by default, so login works without a backend; accounts are `super / super`, `admin / admin` and `user / user`. `.env.local` is ignored by the `*.local` rule.
 
 ## Commands
 
-| Command | Actually runs | Purpose |
+| Command | Runs | Purpose |
 | --- | --- | --- |
-| `pnpm dev` | `vite --port 5174` | Dev server, fixed at 5174 |
-| `pnpm build` | `vue-tsc -b && vite build` | Production build after type checking |
-| `pnpm preview` | `vite preview --port 5174` | Preview the build output |
-| `pnpm typecheck` | `vue-tsc -b` | Type checking only |
-| `pnpm test` | `vitest run` | Unit tests (`src/**/*.test.ts`, node environment) |
+| `pnpm dev` | `vite --port 5174` | Dev server on port 5174 |
+| `pnpm build` | `vue-tsc -b && vite build` | Type-check and production build |
+| `pnpm preview` | `vite preview --port 5174` | Preview the build |
+| `pnpm typecheck` | `vue-tsc -b` | Type-check only |
+| `pnpm test` | `vitest run` | Unit tests |
 | `pnpm test:watch` | `vitest` | Watch mode |
-| `pnpm lint` | `eslint . --max-warnings=0` | ESLint, zero warnings |
-| `pnpm format` | `prettier --write .` | Formatting |
+| `pnpm lint` | `eslint . --max-warnings=0` | Lint with zero warnings |
+| `pnpm format` | `prettier --write .` | Format |
 
 ## Directory structure
 
 ```text
 frontend/vue/
   src/
-    api/            axios instance, auth and per-resource requests, hand-written types
+    api/            Axios instance, auth and resource calls, hand-written types
     auth/           token, refresh, session hint, forced password-change flag
     components/     ActionAuth, FormDialog, ResourceTable, layout/, showcase/
     composables/    useAccess, useResourcePage, usePageTitle
-    config/         permissions.json (synced copy), menu-icons.ts
+    config/         permissions.json, menu-icons.ts
     i18n/           index.ts, zh-CN.ts, en-US.ts
     layouts/        AppLayout.vue
     lib/            access, menu, path, tree-code, validation
-    mock/           axios adapter and in-memory seed
+    mock/           Axios adapter and in-memory seed
     router/         route table and global guards
     stores/         auth, menu, ui, pinia
     styles/         main.css, system.css
@@ -52,45 +68,66 @@ frontend/vue/
   vite.config.ts / vitest.config.ts
 ```
 
-## Dependencies of this stack
+## Routing, state and API
 
-`package.json` has 17 runtime dependencies and 18 dev dependencies.
+- Routing uses `createWebHistory`. Pages and `CONTAINER_PATHS` are registered by
+  hand in `src/router/index.ts`; a new container must update both.
+- `router.beforeEach` checks public routes, token, user info, menus and `canView`,
+  then redirects to `/forbidden`. Actions are controlled by `ActionAuth`.
+- `src/api/http.ts` uses `VITE_API_BASE` (default `/api/v1/`), always sends
+  `Authorization` and `Locale`, and sets `withCredentials: true` for the refresh
+  cookie. On 401 it performs one single-flight refresh and retries once.
+- `src/api/types.ts` hand-writes `Envelope`, `PageResult` and entity types because
+  this stack has no code-generation script.
 
-| Category | Dependencies |
+## UI and styles
+
+Vuetify components are registered globally in `src/main.ts`, with the `outlined`
+variant, `comfortable` density and MDI icons. Theming uses Vuetify's `light` /
+`dark` theme objects; the colour picker writes `theme.themes.value` directly, and
+persistence keys are `orange.theme` / `orange.color`. The app defaults to dark.
+
+Cesium is copied to `cesium-package/` by `vite-plugin-cesium-build` and loaded
+dynamically only on `/map/cesium`; it uses OpenStreetMap and needs no Ion token.
+
+## Runtime configuration
+
+| Item | Current value | Location | How to change |
+| --- | --- | --- | --- |
+| Dev server | `0.0.0.0:5174` | `vite.config.ts` / `package.json` | Change `VITE_PORT` or the `--port` flag |
+| API base | `/api/v1/` | `.env` (`VITE_API_BASE`) | Edit the env file or export the variable |
+| Dev proxy | `http://127.0.0.1:8080` | `.env` (`VITE_PROXY_TARGET`) | Point it at another backend |
+| Mock | On in development | `.env.development` (`VITE_MOCK_ENABLE=true`) | `VITE_MOCK_ENABLE=false` |
+
+## Backend connection and mock
+
+| Mode | Configuration | Notes |
+| --- | --- | --- |
+| Mock | `VITE_MOCK_ENABLE=true` | Development default; a custom Axios adapter returns seed data |
+| Proxy to backend | `VITE_MOCK_ENABLE=false` + `VITE_PROXY_TARGET` | Vite proxies `/api`; cookies stay same-origin |
+| Direct backend | `VITE_API_BASE=http://127.0.0.1:8080/api/v1/` | Requires backend CORS and cross-site cookie settings |
+
+Vite precedence is `.env` < `.env.local` < `.env.<mode>` < `.env.<mode>.local`.
+Use `.env.development.local` or a process variable to disable mock locally.
+
+| Environment | File |
 | --- | --- |
-| Framework and UI | `vue`, `vuetify`, `@mdi/font` |
-| Routing, state, i18n | `vue-router`, `pinia`, `vue-i18n` |
-| HTTP | `axios` |
-| Charts | `echarts`, `chart.js`, `d3` |
-| Maps | `leaflet`, `ol`, `@deck.gl/core`, `@deck.gl/layers`, `cesium` |
-| 3D | `three`, `@babylonjs/core` |
+| Base | `.env` |
+| Development | `.env.development` |
+| Local override (gitignored) | `.env.local`, `.env.development.local` |
+| Production | Base + build-time environment variables |
 
-Vuetify components are registered globally in `src/main.ts`, the default form variant is `outlined`, `density: comfortable`, and the icon set is MDI.
+## Deviations of this stack
 
-## Relationship to the contract
-
-- The contract is `frontend/openapi.json`, but this stack has no code-generation script; `src/api/types.ts` hand-writes `Envelope`, `PageResult` and the entity types, and `src/api/*.ts` returns `response.data.data`.
-- `src/api/http.ts` uses `VITE_API_BASE` as its base URL (default `/api/v1/`), always sends `Authorization` and `Locale`, and sets `withCredentials: true` so the refresh cookie is carried.
-- On 401 it performs a single-flight `POST /auth/refresh` and retries once; 403 opens the forbidden dialog and `40302` opens forced password change.
-- Endpoints and error codes are in the [HTTP contract](../openapi.json).
-- The app serves its own frozen Swagger page at `/swagger`, reading `public/openapi.json`; it never requests documentation from a running backend.
-
-## Conventions and deviations of this stack
-
-- Routing uses `createWebHistory`; pages are registered by hand in `src/router/index.ts`, and the container paths `CONTAINER_PATHS` are a hand-written list too — a new container must update it.
-- The global guard `router.beforeEach` checks public routes, token, user-info, menus and `canView`; action permissions are controlled by the `ActionAuth` component.
-- Mocking is not MSW but an Axios adapter replacing `http.defaults.adapter` (`src/mock/index.ts` + `seed.ts`), with state kept in memory.
-- Menu titles are taken from `GET /api/v1/auth/menus` (`sys_permission_i18n`, selected by the backend from the `Locale` header); the frontend keeps no title catalogue.
-- Theming uses Vuetify's `light` / `dark` theme objects; the colour picker writes `theme.themes.value` directly, and persistence keys are `orange.theme` / `orange.color`.
-- Some chart pages are substituted: AntV pages render with ECharts and Recharts pages with Chart.js; `/map/l7` does not load L7 and uses a tokenless point-layer card demo instead.
-- Cesium is copied to `cesium-package/` by `vite-plugin-cesium-build`, loaded dynamically only at `/map/cesium`, uses OpenStreetMap imagery and needs no Ion token.
-- Unit tests are 4 files covering access, path, tree-code and page-clamp; there are no DOM component tests.
+- Routes are hand-written instead of collected from the filesystem.
+- Mocking replaces `http.defaults.adapter`; it is not MSW.
+- Some chart pages are substituted: AntV pages render with ECharts, Recharts
+  pages with Chart.js, and `/map/l7` does not load L7.
+- Unit tests are 4 files covering access, path, tree code and page clamp; there
+  are no DOM component tests.
 
 ## Further reading
 
-- [Frontend overview: architecture, design system, permission visibility, adding a page, mock switching](../../frontend/README.md)
-- [Repository stack and command matrix](../../README.md)
+- [Frontend overview](../README.md)
 - [HTTP contract](../openapi.json)
-
-> Last verified: c7b6531 · 2026-11-08
-> Sources: frontend/vue/package.json, frontend/vue/vite.config.ts, frontend/vue/vitest.config.ts, frontend/vue/.env*, frontend/vue/src/main.ts, frontend/vue/src/router/index.ts, frontend/vue/src/api/http.ts, frontend/vue/src/mock/index.ts, frontend/vue/src/views/chart/AntvView.vue, frontend/vue/src/views/chart/RechartView.vue, frontend/vue/src/views/map/CesiumView.vue, frontend/vue/src/views/map/L7View.vue
+- [Repository README](../../README.md)

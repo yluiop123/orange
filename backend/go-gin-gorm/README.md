@@ -2,34 +2,36 @@ English | [简体中文](README.zh-CN.md)
 
 # Orange · Go + Gin + GORM backend
 
-This stack implements the same API contract in Go, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER`.
+Implements the shared API contract in Go, following the Spring Boot reference for
+behaviour. One process connects to one database selected by `DB_DRIVER`. Shared
+backend conventions are in [../README.md](../README.md).
 
-## Tech stack and versions
+## Stack and dependencies
 
 | Item | Version / notes | Source |
 | --- | --- | --- |
-| Go | 1.23.0 (CI uses `1.23.x`) | `go.mod`, `main.yml` |
+| Go | 1.23.0 | `go.mod` |
 | HTTP | Gin 1.10.1 | `go.mod` |
-| ORM | GORM 1.30.1 + `gorm.io/driver/postgres` 1.6.0, `gorm.io/driver/mysql` 1.6.0 | `go.mod` |
+| ORM | GORM 1.30.1 + PostgreSQL/MySQL drivers | `go.mod` |
 | SQLite | `github.com/glebarez/sqlite` 1.11.0 (pure Go, no cgo) | `go.mod` |
 | JWT | `github.com/golang-jwt/jwt/v5` 5.2.2 | `go.mod` |
 | Validation | `go-playground/validator/v10` 10.20.0 | `go.mod` |
 | Other | `golang.org/x/crypto` (bcrypt), `google/uuid`, `joho/godotenv` | `go.mod` |
-| API documentation | swaggo annotations + gin-swagger; `/swagger` + `/openapi.json` | `internal/http/swagger.go`, `docs/` |
-| Build | `go` toolchain only, no Makefile | directory contents |
+| API documentation | swaggo annotations + gin-swagger | `internal/http/swagger.go`, `docs/` |
 
-## Commands
+## Requirements and commands
 
-| Purpose | Command | Source / notes |
-| --- | --- | --- |
-| Install | `go mod download` | `go.sum` is committed; CI resolves dependencies directly with `go build ./...` |
-| Start | `go run ./cmd/server` | `cmd/server/main.go`; `.env.local` is loaded by godotenv |
-| Test | `go test ./...` | `main.yml` (backend job, go) |
-| Format and static checks | `gofmt -l .` must be empty, plus `go vet ./...` | same job in `main.yml` |
-| Build | `go build -o bin/server ./cmd/server` | `main.yml`; `go build ./...` is also used |
-| Optional smoke | `ORANGE_SMOKE=1 go test ./internal/http -run TestSmokeAgainstConfiguredDatabase -v` | `internal/http/smoke_test.go:25`; skipped when the database is unreachable |
+| Purpose | Command |
+| --- | --- |
+| Install | `go mod download` |
+| Start | `go run ./cmd/server` |
+| Test | `go test ./...` |
+| Format check | `gofmt -l .` (must be empty) |
+| Static check | `go vet ./...` |
+| Build | `go build -o bin/server ./cmd/server` |
+| Optional database smoke | `ORANGE_SMOKE=1 go test ./internal/http -run TestSmokeAgainstConfiguredDatabase -v` |
 
-Port source variable: `env("APP_PORT", env("PORT", "8081"))` (`internal/config/config.go:211`), default 8081; `.env.example` only sets `PORT=8081`.
+`.env.local` is loaded by godotenv at startup and is gitignored.
 
 ## Directory structure and layering
 
@@ -37,35 +39,71 @@ Port source variable: `env("APP_PORT", env("PORT", "8081"))` (`internal/config/c
 cmd/server/            process entry point, graceful shutdown, log retention
 internal/config/       environment variables and connection strings
 internal/auth/         JWT, bcrypt, refresh cookie
-internal/domain/       pure policy: code shape, permission shape, effective permissions, tree index, login lockout, audit rules
+internal/domain/       pure policy: code shape, permission shape, tree, lockout, audit
 internal/store/        GORM models and queries, timestamp serialization
-internal/service/      business rules: RBAC, tree and reference guards, pagination
+internal/service/      business rules: RBAC, tree guards, pagination
 internal/http/         Gin routes, middleware, handlers, response envelopes
 ```
 
-Policy and business logic do not live in the Gin layer; unit tests exercise these packages directly. Endpoints and database support are not maintained on this page; see the [frontend API snapshot](../../frontend/openapi.json) and [database dialects](../../database/).
+Policy and business logic stay out of the Gin layer; unit tests exercise these
+packages directly. Responses use the shared envelope and error codes.
 
-## Configuration entry point
+## API, auth and database access
 
-Copy `.env.example` to `.env.local` (gitignored, read by godotenv at startup); real environment variables take precedence over that file. `DATABASE_URL` overrides the discrete `DB_*` variables, and when `DB_DRIVER` is unset the engine is inferred from the URL scheme. The variable list, precedence and cross-stack comparison are in the [backend configuration conventions](../../backend/README.md).
+- Gin handlers bind parameters, declare the Authority and call services. The
+  central response helper writes the envelope; error codes are in
+  `internal/domain/errors.go`.
+- JWT uses `golang-jwt/jwt/v5`: RS256 when both RSA keys are set, otherwise
+  HS256 with `JWT_SECRET`. Refresh tokens rotate in an HttpOnly cookie.
+- GORM maps the shared schema; the application does not migrate. SQLite uses a
+  pure-Go driver and a single connection to avoid `SQLITE_BUSY`; other engines use
+  a pool of 10.
+- The `version` column is written but not compared, so concurrent edits are
+  last-write-wins (same as the Rust and Python ports).
 
-## Deviations of this stack
+## Service configuration
 
-1. Swagger is generated by swaggo annotations and served with gin-swagger (`internal/http/swagger.go`, `docs/`); there is no static contract reader.
-2. SQLite uses a pure Go driver and builds with `CGO_ENABLED=0`; to avoid `SQLITE_BUSY` the SQLite pool is capped at 1 (`internal/store/store.go:57`), while other engines get 10 (same file, line 60).
-3. JWT follows the shared rule: `JWT_PRIVATE_KEY` + `JWT_PUBLIC_KEY` (inline PEM or a path; the `_PATH` aliases still work) select RS256, otherwise `JWT_SECRET` selects HS256. The same OpenSSL-generated RSA pair is accepted by all six stacks.
-4. The `version` optimistic lock is not maintained: the column exists in the models (`internal/store/models.go`), is written as 0 on create, is not incremented on update and is not compared with `WHERE version`, so concurrent edits are last-write-wins. Rust and Python increment it but likewise never compare.
-5. Go is the only port of the six whose CI additionally requires `gofmt` and `go vet` to pass.
+| Item | Current value | Location | How to change |
+| --- | --- | --- | --- |
+| HTTP port | `8081` | `internal/config/config.go`: `APP_PORT` → `PORT` → 8081 | Set `APP_PORT` or `PORT` in `.env.local` |
+| API prefix | `/api/v1` | Gin route group | — |
+| Swagger | `/swagger`, `/openapi.json` | `internal/http/swagger.go` | — |
+| CORS | React/Vue/Angular dev origins | `CORS_ORIGINS` | Edit `.env.local` |
+| Local config | `.env.local` | repository root of this stack | Copy `.env.example` |
 
-## Size and tests
+## Database configuration
 
-| Metric | Value |
+| Item | Current value | Location |
+| --- | --- | --- |
+| Engine | PostgreSQL | `DB_DRIVER` or URL scheme |
+| Connection URL | `DATABASE_URL` overrides discrete values | `.env.example`, `internal/config/` |
+| Discrete values | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSLMODE`, `DB_TIMEZONE` | `internal/config/` |
+| SQLite file | `DB_PATH` (alias `SQLITE_PATH`) | `internal/config/` |
+| Pool | SQLite 1 connection; others 10 | `internal/store/store.go` |
+
+## Switching database
+
+| Target | Dependency / driver | Configuration | Initialization | Notes |
+| --- | --- | --- | --- | --- |
+| PostgreSQL | `gorm.io/driver/postgres` (already in `go.mod`) | `DB_DRIVER=postgres`, `DATABASE_URL=postgres://...` | `database/postgres/ddl.sql` then `dml.sql` | Reference |
+| MySQL | `gorm.io/driver/mysql` + `go-sql-driver/mysql` | `DB_DRIVER=mysql`, `DATABASE_URL=mysql://...` | `database/mysql/ddl.sql` then `dml.sql` | — |
+| MariaDB | MySQL driver (no MariaDB package) | `DB_DRIVER=mariadb`, MariaDB URL/port | `database/mariadb/ddl.sql` then `dml.sql` | MariaDB speaks the MySQL protocol |
+| SQLite | `github.com/glebarez/sqlite` | `DB_DRIVER=sqlite`, `DB_PATH=./orange.db` | `database/sqlite/ddl.sql` then `dml.sql` | Pure Go; pool capped at 1 |
+
+Steps: create the database if needed, load `ddl.sql` then `dml.sql`, set
+`DB_DRIVER` and the URL or `DB_*` values, restart, then verify with the seed
+accounts. `DATABASE_URL` wins over the discrete values.
+
+## Environment configuration
+
+| Environment | Configuration |
 | --- | --- |
-| Version-controlled files | 68 |
-| Go source files | 60 |
-| Test files | 15 `_test.go` files (including `internal/http` route tests and the optional database smoke test) |
+| Development | `.env.local` (gitignored) + process environment; process wins |
+| Test | `go test ./...`; the optional smoke test runs only when `ORANGE_SMOKE=1` and the database is reachable |
+| Production | process environment only; set the RSA pair or a strong `JWT_SECRET` |
 
-Counting basis: `git ls-files backend/go-gin-gorm`. Why the stacks differ is covered by the [backend shared conventions and deviations](../../backend/README.md).
+## Further reading
 
-> Last verified: c7b6531 · 2026-11-08
-> Sources: `go.mod`, `go.sum`, `.env.example`, `cmd/server/main.go`, `internal/**`, `.github/workflows/main.yml`
+- [Backend conventions](../README.md)
+- [Database](../../database/README.md)
+- [Repository README](../../README.md)

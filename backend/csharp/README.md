@@ -2,34 +2,35 @@ English | [简体中文](README.zh-CN.md)
 
 # Orange · C# / ASP.NET Core backend
 
-This stack implements the same API contract with .NET 10 + ASP.NET Core + EF Core, following the Spring Boot reference for behaviour; one binary connects to one database via `DB_DRIVER` / `DATABASE_URL`.
+Implements the shared API contract with .NET 10 + ASP.NET Core + EF Core,
+following the Spring Boot reference for behaviour. One binary connects to one
+database selected by `DB_DRIVER` / `DATABASE_URL`. Shared backend conventions are
+in [../README.md](../README.md).
 
-## Tech stack and versions
+## Stack and dependencies
 
 | Item | Version / notes | Source |
 | --- | --- | --- |
-| Runtime | .NET 10 (`net10.0`) | `src/Orange.Api/Orange.Api.csproj`, `tests/Orange.Tests/Orange.Tests.csproj` |
-| Web | ASP.NET Core (`Microsoft.NET.Sdk.Web`, controllers + middleware) | `Orange.Api.csproj` |
-| ORM | EF Core 9: `Microsoft.EntityFrameworkCore.Sqlite` 9.0.22, `Npgsql.EntityFrameworkCore.PostgreSQL` 9.0.4, `Pomelo.EntityFrameworkCore.MySql` 9.0.0 | `Orange.Api.csproj` |
-| Passwords | `BCrypt.Net-Next` 4.2.0 | `Orange.Api.csproj` |
-| Tests | xUnit 2.9.3, `Microsoft.NET.Test.Sdk` 17.14.1, `coverlet.collector` 6.0.4 | `Orange.Tests.csproj` |
-| Solution | `Orange.slnx` (two folders, `/src/` and `/tests/`) | `Orange.slnx` |
-| API documentation | Swashbuckle 10 generates from controllers/DTOs; `/swagger` + `/openapi.json` | `Program.cs`, `Orange.Api.csproj` |
-| Launch settings | no `Properties/launchSettings.json` | repository-wide file list |
+| Runtime | .NET 10 (`net10.0`) | `Orange.Api.csproj`, `Orange.Tests.csproj` |
+| Web | ASP.NET Core controllers + middleware | `Orange.Api.csproj` |
+| ORM | EF Core 9 with Npgsql, Pomelo MySQL and SQLite providers | `Orange.Api.csproj` |
+| Passwords | `BCrypt.Net-Next` 4.2 | `Orange.Api.csproj` |
+| Tests | xUnit 2.9, `Microsoft.NET.Test.Sdk` | `Orange.Tests.csproj` |
+| API documentation | Swashbuckle 10 from controllers/DTOs | `Program.cs` |
+| Solution | `Orange.slnx` with `/src/` and `/tests/` | `Orange.slnx` |
 
-## Commands
+## Requirements and commands
 
-| Purpose | Command | Source / notes |
-| --- | --- | --- |
-| Install | no separate install step | `dotnet` restores NuGet packages during `build` |
-| Start | `dotnet run --project src/Orange.Api` | project path from `Orange.slnx`; `.env.local` is loaded by `DotEnv` |
-| Test | `dotnet build Orange.slnx` then `dotnet test Orange.slnx --no-build` | `main.yml` (backend job, csharp) |
-| Build | `dotnet build Orange.slnx` | same job in `main.yml` |
-| Publish | `dotnet publish src/Orange.Api/Orange.Api.csproj -c Release -o out` | same job in `main.yml` |
+Requires the .NET 10 SDK. There is no `Properties/launchSettings.json`, so the
+listening address comes only from configuration.
 
-Port source variable: `APP_PORT` → `PORT` → 8082 (`src/Orange.Api/Configuration/AppOptions.cs:49`); `.env.example` sets `APP_PORT=8082`. The listening address comes from `UseUrls($"http://0.0.0.0:{options.Port}")` in `Program.cs:16`.
-
-CI uses `setup-dotnet`'s `10.0.x`. This stack does not commit `launchSettings.json`, so `dotnet run` does not read IDE launch profiles.
+| Purpose | Command |
+| --- | --- |
+| Install | no separate step; `dotnet build` restores NuGet packages |
+| Start | `dotnet run --project src/Orange.Api` |
+| Build | `dotnet build Orange.slnx` |
+| Test | `dotnet build Orange.slnx` then `dotnet test Orange.slnx --no-build` |
+| Publish | `dotnet publish src/Orange.Api/Orange.Api.csproj -c Release -o out` |
 
 ## Directory structure and layering
 
@@ -37,38 +38,76 @@ CI uses `setup-dotnet`'s `10.0.x`. This stack does not commit `launchSettings.js
 Orange.slnx
 src/Orange.Api/
 ├── Program.cs              host, DI, middleware pipeline, JSON options
-├── Configuration/         AppOptions (environment variables), database driver selection, DotEnv
+├── Configuration/         AppOptions, database driver selection, DotEnv
 ├── Contracts/             request and response DTOs
 ├── Controllers/           auth, user, role, group, permission, operation-log
-├── Data/                  DbContext, provider switching, dialect helpers, query predicates
-├── Domain/                entities, error codes, exceptions, tree and permission policy, lockout and audit rules
+├── Data/                  DbContext, provider switching, dialect helpers
+├── Domain/                entities, error codes, tree and permission policy
 ├── Middleware/            TraceId, exceptions, validation, audit
-├── Security/              JWT, refresh cookie, authentication middleware, RBAC guards, lockout
-└── Services/              business logic, menu tree, query utilities, audit cleanup
+├── Security/              JWT, refresh cookie, authentication, RBAC
+└── Services/              business logic, menu tree, audit cleanup
 tests/Orange.Tests/        xUnit unit tests
 ```
 
-## Configuration entry point
+## API, auth and database access
 
-Copy `.env.example` to `.env.local` (gitignored); the first line of `Program.cs`, `DotEnv.Load(".env.local")`, loads it, and real environment variables take precedence. `appsettings.json` and `appsettings.Development.json` contain only log levels and `AllowedHosts`; all business configuration comes from environment variables. Connection precedence, the variable list and the cross-stack comparison are in the [backend configuration conventions](../../backend/README.md).
+- Controllers declare the Authority and call services. `ExceptionHandlingMiddleware`
+  maps errors to the shared envelope; codes live in `Domain/ErrorCodes.cs`.
+- JWT is implemented by hand in `Security/JwtService.cs`: RS256 with an RSA pair,
+  otherwise HS256 with `JWT_SECRET`. Refresh tokens rotate in an HttpOnly cookie.
+- EF Core maps the shared schema; the application does not create or migrate it.
+  Provider switching is centralized in `Data/` and `Configuration/`.
+- Audit-retention cleanup runs every 6 hours (a fixed cadence, unlike the daily
+  jobs in the other ports).
 
-## Deviations of this stack
+## Service configuration
 
-1. The repository has no `Properties/launchSettings.json` (the file does not appear in `git ls-files backend/csharp`), so `dotnet run`'s listening address comes only from `AppOptions.Port` and `UseUrls`, with no IDE profile involved.
-2. The target framework is `net10.0` but EF Core is pinned to 9.x: a comment in `Orange.Api.csproj` explains that `Pomelo.EntityFrameworkCore.MySql` 9.0.0 requires EF Core 9, so the three providers and EF Core must move together; upgrading to EF Core 10 has to wait for Pomelo 10.
-3. JWT follows the shared rule: an RSA pair selects RS256, otherwise `JWT_SECRET` selects HS256 (`src/Orange.Api/Security/JwtService.cs`). Access and refresh tokens are still issued and validated by hand in this file, with no third-party JWT package.
-4. Audit-retention cleanup runs every 6 hours (class comment at `src/Orange.Api/Services/OperationLogService.cs:107`), not on a configurable cron, which differs from the daily cleanup cadence of the other ports.
-5. Swashbuckle 10 generates the OpenAPI document from controller metadata; `/swagger` + `/openapi.json` are mounted before the authentication middleware. Database schema still comes only from `database/<engine>/ddl.sql` and `dml.sql`.
+| Item | Current value | Location | How to change |
+| --- | --- | --- | --- |
+| HTTP port | `8082` | `Configuration/AppOptions.cs`: `APP_PORT` → `PORT` → 8082 | Set `APP_PORT` in `.env.local` |
+| Listen address | `http://0.0.0.0:{port}` | `Program.cs` (`UseUrls`) | Edit `Program.cs` |
+| API prefix | `/api/v1` | controller routes | — |
+| Swagger | `/swagger`, `/openapi.json` | `Program.cs` | — |
+| CORS | React/Vue/Angular dev origins | `CORS_ORIGINS` | Edit `.env.local` |
+| Local config | `.env.local` | this stack's root | Copy `.env.example` |
 
-## Size and tests
+## Database configuration
 
-| Metric | Value |
+| Item | Current value | Location |
+| --- | --- | --- |
+| Engine | PostgreSQL | `DB_DRIVER` or URL scheme |
+| Connection URL | `DATABASE_URL` | `.env.example`, `Configuration/AppOptions.cs` |
+| Discrete values | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSLMODE` | `Configuration/AppOptions.cs` |
+| SQLite file | `SQLITE_PATH` or `DB_NAME` | `Configuration/` |
+| Migrations | none; schema comes from SQL | `Data/OrangeDbContext.cs` |
+
+## Switching database
+
+| Target | Dependency / provider | Configuration | Initialization | Notes |
+| --- | --- | --- | --- | --- |
+| PostgreSQL | `Npgsql.EntityFrameworkCore.PostgreSQL` 9 | `DB_DRIVER=postgres`, Npgsql URL | `database/postgres/ddl.sql` then `dml.sql` | Reference |
+| MySQL | `Pomelo.EntityFrameworkCore.MySql` 9 | `DB_DRIVER=mysql`, MySQL URL | `database/mysql/ddl.sql` then `dml.sql` | Pomelo pins EF Core 9 |
+| MariaDB | Pomelo MySQL provider | `DB_DRIVER=mariadb`, MariaDB URL/port | `database/mariadb/ddl.sql` then `dml.sql` | MySQL protocol |
+| SQLite | `Microsoft.EntityFrameworkCore.Sqlite` 9 | `DB_DRIVER=sqlite`, `SQLITE_PATH=./orange.db` | `database/sqlite/ddl.sql` then `dml.sql` | — |
+
+The target framework is `net10.0` but EF Core is pinned to 9.x because
+`Pomelo.EntityFrameworkCore.MySql` 9 requires it; the three providers and EF Core
+must move together. Steps: create the database, load `ddl.sql` then `dml.sql`,
+set the driver and connection values, restart, then verify with the seed accounts.
+
+## Environment configuration
+
+| Environment | Configuration |
 | --- | --- |
-| Version-controlled files | 69 |
-| C# source files | 60 (`src/Orange.Api` 48, `tests/Orange.Tests` 12) |
-| Test files | 12 `*Tests.cs` files plus 1 test csproj; 107 tests |
+| Development | `.env.local` (gitignored), loaded by `DotEnv.Load`; process environment wins |
+| Test | `dotnet test Orange.slnx --no-build` |
+| Production | process environment; use the RSA pair or a strong `JWT_SECRET` |
 
-Counting basis: `git ls-files backend/csharp`. The frontend-owned API snapshot is [frontend/openapi.json](../../frontend/openapi.json), dialects are in [database](../../database/), and the stack matrix is the [root README](../../README.md).
+`appsettings.json` and `appsettings.Development.json` contain only log levels and
+`AllowedHosts`; business configuration comes from environment variables.
 
-> Last verified: c7b6531 · 2026-11-08
-> Sources: `Orange.slnx`, `src/Orange.Api/Orange.Api.csproj`, `tests/Orange.Tests/Orange.Tests.csproj`, `src/Orange.Api/Program.cs`, `src/Orange.Api/Configuration/AppOptions.cs`, `.env.example`, `.github/workflows/main.yml`
+## Further reading
+
+- [Backend conventions](../README.md)
+- [Database](../../database/README.md)
+- [Repository README](../../README.md)

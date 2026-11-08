@@ -2,75 +2,115 @@
 
 # Orange · Spring Boot 后端
 
-本栈是 Orange 的行为基准实现：用 Spring Boot 定义规范接口行为，其余五个后端以它为准；控制器/DTO 上的注解也是生成 Swagger 文档的参考。
+行为基准实现：定义标准端点行为与注解风格，其余五套后端跟随它。后端共同约定见
+[../README.zh-CN.md](../README.zh-CN.md)。
 
-## 技术栈与版本
+## 技术栈与依赖
 
 | 项 | 版本 / 说明 | 来源 |
 | --- | --- | --- |
 | 框架 | Spring Boot 4.0.2（parent） | `pom.xml` |
-| Java | 25（`<java.version>`） | `pom.xml` |
+| Java | 25 | `pom.xml` |
 | Starter | Web、Security、Data JPA、Validation、Cache、Devtools、Test | `pom.xml` |
-| JWT | jjwt 0.13.0（api / impl / jackson）；RSA 密钥对时 RS256，否则 HS256 回退 | `pom.xml`、`security/jwt/JwtUtil.java` |
-| 接口文档 | 由 springdoc-openapi 3.0.0 从 `@Operation` / `@Schema` 生成；入口 `/swagger` + `/openapi.json` | `config/SwaggerConfig.java`、`pom.xml` |
-| JDBC | PostgreSQL、mysql-connector-j、sqlite-jdbc、hibernate-community-dialects | `pom.xml` |
-| 其他 | Lombok 1.18.42、commons-lang3、Caffeine | `pom.xml` |
-| 测试依赖 | spring-boot-starter-test、Testcontainers（postgresql） | `pom.xml` |
-| 构建 | Maven，仓库内无 `mvnw` 包装器 | 目录内容与 `.gitignore` |
+| JWT | jjwt 0.13.0；有 RSA 密钥对时用 RS256，否则 HS256 | `security/jwt/JwtUtil.java` |
+| API 文档 | springdoc-openapi 3.0.0，从控制器/DTO 注解生成 | `config/SwaggerConfig.java` |
+| JDBC 驱动 | PostgreSQL、`mysql-connector-j`、`sqlite-jdbc`、`hibernate-community-dialects` | `pom.xml` |
+| 其他 | Lombok、commons-lang3、Caffeine | `pom.xml` |
+| 测试 | spring-boot-starter-test、Testcontainers PostgreSQL | `pom.xml` |
 
-## 命令
+## 环境要求与命令
 
-| 用途 | 命令 | 来源 / 说明 |
-| --- | --- | --- |
-| 安装 | 无独立安装步骤 | Maven 在 `test` / `package` 时解析 `pom.xml`；无 wrapper，需本机 `mvn` |
-| 启动（开发） | `mvn spring-boot:run` | `spring-boot-maven-plugin` 已在 `pom.xml` 声明；配合 `SPRING_PROFILES_ACTIVE=local` |
-| 测试 | `mvn -B test` | `.github/workflows/main.yml`（backend job, spring） |
-| 构建 | `mvn -B -DskipTests package` | 同上；产物 `target/orange-0.0.1-SNAPSHOT.jar`（`artifactId` + `version`） |
-| 运行产物 | `java -jar target/orange-0.0.1-SNAPSHOT.jar` | `pom.xml` 的 `artifactId=orange`、`version=0.0.1-SNAPSHOT` |
+需要 JDK 25 和 Maven（仓库未提交 wrapper）。
 
-端口来源变量：`server.port: ${APP_PORT:8080}`（`src/main/resources/application.yaml`），默认 8080；`application-local.yaml` 里另写死 8080。
+| 用途 | 命令 |
+| --- | --- |
+| 安装 | 无独立步骤；Maven 在构建时解析 `pom.xml` |
+| 开发启动 | `SPRING_PROFILES_ACTIVE=local mvn spring-boot:run` |
+| 默认启动 | `mvn spring-boot:run` |
+| 测试 | `mvn -B test` |
+| 构建 | `mvn -B -DskipTests package` |
+| 运行产物 | `java -jar target/orange-0.0.1-SNAPSHOT.jar` |
 
-- 需要 JDK 25；CI 用 `temurin` 25（`main.yml`）。
-- `SecurityIntegrationTest` 标注 `@Testcontainers(disabledWithoutDocker = true)`：本机无 Docker 时自动跳过，不会让 `mvn test` 失败。
+`SecurityIntegrationTest` 使用 `@Testcontainers(disabledWithoutDocker = true)`，
+没有 Docker 时会自动跳过。
 
 ## 目录结构与分层
 
 ```text
 src/main/java/com/orange/
-├── config/         数据源与驱动选择、Swagger、审计拦截、TraceId、WebMvc
-├── controller/     login/ 与 system/ 两组控制器，GlobalExceptionHandler 统一异常
-├── domain/         common/、login/、system/ 的请求响应模型，树与权限策略
-├── entity/         JPA 实体（含 @Version 乐观锁列）
-├── repository/     system/ 下的 Spring Data 仓储
-├── security/       SecurityConfig、auth/、config/、jwt/
-├── service/        system/ 接口与 impl/ 实现
+├── config/         数据源与驱动选择、Swagger、审计、TraceId、WebMvc
+├── controller/     login/ 与 system/ 控制器、GlobalExceptionHandler
+├── domain/         请求/响应模型、树与权限策略
+├── entity/         JPA 实体（含乐观锁 version）
+├── repository/     Spring Data repository
+├── security/       SecurityConfig、auth/、jwt/
+├── service/        接口与实现
 └── util/           查询构造、TraceId、数据库取值
 src/main/resources/ application.yaml、application-local.example.yaml、application-prod.yaml
-src/test/java/com/orange/  测试类（config、domain、security、service、util）
+src/test/java/com/orange/  单元与集成测试
 ```
 
-## 配置入口
+请求流是拦截器 → service → repository；JPA 实体即数据模型，
+`GlobalExceptionHandler` 是唯一的错误映射入口。
 
-`application.yaml` 是唯一配置入口，覆盖端口、数据源与驱动、JWT 密钥、CORS、登录限流、审计保留与 springdoc 路径；`local` profile 叠加被 gitignore 的 `application-local.yaml`（模板为 `application-local.example.yaml`）。接口文档在运行时生成并默认开启，可用 `SPRINGDOC_ENABLED=false` 隐藏。变量名、优先级以及与其他栈的对照见 [后端配置约定](../../backend/README.zh-CN.md)，此处不重复变量表。
+## API、认证与数据库访问
 
-## 本栈偏差
+- 控制器用 `@PreAuthorize` 声明 Authority，例如
+  `action#/system/role:edit`；该字符串必须存在于 `database/permissions.json`。
+- 同时配置 RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256。访问令牌短时效，
+  refresh token 在 HttpOnly Cookie 中轮换。
+- JPA 映射共享 schema；`spring.jpa.hibernate.ddl-auto` 为 `none`，应用从不建表，
+  表结构归 `database/<engine>/ddl.sql` 管理。
+- 组织树使用 Caffeine 缓存（`@Cacheable` / `@CacheEvict`），是六套中唯一缓存它的实现。
+- 唯一保留兼容路由（`/add`、`/edit`、`/detail/{id}`、`/reset/{userId}`）的栈；这些
+  路由标了 `@Hidden`，不会出现在 Swagger 中。
 
-1. JWT 签名与其余五栈同一规则：`JWT_PRIVATE_KEY` 与 `JWT_PUBLIC_KEY` 同时配置时用 RS256（内联 PEM 或文件路径），否则用 `JWT_SECRET` 的 HS256。开发密钥用 OpenSSL 生成，仓库不再提交私钥。详见[后端配置约定](../README.zh-CN.md)。
-2. `/swagger` + `/openapi.json` 直接由 springdoc 生成，没有静态契约读取器；`SPRINGDOC_ENABLED=false` 是唯一的隐藏开关。
-3. 只有本栈保留 15 个已弃用兼容路由（`/add`、`/edit`、`/detail/{id}`、`/reset/{userId}`）；它们都标了 `@Hidden`，因此生成文档不会列出。
-4. 只有本栈给分组树加缓存：Caffeine `group` 缓存，`service/system/impl/GroupServiceImpl.java` 使用 `@Cacheable` / `@CacheEvict`。
-5. 乐观锁靠 JPA `@Version`（`entity/*.java`）在更新时比较版本；Rust 与 Python 端口只把 `version` 自增、Go 端口创建时写 0 不自增，三者都不做版本比较，并发编辑为后写覆盖。
-6. 六栈中唯一没有 `.env.example` 的后端：配置走 `application*.yaml` 加环境变量覆盖。
+## 服务配置
 
-## 规模与测试
+| 配置项 | 当前值 | 配置位置 | 修改方式 |
+| --- | --- | --- | --- |
+| HTTP 端口 | `8080` | `application.yaml`：`server.port: ${APP_PORT:8080}` | 改 `APP_PORT` 或 `application-local.yaml` |
+| Context Path | 无 | `server.servlet.context-path`（未设置） | 需要前缀时添加 |
+| API 前缀 | `/api/v1` | 控制器映射 | — |
+| 本地 Profile | `application-local.yaml` | `src/main/resources/`（模板 `.example.yaml`） | 复制模板后修改 |
+| 生产 Profile | `application-prod.yaml` | `src/main/resources/` | 用 `SPRING_PROFILES_ACTIVE=prod` 激活 |
+| Swagger | `/swagger`、`/openapi.json` | `application.yaml`（`springdoc.*`） | `SPRINGDOC_ENABLED=false` 同时隐藏 |
+| CORS | React/Vue/Angular 开发地址 | `app.cors.allowed-origins` | `CORS_ORIGINS` |
 
-| 指标 | 数值 |
+## 数据库配置
+
+| 配置项 | 当前值 | 配置位置 |
+| --- | --- | --- |
+| 引擎 | PostgreSQL | `DB_DRIVER`、JDBC URL scheme |
+| JDBC URL | `SPRING_DATASOURCE_URL > DB_URL > spring.datasource.url` | `application.yaml` |
+| 回退 Host/端口/库名 | `DB_HOST` / `DB_PORT` / `DB_NAME` | `DatabaseSettings` |
+| 账号密码 | `SPRING_DATASOURCE_USERNAME/PASSWORD > DB_USER/DB_PASSWORD` | `application.yaml` |
+| 连接池 | HikariCP，最大 10，最小空闲 5 | `spring.datasource.hikari` |
+| 表结构 | `database/<engine>/ddl.sql`、`dml.sql` | `ddl-auto: none` |
+
+## 切库
+
+| 目标库 | 依赖 / 驱动 | 配置 | 初始化 | 说明 |
+| --- | --- | --- | --- | --- |
+| PostgreSQL | `postgresql`（已在 `pom.xml`） | `DB_DRIVER=postgres`，`jdbc:postgresql://host:5432/orange` | 依次执行 `database/postgres/ddl.sql`、`dml.sql` | 基线 schema |
+| MySQL | `mysql-connector-j`（已在 `pom.xml`） | `DB_DRIVER=mysql`，`jdbc:mysql://host:3306/orange` | 依次执行 `database/mysql/ddl.sql`、`dml.sql` | 使用 MySQL 方言 |
+| MariaDB | `mysql-connector-j`；不需要 MariaDB 驱动 | `DB_DRIVER=mariadb`，`jdbc:mysql://host:3307/orange` | 依次执行 `database/mariadb/ddl.sql`、`dml.sql` | Spring 会把 `jdbc:mariadb:` 改写为 `jdbc:mysql:` |
+| SQLite | `sqlite-jdbc` + `hibernate-community-dialects` | `DB_DRIVER=sqlite`，`jdbc:sqlite:./orange.db` | 依次执行 `database/sqlite/ddl.sql`、`dml.sql` | 保留 `date_class=text`；外键是连接级设置 |
+
+步骤：按引擎建库，在同一个连接里先执行 `ddl.sql` 再执行 `dml.sql`（SQLite 尤其
+重要），修改驱动与 URL，重启后用种子账号验证。已设置的 `DATABASE_URL` /
+`SPRING_DATASOURCE_URL` 会覆盖离散配置。
+
+## 环境配置
+
+| 环境 | 配置 |
 | --- | --- |
-| 受版本控制的文件 | 134 |
-| Java 源文件 | 126（`src/main` 111、`src/test` 15） |
-| 测试类 | 15，其中 1 个 Testcontainers 集成测试需 Docker |
+| 开发 | `application.yaml` + 环境变量；可选 `application-local.yaml` 配合 `SPRING_PROFILES_ACTIVE=local` |
+| 测试 | `mvn -B test`；Testcontainers PostgreSQL，无 Docker 时跳过 |
+| 生产 | `application-prod.yaml` + 环境变量 |
 
-统计口径：`git ls-files backend/springboot`。端点、数据库方言与验证结论不在本页维护：前端快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
+## 延伸阅读
 
-> Last verified: c7b6531 · 2026-11-08
-> 事实来源：`pom.xml`、`src/main/resources/application*.yaml`、`src/main/java/com/orange/**`、`src/test/java/com/orange/**`、`.github/workflows/main.yml`
+- [后端共同约定](../README.zh-CN.md)
+- [数据库](../../database/README.zh-CN.md)
+- [仓库 README](../../README.zh-CN.md)
