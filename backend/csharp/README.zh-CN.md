@@ -57,7 +57,7 @@ tests/Orange.Tests/        xUnit 单元测试
 
 1. 仓库里没有 `Properties/launchSettings.json`（`git ls-files backend/csharp` 中不存在该文件），因此 `dotnet run` 的监听地址只来自 `AppOptions.Port` 与 `UseUrls`，没有 IDE profile 参与。
 2. 目标框架是 `net10.0`，但 EF Core 锁在 9.x：`Orange.Api.csproj` 注释说明 `Pomelo.EntityFrameworkCore.MySql` 9.0.0 要求 EF Core 9，因此三个 provider 与 EF Core 必须同版本移动；升级 EF Core 10 需要等 Pomelo 10。
-3. JWT 只用 HS256（`src/Orange.Api/Security/JwtService.cs:58`、`:75`），与 Spring 的 RS256 不同；访问令牌与刷新令牌由本文件手写签发与校验，不使用第三方 JWT 包。
+3. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/Orange.Api/Security/JwtService.cs`）。访问令牌与刷新令牌仍由本文件手写签发与校验，不使用第三方 JWT 包。
 4. 审计保留清理每 6 小时执行一次（`src/Orange.Api/Services/OperationLogService.cs:107` 的类注释），不是可配置 cron，与其他端口的每日清理节奏不同。
 5. 无第三方 OpenAPI 包，也无迁移工具：`/swagger` + `/openapi.json` 在 `Swagger/SwaggerSupport.cs` 手写；schema 只来自 `database/<engine>/ddl.sql` 与 `dml.sql`。
 
@@ -65,9 +65,9 @@ tests/Orange.Tests/        xUnit 单元测试
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 63 |
-| C# 源文件 | 54（`src/Orange.Api` 47、`tests/Orange.Tests` 7） |
-| 测试文件 | 7 个 `*Tests.cs`，另 1 个测试 csproj；共 69 个测试 |
+| 受版本控制的文件 | 64 |
+| C# 源文件 | 55（`src/Orange.Api` 47、`tests/Orange.Tests` 8） |
+| 测试文件 | 8 个 `*Tests.cs`，另 1 个测试 csproj；共 72 个测试 |
 
 统计口径：`git ls-files backend/csharp`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
 

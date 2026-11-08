@@ -19,6 +19,10 @@ public sealed class AppOptions
     public string DatabaseSource { get; init; } = "DB_*";
 
     public required string JwtSecret { get; init; }
+    /// <summary>RSA private key (inline PEM or a file path); null selects HS256.</summary>
+    public string? JwtPrivateKey { get; init; }
+    /// <summary>RSA public key (inline PEM or a file path).</summary>
+    public string? JwtPublicKey { get; init; }
     public required string JwtIssuer { get; init; }
     public required string[] CorsOrigins { get; init; }
     public required int Port { get; init; }
@@ -37,12 +41,21 @@ public sealed class AppOptions
     public static AppOptions FromEnvironment()
     {
         var database = DatabaseConnection.Resolve();
+        var jwtPrivateKey = KeyMaterial("JWT_PRIVATE_KEY", "JWT_PRIVATE_KEY_PATH");
+        var jwtPublicKey = KeyMaterial("JWT_PUBLIC_KEY", "JWT_PUBLIC_KEY_PATH");
+        if ((jwtPrivateKey is null) != (jwtPublicKey is null))
+        {
+            throw new InvalidOperationException(
+                "JWT_PRIVATE_KEY and JWT_PUBLIC_KEY must be set together");
+        }
         var options = new AppOptions
         {
             Driver = database.Driver,
             ConnectionString = database.ConnectionString,
             DatabaseSource = database.Source,
             JwtSecret = Env("JWT_SECRET", DevJwtSecret),
+            JwtPrivateKey = jwtPrivateKey,
+            JwtPublicKey = jwtPublicKey,
             JwtIssuer = Env("JWT_ISSUER", "orange"),
             CorsOrigins = Env("CORS_ORIGINS", Env("CORS_ALLOWED_ORIGINS", "http://localhost:5173"))
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
@@ -60,12 +73,25 @@ public sealed class AppOptions
             OperationLogRetentionDays = EnvInt("LOG_RETENTION_DAYS", EnvInt("OPERATION_LOG_RETENTION_DAYS", 90))
         };
 
-        if (IsProduction() && options.JwtSecret == DevJwtSecret)
+        if (IsProduction() && options.JwtPrivateKey is null && options.JwtSecret == DevJwtSecret)
         {
             throw new InvalidOperationException(
-                "JWT_SECRET must be set to a non-default value in production");
+                "Set JWT_PRIVATE_KEY/JWT_PUBLIC_KEY (recommended) or a non-default JWT_SECRET in production");
         }
         return options;
+    }
+
+    /// <summary>Inline PEM or a file path, matching the rule shared by all backends.</summary>
+    private static string? KeyMaterial(string primary, string alias)
+    {
+        var value = Env(primary, Env(alias, ""));
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+        return value.Contains("-----BEGIN", StringComparison.Ordinal)
+            ? value
+            : File.ReadAllText(value);
     }
 
     private static bool IsProduction()

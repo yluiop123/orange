@@ -14,8 +14,11 @@ spring:
     password: postgres
 
 jwt:
-  private-key: classpath:keys/private_key.pem
-  public-key: classpath:keys/public_key.pem
+  # RS256: generate the pair with `pnpm run jwt:keys` at the repository root.
+  # Both values may also be inline PEM. Without keys this stack falls back to
+  # HS256 using JWT_SECRET, exactly like the other five backends.
+  # private-key: ../../keys/jwt-private.pem
+  # public-key: ../../keys/jwt-public.pem
   access-expire: 900
   refresh-expire: 604800
   issuer: orange

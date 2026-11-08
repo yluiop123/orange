@@ -30,9 +30,11 @@ public class PasswordHasherTests
     public void GeneratedHashesAreVerifiableAndPrefixed()
     {
         var hash = _hasher.Hash("TempPass123");
-        Assert.StartsWith("$2", hash);
+        Assert.StartsWith("{bcrypt}$2", hash);
         Assert.True(_hasher.Verify("TempPass123", hash));
         Assert.False(_hasher.Verify("tempPass123", hash));
+        // Rows written before the prefix was unified are still accepted.
+        Assert.True(_hasher.Verify("TempPass123", hash["{bcrypt}".Length..]));
     }
 
     [Fact]

@@ -11,7 +11,7 @@
 | 框架 | Spring Boot 4.0.2（parent） | `pom.xml` |
 | Java | 25（`<java.version>`） | `pom.xml` |
 | Starter | Web、Security、Data JPA、Validation、Cache、Devtools、Test | `pom.xml` |
-| JWT | jjwt 0.13.0（api / impl / jackson），RS256 | `pom.xml`、`security/jwt/JwtUtil.java:84` |
+| JWT | jjwt 0.13.0（api / impl / jackson）；RSA 密钥对时 RS256，否则 HS256 回退 | `pom.xml`、`security/jwt/JwtUtil.java` |
 | 接口文档 | 统一入口 `/swagger` + `/openapi.json`；springdoc-openapi 3.0.0（webmvc-ui）由 `SPRINGDOC_ENABLED` 控制 | `web/OpenApiController.java`、`pom.xml` |
 | JDBC | PostgreSQL、mysql-connector-j、sqlite-jdbc、hibernate-community-dialects | `pom.xml` |
 | 其他 | Lombok 1.18.42、commons-lang3、Caffeine | `pom.xml` |
@@ -46,7 +46,7 @@ src/main/java/com/orange/
 ├── service/        system/ 接口与 impl/ 实现
 ├── util/           查询构造、TraceId、数据库取值
 └── web/            OpenApiController（/swagger 与 /openapi.json）
-src/main/resources/ application.yaml、application-local.example.yaml、application-prod.yaml、keys/
+src/main/resources/ application.yaml、application-local.example.yaml、application-prod.yaml
 src/test/java/com/orange/  测试类（config、domain、security、service、util）
 ```
 
@@ -56,7 +56,7 @@ src/test/java/com/orange/  测试类（config、domain、security、service、ut
 
 ## 本栈偏差
 
-1. 唯一使用非对称签名：RS256 + PEM 密钥对（`security/jwt/JwtUtil.java:84`，密钥在 `src/main/resources/keys/`）。Go 可选 RS256，其余四个后端只用 HS256。
+1. JWT 签名与其余五栈同一规则：`JWT_PRIVATE_KEY` 与 `JWT_PUBLIC_KEY` 同时配置时用 RS256（内联 PEM 或文件路径），否则用 `JWT_SECRET` 的 HS256。开发密钥用 `pnpm run jwt:keys` 生成，仓库不再提交私钥。详见[后端配置约定](../README.zh-CN.md)。
 2. 统一入口始终开启：`/swagger` + `/openapi.json` 由 `web/OpenApiController` 提供；springdoc 的 `/swagger-ui.html` 仍由 `${SPRINGDOC_ENABLED:false}` 控制，`application-prod.yaml` 再关一次。
 3. 只有本栈保留 15 个已弃用兼容路由（`/add`、`/edit`、`/detail/{id}`、`/reset/{userId}`）；它们刻意不写进 `contracts/openapi.json`，因此其余五栈的 `/swagger` 不会列出。
 4. 只有本栈给分组树加缓存：Caffeine `group` 缓存，`service/system/impl/GroupServiceImpl.java` 使用 `@Cacheable` / `@CacheEvict`。
@@ -67,8 +67,8 @@ src/test/java/com/orange/  测试类（config、domain、security、service、ut
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 131 |
-| Java 源文件 | 121（`src/main` 107、`src/test` 14） |
+| 受版本控制的文件 | 130 |
+| Java 源文件 | 122（`src/main` 108、`src/test` 14） |
 | 测试类 | 14，其中 1 个 Testcontainers 集成测试需 Docker |
 
 统计口径：`git ls-files backend/springboot`。端点、数据库方言与验证结论不在本页维护，分别见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。

@@ -11,7 +11,7 @@
 | Rust | edition 2021，`rust-version = 1.75` | `Cargo.toml` |
 | Web | axum 0.8、tokio 1（`features = ["full"]`）、tower-http 0.6（cors、trace） | `Cargo.toml` |
 | 数据库 | sqlx 0.8，`runtime-tokio-rustls` + postgres / mysql / sqlite / chrono / uuid / macros / derive | `Cargo.toml` |
-| 认证 | `jsonwebtoken` 9（HS256）、`bcrypt` 0.15（`getrandom`） | `Cargo.toml` |
+| 认证 | `jsonwebtoken` 9（RS256 / HS256）、`bcrypt` 0.15（`getrandom`） | `Cargo.toml` |
 | 序列化与时间 | serde 1、serde_json 1、chrono 0.4 | `Cargo.toml` |
 | 其他 | uuid 1（v4）、rand 0.8、regex 1、dotenvy 0.15、tracing 0.1、tracing-subscriber 0.3（env-filter） | `Cargo.toml` |
 | 依赖锁定 | `Cargo.lock` 已提交 | 仓库文件 |
@@ -60,7 +60,7 @@ scripts/smoke-databases.ps1  四引擎冒烟脚本
 
 1. 测试全部内联：0 个独立测试文件、无 `[dev-dependencies]`，8 个模块内含 `#[cfg(test)]`，共 40 个 `#[test]`（`cargo test` 不需要数据库）。这与 Go、Python 的独立测试目录不同。
 2. 组织为单一二进制 crate：只有 `src/main.rs`，`Cargo.toml` 没有 `[lib]` 目标，模块都是 bin 私有，因此测试只能内联；Go、Python、C# 都有可被外部测试引用的库/模块层。
-3. JWT 只用 HS256（`src/auth/jwt.rs:63`），没有 RS256 选项；Go 两者都支持，Spring 只用 RS256。
+3. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/auth/jwt.rs`）。`pnpm run jwt:keys` 生成的同一对密钥六栈通用。
 4. 每个仓库查询按驱动各生成一份（`*_repository!` 宏），方言差异集中在 `src/db.rs`；SQLite 时间戳为 ISO-8601 文本，过滤走 `datetime(...)`。
 5. 无 OpenAPI crate，无迁移目录：`/swagger` + `/openapi.json` 在 `src/swagger.rs` 手写；schema 只来自 `database/<engine>`。
 

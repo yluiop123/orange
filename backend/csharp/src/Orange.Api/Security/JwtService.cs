@@ -15,22 +15,47 @@ public sealed record JwtClaims(
     DateTimeOffset ExpiresAt);
 
 /// <summary>
-/// Minimal HS256 JWT implementation. Tokens carry jti, typ (access/refresh), ver
-/// (user token_version), username and sub (user id), matching the Java claims.
+/// Minimal JWT implementation with the same contract as the other five stacks:
+/// a configured RSA pair signs with RS256, otherwise JWT_SECRET signs with HS256.
+/// Tokens carry jti, typ (access/refresh), ver (user token_version), username and
+/// sub (user id), matching the Java claims.
 /// </summary>
 public sealed class JwtService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = null };
-    private readonly byte[] _key;
+
+    private readonly byte[] _key = Array.Empty<byte>();
+    private readonly string? _privateKeyPem;
+    private readonly string? _publicKeyPem;
+    private readonly string _algorithm;
     private readonly string _issuer;
 
     public JwtService(AppOptions options)
     {
-        if (string.IsNullOrWhiteSpace(options.JwtSecret))
+        if ((options.JwtPrivateKey is null) != (options.JwtPublicKey is null))
         {
-            throw new InvalidOperationException("JWT_SECRET must not be empty");
+            throw new InvalidOperationException(
+                "JWT_PRIVATE_KEY and JWT_PUBLIC_KEY must be set together");
         }
-        _key = Encoding.UTF8.GetBytes(options.JwtSecret);
+        _algorithm = options.JwtPrivateKey is null ? "HS256" : "RS256";
+        _privateKeyPem = options.JwtPrivateKey;
+        _publicKeyPem = options.JwtPublicKey;
+        if (_algorithm == "HS256")
+        {
+            if (string.IsNullOrWhiteSpace(options.JwtSecret))
+            {
+                throw new InvalidOperationException("JWT_SECRET must not be empty");
+            }
+            _key = Encoding.UTF8.GetBytes(options.JwtSecret);
+        }
+        else
+        {
+            // Fail at startup, not on the first login, if the PEM is unusable.
+            using var privateRsa = RSA.Create();
+            privateRsa.ImportFromPem(_privateKeyPem!);
+            using var publicRsa = RSA.Create();
+            publicRsa.ImportFromPem(_publicKeyPem!);
+        }
         _issuer = options.JwtIssuer;
         AccessExpireSeconds = options.AccessTokenSeconds;
         RefreshExpireSeconds = options.RefreshTokenSeconds;
@@ -55,7 +80,7 @@ public sealed class JwtService
         var expiresAt = issuedAt.AddSeconds(expireSeconds);
         var header = new Dictionary<string, object>
         {
-            ["alg"] = "HS256",
+            ["alg"] = _algorithm,
             ["typ"] = "JWT"
         };
         var payload = new Dictionary<string, object>
@@ -72,9 +97,10 @@ public sealed class JwtService
         var encodedHeader = Base64Url(JsonSerializer.SerializeToUtf8Bytes(header, JsonOptions));
         var encodedPayload = Base64Url(JsonSerializer.SerializeToUtf8Bytes(payload, JsonOptions));
         var signingInput = encodedHeader + "." + encodedPayload;
-        using var hmac = new HMACSHA256(_key);
-        var signature = Base64Url(hmac.ComputeHash(Encoding.ASCII.GetBytes(signingInput)));
-        return signingInput + "." + signature;
+        var signature = _algorithm == "RS256"
+            ? SignRsa(signingInput)
+            : SignHmac(signingInput);
+        return signingInput + "." + Base64Url(signature);
     }
 
     private JwtClaims Parse(string token)
@@ -84,16 +110,18 @@ public sealed class JwtService
         {
             throw new ArgumentException("malformed token");
         }
-        using var hmac = new HMACSHA256(_key);
-        var expected = hmac.ComputeHash(Encoding.ASCII.GetBytes(parts[0] + "." + parts[1]));
         var actual = FromBase64Url(parts[2]);
-        if (!CryptographicOperations.FixedTimeEquals(expected, actual))
+        var verified = _algorithm == "RS256"
+            ? VerifyRsa(parts[0] + "." + parts[1], actual)
+            : VerifyHmac(parts[0] + "." + parts[1], actual);
+        if (!verified)
         {
             throw new ArgumentException("invalid signature");
         }
 
         using var header = JsonDocument.Parse(FromBase64Url(parts[0]));
-        if (!header.RootElement.TryGetProperty("alg", out var alg) || alg.GetString() != "HS256")
+        if (!header.RootElement.TryGetProperty("alg", out var alg)
+            || alg.GetString() != _algorithm)
         {
             throw new ArgumentException("unsupported algorithm");
         }
@@ -117,6 +145,40 @@ public sealed class JwtService
             throw new ArgumentException("token expired");
         }
         return new JwtClaims(jti, type, username, subject, version, issuedAt, expiresAt);
+    }
+
+    private byte[] SignHmac(string signingInput)
+    {
+        using var hmac = new HMACSHA256(_key);
+        return hmac.ComputeHash(Encoding.ASCII.GetBytes(signingInput));
+    }
+
+    private bool VerifyHmac(string signingInput, byte[] signature)
+    {
+        using var hmac = new HMACSHA256(_key);
+        var expected = hmac.ComputeHash(Encoding.ASCII.GetBytes(signingInput));
+        return CryptographicOperations.FixedTimeEquals(expected, signature);
+    }
+
+    private byte[] SignRsa(string signingInput)
+    {
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(_privateKeyPem!);
+        return rsa.SignData(
+            Encoding.ASCII.GetBytes(signingInput),
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+    }
+
+    private bool VerifyRsa(string signingInput, byte[] signature)
+    {
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(_publicKeyPem!);
+        return rsa.VerifyData(
+            Encoding.ASCII.GetBytes(signingInput),
+            signature,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
     }
 
     private static JwtClaims RequireType(JwtClaims claims, string expected)

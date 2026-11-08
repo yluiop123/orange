@@ -1,4 +1,5 @@
 import { Global, Injectable, Module } from '@nestjs/common';
+import { readFileSync } from 'node:fs';
 import './env';
 import { resolveDbDriver, type DbDriver } from './db-driver';
 
@@ -16,6 +17,11 @@ export interface DbConfig {
 
 export interface JwtConfig {
   secret: string;
+  /** RSA private key (inline PEM or a file path); set together with publicKey. */
+  privateKey?: string;
+  /** RSA public key (inline PEM or a file path). */
+  publicKey?: string;
+  algorithm: 'RS256' | 'HS256';
   accessExpire: number;
   refreshExpire: number;
   issuer: string;
@@ -50,13 +56,32 @@ export class AppConfig {
   readonly port = int(process.env.APP_PORT ?? process.env.PORT, 3000);
   readonly db: DbConfig = buildDbConfig();
   readonly jwt: JwtConfig = (() => {
+    const privateKey = readKeyMaterial(
+      process.env.JWT_PRIVATE_KEY || process.env.JWT_PRIVATE_KEY_PATH,
+    );
+    const publicKey = readKeyMaterial(
+      process.env.JWT_PUBLIC_KEY || process.env.JWT_PUBLIC_KEY_PATH,
+    );
+    if ((privateKey === undefined) !== (publicKey === undefined)) {
+      throw new Error('JWT_PRIVATE_KEY and JWT_PUBLIC_KEY must be set together');
+    }
+    const algorithm = privateKey ? 'RS256' : 'HS256';
     const secret = process.env.JWT_SECRET || DEV_JWT_SECRET;
     const environment = (process.env.APP_ENV || process.env.NODE_ENV || 'local').toLowerCase();
-    if ((environment === 'production' || environment === 'prod') && secret === DEV_JWT_SECRET) {
-      throw new Error('JWT_SECRET must be set to a non-default value in production');
+    if (
+      (environment === 'production' || environment === 'prod')
+      && algorithm === 'HS256'
+      && secret === DEV_JWT_SECRET
+    ) {
+      throw new Error(
+        'Set JWT_PRIVATE_KEY/JWT_PUBLIC_KEY (recommended) or a non-default JWT_SECRET in production',
+      );
     }
     return {
       secret,
+      privateKey,
+      publicKey,
+      algorithm,
       accessExpire: int(process.env.JWT_ACCESS_EXPIRE, 900),
       refreshExpire: int(process.env.JWT_REFRESH_EXPIRE, 604800),
       issuer: process.env.JWT_ISSUER || 'orange',
@@ -83,6 +108,18 @@ export class AppConfig {
       90,
     ),
   };
+}
+
+/** Inline PEM or a file path, matching the rule documented for every backend. */
+function readKeyMaterial(value: string | undefined): string | undefined {
+  const trimmed = (value ?? '').trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  if (trimmed.includes('-----BEGIN')) {
+    return trimmed;
+  }
+  return readFileSync(trimmed, 'utf8');
 }
 
 function int(value: string | undefined, fallback: number): number {

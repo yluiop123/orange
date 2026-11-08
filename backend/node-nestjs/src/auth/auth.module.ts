@@ -20,7 +20,10 @@ import { UserLookupService } from './user-lookup.service';
     TypeOrmModule.forFeature([User, Group, RevokedToken, LoginAttempt]),
     JwtModule.registerAsync({
       inject: [AppConfig],
-      useFactory: (config: AppConfig) => ({ secret: config.jwt.secret }),
+      useFactory: (config: AppConfig) =>
+        config.jwt.algorithm === 'RS256'
+          ? { privateKey: config.jwt.privateKey, publicKey: config.jwt.publicKey }
+          : { secret: config.jwt.secret },
     }),
   ],
   controllers: [AuthController],

@@ -31,8 +31,8 @@ lerna-debug.log*
 **/target/
 **/build/
 
-# JWT keys (generate with: node scripts/generate-jwt-keys.mjs)
-backend/springboot/src/main/resources/keys/*.pem
+# JWT keys (generate with: pnpm run jwt:keys)
+/keys/
 
 # Python
 **/__pycache__/

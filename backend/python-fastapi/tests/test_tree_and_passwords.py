@@ -61,7 +61,9 @@ def test_temporary_password_is_twelve_characters_and_hashes_verify():
     assert len(temporary) == 12
 
     hashed = hash_password(temporary)
+    assert hashed.startswith("{bcrypt}$2")
     assert verify_password(temporary, hashed) is True
     assert verify_password("wrong-password", hashed) is False
-    assert verify_password(temporary, "{bcrypt}" + hashed) is True
+    # A bare bcrypt row written before the prefix was unified still verifies.
+    assert verify_password(temporary, hashed[len("{bcrypt}") :]) is True
     assert verify_password(temporary, None) is False

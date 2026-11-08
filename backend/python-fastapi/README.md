@@ -12,7 +12,7 @@ This stack implements the same API contract with Python + FastAPI, following the
 | Web | FastAPI `>=0.115,<1.0`, `uvicorn[standard]` `>=0.32,<1.0` | `requirements.txt` |
 | ORM and drivers | SQLAlchemy `>=2.0,<3.0`, `psycopg[binary]` `>=3.2,<4.0`, `PyMySQL` `>=1.1,<2.0` | `requirements.txt` |
 | Validation | pydantic `>=2.9,<3.0` | `requirements.txt` |
-| Auth | PyJWT `>=2.9,<3.0` (HS256), `bcrypt` `>=4.2,<6.0` | `requirements.txt` |
+| Auth | PyJWT `>=2.9,<3.0` (RS256 / HS256), `cryptography` `>=43,<47`, `bcrypt` `>=4.2,<6.0` | `requirements.txt` |
 | Other | `python-dotenv` `>=1.0,<2.0` | `requirements.txt` |
 | Test dependencies | pytest `>=8.3,<10.0`, httpx `>=0.27,<1.0` (in `requirements-dev.txt`, which includes `-r requirements.txt`) | `requirements-dev.txt` |
 | API documentation | unified `/swagger` + `/openapi.json`; `/docs` 302-redirects to `/swagger` | `app/routers/docs.py` |
@@ -66,9 +66,9 @@ Copy `.env.example` to `.env` (`app/config.py` loads it with `load_dotenv(".env"
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 66 |
-| Python files | 59 |
-| Test files | 11 `test_*.py` files plus `conftest.py` |
+| Version-controlled files | 67 |
+| Python files | 60 |
+| Test files | 12 `test_*.py` files plus `conftest.py` |
 
 Counting basis: `git ls-files backend/python-fastapi`. Endpoints, dialects and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md).
 

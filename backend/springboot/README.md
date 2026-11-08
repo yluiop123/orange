@@ -11,7 +11,7 @@ This stack is Orange's behavioural reference implementation: it implements the c
 | Framework | Spring Boot 4.0.2 (parent) | `pom.xml` |
 | Java | 25 (`<java.version>`) | `pom.xml` |
 | Starters | Web, Security, Data JPA, Validation, Cache, Devtools, Test | `pom.xml` |
-| JWT | jjwt 0.13.0 (api / impl / jackson), RS256 | `pom.xml`, `security/jwt/JwtUtil.java:84` |
+| JWT | jjwt 0.13.0 (api / impl / jackson); RS256 with a key pair, HS256 fallback | `pom.xml`, `security/jwt/JwtUtil.java` |
 | API documentation | unified `/swagger` + `/openapi.json`; springdoc-openapi 3.0.0 (webmvc-ui) optional via `SPRINGDOC_ENABLED` | `web/OpenApiController.java`, `pom.xml` |
 | JDBC | PostgreSQL, mysql-connector-j, sqlite-jdbc, hibernate-community-dialects | `pom.xml` |
 | Other | Lombok 1.18.42, commons-lang3, Caffeine | `pom.xml` |
@@ -46,7 +46,7 @@ src/main/java/com/orange/
 ├── service/        system/ interfaces and impl/ implementations
 ├── util/           query builders, TraceId, database value extraction
 └── web/            OpenApiController (/swagger and /openapi.json)
-src/main/resources/ application.yaml, application-local.example.yaml, application-prod.yaml, keys/
+src/main/resources/ application.yaml, application-local.example.yaml, application-prod.yaml
 src/test/java/com/orange/  test classes (config, domain, security, service, util)
 ```
 
@@ -56,7 +56,7 @@ src/test/java/com/orange/  test classes (config, domain, security, service, util
 
 ## Deviations of this stack
 
-1. The only stack using asymmetric signing: RS256 with a PEM key pair (`security/jwt/JwtUtil.java:84`, keys under `src/main/resources/keys/`). Go can optionally use RS256; the other four backends use HS256 only.
+1. JWT signing follows the same rule as the other five stacks: both `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` select RS256 (inline PEM or a path), otherwise `JWT_SECRET` selects HS256. Generate the development pair with `pnpm run jwt:keys`; the repository no longer commits a private key. See [backend configuration conventions](../README.md).
 2. The unified entry is always on: `/swagger` + `/openapi.json` are provided by `web/OpenApiController`; springdoc's `/swagger-ui.html` is still gated by `${SPRINGDOC_ENABLED:false}`, and `application-prod.yaml` disables it again.
 3. This is the only stack that keeps the 15 deprecated compatibility routes (`/add`, `/edit`, `/detail/{id}`, `/reset/{userId}`); they are intentionally absent from `contracts/openapi.json`, so `/swagger` on the other five stacks never lists them.
 4. The only stack that caches the group tree: a Caffeine `group` cache, with `@Cacheable` / `@CacheEvict` in `service/system/impl/GroupServiceImpl.java`.
@@ -67,8 +67,8 @@ src/test/java/com/orange/  test classes (config, domain, security, service, util
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 131 |
-| Java source files | 121 (`src/main` 107, `src/test` 14) |
+| Version-controlled files | 130 |
+| Java source files | 122 (`src/main` 108, `src/test` 14) |
 | Test classes | 14, of which 1 Testcontainers integration test needs Docker |
 
 Counting basis: `git ls-files backend/springboot`. Endpoints, database dialects and verification results are not maintained on this page; see the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md) respectively.

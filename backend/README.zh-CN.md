@@ -117,10 +117,18 @@ NestJS、Go、ASP.NET Core、Rust 各自定义常量，FastAPI 在 auth 路由�
   `jdbc:mariadb:` 改写成 `jdbc:mysql:`。
 - 端口：六套实现都读 `APP_PORT`。Spring 只读 `APP_PORT`；其余五套未设置时回退
   `PORT`，再回退各自默认端口。
-- JWT：Spring 用 RS256 PEM（`JWT_PRIVATE_KEY`、`JWT_PUBLIC_KEY`）；其余五套用
-  HS256 `JWT_SECRET`。开发默认值统一为
-  `orange-dev-secret-change-me-in-production`；`APP_ENV=production|prod` 时仍用这个
-  默认值会拒绝启动。
+- JWT：六套实现同一规则。`JWT_PRIVATE_KEY` 与 `JWT_PUBLIC_KEY` 同时配置时用
+  RS256，值可以是内联 PEM 或文件路径；否则回退到 `JWT_SECRET` 的 HS256。只配一半
+  会在启动时报错。生产环境应配置 RSA 密钥对（推荐），或使用非默认且至少 32 字节的
+  secret。
+- 密码：六套实现都用 bcrypt（cost 10），入库格式为 `{bcrypt}$2a$...` /
+  `{bcrypt}$2b$...`；每套实现也接受不带前缀的旧 bcrypt 行，因此某一栈改过的密码在
+  另一栈仍能验证。
+- 开发密钥在仓库根目录生成：`pnpm run jwt:keys`（写入已被 gitignore 的
+  `keys/jwt-private.pem` 与 `keys/jwt-public.pem`；`--force` 会轮换并使旧 token
+  失效）。后端按 `JWT_PRIVATE_KEY=../../keys/jwt-private.pem`、
+  `JWT_PUBLIC_KEY=../../keys/jwt-public.pem` 指过去，或使用绝对路径。六栈随后都会
+  签发 `alg: RS256` 的 token。
 - 本地覆盖文件不入库：Spring 用 `application-local.yaml`（需
   `SPRING_PROFILES_ACTIVE=local`），Go、NestJS、ASP.NET Core 用 `.env.local`，
   Rust、FastAPI 用 `.env`。

@@ -21,6 +21,7 @@ const (
 	DriverSQLite   = "sqlite"
 
 	defaultSQLitePath = "orange-go.db"
+	devJWTSecret      = "orange-dev-secret-change-me-in-production"
 )
 
 type Database struct {
@@ -207,7 +208,7 @@ func Load() Config {
 			driver = DriverPostgres
 		}
 	}
-	return Config{
+	cfg := Config{
 		Port: env("APP_PORT", env("PORT", "8081")),
 		Database: Database{
 			Driver:   driver,
@@ -222,7 +223,7 @@ func Load() Config {
 			Path:     env("DB_PATH", env("SQLITE_PATH", defaultSQLitePath)),
 		},
 		JWT: JWT{
-			Secret:         env("JWT_SECRET", "orange-dev-secret-change-me-in-production"),
+			Secret:         env("JWT_SECRET", devJWTSecret),
 			PrivateKeyPath: env("JWT_PRIVATE_KEY_PATH", ""),
 			PublicKeyPath:  env("JWT_PUBLIC_KEY_PATH", ""),
 			PrivateKeyPEM:  env("JWT_PRIVATE_KEY", ""),
@@ -244,6 +245,22 @@ func Load() Config {
 			LockFor:       time.Duration(envInt("LOGIN_LOCK_MINUTES", 15)) * time.Minute,
 		},
 		OperationLogRetentionDays: envInt("LOG_RETENTION_DAYS", envInt("OPERATION_LOG_RETENTION_DAYS", 90)),
+	}
+
+	// RSA keys (RS256) win; otherwise the HMAC secret must be a real one.
+	usesRSA := strings.TrimSpace(cfg.JWT.PrivateKeyPEM) != "" || strings.TrimSpace(cfg.JWT.PrivateKeyPath) != ""
+	if !usesRSA && isProduction() && cfg.JWT.Secret == devJWTSecret {
+		panic("configure JWT_PRIVATE_KEY/JWT_PUBLIC_KEY (recommended) or a non-default JWT_SECRET in production")
+	}
+	return cfg
+}
+
+func isProduction() bool {
+	switch strings.ToLower(env("APP_ENV", "local")) {
+	case "production", "prod":
+		return true
+	default:
+		return false
 	}
 }
 

@@ -104,6 +104,7 @@ pub async fn authenticate_token(
 ) -> Result<(AuthUser, AccessClaims), AppError> {
     let claims = jwt::decode(
         token,
+        state.config.jwt_public_key.as_deref(),
         &state.config.jwt_secret,
         &state.config.jwt_issuer,
     )

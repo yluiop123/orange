@@ -60,16 +60,16 @@ scripts/smoke.mjs        HTTP 级冒烟脚本
 1. 单元测试只覆盖纯策略：7 个 `.spec.ts`，不启动 Nest、不连数据库；数据库行为靠 `scripts/smoke.mjs` 在真实服务上验证，这与 Go（含路由与冒烟测试）不同。
 2. TypeORM `synchronize: false`（`src/config/database.options.ts:16`）：不建表、不迁移，schema 由 `database/<engine>` 负责。
 3. MariaDB 走 TypeORM 的 `mysql` 驱动和 `mysql2` 客户端（`src/config/database.options.ts`），不需要额外的 `mariadb` 包；SQLite 用 `better-sqlite3`。
-4. JWT 只用 HS256：`JwtModule.registerAsync` 仅传 `secret`（`src/auth/auth.module.ts:21`），不同于 Spring 的 RS256。
+4. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/auth/auth.module.ts`、`src/auth/token.service.ts`）。`pnpm run jwt:keys` 生成的同一对密钥六栈通用。
 5. 无 `@nestjs/swagger`：`/swagger` + `/openapi.json` 在 `src/main.ts` 用 Express 适配器注册，位于全局前缀与守卫之外。
 
 ## 规模与测试
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 96 |
-| TypeScript 源文件 | 83（`src/`） |
-| 测试文件 | 7 个 `.spec.ts`（纯单元测试，无需数据库） |
+| 受版本控制的文件 | 97 |
+| TypeScript 源文件 | 86（`src/`） |
+| 测试文件 | 8 个 `.spec.ts`（纯单元测试，无需数据库） |
 
 统计口径：`git ls-files backend/node-nestjs`。端点清单、方言差异与验证结论分别见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
 

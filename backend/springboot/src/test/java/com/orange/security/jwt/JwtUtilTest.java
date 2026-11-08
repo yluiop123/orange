@@ -31,7 +31,7 @@ class JwtUtilTest {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         keyPair = generator.generateKeyPair();
-        jwtUtil = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(),
+        jwtUtil = new JwtUtil(JwtCredentials.rsa(keyPair.getPrivate(), keyPair.getPublic()),
                 new JwtProperties(300, 600, "orange", null, null));
         user = new AuthUser(
                 "user-id",
@@ -90,11 +90,29 @@ class JwtUtilTest {
 
     @Test
     void expiredTokenIsRejectedWhenParsed() {
-        JwtUtil shortLived = new JwtUtil(keyPair.getPrivate(), keyPair.getPublic(),
+        JwtUtil shortLived = new JwtUtil(
+                JwtCredentials.rsa(keyPair.getPrivate(), keyPair.getPublic()),
                 new JwtProperties(-60, 600, "orange", null, null));
         String token = shortLived.generateJwtToken(user);
 
         assertThrows(JwtException.class, () -> shortLived.parseAccessToken(token));
+    }
+
+    @Test
+    void hmacFallbackRoundTrip() {
+        JwtUtil hmac = new JwtUtil(
+                JwtCredentials.hmac(new javax.crypto.spec.SecretKeySpec(
+                        "a-32-byte-development-secret-key!!".getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        "HmacSHA256")),
+                new JwtProperties(300, 600, "orange", null, null));
+
+        String token = hmac.generateJwtToken(user);
+        String header = new String(
+                java.util.Base64.getUrlDecoder().decode(token.substring(0, token.indexOf('.'))),
+                java.nio.charset.StandardCharsets.UTF_8);
+
+        assertTrue(header.contains("\"alg\":\"HS256\""));
+        assertTrue(hmac.isAccessTokenValid(hmac.parseAccessToken(token), user));
     }
 
     @Test

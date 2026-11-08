@@ -6,8 +6,6 @@ import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
@@ -21,17 +19,13 @@ public class JwtUtil {
     private static final String CLAIM_VERSION = "ver";
     private static final String CLAIM_USERNAME = "username";
 
-    private final PrivateKey privateKey;
-    private final PublicKey publicKey;
+    private final JwtCredentials credentials;
     private final long accessExpire;
     private final long refreshExpire;
     private final String issuer;
 
-    public JwtUtil(PrivateKey privateKey,
-                   PublicKey publicKey,
-                   JwtProperties properties) {
-        this.privateKey = privateKey;
-        this.publicKey = publicKey;
+    public JwtUtil(JwtCredentials credentials, JwtProperties properties) {
+        this.credentials = credentials;
         this.accessExpire = properties.accessExpire();
         this.refreshExpire = properties.refreshExpire();
         this.issuer = properties.issuer();
@@ -72,7 +66,7 @@ public class JwtUtil {
     private String buildToken(UserDetails userDetails, String type, long expireSeconds) {
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plusSeconds(expireSeconds);
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .claim(CLAIM_TYPE, type)
                 .claim(CLAIM_VERSION, tokenVersion(userDetails))
@@ -80,14 +74,25 @@ public class JwtUtil {
                 .subject(subject(userDetails))
                 .issuer(issuer)
                 .issuedAt(Date.from(issuedAt))
-                .expiration(Date.from(expiresAt))
-                .signWith(privateKey, Jwts.SIG.RS256)
-                .compact();
+                .expiration(Date.from(expiresAt));
+        if (credentials.rsa()) {
+            builder.signWith(credentials.privateKey(), Jwts.SIG.RS256);
+        } else {
+            builder.signWith(credentials.secretKey(), Jwts.SIG.HS256);
+        }
+        return builder.compact();
     }
 
     private JwtClaims parseToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(publicKey)
+        var parser = Jwts.parser();
+        // Pinning the key type also pins the accepted algorithm family, so a
+        // token cannot downgrade from RS256 to HS256 (or the reverse).
+        if (credentials.rsa()) {
+            parser.verifyWith(credentials.publicKey());
+        } else {
+            parser.verifyWith(credentials.secretKey());
+        }
+        Claims claims = parser
                 .requireIssuer(issuer)
                 .build()
                 .parseSignedClaims(token)

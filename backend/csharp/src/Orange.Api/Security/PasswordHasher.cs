@@ -8,7 +8,10 @@ public sealed class PasswordHasher
 {
     private const string BcryptPrefix = "{bcrypt}";
 
-    public string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password, 10);
+    // Store the same `{bcrypt}$2a$...` value as Java/Go/NestJS so any stack can
+    // verify a password row written by another one.
+    public string Hash(string password)
+        => BcryptPrefix + BCrypt.Net.BCrypt.HashPassword(password, 10);
 
     public bool Verify(string? password, string? storedHash)
     {

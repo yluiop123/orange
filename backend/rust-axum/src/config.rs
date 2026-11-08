@@ -4,6 +4,7 @@
 //! from the environment; nothing is hard-coded for production.
 
 use std::env;
+use std::fs;
 use std::str::FromStr;
 
 const DEV_JWT_SECRET: &str = "orange-dev-secret-change-me-in-production";
@@ -14,6 +15,10 @@ pub struct Config {
     /// `DB_DRIVER` when set; otherwise the URL scheme decides.
     pub db_driver: Option<String>,
     pub jwt_secret: String,
+    /// RSA private key (inline PEM or a file path); set together with the public key.
+    pub jwt_private_key: Option<String>,
+    /// RSA public key (inline PEM or a file path).
+    pub jwt_public_key: Option<String>,
     pub jwt_issuer: String,
     pub cors_origins: Vec<String>,
     pub port: u16,
@@ -44,13 +49,20 @@ impl Config {
             }
         };
 
+        let jwt_private_key = key_material("JWT_PRIVATE_KEY", "JWT_PRIVATE_KEY_PATH");
+        let jwt_public_key = key_material("JWT_PUBLIC_KEY", "JWT_PUBLIC_KEY_PATH");
+        if jwt_private_key.is_some() != jwt_public_key.is_some() {
+            panic!("JWT_PRIVATE_KEY and JWT_PUBLIC_KEY must be set together");
+        }
+
         let environment = optional_env("APP_ENV")
             .unwrap_or_else(|| "local".to_string())
             .to_ascii_lowercase();
-        if matches!(environment.as_str(), "production" | "prod")
+        if jwt_private_key.is_none()
+            && matches!(environment.as_str(), "production" | "prod")
             && jwt_secret == DEV_JWT_SECRET
         {
-            panic!("JWT_SECRET must be set to a non-default value in production");
+            panic!("configure JWT_PRIVATE_KEY/JWT_PUBLIC_KEY (recommended) or a non-default JWT_SECRET in production");
         }
 
         let jwt_issuer =
@@ -70,6 +82,8 @@ impl Config {
             database_url,
             db_driver,
             jwt_secret,
+            jwt_private_key,
+            jwt_public_key,
             jwt_issuer,
             cors_origins,
             port: parse_env_any(&["APP_PORT", "PORT"], 8083u16),
@@ -91,6 +105,17 @@ fn optional_env(key: &str) -> Option<String> {
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
+}
+
+/// Inline PEM or a file path, the rule shared by all six backends.
+fn key_material(primary: &str, alias: &str) -> Option<String> {
+    let value = optional_env(primary).or_else(|| optional_env(alias))?;
+    if value.contains("-----BEGIN") {
+        return Some(value);
+    }
+    Some(fs::read_to_string(&value).unwrap_or_else(|error| {
+        panic!("cannot read JWT key {value}: {error}")
+    }))
 }
 
 /// Builds the connection string.

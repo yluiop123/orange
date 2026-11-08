@@ -66,6 +66,11 @@ pnpm install
 pnpm dev                                             # http://localhost:5173
 ```
 
+JWT 密钥不入库。在仓库根目录执行 `pnpm run jwt:keys` 会生成
+`keys/jwt-private.pem` 与 `keys/jwt-public.pem`（已 gitignore）；把
+`JWT_PRIVATE_KEY`、`JWT_PUBLIC_KEY` 指向这两个文件即可使用 RS256。未配置时快速开始
+回退到 `JWT_SECRET` 的 HS256。六套后端接受同一对密钥。
+
 没有 `sqlite3` 命令行时，用 Python 的 `sqlite3` 模块在同一个连接里依次执行两个脚本。
 React 开发模式默认走 mock；要连上面的后端，把 `VITE_MOCK_ENABLE=false` 和
 `VITE_PROXY_TARGET=http://127.0.0.1:8000` 写进 `frontend/react/.env.development.local`，

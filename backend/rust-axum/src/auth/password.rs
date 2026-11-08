@@ -7,6 +7,7 @@ const TEMP_PASSWORD_CHARS: &[u8] =
     b"ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
 const BCRYPT_COST: u32 = 10;
+const BCRYPT_PREFIX: &str = "{bcrypt}";
 
 pub fn generate_temp_password() -> String {
     let mut rng = rand::thread_rng();
@@ -21,7 +22,7 @@ pub fn generate_temp_password() -> String {
 /// Seed hashes are stored with Spring's `{bcrypt}` id prefix; the plain BCrypt
 /// library expects the raw `$2a$...` hash.
 fn normalize_hash(hash: &str) -> &str {
-    hash.strip_prefix("{bcrypt}").unwrap_or(hash)
+    hash.strip_prefix(BCRYPT_PREFIX).unwrap_or(hash)
 }
 
 pub async fn verify(plain: String, hash: String) -> bool {
@@ -39,10 +40,12 @@ pub async fn hash(plain: String) -> Result<String, AppError> {
             tracing::error!(error = %error, "password hashing task failed");
             AppError::system()
         })?;
-    result.map_err(|error| {
-        tracing::error!(error = %error, "password hashing failed");
-        AppError::system()
-    })
+    result
+        .map(|hash| format!("{BCRYPT_PREFIX}{hash}"))
+        .map_err(|error| {
+            tracing::error!(error = %error, "password hashing failed");
+            AppError::system()
+        })
 }
 
 #[cfg(test)]
@@ -67,5 +70,12 @@ mod tests {
     fn spring_bcrypt_prefix_is_stripped() {
         assert_eq!(normalize_hash("{bcrypt}$2a$10$abc"), "$2a$10$abc");
         assert_eq!(normalize_hash("$2a$10$abc"), "$2a$10$abc");
+    }
+
+    #[tokio::test]
+    async fn hashes_carry_the_shared_prefix() {
+        let hash = hash("TempPass123".to_string()).await.unwrap();
+        assert!(hash.starts_with("{bcrypt}$2"));
+        assert!(verify("TempPass123".to_string(), hash).await);
     }
 }

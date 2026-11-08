@@ -12,7 +12,10 @@ _TEMP_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"
 
 
 def hash_password(plain: str) -> str:
-    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt(rounds=10)).decode("ascii")
+    # Store the same `{bcrypt}$2b$...` shape as the other five stacks so any
+    # backend can verify a password row written by another one.
+    hashed = bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt(rounds=10))
+    return _BCRYPT_PREFIX + hashed.decode("ascii")
 
 
 def verify_password(plain: str, stored: str | None) -> bool:

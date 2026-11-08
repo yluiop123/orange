@@ -126,10 +126,20 @@ live in each stack's `.env.example` or YAML file and in its README, not here.
   both connect; Spring also rewrites `jdbc:mariadb:` to `jdbc:mysql:`.
 - Port: every stack reads `APP_PORT`. Spring Boot reads only `APP_PORT`; the other
   five fall back to `PORT` and then to their own default.
-- JWT: Spring Boot uses RS256 PEM keys (`JWT_PRIVATE_KEY`, `JWT_PUBLIC_KEY`); the
-  other five use HS256 `JWT_SECRET`. The shared development default is
-  `orange-dev-secret-change-me-in-production`; with `APP_ENV=production|prod`
-  those five refuse to start while it is in use.
+- JWT: all six stacks apply the same rule. When `JWT_PRIVATE_KEY` and
+  `JWT_PUBLIC_KEY` are both set they sign and verify with RS256; each value may
+  be an inline PEM or a file path. Otherwise they use HS256 with `JWT_SECRET`.
+  Setting only one key is a startup error. In production set the RSA pair
+  (recommended) or a non-default secret of at least 32 bytes.
+- Passwords: all six use bcrypt with cost 10 and store `{bcrypt}$2a$...` /
+  `{bcrypt}$2b$...`; every implementation accepts a bare bcrypt row too, so a
+  password changed by one stack still verifies in another.
+- Generate a development pair at the repository root with `pnpm run jwt:keys`
+  (writes `keys/jwt-private.pem` and `keys/jwt-public.pem`, both gitignored;
+  `--force` rotates the pair and invalidates existing tokens). Point a backend
+  at it with `JWT_PRIVATE_KEY=../../keys/jwt-private.pem` and
+  `JWT_PUBLIC_KEY=../../keys/jwt-public.pem`, or pass the absolute paths. All
+  six then produce `alg: RS256` tokens.
 - Local overrides are never committed: `application-local.yaml` with
   `SPRING_PROFILES_ACTIVE=local` for Spring Boot, `.env.local` for Go, NestJS and
   ASP.NET Core, `.env` for Rust and FastAPI.

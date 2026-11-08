@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -56,7 +57,10 @@ func NewTokenService(cfg config.JWT) (*TokenService, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(privatePEM) > 0 && len(publicPEM) > 0 {
+	if (len(privatePEM) > 0) != (len(publicPEM) > 0) {
+		return nil, errors.New("JWT_PRIVATE_KEY and JWT_PUBLIC_KEY must be set together")
+	}
+	if len(privatePEM) > 0 {
 		privateKey, err := parsePrivateKey(privatePEM)
 		if err != nil {
 			return nil, fmt.Errorf("parse JWT private key: %w", err)
@@ -78,22 +82,34 @@ func NewTokenService(cfg config.JWT) (*TokenService, error) {
 	return service, nil
 }
 
-func readKeys(cfg config.JWT) ([]byte, []byte, error) {
-	privatePEM := []byte(cfg.PrivateKeyPEM)
-	publicPEM := []byte(cfg.PublicKeyPEM)
-	if cfg.PrivateKeyPath != "" {
-		content, err := os.ReadFile(cfg.PrivateKeyPath)
-		if err != nil {
-			return nil, nil, fmt.Errorf("read JWT private key: %w", err)
-		}
-		privatePEM = content
+// readKey accepts inline PEM or a filesystem path, the same rule every backend
+// uses. The historical `JWT_*_KEY_PATH` variables remain as aliases.
+func readKey(material, pathAlias, label string) ([]byte, error) {
+	value := strings.TrimSpace(material)
+	if value == "" {
+		value = strings.TrimSpace(pathAlias)
 	}
-	if cfg.PublicKeyPath != "" {
-		content, err := os.ReadFile(cfg.PublicKeyPath)
-		if err != nil {
-			return nil, nil, fmt.Errorf("read JWT public key: %w", err)
-		}
-		publicPEM = content
+	if value == "" {
+		return nil, nil
+	}
+	if strings.Contains(value, "-----BEGIN") {
+		return []byte(value), nil
+	}
+	content, err := os.ReadFile(value)
+	if err != nil {
+		return nil, fmt.Errorf("read JWT %s key: %w", label, err)
+	}
+	return content, nil
+}
+
+func readKeys(cfg config.JWT) ([]byte, []byte, error) {
+	privatePEM, err := readKey(cfg.PrivateKeyPEM, cfg.PrivateKeyPath, "private")
+	if err != nil {
+		return nil, nil, err
+	}
+	publicPEM, err := readKey(cfg.PublicKeyPEM, cfg.PublicKeyPath, "public")
+	if err != nil {
+		return nil, nil, err
 	}
 	return privatePEM, publicPEM, nil
 }

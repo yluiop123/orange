@@ -64,6 +64,15 @@ function hasTraceHeader(response) {
   return Boolean(response.headers.get('x-trace-id'));
 }
 
+function tokenAlgorithm(token) {
+  try {
+    const header = JSON.parse(Buffer.from(String(token).split('.')[0], 'base64url').toString('utf8'));
+    return header.alg;
+  } catch {
+    return null;
+  }
+}
+
 function isEnvelope(json) {
   return json !== null
     && typeof json === 'object'
@@ -155,6 +164,7 @@ const superLogin = await login('super', 'super');
 expectOk('super login', superLogin.response);
 let token = superLogin.token;
 check('login returns access token', typeof token === 'string' && token.length > 20, token);
+check('access token uses the shared RS256 algorithm', tokenAlgorithm(token) === 'RS256', tokenAlgorithm(token));
 check('login returns expiresIn', Number(field(field(superLogin.response.json, 'data'), 'expiresIn')) > 0, superLogin.response.json);
 check('login returns refreshExpiresIn', Number(field(field(superLogin.response.json, 'data'), 'refreshExpiresIn')) > 0, superLogin.response.json);
 check('login sets HttpOnly refresh cookie', /refresh_token=/.test(superLogin.cookie), superLogin.cookie);

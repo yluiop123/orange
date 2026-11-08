@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
@@ -48,6 +49,16 @@ MYSQL_DRIVERS = {"mysql", "mariadb"}
 def _env(name: str, default: str) -> str:
     value = os.getenv(name)
     return default if value is None or value == "" else value
+
+
+def _key_material(primary: str, alias: str) -> str | None:
+    """Inline PEM or a file path, the rule shared by all six backends."""
+    value = _env(primary, "").strip() or _env(alias, "").strip()
+    if not value:
+        return None
+    if "-----BEGIN" in value:
+        return value
+    return Path(value).read_text(encoding="utf-8")
 
 
 def _env_int(name: str, default: int) -> int:
@@ -175,7 +186,13 @@ class Settings:
     jwt_secret: str = field(
         default_factory=lambda: _env("JWT_SECRET", DEV_JWT_SECRET)
     )
-    jwt_algorithm: str = "HS256"
+    # RSA PEM (RS256) wins when both keys are set; otherwise HS256.
+    jwt_private_key: str | None = field(
+        default_factory=lambda: _key_material("JWT_PRIVATE_KEY", "JWT_PRIVATE_KEY_PATH")
+    )
+    jwt_public_key: str | None = field(
+        default_factory=lambda: _key_material("JWT_PUBLIC_KEY", "JWT_PUBLIC_KEY_PATH")
+    )
     jwt_issuer: str = field(default_factory=lambda: _env("JWT_ISSUER", "orange"))
     access_token_expire_seconds: int = field(
         default_factory=lambda: _env_int(
@@ -225,11 +242,24 @@ class Settings:
     )
 
     def __post_init__(self) -> None:
-        environment = (os.getenv("APP_ENV") or "local").lower()
-        if environment in {"production", "prod"} and self.jwt_secret == DEV_JWT_SECRET:
+        if (self.jwt_private_key is None) != (self.jwt_public_key is None):
             raise RuntimeError(
-                "JWT_SECRET must be set to a non-default value in production"
+                "JWT_PRIVATE_KEY and JWT_PUBLIC_KEY must be set together"
             )
+        environment = (os.getenv("APP_ENV") or "local").lower()
+        if (
+            environment in {"production", "prod"}
+            and self.jwt_private_key is None
+            and self.jwt_secret == DEV_JWT_SECRET
+        ):
+            raise RuntimeError(
+                "Set JWT_PRIVATE_KEY/JWT_PUBLIC_KEY (recommended) or a non-default "
+                "JWT_SECRET in production"
+            )
+
+    @property
+    def jwt_algorithm(self) -> str:
+        return "RS256" if self.jwt_private_key else "HS256"
 
     @property
     def database_url(self) -> str:

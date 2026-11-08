@@ -37,8 +37,16 @@ fn issue_tokens(state: &AppState, user: &User) -> Result<LoginSuccess, AppError>
         state.config.refresh_expire,
     )?;
 
-    let access_token = jwt::encode_token(&state.config.jwt_secret, &access_claims)?;
-    let refresh_token = jwt::encode_token(&state.config.jwt_secret, &refresh_claims)?;
+    let access_token = jwt::encode_token(
+        state.config.jwt_private_key.as_deref(),
+        &state.config.jwt_secret,
+        &access_claims,
+    )?;
+    let refresh_token = jwt::encode_token(
+        state.config.jwt_private_key.as_deref(),
+        &state.config.jwt_secret,
+        &refresh_claims,
+    )?;
 
     Ok(LoginSuccess {
         response: LoginResp {
@@ -111,6 +119,7 @@ pub async fn refresh(
 ) -> Result<LoginSuccess, AppError> {
     let claims = jwt::decode(
         refresh_token,
+        state.config.jwt_public_key.as_deref(),
         &state.config.jwt_secret,
         &state.config.jwt_issuer,
     )
@@ -155,6 +164,7 @@ pub async fn logout(
     if let Some(token) = refresh_token {
         if let Ok(claims) = jwt::decode(
             &token,
+            state.config.jwt_public_key.as_deref(),
             &state.config.jwt_secret,
             &state.config.jwt_issuer,
         ) {

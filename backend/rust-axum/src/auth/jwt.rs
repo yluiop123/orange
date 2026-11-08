@@ -47,29 +47,57 @@ pub fn issue(
     Ok(claims)
 }
 
-pub fn encode_token(secret: &str, claims: &Claims) -> Result<String, AppError> {
-    encode(
-        &Header::default(),
-        claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .map_err(|error| {
+/// RS256 when an RSA private key is configured, otherwise HS256 with `secret`.
+pub fn encode_token(
+    private_key: Option<&str>,
+    secret: &str,
+    claims: &Claims,
+) -> Result<String, AppError> {
+    let (algorithm, key) = match private_key {
+        Some(pem) => (
+            Algorithm::RS256,
+            EncodingKey::from_rsa_pem(pem.as_bytes()).map_err(|error| {
+                tracing::error!(error = %error, "invalid JWT private key");
+                AppError::system()
+            })?,
+        ),
+        None => (
+            Algorithm::HS256,
+            EncodingKey::from_secret(secret.as_bytes()),
+        ),
+    };
+    encode(&Header::new(algorithm), claims, &key).map_err(|error| {
         tracing::error!(error = %error, "failed to sign token");
         AppError::system()
     })
 }
 
-pub fn decode(token: &str, secret: &str, issuer: &str) -> Result<Claims, AppError> {
-    let mut validation = Validation::new(Algorithm::HS256);
+/// RS256 when an RSA public key is configured, otherwise HS256 with `secret`.
+pub fn decode(
+    token: &str,
+    public_key: Option<&str>,
+    secret: &str,
+    issuer: &str,
+) -> Result<Claims, AppError> {
+    let (algorithm, key) = match public_key {
+        Some(pem) => (
+            Algorithm::RS256,
+            DecodingKey::from_rsa_pem(pem.as_bytes()).map_err(|error| {
+                tracing::error!(error = %error, "invalid JWT public key");
+                AppError::system()
+            })?,
+        ),
+        None => (
+            Algorithm::HS256,
+            DecodingKey::from_secret(secret.as_bytes()),
+        ),
+    };
+    let mut validation = Validation::new(algorithm);
     validation.set_issuer(&[issuer]);
-    jwt_decode::<Claims>(
-        token,
-        &DecodingKey::from_secret(secret.as_bytes()),
-        &validation,
-    )
-    .map(|data| data.claims)
-    .map_err(|error| {
-        tracing::debug!(error = %error, "invalid token");
-        AppError::unauthorized("未登录")
-    })
+    jwt_decode::<Claims>(token, &key, &validation)
+        .map(|data| data.claims)
+        .map_err(|error| {
+            tracing::debug!(error = %error, "invalid token");
+            AppError::unauthorized("未登录")
+        })
 }

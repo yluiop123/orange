@@ -57,7 +57,7 @@ Copy `.env.example` to `.env.local` (gitignored); the first line of `Program.cs`
 
 1. The repository has no `Properties/launchSettings.json` (the file does not appear in `git ls-files backend/csharp`), so `dotnet run`'s listening address comes only from `AppOptions.Port` and `UseUrls`, with no IDE profile involved.
 2. The target framework is `net10.0` but EF Core is pinned to 9.x: a comment in `Orange.Api.csproj` explains that `Pomelo.EntityFrameworkCore.MySql` 9.0.0 requires EF Core 9, so the three providers and EF Core must move together; upgrading to EF Core 10 has to wait for Pomelo 10.
-3. JWT is HS256 only (`src/Orange.Api/Security/JwtService.cs:58`, `:75`), unlike Spring's RS256; access and refresh tokens are issued and validated by hand in this file, with no third-party JWT package.
+3. JWT follows the shared rule: an RSA pair selects RS256, otherwise `JWT_SECRET` selects HS256 (`src/Orange.Api/Security/JwtService.cs`). Access and refresh tokens are still issued and validated by hand in this file, with no third-party JWT package.
 4. Audit-retention cleanup runs every 6 hours (class comment at `src/Orange.Api/Services/OperationLogService.cs:107`), not on a configurable cron, which differs from the daily cleanup cadence of the other ports.
 5. No third-party OpenAPI package and no migration tool: `/swagger` + `/openapi.json` are hand-wired in `Swagger/SwaggerSupport.cs`; the schema comes only from `database/<engine>/ddl.sql` and `dml.sql`.
 
@@ -65,9 +65,9 @@ Copy `.env.example` to `.env.local` (gitignored); the first line of `Program.cs`
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 63 |
-| C# source files | 54 (`src/Orange.Api` 47, `tests/Orange.Tests` 7) |
-| Test files | 7 `*Tests.cs` files plus 1 test csproj; 69 tests |
+| Version-controlled files | 64 |
+| C# source files | 55 (`src/Orange.Api` 47, `tests/Orange.Tests` 8) |
+| Test files | 8 `*Tests.cs` files plus 1 test csproj; 72 tests |
 
 Counting basis: `git ls-files backend/csharp`. Endpoints, dialects and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md).
 

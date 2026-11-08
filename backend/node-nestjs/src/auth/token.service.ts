@@ -37,6 +37,7 @@ export class TokenService {
   verify(token: string): Promise<TokenClaims> {
     return this.jwt.verifyAsync<TokenClaims>(token, {
       issuer: this.config.jwt.issuer,
+      algorithms: [this.config.jwt.algorithm],
     });
   }
 
@@ -73,7 +74,11 @@ export class TokenService {
         username: user.username,
         sub: user.id,
       },
-      { expiresIn, issuer: this.config.jwt.issuer },
+      {
+        expiresIn,
+        issuer: this.config.jwt.issuer,
+        algorithm: this.config.jwt.algorithm,
+      },
     );
   }
 }

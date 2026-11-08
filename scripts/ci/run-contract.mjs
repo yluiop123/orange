@@ -20,6 +20,12 @@ const stacks = process.argv.slice(2).length
   ? process.argv.slice(2)
   : ['spring', 'go', 'nest', 'csharp', 'rust', 'fastapi'];
 
+// Every stack runs with the same RSA pair, so the acceptance run also proves
+// the shared RS256 path instead of the HS256 development fallback.
+const keyDir = path.join(root, 'keys');
+const jwtPrivateKey = path.join(keyDir, 'jwt-private.pem');
+const jwtPublicKey = path.join(keyDir, 'jwt-public.pem');
+
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { stdio: 'inherit', ...options });
   if (result.status !== 0) {
@@ -50,6 +56,8 @@ function startCommand(stack, dbFile) {
     DB_FILE: dbFile,
     DB_PATH: dbFile,
     SPRING_DATASOURCE_URL: jdbc,
+    JWT_PRIVATE_KEY: jwtPrivateKey,
+    JWT_PUBLIC_KEY: jwtPublicKey,
   };
   switch (stack) {
     case 'spring': {
@@ -106,6 +114,9 @@ async function stop(child) {
 }
 
 const failures = [];
+
+// Idempotent: keeps an existing pair unless --force is passed.
+run(process.execPath, ['scripts/generate-jwt-keys.mjs'], { cwd: root, stdio: 'pipe' });
 
 for (const stack of stacks) {
   console.log(`\n=== contract: ${stack} ===`);

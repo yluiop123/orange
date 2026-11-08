@@ -12,7 +12,7 @@
 | Web | FastAPI `>=0.115,<1.0`、`uvicorn[standard]` `>=0.32,<1.0` | `requirements.txt` |
 | ORM 与驱动 | SQLAlchemy `>=2.0,<3.0`、`psycopg[binary]` `>=3.2,<4.0`、`PyMySQL` `>=1.1,<2.0` | `requirements.txt` |
 | 校验 | pydantic `>=2.9,<3.0` | `requirements.txt` |
-| 认证 | PyJWT `>=2.9,<3.0`（HS256）、`bcrypt` `>=4.2,<6.0` | `requirements.txt` |
+| 认证 | PyJWT `>=2.9,<3.0`（RS256 / HS256）、`cryptography` `>=43,<47`、`bcrypt` `>=4.2,<6.0` | `requirements.txt` |
 | 其他 | `python-dotenv` `>=1.0,<2.0` | `requirements.txt` |
 | 测试依赖 | pytest `>=8.3,<10.0`、httpx `>=0.27,<1.0`（在 `requirements-dev.txt`，含 `-r requirements.txt`） | `requirements-dev.txt` |
 | 接口文档 | 统一入口 `/swagger` + `/openapi.json`，`/docs` 302 到 `/swagger` | `app/routers/docs.py` |
@@ -66,9 +66,9 @@ scripts/               smoke_http.py、smoke_pg.py
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 66 |
-| Python 文件 | 59 |
-| 测试文件 | 11 个 `test_*.py`，另 `conftest.py` |
+| 受版本控制的文件 | 67 |
+| Python 文件 | 60 |
+| 测试文件 | 12 个 `test_*.py`，另 `conftest.py` |
 
 统计口径：`git ls-files backend/python-fastapi`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
 

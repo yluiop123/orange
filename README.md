@@ -66,6 +66,12 @@ pnpm install
 pnpm dev                                             # http://localhost:5173
 ```
 
+JWT keys are not committed. From the repository root, `pnpm run jwt:keys`
+writes `keys/jwt-private.pem` and `keys/jwt-public.pem` (gitignored); set
+`JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` to those paths to use RS256. Without
+them the quick start falls back to HS256 with `JWT_SECRET`. All six backends
+accept the same pair.
+
 Without the `sqlite3` CLI, run both scripts through Python's `sqlite3` module
 on one connection. React serves mocks by default; to use the backend above, put
 `VITE_MOCK_ENABLE=false` and `VITE_PROXY_TARGET=http://127.0.0.1:8000` in

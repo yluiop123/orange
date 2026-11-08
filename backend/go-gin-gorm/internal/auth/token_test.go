@@ -1,6 +1,10 @@
 package auth
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"strings"
 	"testing"
 	"time"
@@ -40,6 +44,41 @@ func TestTokenRoundTripAndType(t *testing.T) {
 	}
 	if _, err := service.Parse(access.Value, TokenTypeRefresh); err == nil {
 		t.Fatal("access token must not parse as refresh")
+	}
+}
+
+func TestRS256RoundTrip(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	privateDER, err := x509.MarshalPKCS8PrivateKey(key)
+	if err != nil {
+		t.Fatalf("MarshalPKCS8PrivateKey: %v", err)
+	}
+	publicDER, err := x509.MarshalPKIXPublicKey(&key.PublicKey)
+	if err != nil {
+		t.Fatalf("MarshalPKIXPublicKey: %v", err)
+	}
+	service, err := NewTokenService(config.JWT{
+		PrivateKeyPEM: string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privateDER})),
+		PublicKeyPEM:  string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: publicDER})),
+		AccessTTL:     time.Minute,
+		RefreshTTL:    time.Hour,
+		Issuer:        "orange-test",
+	})
+	if err != nil {
+		t.Fatalf("NewTokenService: %v", err)
+	}
+	if service.method.Alg() != "RS256" {
+		t.Fatalf("algorithm = %q, want RS256", service.method.Alg())
+	}
+	access, err := service.IssueAccess("user-1", "super", 3)
+	if err != nil {
+		t.Fatalf("IssueAccess: %v", err)
+	}
+	if _, err := service.Parse(access.Value, TokenTypeAccess); err != nil {
+		t.Fatalf("Parse: %v", err)
 	}
 }
 
