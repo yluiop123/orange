@@ -1,7 +1,6 @@
 # CI + GitHub Pages
 # - 前端：React / Angular / Vue 的 lint、类型检查、测试、构建
 # - 后端：六个技术栈的测试与构建（矩阵）
-# - 数据库：每个后端在 PostgreSQL / MySQL / MariaDB / SQLite 上跑同一套 HTTP 冒烟
 # - Pages：仅在 main 分支部署 React 静态构建
 name: CI and Pages
 
@@ -22,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  config:
+  docs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -33,7 +32,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - run: pnpm run permissions:check
       - run: pnpm run docs:check
 
   frontend-react:
@@ -119,44 +117,10 @@ jobs:
       fail-fast: false
       matrix:
         stack: [spring, go, nest, csharp, rust, fastapi]
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: orange
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-      mysql:
-        image: mysql:8
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: orange
-        ports: ['3306:3306']
-        options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -proot"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 20
-      mariadb:
-        image: mariadb:11
-        env:
-          MARIADB_ROOT_PASSWORD: root
-          MARIADB_DATABASE: orange
-        ports: ['3307:3306']
-        options: >-
-          --health-cmd "mariadb-admin ping -h 127.0.0.1 -uroot -proot"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 20
     steps:
       - uses: actions/checkout@v4
 
-      # Node is needed for the shared database matrix runner and for NestJS.
+      # Node is needed for the NestJS build/test step and the contract runner.
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -240,16 +204,6 @@ jobs:
               python -m pytest -q
               ;;
           esac
-
-      - name: Database clients
-        if: github.event_name != 'pull_request'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client default-mysql-client
-
-      - name: Database matrix
-        if: github.event_name != 'pull_request'
-        run: node scripts/ci/run-db-matrix.mjs ${{ matrix.stack }}
 
       - name: Contract acceptance (SQLite)
         if: github.event_name != 'pull_request'

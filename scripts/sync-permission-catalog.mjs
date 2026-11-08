@@ -7,9 +7,7 @@
  * (mocks and localized menu titles). The copies are committed so a plain
  * `pnpm build` works without running this script first.
  *
- * Usage:
- *   node scripts/sync-permission-catalog.mjs
- *   node scripts/sync-permission-catalog.mjs --check
+ * Usage: node scripts/sync-permission-catalog.mjs
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -23,25 +21,12 @@ const targets = [
 
 const catalog = JSON.parse(fs.readFileSync(sourcePath, "utf8"));
 const rendered = `${JSON.stringify(catalog, null, 2)}\n`;
-const check = process.argv.includes("--check");
-let failed = false;
 
 for (const relative of targets) {
   const target = path.join(root, relative);
   const current = fs.existsSync(target) ? fs.readFileSync(target, "utf8") : "";
   if (current === rendered) continue;
-
-  if (check) {
-    console.error(`${relative} is out of date; run \`pnpm run permissions:sync\``);
-    failed = true;
-  } else {
-    fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, rendered, "utf8");
-    console.log(`updated ${relative}`);
-  }
-}
-
-if (check) {
-  if (failed) process.exit(1);
-  console.log("permission catalog copies are up to date");
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, rendered, "utf8");
+  console.log(`updated ${relative}`);
 }

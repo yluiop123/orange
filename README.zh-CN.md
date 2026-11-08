@@ -171,21 +171,20 @@ CHECK）和 `dml.sql`（种子数据）。
 
 ## 验证与 CI
 
-先跑改动栈的命令（见上面的矩阵），再跑根目录检查：`pnpm run permissions:check`
-和 `pnpm run docs:check`（本地相对链接检查）。
+先跑改动栈的命令（见上面的矩阵），再跑根目录检查：`pnpm run docs:check`
+（本地相对链接检查）。
 
 [.github/workflows/main.yml](.github/workflows/main.yml) 在向 `main` 提 PR、push 到
 `main` 以及手动触发时运行：
 
-- `config`：跑 permissions:check 和 docs:check。
+- `docs`：跑 docs:check。
 - `frontend-react`、`frontend-vue`、`frontend-angular`：安装、lint、类型检查（React 与
   Vue）、测试、构建；React 在 push 时额外产出 Pages 工件。
-- `backend`：六个栈的测试与构建矩阵；push 时同一个 job 还会跑四引擎数据库矩阵和 SQLite
-  上的契约验收。
+- `backend`：六个栈的测试与构建矩阵；push 时同一个 job 还会跑 SQLite 上的契约验收。
 - `deploy`：只把 React 构建发布到 GitHub Pages，另外两套前端不部署。
 
-CI 没有路径过滤，只改文档也会触发全部 job。PR 阶段不跑数据库矩阵、契约验收和 Pages
-发布，所以“PR 通过”不等于后端行为已经验证。
+CI 没有路径过滤，只改文档也会触发全部 job。PR 阶段不跑契约验收和 Pages 发布，
+所以“PR 通过”不等于后端行为已经验证。
 
 ## 许可证与行为准则
 

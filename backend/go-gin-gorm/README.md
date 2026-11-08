@@ -43,7 +43,7 @@ internal/service/      business rules: RBAC, tree and reference guards, paginati
 internal/http/         Gin routes, middleware, handlers, response envelopes
 ```
 
-Policy and business logic do not live in the Gin layer; unit tests exercise these packages directly. Endpoints and the database matrix are not maintained on this page; see the [frontend API snapshot](../../frontend/openapi.json) and [database dialects](../../database/).
+Policy and business logic do not live in the Gin layer; unit tests exercise these packages directly. Endpoints and database support are not maintained on this page; see the [frontend API snapshot](../../frontend/openapi.json) and [database dialects](../../database/).
 
 ## Configuration entry point
 

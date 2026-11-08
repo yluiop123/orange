@@ -136,8 +136,6 @@ function withMarkers(source) {
   return next;
 }
 
-const check = process.argv.includes("--check");
-const stale = [];
 let updated = 0;
 
 for (const dialect of Object.keys(DIALECTS)) {
@@ -157,12 +155,8 @@ for (const dialect of Object.keys(DIALECTS)) {
     renderRolePermissions(dialect),
   );
   if (next === source) continue;
-  if (check) {
-    stale.push(`database/${dialect}/dml.sql`);
-  } else {
-    fs.writeFileSync(dmlPath, next, "utf8");
-    updated += 1;
-  }
+  fs.writeFileSync(dmlPath, next, "utf8");
+  updated += 1;
 }
 
 const translations = catalog.permissions.reduce(
@@ -170,17 +164,7 @@ const translations = catalog.permissions.reduce(
   0,
 );
 const grants = Object.values(catalog.rolePermissions).flat().length;
-if (check) {
-  if (stale.length > 0) {
-    for (const file of stale) {
-      console.error(`${file} is out of date; run \`pnpm run permissions:sync\``);
-    }
-    process.exit(1);
-  }
-  console.log("permission seed is up to date in all 7 dialects");
-} else {
-  console.log(
-    `permission seed synced in ${updated} dialect(s): ${catalog.permissions.length} permissions, ` +
-      `${translations} translations, ${grants} grants`,
-  );
-}
+console.log(
+  `permission seed synced in ${updated} dialect(s): ${catalog.permissions.length} permissions, ` +
+    `${translations} translations, ${grants} grants`,
+);

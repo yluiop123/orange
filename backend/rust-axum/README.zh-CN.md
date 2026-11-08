@@ -26,7 +26,6 @@
 | 启动 | `cargo run` | `src/main.rs`；`.env` 由 `dotenvy::dotenv()` 加载 |
 | 测试 | `cargo test` | `main.yml`（backend job, rust） |
 | 构建 | `cargo build` | `main.yml` 同 job |
-| 跨引擎冒烟 | `pwsh -File scripts/smoke-databases.ps1`（可加 `-Engine sqlite`） | `scripts/smoke-databases.ps1`；需要各引擎已加载 schema 与种子 |
 
 端口来源变量：`parse_env_any(&["APP_PORT", "PORT"], 8083u16)`（`src/config.rs`），默认 8083；`.env.example` 写 `PORT=8083`，并注明该端口由端口分配约定保留。
 
@@ -49,7 +48,6 @@ src/domain/          实体、DTO、树与权限策略、校验
 src/repository/      SQLx 查询（按驱动各生成一份）
 src/service/         业务规则与守卫
 src/routes/          Axum 处理器与路由
-scripts/smoke-databases.ps1  四引擎冒烟脚本
 ```
 
 ## 配置入口
@@ -75,4 +73,4 @@ scripts/smoke-databases.ps1  四引擎冒烟脚本
 统计口径：`git ls-files backend/rust-axum` 与 `src` 内 `#[test]` 计数。端点与方言见 [HTTP 契约](../../frontend/openapi.json)、[数据库方言](../../database/)。
 
 > Last verified: c7b6531 · 2026-11-08
-> 事实来源：`Cargo.toml`、`Cargo.lock`、`.env.example`、`src/main.rs`、`src/config.rs`、`src/db.rs`、`src/auth/jwt.rs`、`scripts/smoke-databases.ps1`、`.github/workflows/main.yml`
+> 事实来源：`Cargo.toml`、`Cargo.lock`、`.env.example`、`src/main.rs`、`src/config.rs`、`src/db.rs`、`src/auth/jwt.rs`、`.github/workflows/main.yml`

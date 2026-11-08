@@ -43,7 +43,7 @@ internal/service/      业务规则：RBAC、树与引用守卫、分页
 internal/http/         Gin 路由、中间件、处理器、响应包体
 ```
 
-策略与业务逻辑不放在 Gin 层；单元测试直接测这些包。端点与数据库矩阵不在本页维护，见[前端接口快照](../../frontend/openapi.json)与[数据库方言](../../database/)。
+策略与业务逻辑不放在 Gin 层；单元测试直接测这些包。端点与数据库支持不在本页维护，见[前端接口快照](../../frontend/openapi.json)与[数据库方言](../../database/)。
 
 ## 配置入口
 

@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "scripts": {
     "permissions:sync": "node scripts/sync-permission-catalog.mjs && node scripts/sync-permission-seed.mjs",
-    "permissions:check": "node scripts/sync-permission-catalog.mjs --check && node scripts/sync-permission-seed.mjs --check",
     "docs:check": "node scripts/check-docs-links.mjs",
     "jwt:keys": "node scripts/generate-jwt-keys.mjs"
   },

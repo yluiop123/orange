@@ -163,9 +163,8 @@ PostgreSQL is the reference; MySQL, MariaDB and SQLite are supported. Before
 switching, create the database if the engine needs one, then load
 `ddl.sql` followed by `dml.sql` from the matching [../database/](../database/)
 engine directory. An empty SQLite file connects, but every query fails until the
-schema is loaded. `test-databases.ps1` in [../scripts/](../scripts/) starts local
-PostgreSQL, MySQL and MariaDB containers and loads the schema; the CI matrix uses
-GitHub Actions service containers instead.
+schema is loaded. There is no bundled database launcher; start the engine you
+need and load the matching `ddl.sql` and `dml.sql` yourself.
 
 | Engine | `DB_DRIVER` | `DATABASE_URL` (five stacks) | Spring JDBC URL |
 | --- | --- | --- | --- |
@@ -177,13 +176,13 @@ GitHub Actions service containers instead.
 SQLite paths are per stack: Go `DB_PATH` (alias `SQLITE_PATH`), Rust `DB_FILE`,
 ASP.NET Core `SQLITE_PATH`, NestJS and FastAPI `DB_NAME` or the URL path. Spring
 Boot enables foreign keys and `date_class=text` itself; hand-written JDBC URLs
-must keep those parameters. MariaDB uses port 3307 in CI, so change `DB_DRIVER`
-and the port together.
+must keep those parameters. MariaDB commonly listens on 3307 in the sample URL,
+so change `DB_DRIVER` and the port together.
 
-Verify a switch by running the server and pointing `http-smoke.mjs` from
-[../scripts/](../scripts/) at its base URL, or use the database matrix runner,
-which exercises one stack against all four engines. A stale `DATABASE_URL` is the
-usual reason a new `DB_HOST` appears to be ignored.
+Verify a switch by running the server and then
+[../scripts/ci/contract-test.mjs](../scripts/ci/contract-test.mjs) against its
+base URL. A stale `DATABASE_URL` is the usual reason a new `DB_HOST` appears to
+be ignored.
 
 ## 5. Adding an endpoint
 
@@ -210,9 +209,9 @@ usual reason a new `DB_HOST` appears to be ignored.
 6. Repeat the change in all six stacks, using the layer table above. The
    per-stack README lists the exact directories; the Node stack installs and
    tests with `pnpm install` and `pnpm test`.
-7. Test before merging: service unit tests, `http-smoke.mjs` against a running
-   server, and `contract-test.mjs` against the same base URL. Both scripts live
-   in [../scripts/](../scripts/). The contract test covers a fixed behaviour set
+7. Test before merging: service unit tests and `contract-test.mjs` against the
+   running server. The script lives in [../scripts/ci/](../scripts/ci/). The
+   contract test covers a fixed behaviour set
    and does not discover new paths, so add explicit assertions for the endpoint:
    the write returns `200`, then a read shows the new state.
 

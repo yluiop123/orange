@@ -148,9 +148,8 @@ NestJS、Go、ASP.NET Core、Rust 各自定义常量，FastAPI 在 auth 路由�
 PostgreSQL 是基准，另支持 MySQL、MariaDB、SQLite。切换前先按引擎建库（SQLite 是
 文件，不需要服务），再依次执行对应 [../database/](../database/) 引擎目录下的
 `ddl.sql` 与 `dml.sql`。空 SQLite 文件能连上，但没灌 schema 时所有查询都会报表
-不存在。[../scripts/](../scripts/) 里的 `test-databases.ps1` 会启动本地的
-PostgreSQL、MySQL、MariaDB 容器并灌入 schema；CI 矩阵改用 GitHub Actions 的
-service containers。
+不存在。仓库不再附带数据库启动脚本；自行启动目标引擎，并加载对应的
+`ddl.sql` 与 `dml.sql`。
 
 | 引擎 | `DB_DRIVER` | `DATABASE_URL`（五套实现） | Spring JDBC URL |
 | --- | --- | --- | --- |
@@ -162,11 +161,11 @@ service containers。
 SQLite 路径按栈区分：Go 用 `DB_PATH`（别名 `SQLITE_PATH`），Rust 用 `DB_FILE`，
 ASP.NET Core 用 `SQLITE_PATH`，NestJS 与 FastAPI 用 `DB_NAME` 或 URL 里的路径。
 Spring 会自动开启外键并补 `date_class=text`，手写 JDBC URL 时要保留这些参数。
-MariaDB 在 CI 用 3307，改 `DB_DRIVER` 时要连端口一起改。
+MariaDB 在示例 URL 中常用 3307，改 `DB_DRIVER` 时要连端口一起改。
 
-验证切换：起服务后把 [../scripts/](../scripts/) 里的 `http-smoke.mjs` 指向它的
-base URL；或用数据库矩阵脚本让单栈依次连四个引擎。已设置却被遗忘的 `DATABASE_URL`
-是 `DB_HOST` “不生效”的常见原因。
+验证切换：起服务后对它的 base URL 跑
+[../scripts/ci/contract-test.mjs](../scripts/ci/contract-test.mjs)。已设置却被遗忘的
+`DATABASE_URL` 是 `DB_HOST` “不生效”的常见原因。
 
 ## 5. 加端点流程
 
@@ -187,8 +186,8 @@ base URL；或用数据库矩阵脚本让单栈依次连四个引擎。已设置
    和 4000 字符，日志写入失败只告警。
 6. 按上面的分层表在六栈各改一遍。各栈 README 列出精确目录；Node 栈用
    `pnpm install` 安装、`pnpm test` 测试。
-7. 合并前测试：service 单测、对运行中的服务跑 `http-smoke.mjs`、对同一 base URL
-   跑 `contract-test.mjs`。两个脚本都在 [../scripts/](../scripts/)。契约测试覆盖
+7. 合并前测试：service 单测、对运行中的服务跑 `contract-test.mjs`。脚本在
+   [../scripts/ci/](../scripts/ci/)。契约测试覆盖
    固定行为集，不会自动发现新 path，必须显式补断言：写操作返回 `200`，再读一次
    确认新状态。
 

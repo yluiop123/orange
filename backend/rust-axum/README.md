@@ -26,7 +26,6 @@ This stack implements the same API contract with Rust + Axum, following the Spri
 | Start | `cargo run` | `src/main.rs`; `.env` is loaded by `dotenvy::dotenv()` |
 | Test | `cargo test` | `main.yml` (backend job, rust) |
 | Build | `cargo build` | same job in `main.yml` |
-| Cross-engine smoke | `pwsh -File scripts/smoke-databases.ps1` (optionally with `-Engine sqlite`) | `scripts/smoke-databases.ps1`; each engine must already have the schema and seed loaded |
 
 Port source variable: `parse_env_any(&["APP_PORT", "PORT"], 8083u16)` (`src/config.rs`), default 8083; `.env.example` sets `PORT=8083` and notes that this port is reserved by the port-allocation convention.
 
@@ -49,7 +48,6 @@ src/domain/          entities, DTOs, tree and permission policy, validation
 src/repository/      SQLx queries (one generated set per driver)
 src/service/         business rules and guards
 src/routes/          Axum handlers and routes
-scripts/smoke-databases.ps1  four-engine smoke script
 ```
 
 ## Configuration entry point
@@ -75,4 +73,4 @@ Copy `.env.example` to `.env` (gitignored, loaded by `dotenvy::dotenv()`); real 
 Counting basis: `git ls-files backend/rust-axum` plus a count of `#[test]` inside `src`. Endpoints and dialects are in the [HTTP contract](../../frontend/openapi.json) and [database dialects](../../database/).
 
 > Last verified: c7b6531 · 2026-11-08
-> Sources: `Cargo.toml`, `Cargo.lock`, `.env.example`, `src/main.rs`, `src/config.rs`, `src/db.rs`, `src/auth/jwt.rs`, `scripts/smoke-databases.ps1`, `.github/workflows/main.yml`
+> Sources: `Cargo.toml`, `Cargo.lock`, `.env.example`, `src/main.rs`, `src/config.rs`, `src/db.rs`, `src/auth/jwt.rs`, `.github/workflows/main.yml`
