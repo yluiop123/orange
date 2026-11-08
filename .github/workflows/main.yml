@@ -107,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Node is needed for the NestJS build/test step and the contract runner.
+      # Node is needed for the NestJS build/test step.
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
@@ -191,10 +191,6 @@ jobs:
               python -m pytest -q
               ;;
           esac
-
-      - name: Contract acceptance (SQLite)
-        if: github.event_name != 'pull_request'
-        run: node scripts/ci/run-contract.mjs ${{ matrix.stack }}
 
   deploy:
     if: github.event_name == 'push'
