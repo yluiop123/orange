@@ -1,5 +1,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const base = process.env.E2E_BASE ?? 'http://localhost:5174';
 const shots = process.env.E2E_EVIDENCE ?? path.join(os.tmpdir(), 'orange-evidence');
