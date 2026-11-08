@@ -53,6 +53,9 @@
 | 异常映射 | 异常或业务消息 → 业务码 + HTTP 状态 | Spring `controller/GlobalExceptionHandler.java`；Go `internal/http/response.go` 与 `internal/domain/errors.go`；NestJS `src/common/all-exceptions.filter.ts`；ASP.NET Core `Middleware/ExceptionHandlingMiddleware.cs`；Rust `src/error.rs`；FastAPI `app/errors.py` |
 | 操作日志 | 记录非 GET 写操作 | Spring `config/OperationLogInterceptor.java`；Go `internal/http/middleware.go`；NestJS `src/operation-log/operation-log.interceptor.ts`；ASP.NET Core `Middleware/OperationLogMiddleware.cs`；Rust `src/operation_log.rs`；FastAPI `app/middleware.py` |
 
+Go、ASP.NET Core 与 FastAPI 包住整个请求，被拒绝的请求（401/403/400）也会记录；
+Spring、NestJS、Rust 在认证之后才安装记录器，只记录进入处理器的请求。
+
 “repository”是逻辑层而非目录要求：NestJS 注入 TypeORM `Repository`，ASP.NET Core
 与 FastAPI 在 service 里直接用 `DbContext` / `Session`。层可以折叠，职责不能混：
 格式校验不进 service，业务规则不进控制器。

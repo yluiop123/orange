@@ -55,6 +55,10 @@ failure cannot turn a successful request into a failure.
 | Error mapping | exception or business message to business code plus HTTP status | Spring `controller/GlobalExceptionHandler.java`; Go `internal/http/response.go` and `internal/domain/errors.go`; NestJS `src/common/all-exceptions.filter.ts`; ASP.NET Core `Middleware/ExceptionHandlingMiddleware.cs`; Rust `src/error.rs`; FastAPI `app/errors.py` |
 | Operation log | records non-GET writes | Spring `config/OperationLogInterceptor.java`; Go `internal/http/middleware.go`; NestJS `src/operation-log/operation-log.interceptor.ts`; ASP.NET Core `Middleware/OperationLogMiddleware.cs`; Rust `src/operation_log.rs`; FastAPI `app/middleware.py` |
 
+Go, ASP.NET Core and FastAPI wrap the whole request, so rejected requests
+(401/403/400) are logged too; Spring, NestJS and Rust install the recorder after
+authentication, so only requests that reach the handler are logged.
+
 "Repository" is a logical layer, not a required directory: NestJS injects a
 TypeORM `Repository`, ASP.NET Core and FastAPI use `DbContext` and `Session`
 inside the service. A layer may collapse; its responsibility may not. Format

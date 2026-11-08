@@ -43,6 +43,11 @@ function refreshAccessToken(): Promise<string | null> {
       .catch(() => {
         authToken.clear();
         sessionHint.clear();
+        // React uses HashRouter; send the user back to the login screen when
+        // the refresh cookie is gone, like the Vue and Angular stacks do.
+        if (!window.location.hash.startsWith("#/login")) {
+          window.location.hash = "#/login";
+        }
         return null;
       })
       .finally(() => {
