@@ -15,7 +15,7 @@
 | JWT | `github.com/golang-jwt/jwt/v5` 5.2.2 | `go.mod` |
 | 校验 | `go-playground/validator/v10` 10.20.0 | `go.mod` |
 | 其他 | `golang.org/x/crypto`（bcrypt）、`google/uuid`、`joho/godotenv` | `go.mod` |
-| 接口文档 | 统一入口 `/swagger` + `/openapi.json`（无额外依赖） | `internal/http/swagger.go` |
+| 接口文档 | swaggo 注解 + gin-swagger；`/swagger` + `/openapi.json` | `internal/http/swagger.go`、`docs/` |
 | 构建 | 只有 `go` 工具链，无 Makefile | 目录内容 |
 
 ## 命令
@@ -43,7 +43,7 @@ internal/service/      业务规则：RBAC、树与引用守卫、分页
 internal/http/         Gin 路由、中间件、处理器、响应包体
 ```
 
-策略与业务逻辑不放在 Gin 层；单元测试直接测这些包。端点与数据库矩阵不在本页维护，见 [HTTP 契约](../../contracts/openapi.json) 与 [数据库方言](../../database/)。
+策略与业务逻辑不放在 Gin 层；单元测试直接测这些包。端点与数据库矩阵不在本页维护，见[前端接口快照](../../frontend/openapi.json)与[数据库方言](../../database/)。
 
 ## 配置入口
 
@@ -51,7 +51,7 @@ internal/http/         Gin 路由、中间件、处理器、响应包体
 
 ## 本栈偏差
 
-1. 无第三方 OpenAPI 包：`/swagger` + `/openapi.json` 在 `internal/http/swagger.go` 手写；契约只以 `contracts/openapi.json` 为准。
+1. Swagger 由 swaggo 注解生成，经 gin-swagger 提供（`internal/http/swagger.go`、`docs/`）；没有静态契约读取器。
 2. SQLite 用纯 Go 驱动，`CGO_ENABLED=0` 可构建；为避开 `SQLITE_BUSY` 把 SQLite 连接池压到 1（`internal/store/store.go:57`），其他引擎为 10（同文件 :60）。
 3. JWT 遵循统一规则：`JWT_PRIVATE_KEY` + `JWT_PUBLIC_KEY`（内联 PEM 或文件路径，`_PATH` 别名仍可用）时用 RS256，否则用 `JWT_SECRET` 的 HS256。`pnpm run jwt:keys` 生成的同一对密钥六栈通用。
 4. 不维护 `version` 乐观锁：模型里有该列（`internal/store/models.go`），创建时写 0，更新时不自增，也不做 `WHERE version` 比较，并发编辑为后写覆盖。Rust 与 Python 会自增但同样不比较。
@@ -61,8 +61,8 @@ internal/http/         Gin 路由、中间件、处理器、响应包体
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 60 |
-| Go 源文件 | 54 |
+| 受版本控制的文件 | 64 |
+| Go 源文件 | 56 |
 | 测试文件 | 12 个 `_test.go`（含 `internal/http` 的路由测试与可选数据库冒烟） |
 
 统计口径：`git ls-files backend/go-gin-gorm`。栈级差异的成因见 [后端共享约定与偏差](../../backend/README.zh-CN.md)。

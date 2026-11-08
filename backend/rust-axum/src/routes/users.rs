@@ -17,6 +17,20 @@ use super::{
     ids_from_query, parse_json, parse_query, require, status_from_body, ApiResult, IdsQuery,
 };
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/system/users",
+    tag = "users",
+    summary = "用户分页列表",
+    security(("bearer_auth" = [])),
+    params(UserListQuery),
+    responses(
+        (status = 200, description = "用户分页", body = ApiResponse<PageData<UserBean>>),
+        (status = 400, description = "参数错误", body = ApiResponse<serde_json::Value>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn list(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -28,6 +42,20 @@ pub async fn list(
     Ok(Json(ApiResponse::ok(page)))
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/system/users/{userId}",
+    tag = "users",
+    summary = "用户详情",
+    security(("bearer_auth" = [])),
+    params(("userId" = String, Path, description = "用户 ID")),
+    responses(
+        (status = 200, description = "用户详情", body = ApiResponse<UserBean>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+        (status = 404, description = "用户不存在", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn get(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -38,6 +66,22 @@ pub async fn get(
     Ok(Json(ApiResponse::ok(user)))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/system/users",
+    tag = "users",
+    summary = "新增用户",
+    description = "创建用户并返回初始临时密码。",
+    security(("bearer_auth" = [])),
+    request_body = AddUserReq,
+    responses(
+        (status = 200, description = "创建成功，data 为初始临时密码", body = ApiResponse<String>),
+        (status = 400, description = "参数或校验错误", body = ApiResponse<serde_json::Value>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+        (status = 409, description = "用户名已存在", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn create(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -49,6 +93,23 @@ pub async fn create(
     Ok(Json(ApiResponse::message("操作成功", temp_password)))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/v1/system/users/{userId}",
+    tag = "users",
+    summary = "修改用户",
+    security(("bearer_auth" = [])),
+    params(("userId" = String, Path, description = "用户 ID")),
+    request_body = EditUserReq,
+    responses(
+        (status = 200, description = "修改成功", body = ApiResponse<String>),
+        (status = 400, description = "参数或校验错误", body = ApiResponse<serde_json::Value>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+        (status = 404, description = "用户不存在", body = ApiResponse<serde_json::Value>),
+        (status = 409, description = "数据冲突", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn edit(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -61,6 +122,22 @@ pub async fn edit(
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
+#[utoipa::path(
+    patch,
+    path = "/api/v1/system/users/{userId}/status",
+    tag = "users",
+    summary = "修改用户状态",
+    security(("bearer_auth" = [])),
+    params(("userId" = String, Path, description = "用户 ID")),
+    request_body = StatusReq,
+    responses(
+        (status = 200, description = "修改成功", body = ApiResponse<String>),
+        (status = 400, description = "参数或校验错误", body = ApiResponse<serde_json::Value>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+        (status = 404, description = "用户不存在", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn update_status(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -73,6 +150,21 @@ pub async fn update_status(
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/system/users/{userId}/reset-password",
+    tag = "users",
+    summary = "重置用户密码",
+    description = "生成新的初始临时密码并通过 `data` 返回，响应带 `Cache-Control: no-store`。",
+    security(("bearer_auth" = [])),
+    params(("userId" = String, Path, description = "用户 ID")),
+    responses(
+        (status = 200, description = "重置成功，data 为临时密码", body = ApiResponse<String>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+        (status = 404, description = "用户不存在", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn reset_password(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -80,14 +172,28 @@ pub async fn reset_password(
 ) -> Result<Response, crate::error::AppError> {
     require(&auth, "action#/system/user:edit")?;
     let temp_password = user_service::reset_password(&state.db, &auth, &user_id).await?;
-    let mut response =
-        Json(ApiResponse::message("操作成功", temp_password)).into_response();
+    let mut response = Json(ApiResponse::message("操作成功", temp_password)).into_response();
     response
         .headers_mut()
         .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     Ok(response)
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/v1/system/users/{userId}",
+    tag = "users",
+    summary = "删除用户",
+    security(("bearer_auth" = [])),
+    params(("userId" = String, Path, description = "用户 ID")),
+    responses(
+        (status = 200, description = "删除成功", body = ApiResponse<String>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+        (status = 404, description = "用户不存在", body = ApiResponse<serde_json::Value>),
+        (status = 409, description = "不能删除当前用户", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn delete_one(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -98,6 +204,23 @@ pub async fn delete_one(
     Ok(Json(ApiResponse::ok_text("删除成功")))
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/v1/system/users",
+    tag = "users",
+    summary = "批量删除用户",
+    description = "以逗号分隔的 `ids` 查询参数批量删除用户。",
+    security(("bearer_auth" = [])),
+    params(IdsQuery),
+    responses(
+        (status = 200, description = "删除成功", body = ApiResponse<String>),
+        (status = 400, description = "参数错误", body = ApiResponse<serde_json::Value>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "无权访问", body = ApiResponse<serde_json::Value>),
+        (status = 404, description = "用户不存在", body = ApiResponse<serde_json::Value>),
+        (status = 409, description = "不能删除当前用户", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn delete_many(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,

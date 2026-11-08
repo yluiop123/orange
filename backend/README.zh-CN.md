@@ -2,11 +2,12 @@
 
 # 后端
 
-六套 API 实现共享同一份 HTTP 契约与同一套数据库 schema。Spring Boot 是行为基准，
-契约与契约测试是最终裁判；六套实现之间不共享运行时库，也互不调用。
+六套 API 实现共享同一份行为契约与同一套数据库 schema。Spring Boot 是行为基准，
+跨栈契约测试是最终裁判；六套实现之间不共享运行时库，也互不调用。每个后端从自己的
+注解生成 OpenAPI 文档；前端另行维护一份冻结快照，供类型与 Swagger 页面使用。
 
-仓库结构与快速开始见 [../README.md](../README.zh-CN.md)。契约是
-[../contracts/openapi.json](../contracts/openapi.json)，表结构与种子数据在
+仓库结构与快速开始见 [../README.md](../README.zh-CN.md)。前端快照是
+[../frontend/openapi.json](../frontend/openapi.json)，表结构与种子数据在
 [../database/](../database/)，跨栈检查脚本在 [../scripts/](../scripts/)，前端约定见
 [../frontend/README.md](../frontend/README.zh-CN.md)。
 
@@ -169,9 +170,10 @@ base URL；或用数据库矩阵脚本让单栈依次连四个引擎。已设置
 
 ## 5. 加端点流程
 
-1. 先在 [../contracts/openapi.json](../contracts/openapi.json) 定行为：方法、路径、
-   Authority、请求与响应 schema，以及可能返回的每个错误。该文档手工维护，仓库里
-   没有生成器或契约校验器。
+1. 先在参考实现里定行为：方法、路径、Authority、请求与响应 schema，以及可能返回的
+   每个错误。给 Spring 控制器/DTO 补注解，让 springdoc 收录它，再在其余五栈镜像同样
+   的注解。消费方结构变化时同步更新
+   [../frontend/openapi.json](../frontend/openapi.json)，它驱动前端类型与 Swagger 页面。
 2. 加 DTO 与格式约束。校验失败返回 `40002`，`data` 是 `{字段: 消息}`；body 不是
    合法 JSON 则是 `40001`。
 3. 在 service 层实现规则：存在性、唯一性、树与授权边界、事务。抛业务消息前确认
@@ -192,19 +194,18 @@ base URL；或用数据库矩阵脚本让单栈依次连四个引擎。已设置
 
 ## 6. Swagger
 
-文档入口在 `/api/v1` 之外，不套业务包体：
+文档入口在 `/api/v1` 之外，不套业务包体，由各框架自己生成：
 
-- `GET /swagger` 渲染 Swagger UI 5（资源来自 unpkg），schema 地址固定为
-  `/openapi.json`。
-- `GET /openapi.json` 以 `application/json` 返回
-  [../contracts/openapi.json](../contracts/openapi.json)。工作目录必须留在仓库内，
-  否则找不到该文件。
-- Spring Boot 另保留 springdoc 的 `GET /swagger-ui.html` 与 `GET /api-docs`；两者
-  默认关闭，需要 `SPRINGDOC_ENABLED=true`，生产环境保持关闭。
-- FastAPI 把 `GET /docs` 重定向到 `/swagger`，并关闭框架自带的 schema，确保共享
-  契约是唯一来源。
+| 栈 | 生成方式 | 入口 |
+| --- | --- | --- |
+| Spring Boot | springdoc-openapi 注解 | `/openapi.json`、`/swagger` |
+| FastAPI | FastAPI/Pydantic 路由元数据 | `/openapi.json`、`/swagger` |
+| NestJS | `@nestjs/swagger` + CLI 插件 | `/openapi.json`、`/swagger` |
+| ASP.NET Core | Swashbuckle 控制器元数据 | `/openapi.json`、`/swagger` |
+| Go | swaggo handler 注解 | `/openapi.json`、`/swagger` |
+| Rust | utoipa derive 与 path 注解 | `/openapi.json`、`/swagger` |
 
-Swagger UI 只是契约的阅读器，不是第二事实源。只写在框架注解里的 path 不会出现在
-`/openapi.json` 里，先改契约。
+不存在共享的运行时文档。文档反映代码：没有注解的 path 不会出现，因此改接口时要同步
+更新各栈的注解。
 
 > Last verified: c7b6531 · 2026-11-08

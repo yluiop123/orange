@@ -22,11 +22,16 @@
 `src/app/pages/**/*.component.ts`（Angular）。布局、路由表、访问控制、鉴权 store、
 语言文件与 mock handler 在三套栈中遵循同样的分层。
 
-共享的是可验证的事实，不是可执行代码：OpenAPI 契约
-（[../contracts/openapi.json](../contracts/openapi.json)）、权限目录与种子数据
+共享的是可验证的事实，不是可执行代码：冻结的 OpenAPI 快照
+（[openapi.json](openapi.json)）、权限目录与种子数据
 （[../database/](../database/)）、跨栈检查脚本（[../scripts/](../scripts/)）。
 仓库刻意不设 workspace 共享包：JSX、SFC 与 Angular 模板无法共用组件实现，共享层
 还会把三套 Vite/Angular 版本绑在一起。
+
+`openapi.json` 是前端自己维护的冻结快照。三个前端各自在 `/swagger`（React 为
+`#/swagger`）提供 Swagger UI 页面，读取 `public/swagger.html` 与
+`public/openapi.json`，不会向运行中的后端请求文档。修改 `openapi.json` 后要把它复制到
+三个前端的 `public/`；`node scripts/check-config.mjs` 会在副本漂移时失败。
 
 ## 路由与权限可见性
 

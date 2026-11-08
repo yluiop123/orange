@@ -69,10 +69,11 @@ Vuetify components are registered globally in `src/main.ts`, the default form va
 
 ## Relationship to the contract
 
-- The contract is `contracts/openapi.json`, but this stack has no code-generation script; `src/api/types.ts` hand-writes `Envelope`, `PageResult` and the entity types, and `src/api/*.ts` returns `response.data.data`.
+- The contract is `frontend/openapi.json`, but this stack has no code-generation script; `src/api/types.ts` hand-writes `Envelope`, `PageResult` and the entity types, and `src/api/*.ts` returns `response.data.data`.
 - `src/api/http.ts` uses `VITE_API_BASE` as its base URL (default `/api/v1/`), always sends `Authorization` and `Locale`, and sets `withCredentials: true` so the refresh cookie is carried.
 - On 401 it performs a single-flight `POST /auth/refresh` and retries once; 403 opens the forbidden dialog and `40302` opens forced password change.
-- Endpoints and error codes are in the [HTTP contract](../../contracts/openapi.json).
+- Endpoints and error codes are in the [HTTP contract](../openapi.json).
+- The app serves its own frozen Swagger page at `/swagger`, reading `public/openapi.json`; it never requests documentation from a running backend.
 
 ## Conventions and deviations of this stack
 
@@ -89,7 +90,7 @@ Vuetify components are registered globally in `src/main.ts`, the default form va
 
 - [Frontend overview: architecture, design system, permission visibility, adding a page, mock switching](../../frontend/README.md)
 - [Repository stack and command matrix](../../README.md)
-- [HTTP contract](../../contracts/openapi.json)
+- [HTTP contract](../openapi.json)
 
 > Last verified: c7b6531 · 2026-11-08
 > Sources: frontend/vue/package.json, frontend/vue/vite.config.ts, frontend/vue/vitest.config.ts, frontend/vue/.env*, frontend/vue/src/main.ts, frontend/vue/src/router/index.ts, frontend/vue/src/api/http.ts, frontend/vue/src/mock/index.ts, frontend/vue/src/views/chart/AntvView.vue, frontend/vue/src/views/chart/RechartView.vue, frontend/vue/src/views/map/CesiumView.vue, frontend/vue/src/views/map/L7View.vue

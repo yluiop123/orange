@@ -17,6 +17,17 @@ type changePasswordRequest struct {
 	NewPassword string `json:"newPassword" binding:"required"`
 }
 
+// @Summary User login
+// @Description Authenticates a user and returns an access token. The refresh token is stored in an HttpOnly cookie.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body loginRequest true "Login credentials"
+// @Success 200 {object} Envelope{data=service.LoginResult}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 429 {object} Envelope
+// @Router /auth/login [post]
 func (h *Handlers) login(c *gin.Context) {
 	var request loginRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -40,6 +51,13 @@ func (h *Handlers) login(c *gin.Context) {
 	success(c, result)
 }
 
+// @Summary Refresh access token
+// @Description Rotates the refresh token cookie and returns a new access token.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} Envelope{data=service.LoginResult}
+// @Failure 401 {object} Envelope
+// @Router /auth/refresh [post]
 func (h *Handlers) refresh(c *gin.Context) {
 	raw, err := c.Cookie(auth.RefreshCookieName)
 	if err != nil || raw == "" {
@@ -57,6 +75,13 @@ func (h *Handlers) refresh(c *gin.Context) {
 	success(c, result)
 }
 
+// @Summary Logout
+// @Description Revokes the current session and clears the refresh cookie.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} Envelope{data=string}
+// @Security BearerAuth
+// @Router /auth/logout [post]
 func (h *Handlers) logout(c *gin.Context) {
 	raw, _ := c.Cookie(auth.RefreshCookieName)
 	h.svc.Logout(c.Request.Context(), raw, claimsOf(c))
@@ -64,6 +89,14 @@ func (h *Handlers) logout(c *gin.Context) {
 	success(c, "ok")
 }
 
+// @Summary Current user information
+// @Description Returns the profile, roles and effective permissions of the authenticated user.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} Envelope{data=service.UserInfo}
+// @Failure 401 {object} Envelope
+// @Security BearerAuth
+// @Router /auth/user-info [get]
 func (h *Handlers) userInfo(c *gin.Context) {
 	actor := actorOf(c)
 	if actor == nil {
@@ -78,6 +111,15 @@ func (h *Handlers) userInfo(c *gin.Context) {
 	success(c, info)
 }
 
+// @Summary User menus
+// @Description Returns the enabled menu tree available to the authenticated user.
+// @Tags Auth
+// @Produce json
+// @Param Locale header string false "Locale used to translate menu names (for example en or zh-CN)"
+// @Success 200 {object} Envelope{data=[]service.MenuNode}
+// @Failure 401 {object} Envelope
+// @Security BearerAuth
+// @Router /auth/menus [get]
 func (h *Handlers) menus(c *gin.Context) {
 	menus, err := h.svc.Menus(c.Request.Context(), c.GetHeader("Locale"))
 	if err != nil {
@@ -87,6 +129,17 @@ func (h *Handlers) menus(c *gin.Context) {
 	success(c, menus)
 }
 
+// @Summary Change password
+// @Description Changes the password of the authenticated user and invalidates all existing sessions.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body changePasswordRequest true "Old and new password"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Security BearerAuth
+// @Router /auth/change-password [post]
 func (h *Handlers) changePassword(c *gin.Context) {
 	actor := actorOf(c)
 	if actor == nil {

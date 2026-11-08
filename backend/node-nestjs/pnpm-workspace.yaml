@@ -1,6 +1,8 @@
 onlyBuiltDependencies:
   - bcrypt
   - better-sqlite3
+  - '@scarf/scarf'
 allowBuilds:
   bcrypt: true
   better-sqlite3: true
+  '@scarf/scarf': true

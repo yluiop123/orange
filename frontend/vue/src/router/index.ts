@@ -22,6 +22,12 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
+    path: '/swagger',
+    name: 'swagger',
+    component: () => import('@/views/SwaggerView.vue'),
+    meta: { public: true },
+  },
+  {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
     children: [

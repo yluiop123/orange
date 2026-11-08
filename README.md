@@ -8,14 +8,14 @@ and six backends (Spring Boot, Go, NestJS, C#, Rust, FastAPI), all built
 against one HTTP contract and one data model, with SQL for seven database
 dialects.
 
-The product is not the point. The point is a contract-first reference for
+The product is not the point. The point is a behaviour-first reference for
 comparing stacks: the same screens, endpoints, error codes and permission
 semantics must be reproduced in every stack, so a difference between
 implementations is a difference between frameworks or languages, not between
 product designs. Nothing is shared at runtime: no frontend imports another, no
-backend shares a package. What is shared is verifiable and lives outside the
-stack directories — [contracts/openapi.json](contracts/openapi.json),
-[database/](database/) and [scripts/](scripts/).
+backend shares a package. What is shared is verifiable — the frontend's frozen
+API snapshot [frontend/openapi.json](frontend/openapi.json), the data model in
+[database/](database/), and the check scripts in [scripts/](scripts/).
 
 ## Product scope
 
@@ -80,16 +80,23 @@ with `super` / `super`, `admin` / `admin` or `user` / `user`.
 
 ## API and Swagger
 
-Every backend exposes two framework-independent endpoints: `GET /swagger`
-serves Swagger UI and `GET /openapi.json` returns the contract. Both read
-[contracts/openapi.json](contracts/openapi.json) from the repository root at
-startup; the contract is hand-maintained and is not generated from any
-framework's route metadata, so every stack documents the same API. Swagger UI
-assets load from the unpkg CDN.
+Every backend generates its own document from framework annotations at runtime
+and exposes `GET /openapi.json` plus `GET /swagger`:
 
-Spring Boot additionally serves springdoc's `/swagger-ui.html` and `/api-docs`
-when `SPRINGDOC_ENABLED=true`; FastAPI keeps `/docs` as a redirect to
-`/swagger`. Any backend will do — with FastAPI running:
+| Stack | Generator |
+| --- | --- |
+| Spring Boot | springdoc-openapi annotations (`@Operation`, `@Schema`) |
+| FastAPI | FastAPI/Pydantic route metadata |
+| NestJS | `@nestjs/swagger` + the CLI plugin |
+| ASP.NET Core | Swashbuckle controller metadata |
+| Go | swaggo handler annotations |
+| Rust | utoipa derives and path annotations |
+
+The frontend owns a separate, frozen snapshot at
+[frontend/openapi.json](frontend/openapi.json). Each app serves its own Swagger
+UI page at `/swagger` (`#/swagger` in React) from `public/openapi.json`; it never
+reads a running backend's generated document. Swagger UI assets come from each
+framework (or its CDN). Any backend will do — with FastAPI running:
 
 ```bash
 cd backend/python-fastapi
@@ -156,7 +163,7 @@ Start with the two shared documents, then open the stack you are working on.
 - **Validation has three layers.** The database enforces invariants for every writer, the backend turns failures into readable business errors, and the frontend pre-checks only to save a round trip; it never grants access.
 - **Roles fuse; switching is a view.** Effective permissions are the union of enabled roles plus direct grants, minus disabled permissions. Role switching filters menus and buttons in the UI only and never reduces backend authority.
 - **Visibility is not authorization.** Directory permissions control whether a menu appears; API access still requires the matching `menu` or `action` authority, and disabling a permission removes both.
-- **Contract first.** A change starts in `contracts/openapi.json`, then reaches the six backends, then the three frontends; schema changes land in the same commit.
+- **Annotations generate docs; behaviour is the contract.** Each backend owns its `/openapi.json`, generated from its own annotations. The frontend's `openapi.json` is a frozen consumer snapshot, and the cross-stack contract test — not a shared runtime spec file — keeps the six implementations aligned.
 
 ## Verification and CI
 

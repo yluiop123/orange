@@ -69,10 +69,11 @@ Vuetify 组件全量注册在 `src/main.ts`，默认表单变体为 `outlined`�
 
 ## 与契约的关系
 
-- 契约是 `contracts/openapi.json`，但本栈没有代码生成脚本；`src/api/types.ts` 手写 `Envelope`、`PageResult` 与实体类型，`src/api/*.ts` 返回 `response.data.data`。
+- 契约是 `frontend/openapi.json`，但本栈没有代码生成脚本；`src/api/types.ts` 手写 `Envelope`、`PageResult` 与实体类型，`src/api/*.ts` 返回 `response.data.data`。
 - `src/api/http.ts` 的基地址是 `VITE_API_BASE`（默认 `/api/v1/`），统一带 `Authorization` 与 `Locale`，`withCredentials: true` 以携带 refresh Cookie。
 - 401 时单飞 `POST /auth/refresh` 后重试一次；403 打开 forbidden 对话框，`40302` 打开强制改密。
-- 端点与错误码见 [HTTP 契约](../../contracts/openapi.json)。
+- 端点与错误码见 [HTTP 契约](../openapi.json)。
+- 本栈在 `/swagger` 提供自己的冻结 Swagger 页面，读取 `public/openapi.json`，不向运行中的后端请求文档。
 
 ## 本栈约定与偏差
 
@@ -89,7 +90,7 @@ Vuetify 组件全量注册在 `src/main.ts`，默认表单变体为 `outlined`�
 
 - [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.zh-CN.md)
 - [仓库技术栈与命令总表](../../README.zh-CN.md)
-- [HTTP 契约](../../contracts/openapi.json)
+- [HTTP 契约](../openapi.json)
 
 > Last verified: c7b6531 · 2026-11-08
 > 事实来源：frontend/vue/package.json、frontend/vue/vite.config.ts、frontend/vue/vitest.config.ts、frontend/vue/.env*、frontend/vue/src/main.ts、frontend/vue/src/router/index.ts、frontend/vue/src/api/http.ts、frontend/vue/src/mock/index.ts、frontend/vue/src/views/chart/AntvView.vue、frontend/vue/src/views/chart/RechartView.vue、frontend/vue/src/views/map/CesiumView.vue、frontend/vue/src/views/map/L7View.vue

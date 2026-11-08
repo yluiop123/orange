@@ -6,8 +6,8 @@
  *   - frontend/<app>/...            (React `.env`, Vue `.env`, Angular environments)
  *   - backend/<stack>/.env.example  (plus Spring's application-local.example.yaml)
  *
- * This script does not generate anything. It fails when the JWT contract or the
- * shared API base drifts between stacks.
+ * This script does not generate anything. It fails when the JWT configuration,
+ * the shared API base, or a frontend's frozen OpenAPI copy drifts.
  *
  * Usage: node scripts/check-config.mjs
  */
@@ -104,6 +104,18 @@ for (const [file, pattern] of FRONTENDS) {
   if (normalized !== "/api/v1") {
     fail(`${file}: API base is ${JSON.stringify(match?.[1])}, expected "/api/v1"`);
   }
+}
+
+// Frontend Swagger is a frozen snapshot: each app serves its own public copy.
+const openapiSnapshot = read("frontend/openapi.json");
+for (const app of ["react", "vue", "angular"]) {
+  const copy = read(`frontend/${app}/public/openapi.json`);
+  if (copy !== openapiSnapshot) {
+    fail(
+      `frontend/${app}/public/openapi.json must match frontend/openapi.json; copy the snapshot into the app's public directory`,
+    );
+  }
+  read(`frontend/${app}/public/swagger.html`);
 }
 
 if (failures.length > 0) {

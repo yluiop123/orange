@@ -16,7 +16,7 @@ from app.db import SessionLocal
 from app.errors import register_exception_handlers
 from app.middleware import OperationLogMiddleware
 from app.models import OperationLog
-from app.routers import auth, docs, groups, operation_logs, permissions, roles, users
+from app.routers import auth, groups, operation_logs, permissions, roles, users
 from app.trace import TraceIdMiddleware
 
 logging.basicConfig(
@@ -50,8 +50,6 @@ async def _retention_loop() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Resolve the shared contract once so /openapi.json never walks the tree per request.
-    docs.load_contract()
     task = asyncio.create_task(_retention_loop())
     try:
         yield
@@ -64,9 +62,10 @@ def create_app() -> FastAPI:
         title="ORANGE API (Python / FastAPI)",
         version="1.0.0",
         lifespan=lifespan,
-        # The shared contract owns the schema; /openapi.json and /swagger below replace
-        # the framework-generated docs (which would otherwise also claim /openapi.json).
-        openapi_url=None,
+        # The schema is generated from the Pydantic models and route decorators.
+        openapi_url="/openapi.json",
+        docs_url="/swagger",
+        redoc_url=None,
     )
 
     app.add_middleware(OperationLogMiddleware)
@@ -95,7 +94,6 @@ def create_app() -> FastAPI:
     app.include_router(roles.router)
     app.include_router(users.router)
     app.include_router(operation_logs.router)
-    app.include_router(docs.router)
 
     return app
 

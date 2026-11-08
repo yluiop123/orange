@@ -5,6 +5,7 @@
 //! The trace middleware opens the scope and copies the id to `X-Trace-Id`.
 
 use serde::Serialize;
+use utoipa::ToSchema;
 
 tokio::task_local! {
     pub static TRACE_ID: String;
@@ -29,7 +30,7 @@ pub fn now_millis() -> i64 {
     chrono::Utc::now().timestamp_millis()
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ApiResponse<T> {
     pub code: i32,
     pub message: String,

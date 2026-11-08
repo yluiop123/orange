@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Orange API · Swagger</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+      // The schema is committed next to this file: the frontend owns a fixed
+      // contract and never follows a running backend's generated document.
+      window.SwaggerUIBundle({
+        url: './openapi.json',
+        dom_id: '#swagger-ui',
+        persistAuthorization: true,
+        docExpansion: 'none',
+        deepLinking: true
+      });
+    </script>
+  </body>
+</html>

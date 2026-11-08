@@ -64,11 +64,12 @@ Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载�
 
 ## 与契约的关系
 
-- 契约是 `contracts/openapi.json`；本栈没有生成脚本，`src/app/core/models.ts` 手写镜像 `Envelope`、`PageResult`、`UserInfo`、`MenuNode` 等类型。
+- 契约是 `frontend/openapi.json`；本栈没有生成脚本，`src/app/core/models.ts` 手写镜像 `Envelope`、`PageResult`、`UserInfo`、`MenuNode` 等类型。
 - `ApiService` 统一解包 `{ code, message, data }`，非 200 代码转成 `ApiError`；`system-api.service.ts` 按资源封装调用。
 - `auth.interceptor.ts` 用 `environment.apiBase` 给相对 URL 加前缀，并附加 `Authorization` 与 `Locale`；401 时通过 `RefreshService` 单飞刷新后重试一次。
 - `RefreshService` 用 `fetch` 而不是 `HttpClient`，避免 refresh 请求再次进入拦截器造成递归。
-- 端点与错误码见 [HTTP 契约](../../contracts/openapi.json)。
+- 端点与错误码见 [HTTP 契约](../openapi.json)。
+- 本栈在 `/swagger` 提供自己的冻结 Swagger 页面，读取 `public/openapi.json`，不向运行中的后端请求文档。
 
 ## 本栈约定与偏差
 
@@ -85,7 +86,7 @@ Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载�
 
 - [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.zh-CN.md)
 - [仓库技术栈与命令总表](../../README.zh-CN.md)
-- [HTTP 契约](../../contracts/openapi.json)
+- [HTTP 契约](../openapi.json)
 
 > Last verified: c7b6531 · 2026-11-08
 > 事实来源：frontend/angular/package.json、frontend/angular/angular.json、frontend/angular/proxy.conf.json、frontend/angular/src/environments/environment*.ts、frontend/angular/src/app/app.config.ts、frontend/angular/src/app/app.routes.ts、frontend/angular/src/app/core/guards.ts、frontend/angular/src/app/core/auth.interceptor.ts、frontend/angular/src/app/core/refresh.service.ts、frontend/angular/src/app/core/permission-catalog.ts、frontend/angular/src/app/core/i18n.service.ts、frontend/angular/src/app/mock/mock-backend.ts、frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts、frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts、frontend/angular/src/styles.scss

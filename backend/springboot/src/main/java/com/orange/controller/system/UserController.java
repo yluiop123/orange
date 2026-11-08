@@ -8,6 +8,7 @@ import com.orange.domain.system.user.req.EditUserReq;
 import com.orange.domain.system.user.req.QueryUserReq;
 import com.orange.domain.system.user.resp.UserBean;
 import com.orange.service.system.UserService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -99,6 +100,7 @@ public class UserController {
 
     // ===== 兼容旧接口（已废弃，后续版本移除） =====
     @Deprecated
+    @Hidden
     @Operation(summary = "查询用户详情（旧）", deprecated = true)
     @GetMapping("/detail/{userId}")
     @PreAuthorize("hasAuthority('menu#/system/user')")
@@ -107,6 +109,7 @@ public class UserController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "新增用户（旧）", deprecated = true)
     @PostMapping("/add")
     @PreAuthorize("hasAuthority('action#/system/user:add')")
@@ -116,6 +119,7 @@ public class UserController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "编辑用户（旧）", deprecated = true)
     @PostMapping("/edit")
     @PreAuthorize("hasAuthority('action#/system/user:edit')")
@@ -125,6 +129,7 @@ public class UserController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "重置用户密码（旧）", deprecated = true)
     @PostMapping("/reset/{userId}")
     @PreAuthorize("hasAuthority('action#/system/user:edit')")

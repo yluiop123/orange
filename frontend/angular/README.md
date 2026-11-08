@@ -64,11 +64,12 @@ Cesium is not listed as a dependency: `/map/cesium` loads a fixed 1.147 version 
 
 ## Relationship to the contract
 
-- The contract is `contracts/openapi.json`; this stack has no generation script, and `src/app/core/models.ts` hand-mirrors types such as `Envelope`, `PageResult`, `UserInfo` and `MenuNode`.
+- The contract is `frontend/openapi.json`; this stack has no generation script, and `src/app/core/models.ts` hand-mirrors types such as `Envelope`, `PageResult`, `UserInfo` and `MenuNode`.
 - `ApiService` unwraps `{ code, message, data }` uniformly and turns non-200 codes into `ApiError`; `system-api.service.ts` wraps calls per resource.
 - `auth.interceptor.ts` prefixes relative URLs with `environment.apiBase` and attaches `Authorization` and `Locale`; on 401 it refreshes single-flight through `RefreshService` and retries once.
 - `RefreshService` uses `fetch` rather than `HttpClient`, so the refresh request does not re-enter the interceptor and recurse.
-- Endpoints and error codes are in the [HTTP contract](../../contracts/openapi.json).
+- Endpoints and error codes are in the [HTTP contract](../openapi.json).
+- The app serves its own frozen Swagger page at `/swagger`, reading `public/openapi.json`; it never requests documentation from a running backend.
 
 ## Conventions and deviations of this stack
 
@@ -85,7 +86,7 @@ Cesium is not listed as a dependency: `/map/cesium` loads a fixed 1.147 version 
 
 - [Frontend overview: architecture, design system, permission visibility, adding a page, mock switching](../../frontend/README.md)
 - [Repository stack and command matrix](../../README.md)
-- [HTTP contract](../../contracts/openapi.json)
+- [HTTP contract](../openapi.json)
 
 > Last verified: c7b6531 · 2026-11-08
 > Sources: frontend/angular/package.json, frontend/angular/angular.json, frontend/angular/proxy.conf.json, frontend/angular/src/environments/environment*.ts, frontend/angular/src/app/app.config.ts, frontend/angular/src/app/app.routes.ts, frontend/angular/src/app/core/guards.ts, frontend/angular/src/app/core/auth.interceptor.ts, frontend/angular/src/app/core/refresh.service.ts, frontend/angular/src/app/core/permission-catalog.ts, frontend/angular/src/app/core/i18n.service.ts, frontend/angular/src/app/mock/mock-backend.ts, frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts, frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts, frontend/angular/src/styles.scss

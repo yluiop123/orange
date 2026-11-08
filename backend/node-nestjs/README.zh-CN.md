@@ -16,7 +16,7 @@
 | 认证 | `@nestjs/jwt` 11、`bcrypt` 5.1.1（原生模块） | `package.json` |
 | 校验与转换 | `class-validator` 0.14.1、`class-transformer` 0.5.1 | `package.json` |
 | 其他 | `cookie-parser` 1.4.7、`dotenv` 16.4.7、`reflect-metadata` 0.2.2、`rxjs` 7.8.1 | `package.json` |
-| 接口文档 | 统一入口 `/swagger` + `/openapi.json`（无额外依赖） | `src/main.ts` |
+| 接口文档 | `@nestjs/swagger`（CLI 插件）；`/swagger` + `/openapi.json` | `src/main.ts`、`nest-cli.json` |
 | 包管理 | pnpm（`pnpm-lock.yaml`、`pnpm-workspace.yaml`；CI 用 pnpm 12.15.0） | 仓库文件、`main.yml` |
 
 ## 命令
@@ -57,11 +57,11 @@ scripts/smoke.mjs        HTTP 级冒烟脚本
 
 ## 本栈偏差
 
-1. 单元测试只覆盖纯策略：7 个 `.spec.ts`，不启动 Nest、不连数据库；数据库行为靠 `scripts/smoke.mjs` 在真实服务上验证，这与 Go（含路由与冒烟测试）不同。
+1. 单元测试只覆盖纯策略：8 个 `.spec.ts`，不启动 Nest、不连数据库；数据库行为靠 `scripts/smoke.mjs` 在真实服务上验证，这与 Go（含路由与冒烟测试）不同。
 2. TypeORM `synchronize: false`（`src/config/database.options.ts:16`）：不建表、不迁移，schema 由 `database/<engine>` 负责。
 3. MariaDB 走 TypeORM 的 `mysql` 驱动和 `mysql2` 客户端（`src/config/database.options.ts`），不需要额外的 `mariadb` 包；SQLite 用 `better-sqlite3`。
 4. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/auth/auth.module.ts`、`src/auth/token.service.ts`）。`pnpm run jwt:keys` 生成的同一对密钥六栈通用。
-5. 无 `@nestjs/swagger`：`/swagger` + `/openapi.json` 在 `src/main.ts` 用 Express 适配器注册，位于全局前缀与守卫之外。
+5. `@nestjs/swagger` 从控制器与 DTO 生成文档（CLI 插件推断属性）；`/swagger` + `/openapi.json` 挂在全局前缀与守卫之外（`src/main.ts`）。
 
 ## 规模与测试
 
@@ -71,7 +71,7 @@ scripts/smoke.mjs        HTTP 级冒烟脚本
 | TypeScript 源文件 | 86（`src/`） |
 | 测试文件 | 8 个 `.spec.ts`（纯单元测试，无需数据库） |
 
-统计口径：`git ls-files backend/node-nestjs`。端点清单、方言差异与验证结论分别见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
+统计口径：`git ls-files backend/node-nestjs`。前端接口快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
 
 > Last verified: c7b6531 · 2026-11-08
 > 事实来源：`package.json`、`pnpm-workspace.yaml`、`.env.example`、`src/config/*.ts`、`src/main.ts`、`src/**/*.spec.ts`、`.github/workflows/main.yml`

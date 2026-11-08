@@ -1,14 +1,17 @@
-//! Request and response payloads. JSON names match the Java reference and
-//! `contracts/openapi.json` (camelCase).
+//! Request and response payloads. JSON names match the Java reference (camelCase).
+//!
+//! Every struct here is also an `utoipa` schema so the generated OpenAPI document
+//! stays in sync with the wire format: `serde` renames are honoured by the derive.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use utoipa::{IntoParams, ToSchema};
 
 // ---------------------------------------------------------------------------
 // Shared
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct PageData<T> {
     pub total: i64,
     pub list: Vec<T>,
@@ -35,7 +38,7 @@ impl<T> PageData<T> {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct StatusReq {
     pub status: Option<String>,
 }
@@ -44,20 +47,20 @@ pub struct StatusReq {
 // Auth
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct LoginReq {
     pub username: Option<String>,
     pub password: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ChangePasswordReq {
     pub old_password: Option<String>,
     pub new_password: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginResp {
     pub token: String,
@@ -68,14 +71,14 @@ pub struct LoginResp {
     pub refresh_expires_in: i64,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RoleInfo {
     pub id: String,
     pub name: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PermissionInfo {
     pub path: String,
@@ -85,7 +88,7 @@ pub struct PermissionInfo {
     pub action: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserInfo {
     pub id: String,
@@ -104,7 +107,7 @@ pub struct UserInfo {
     pub user_permissions: Vec<PermissionInfo>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MenuInfo {
     pub id: String,
@@ -112,6 +115,7 @@ pub struct MenuInfo {
     #[serde(rename = "type")]
     pub kind: String,
     pub name: Option<String>,
+    #[schema(no_recursion)]
     pub children: Vec<MenuInfo>,
 }
 
@@ -119,14 +123,15 @@ pub struct MenuInfo {
 // Groups
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, IntoParams, ToSchema)]
+#[into_params(parameter_in = Query)]
 pub struct GroupListQuery {
     pub id: Option<String>,
     pub name: Option<String>,
     pub status: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GroupBean {
     pub id: String,
@@ -137,7 +142,7 @@ pub struct GroupBean {
     pub update_time: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AddChildGroupReq {
     pub id: Option<String>,
@@ -145,7 +150,7 @@ pub struct AddChildGroupReq {
     pub parent_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EditGroupReq {
     pub name: Option<String>,
@@ -156,7 +161,8 @@ pub struct EditGroupReq {
 // Permissions
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, IntoParams, ToSchema)]
+#[into_params(parameter_in = Query)]
 pub struct PermissionListQuery {
     pub id: Option<String>,
     pub name: Option<String>,
@@ -166,7 +172,7 @@ pub struct PermissionListQuery {
     pub kind: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PermissionBean {
     pub id: String,
@@ -181,7 +187,7 @@ pub struct PermissionBean {
     pub update_time: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AddChildPermissionReq {
     pub id: Option<String>,
@@ -193,7 +199,7 @@ pub struct AddChildPermissionReq {
     pub parent_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EditPermissionReq {
     pub name: Option<String>,
@@ -208,7 +214,8 @@ pub struct EditPermissionReq {
 // Roles
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, IntoParams, ToSchema)]
+#[into_params(parameter_in = Query)]
 pub struct RoleListQuery {
     pub id: Option<String>,
     pub name: Option<String>,
@@ -219,7 +226,7 @@ pub struct RoleListQuery {
     pub size: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RoleBean {
     pub id: String,
@@ -230,7 +237,7 @@ pub struct RoleBean {
     pub update_time: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AddRoleReq {
     pub id: Option<String>,
@@ -238,7 +245,7 @@ pub struct AddRoleReq {
     pub permissions: Option<Vec<String>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EditRoleReq {
     pub name: Option<String>,
@@ -250,7 +257,8 @@ pub struct EditRoleReq {
 // Users
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, IntoParams, ToSchema)]
+#[into_params(parameter_in = Query)]
 #[serde(rename_all = "camelCase")]
 pub struct UserListQuery {
     pub keyword: Option<String>,
@@ -262,14 +270,14 @@ pub struct UserListQuery {
     pub size: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserRoleBean {
     pub id: String,
     pub name: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserBean {
     pub id: String,
@@ -286,7 +294,7 @@ pub struct UserBean {
     pub permissions: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AddUserReq {
     pub name: Option<String>,
@@ -299,7 +307,7 @@ pub struct AddUserReq {
     pub permissions: Option<Vec<String>>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EditUserReq {
     pub name: Option<String>,
@@ -316,7 +324,8 @@ pub struct EditUserReq {
 // Operation logs
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Default, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize, IntoParams, ToSchema)]
+#[into_params(parameter_in = Query)]
 pub struct OperationLogQuery {
     pub username: Option<String>,
     pub path: Option<String>,
@@ -327,7 +336,7 @@ pub struct OperationLogQuery {
     pub size: Option<i32>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct OperationLogBean {
     pub id: i64,

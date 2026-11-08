@@ -22,6 +22,23 @@ type editRoleRequest struct {
 	Permissions *[]string `json:"permissions"`
 }
 
+// @Summary List roles
+// @Description Returns a paginated list of roles.
+// @Tags Roles
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param size query int false "Page size (1-100)" default(10)
+// @Param id query string false "Role id prefix"
+// @Param name query string false "Role name prefix"
+// @Param status query string false "Status filter: 0, 1 or all" Enums(0, 1, all)
+// @Param sort query string false "Sort column" Enums(id, name, status, createTime, updateTime)
+// @Param direction query string false "Sort direction" Enums(asc, desc)
+// @Success 200 {object} Envelope{data=RolePageData}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Security BearerAuth
+// @Router /system/roles [get]
 func (h *Handlers) listRoles(c *gin.Context) {
 	page, pageErr := intQuery(c, "page", 1)
 	if pageErr != nil {
@@ -58,6 +75,16 @@ func (h *Handlers) listRoles(c *gin.Context) {
 	success(c, result)
 }
 
+// @Summary Get a role
+// @Tags Roles
+// @Produce json
+// @Param roleId path string true "Role id"
+// @Success 200 {object} Envelope{data=service.RoleBean}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/roles/{roleId} [get]
 func (h *Handlers) getRole(c *gin.Context) {
 	role, err := h.svc.GetRole(c.Request.Context(), c.Param("roleId"))
 	if err != nil {
@@ -67,6 +94,19 @@ func (h *Handlers) getRole(c *gin.Context) {
 	success(c, role)
 }
 
+// @Summary Add a role
+// @Description Creates a role and optionally assigns permissions. The response data is the role id.
+// @Tags Roles
+// @Accept json
+// @Produce json
+// @Param request body addRoleRequest true "Role to create"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/roles [post]
 func (h *Handlers) addRole(c *gin.Context) {
 	var request addRoleRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -91,6 +131,19 @@ func (h *Handlers) addRole(c *gin.Context) {
 	successMessage(c, "操作成功", id)
 }
 
+// @Summary Update a role
+// @Tags Roles
+// @Accept json
+// @Produce json
+// @Param roleId path string true "Role id"
+// @Param request body editRoleRequest true "Fields to update"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/roles/{roleId} [patch]
 func (h *Handlers) updateRole(c *gin.Context) {
 	var request editRoleRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -121,6 +174,17 @@ func (h *Handlers) updateRole(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Delete a role
+// @Tags Roles
+// @Produce json
+// @Param roleId path string true "Role id"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/roles/{roleId} [delete]
 func (h *Handlers) deleteRole(c *gin.Context) {
 	if err := h.svc.DeleteRoles(c.Request.Context(), actorOf(c), []string{c.Param("roleId")}); err != nil {
 		fail(c, err)
@@ -129,6 +193,18 @@ func (h *Handlers) deleteRole(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Delete roles
+// @Tags Roles
+// @Produce json
+// @Param ids query string true "Comma-separated role ids"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/roles [delete]
 func (h *Handlers) deleteRoleIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {

@@ -6,11 +6,11 @@ Orange 是一个权限、菜单与角色管理后台。同一个产品有九套�
 Angular）和六套后端（Spring Boot、Go、NestJS、C#、Rust、FastAPI），它们共用一份 HTTP
 契约和一套数据模型，并提供七种数据库方言的 SQL。
 
-产品本身不是目的。目的是**契约优先的对照参考**：同样的页面、接口、错误码和权限语义，
+产品本身不是目的。目的是**以行为为准的对照参考**：同样的页面、接口、错误码和权限语义，
 每套栈都要按同样的方式实现，这样实现之间的差异才来自框架或语言，而不是产品设计。九套
-实现之间没有运行时共享——前端不互相 import，后端不共用包；共享的是可验证的事实，放在
-栈目录之外：[contracts/openapi.json](contracts/openapi.json)、[database/](database/)
-和 [scripts/](scripts/)。
+实现之间没有运行时共享——前端不互相 import，后端不共用包；共享的是可验证的事实：
+前端冻结的接口快照 [frontend/openapi.json](frontend/openapi.json)、[database/](database/)
+里的数据模型，以及 [scripts/](scripts/) 里的检查脚本。
 
 ## 功能范围
 
@@ -78,14 +78,21 @@ React 开发模式默认走 mock；要连上面的后端，把 `VITE_MOCK_ENABLE
 
 ## API 与 Swagger
 
-六个后端都暴露两个与框架无关的入口：`GET /swagger` 是 Swagger UI，`GET /openapi.json`
-返回契约原文。两者都在启动时读取仓库根目录的 [contracts/openapi.json](contracts/openapi.json)；
-契约由人工维护，不从任何框架的路由元数据生成，因此六套后端给出的是同一份 API 文档。
-Swagger UI 的静态资源来自 unpkg CDN。
+六个后端都从各自的框架注解生成文档，并暴露 `GET /openapi.json` 与 `GET /swagger`：
 
-Spring Boot 在 `SPRINGDOC_ENABLED=true` 时还会提供 springdoc 的 `/swagger-ui.html` 和
-`/api-docs`；FastAPI 保留 `/docs`，重定向到 `/swagger`。任选一个后端即可验证，以
-FastAPI 为例：
+| 栈 | 生成方式 |
+| --- | --- |
+| Spring Boot | springdoc-openapi 注解（`@Operation`、`@Schema`） |
+| FastAPI | FastAPI/Pydantic 的路由元数据 |
+| NestJS | `@nestjs/swagger` + CLI 插件 |
+| ASP.NET Core | Swashbuckle 的控制器元数据 |
+| Go | swaggo 的 handler 注解 |
+| Rust | utoipa derive 与 path 注解 |
+
+前端单独维护冻结的接口快照 [frontend/openapi.json](frontend/openapi.json)。三个前端各自
+在 `/swagger`（React 为 `#/swagger`）提供 Swagger UI 页面，读取自己的
+`public/openapi.json`，不请求任何运行中的后端。Swagger UI 的静态资源由各框架或其 CDN
+提供。任选一个后端即可验证，以 FastAPI 为例：
 
 ```bash
 cd backend/python-fastapi
@@ -157,8 +164,9 @@ CHECK）和 `dml.sql`（种子数据）。
   角色切换只在前端过滤菜单与按钮，从不缩减后端授权。
 - **可见性不等于授权**：目录权限只控制菜单是否显示，接口仍需匹配的 `menu` 或 `action`
   授权；权限禁用后两者同时失效。
-- **契约优先**：变更先落在 `contracts/openapi.json`，再同步六个后端、三个前端；数据库
-  结构变更与契约变更在同一次提交里完成。
+- **注解生成文档，行为才是契约**：每个后端用自己的注解生成 `/openapi.json`；前端的
+  `openapi.json` 是冻结的消费方快照。六套实现由跨栈契约测试对齐，而不是共享一份运行时
+  spec 文件。
 
 ## 验证与 CI
 

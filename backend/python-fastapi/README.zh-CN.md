@@ -15,7 +15,7 @@
 | 认证 | PyJWT `>=2.9,<3.0`（RS256 / HS256）、`cryptography` `>=43,<47`、`bcrypt` `>=4.2,<6.0` | `requirements.txt` |
 | 其他 | `python-dotenv` `>=1.0,<2.0` | `requirements.txt` |
 | 测试依赖 | pytest `>=8.3,<10.0`、httpx `>=0.27,<1.0`（在 `requirements-dev.txt`，含 `-r requirements.txt`） | `requirements-dev.txt` |
-| 接口文档 | 统一入口 `/swagger` + `/openapi.json`，`/docs` 302 到 `/swagger` | `app/routers/docs.py` |
+| 接口文档 | 由 FastAPI/Pydantic 生成；`/swagger` + `/openapi.json` | `app/main.py` |
 | 构建 | 无构建/打包步骤（解释型，`pyproject.toml` 只含元数据与 pytest 配置） | `pyproject.toml` |
 
 ## 命令
@@ -56,7 +56,7 @@ scripts/               smoke_http.py、smoke_pg.py
 
 ## 本栈偏差
 
-1. 关闭了自动生成的 schema（`openapi_url=None`）：`/swagger` 与 `/openapi.json` 提供仓库契约，`/docs` 302 重定向到 `/swagger`（`app/routers/docs.py`）。
+1. schema 由 FastAPI 从 Pydantic 模型与路由装饰器生成：`openapi_url="/openapi.json"`、`docs_url="/swagger"`（`app/main.py`）。没有静态契约读取器。
 2. 唯一没有构建步骤的栈：CI 仅 `pip install -r requirements-dev.txt` 加 `python -m pytest -q`。
 3. 校验失败返回 `40002`、畸形 JSON 返回 `40001`（`app/errors.py:19`、`:20`），与 Java 基准一致（Spring 的 bean validation 失败同样记 `40002`）。
 4. 审计保留清理是进程内 asyncio 任务：启动后延迟 60 秒首跑，之后每日一次（`app/main.py` 的 `_retention_loop`）；C# 为每 6 小时。
@@ -66,11 +66,11 @@ scripts/               smoke_http.py、smoke_pg.py
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 67 |
-| Python 文件 | 60 |
+| 受版本控制的文件 | 66 |
+| Python 文件 | 59 |
 | 测试文件 | 12 个 `test_*.py`，另 `conftest.py` |
 
-统计口径：`git ls-files backend/python-fastapi`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
+统计口径：`git ls-files backend/python-fastapi`。前端接口快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
 
 > Last verified: c7b6531 · 2026-11-08
 > 事实来源：`requirements.txt`、`requirements-dev.txt`、`pyproject.toml`、`.env.example`、`app/config.py`、`app/main.py`、`app/errors.py`、`tests/conftest.py`、`.github/workflows/main.yml`

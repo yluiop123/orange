@@ -10,7 +10,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:api": "openapi-typescript ../../contracts/openapi.json -o src/api/schema.d.ts",
+    "gen:api": "openapi-typescript ../openapi.json -o src/api/schema.d.ts",
     "preview": "vite preview",
     "preview:github": "vite preview --mode github",
     "analyze": "cross-env ANALYZE=true vite build"

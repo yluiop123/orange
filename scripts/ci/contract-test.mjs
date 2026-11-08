@@ -165,6 +165,35 @@ expectOk('super login', superLogin.response);
 let token = superLogin.token;
 check('login returns access token', typeof token === 'string' && token.length > 20, token);
 check('access token uses the shared RS256 algorithm', tokenAlgorithm(token) === 'RS256', tokenAlgorithm(token));
+
+// Each backend must expose its own annotation-generated document and UI.
+const docsBase = base.replace(/\/api\/v1$/, '');
+const specResponse = await fetch(`${docsBase}/openapi.json`);
+const specText = await specResponse.text();
+let spec = null;
+try {
+  spec = JSON.parse(specText);
+} catch {
+  spec = null;
+}
+check(
+  'generated OpenAPI is served',
+  specResponse.status === 200 && spec !== null && Boolean(spec.openapi || spec.swagger),
+  { status: specResponse.status, body: specText.slice(0, 200) },
+);
+const specPaths = Object.keys(field(spec, 'paths') ?? {});
+check(
+  'generated OpenAPI lists the auth login operation',
+  specPaths.some((path) => path.endsWith('/auth/login')),
+  specPaths.slice(0, 5),
+);
+check(
+  'generated OpenAPI lists the menus operation',
+  specPaths.some((path) => path.endsWith('/auth/menus')),
+  specPaths.slice(0, 5),
+);
+const swaggerResponse = await fetch(`${docsBase}/swagger`);
+check('Swagger UI is served', swaggerResponse.status === 200, swaggerResponse.status);
 check('login returns expiresIn', Number(field(field(superLogin.response.json, 'data'), 'expiresIn')) > 0, superLogin.response.json);
 check('login returns refreshExpiresIn', Number(field(field(superLogin.response.json, 'data'), 'refreshExpiresIn')) > 0, superLogin.response.json);
 check('login sets HttpOnly refresh cookie', /refresh_token=/.test(superLogin.cookie), superLogin.cookie);

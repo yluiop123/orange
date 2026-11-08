@@ -14,7 +14,7 @@
 | 密码 | `BCrypt.Net-Next` 4.2.0 | `Orange.Api.csproj` |
 | 测试 | xUnit 2.9.3、`Microsoft.NET.Test.Sdk` 17.14.1、`coverlet.collector` 6.0.4 | `Orange.Tests.csproj` |
 | 解决方案 | `Orange.slnx`（`/src/` 与 `/tests/` 两个 Folder） | `Orange.slnx` |
-| 接口文档 | 统一入口 `/swagger` + `/openapi.json`（无额外依赖） | `Swagger/SwaggerSupport.cs` |
+| 接口文档 | Swashbuckle 10 从控制器/DTO 生成；`/swagger` + `/openapi.json` | `Program.cs`、`Orange.Api.csproj` |
 | 启动配置 | 无 `Properties/launchSettings.json` | 全仓文件清单 |
 
 ## 命令
@@ -44,8 +44,7 @@ src/Orange.Api/
 ├── Domain/                实体、错误码、异常、树与权限策略、锁定与审计规则
 ├── Middleware/            TraceId、异常、校验、审计
 ├── Security/              JWT、刷新 cookie、认证中间件、RBAC 守卫、锁定
-├── Services/              业务逻辑、菜单树、查询工具、审计清理
-└── Swagger/               Swagger UI 与 /openapi.json
+└── Services/              业务逻辑、菜单树、查询工具、审计清理
 tests/Orange.Tests/        xUnit 单元测试
 ```
 
@@ -59,17 +58,17 @@ tests/Orange.Tests/        xUnit 单元测试
 2. 目标框架是 `net10.0`，但 EF Core 锁在 9.x：`Orange.Api.csproj` 注释说明 `Pomelo.EntityFrameworkCore.MySql` 9.0.0 要求 EF Core 9，因此三个 provider 与 EF Core 必须同版本移动；升级 EF Core 10 需要等 Pomelo 10。
 3. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/Orange.Api/Security/JwtService.cs`）。访问令牌与刷新令牌仍由本文件手写签发与校验，不使用第三方 JWT 包。
 4. 审计保留清理每 6 小时执行一次（`src/Orange.Api/Services/OperationLogService.cs:107` 的类注释），不是可配置 cron，与其他端口的每日清理节奏不同。
-5. 无第三方 OpenAPI 包，也无迁移工具：`/swagger` + `/openapi.json` 在 `Swagger/SwaggerSupport.cs` 手写；schema 只来自 `database/<engine>/ddl.sql` 与 `dml.sql`。
+5. Swashbuckle 10 从控制器元数据生成 OpenAPI 文档；`/swagger` + `/openapi.json` 在认证中间件之前挂载。数据库 schema 仍只来自 `database/<engine>/ddl.sql` 与 `dml.sql`。
 
 ## 规模与测试
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 64 |
-| C# 源文件 | 55（`src/Orange.Api` 47、`tests/Orange.Tests` 8） |
+| 受版本控制的文件 | 63 |
+| C# 源文件 | 54（`src/Orange.Api` 46、`tests/Orange.Tests` 8） |
 | 测试文件 | 8 个 `*Tests.cs`，另 1 个测试 csproj；共 72 个测试 |
 
-统计口径：`git ls-files backend/csharp`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
+统计口径：`git ls-files backend/csharp`。前端接口快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
 
 > Last verified: c7b6531 · 2026-11-08
 > 事实来源：`Orange.slnx`、`src/Orange.Api/Orange.Api.csproj`、`tests/Orange.Tests/Orange.Tests.csproj`、`src/Orange.Api/Program.cs`、`src/Orange.Api/Configuration/AppOptions.cs`、`.env.example`、`.github/workflows/main.yml`

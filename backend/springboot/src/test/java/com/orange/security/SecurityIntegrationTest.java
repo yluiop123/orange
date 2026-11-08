@@ -446,7 +446,7 @@ class SecurityIntegrationTest {
 
     @Test
     void openApiSpecIsAvailable() throws Exception {
-        ResponseEntity<String> response = rest.getForEntity("/api-docs", String.class);
+        ResponseEntity<String> response = rest.getForEntity("/openapi.json", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("\"openapi\"");

@@ -50,14 +50,15 @@ jwt:
   issuer: ${JWT_ISSUER:orange}
   # 未配置密钥时回退到 HS256，读取环境变量 JWT_SECRET（开发默认值见 JwtKeyConfig）。
 springdoc:
-  # 默认关闭接口文档；本地联调时显式设置 SPRINGDOC_ENABLED=true
+  # Swagger is generated from the controller/DTO annotations at runtime.
+  # /openapi.json is the generated document; /swagger is its UI.
   swagger-ui:
-    path: /swagger-ui.html
-    enabled: ${SPRINGDOC_ENABLED:false}
+    path: /swagger
+    enabled: ${SPRINGDOC_ENABLED:true}
   api-docs:
-    path: /api-docs
-    enabled: ${SPRINGDOC_ENABLED:false}
-  # 只扫描特定的包
+    path: /openapi.json
+    enabled: ${SPRINGDOC_ENABLED:true}
+  # Only scan the HTTP layer; entities/repositories must not leak into the schema.
   packages-to-scan: com.orange.controller
 app:
   operation-log:

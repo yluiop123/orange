@@ -20,6 +20,7 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.4.8",
     "@nestjs/typeorm": "^11.0.0",
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^13.0.3",

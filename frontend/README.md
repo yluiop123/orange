@@ -24,12 +24,18 @@ Pages sit in `src/pages/**/index.tsx` (React), `src/views/**/*.vue` (Vue) and
 helpers, auth stores, locale files and mock handlers follow the same split in
 each stack.
 
-What is shared is verifiable, not executable: the OpenAPI contract
-([../contracts/openapi.json](../contracts/openapi.json)), the permission catalog
+What is shared is verifiable, not executable: the frozen OpenAPI snapshot
+([openapi.json](openapi.json)), the permission catalog
 and seed data ([../database/](../database/)), and the cross-stack check scripts
 ([../scripts/](../scripts/)). There is deliberately no workspace
 package — JSX, SFC and Angular templates cannot share components, and a shared
 layer would lock all three Vite/Angular versions together.
+
+`openapi.json` is a frontend-owned frozen snapshot. Every app serves its own
+Swagger UI page at `/swagger` (`#/swagger` in React) from
+`public/swagger.html` and `public/openapi.json`; it never asks a running backend
+for documentation. When `openapi.json` changes, copy it into all three apps'
+`public/` directories; `node scripts/check-config.mjs` fails when a copy drifts.
 
 ## Routing and permission visibility
 

@@ -21,6 +21,16 @@ import (
 	"github.com/orange/backend-go-gin-gorm/internal/store"
 )
 
+// @title Orange API (Go / Gin / GORM)
+// @version 1.0.0
+// @description REST API for the ORANGE administration console, implemented with Gin and GORM.
+// @description Every response uses the envelope {code, message, data, timestamp, traceId}.
+// @description Authenticate with the access token returned by POST /auth/login.
+// @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and the access token.
 func main() {
 	// Local generated configuration; absent in containers that inject env vars.
 	_ = godotenv.Load(".env.local")

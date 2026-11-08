@@ -11,7 +11,7 @@ use axum::Extension;
 use axum::Json;
 
 use crate::auth::{cookies, AccessClaims, AuthUser};
-use crate::domain::dto::{ChangePasswordReq, LoginReq, UserInfo};
+use crate::domain::dto::{ChangePasswordReq, LoginReq, LoginResp, UserInfo};
 use crate::domain::validate::{check_new_password, check_username};
 use crate::error::AppError;
 use crate::response::ApiResponse;
@@ -32,6 +32,23 @@ fn error_with_clear(state: &AppState, error: AppError) -> Response {
     with_set_cookie(response, cookies::clear(&state.config))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/login",
+    tag = "auth",
+    summary = "账号密码登录",
+    description = "校验用户名与密码，成功时返回访问令牌，并通过 Set-Cookie 下发 refresh_token。",
+    security(()),
+    request_body = LoginReq,
+    responses(
+        (status = 200, description = "登录成功", body = ApiResponse<LoginResp>,
+            headers(("Set-Cookie" = String, description = "refresh_token Cookie"))),
+        (status = 400, description = "参数或校验错误", body = ApiResponse<serde_json::Value>),
+        (status = 401, description = "用户名或密码错误", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "账号被锁定、禁用或需先修改密码", body = ApiResponse<serde_json::Value>),
+        (status = 429, description = "请求过于频繁", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn login(
     State(state): State<AppState>,
     ConnectInfo(addr): ConnectInfo<SocketAddr>,
@@ -61,15 +78,27 @@ pub async fn login(
     match result {
         Ok(success) => {
             let body = Json(ApiResponse::ok(success.response)).into_response();
-            with_set_cookie(
-                body,
-                cookies::build(&state.config, &success.refresh_token),
-            )
+            with_set_cookie(body, cookies::build(&state.config, &success.refresh_token))
         }
         Err(error) => error_with_clear(&state, error),
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/refresh",
+    tag = "auth",
+    summary = "刷新访问令牌",
+    description = "使用 refresh_token Cookie 换取新的访问令牌，并轮换 refresh_token。",
+    security(()),
+    params(("Cookie" = Option<String>, Header, description = "包含 refresh_token 的 Cookie")),
+    responses(
+        (status = 200, description = "刷新成功", body = ApiResponse<LoginResp>,
+            headers(("Set-Cookie" = String, description = "轮换后的 refresh_token Cookie"))),
+        (status = 401, description = "未登录或刷新令牌已失效", body = ApiResponse<serde_json::Value>),
+        (status = 403, description = "账号被禁用", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn refresh(State(state): State<AppState>, headers: HeaderMap) -> Response {
     let token = match cookies::from_headers(&headers) {
         Some(token) => token,
@@ -79,15 +108,24 @@ pub async fn refresh(State(state): State<AppState>, headers: HeaderMap) -> Respo
     match auth_service::refresh(&state, &token).await {
         Ok(success) => {
             let body = Json(ApiResponse::ok(success.response)).into_response();
-            with_set_cookie(
-                body,
-                cookies::build(&state.config, &success.refresh_token),
-            )
+            with_set_cookie(body, cookies::build(&state.config, &success.refresh_token))
         }
         Err(error) => error_with_clear(&state, error),
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/logout",
+    tag = "auth",
+    summary = "登出",
+    description = "吊销当前访问令牌与 refresh_token，并清除 Cookie。未登录时同样返回成功。",
+    security((), ("bearer_auth" = [])),
+    params(("Cookie" = Option<String>, Header, description = "包含 refresh_token 的 Cookie")),
+    responses(
+        (status = 200, description = "已登出", body = ApiResponse<String>),
+    )
+)]
 pub async fn logout(State(state): State<AppState>, req: Request) -> Response {
     let refresh_token = cookies::from_headers(req.headers());
     let access = req.extensions().get::<AccessClaims>().cloned();
@@ -101,6 +139,18 @@ pub async fn logout(State(state): State<AppState>, req: Request) -> Response {
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/auth/user-info",
+    tag = "auth",
+    summary = "当前登录用户信息",
+    description = "返回当前用户的资料、角色与生效权限。",
+    security(("bearer_auth" = [])),
+    responses(
+        (status = 200, description = "用户信息", body = ApiResponse<UserInfo>),
+        (status = 401, description = "未登录或登录已过期", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn user_info(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,
@@ -109,6 +159,20 @@ pub async fn user_info(
     Ok(Json(ApiResponse::ok(info)))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/auth/change-password",
+    tag = "auth",
+    summary = "修改密码",
+    description = "校验原密码后设置新密码，并清除 refresh_token Cookie 要求重新登录。",
+    security(("bearer_auth" = [])),
+    request_body = ChangePasswordReq,
+    responses(
+        (status = 200, description = "密码已修改", body = ApiResponse<String>),
+        (status = 400, description = "参数或校验错误", body = ApiResponse<serde_json::Value>),
+        (status = 401, description = "未登录或原密码错误", body = ApiResponse<serde_json::Value>),
+    )
+)]
 pub async fn change_password(
     State(state): State<AppState>,
     Extension(auth): Extension<AuthUser>,

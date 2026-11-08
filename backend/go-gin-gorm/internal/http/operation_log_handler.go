@@ -8,6 +8,23 @@ import (
 	"github.com/orange/backend-go-gin-gorm/internal/service"
 )
 
+// @Summary List operation logs
+// @Description Returns a paginated list of audited HTTP operations.
+// @Tags Operation Logs
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param size query int false "Page size (1-100)" default(10)
+// @Param username query string false "Username filter"
+// @Param path query string false "Request path prefix"
+// @Param status query string false "HTTP status code (3 digits)"
+// @Param from query string false "Start of the time range (RFC 3339)"
+// @Param to query string false "End of the time range (RFC 3339)"
+// @Success 200 {object} Envelope{data=OperationLogPageData}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Security BearerAuth
+// @Router /system/operation-logs [get]
 func (h *Handlers) listOperationLogs(c *gin.Context) {
 	page, pageErr := intQuery(c, "page", 1)
 	if pageErr != nil {

@@ -5,6 +5,7 @@ import com.orange.domain.common.req.StatusReq;
 import com.orange.domain.system.group.req.*;
 import com.orange.domain.system.group.resp.GroupBean;
 import com.orange.service.system.GroupService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -86,6 +87,7 @@ public class GroupController {
 
     // ===== 兼容旧接口（已废弃，后续版本移除） =====
     @Deprecated
+    @Hidden
     @Operation(summary = "查询组织列表（旧）", deprecated = true)
     @PostMapping
     @PreAuthorize("hasAuthority('menu#/system/group')")
@@ -94,6 +96,7 @@ public class GroupController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "查询组织详情（旧）", deprecated = true)
     @GetMapping("/detail/{groupId}")
     @PreAuthorize("hasAuthority('menu#/system/group')")
@@ -102,6 +105,7 @@ public class GroupController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "编辑组织（旧）", deprecated = true)
     @PostMapping("/edit")
     @PreAuthorize("hasAuthority('action#/system/group:edit')")
@@ -111,6 +115,7 @@ public class GroupController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "添加子组织（旧）", deprecated = true)
     @PostMapping("/addChild")
     @PreAuthorize("hasAuthority('action#/system/group:add')")

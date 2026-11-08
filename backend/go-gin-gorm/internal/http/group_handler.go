@@ -26,6 +26,19 @@ type statusRequest struct {
 	Status string `json:"status" binding:"required"`
 }
 
+// @Summary List groups
+// @Description Returns the group tree, optionally filtered by id, name or status. Matching rows keep their ancestors.
+// @Tags Groups
+// @Produce json
+// @Param id query string false "Group id prefix (digits and letters)"
+// @Param name query string false "Group name prefix"
+// @Param status query string false "Status filter: 0, 1 or all" Enums(0, 1, all)
+// @Success 200 {object} Envelope{data=[]service.GroupBean}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Security BearerAuth
+// @Router /system/groups [get]
 func (h *Handlers) listGroups(c *gin.Context) {
 	id := c.Query("id")
 	name := c.Query("name")
@@ -46,6 +59,16 @@ func (h *Handlers) listGroups(c *gin.Context) {
 	success(c, groups)
 }
 
+// @Summary Get a group
+// @Tags Groups
+// @Produce json
+// @Param groupId path string true "Group id"
+// @Success 200 {object} Envelope{data=service.GroupBean}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/groups/{groupId} [get]
 func (h *Handlers) getGroup(c *gin.Context) {
 	group, err := h.svc.GetGroup(c.Request.Context(), c.Param("groupId"))
 	if err != nil {
@@ -55,6 +78,20 @@ func (h *Handlers) getGroup(c *gin.Context) {
 	success(c, group)
 }
 
+// @Summary Add a group
+// @Description Creates a group under an optional parent group.
+// @Tags Groups
+// @Accept json
+// @Produce json
+// @Param request body addGroupRequest true "Group to create"
+// @Success 200 {object} Envelope{data=service.GroupBean}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/groups/children [post]
 func (h *Handlers) addGroup(c *gin.Context) {
 	var request addGroupRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -73,6 +110,20 @@ func (h *Handlers) addGroup(c *gin.Context) {
 	success(c, group)
 }
 
+// @Summary Update a group
+// @Tags Groups
+// @Accept json
+// @Produce json
+// @Param groupId path string true "Group id"
+// @Param request body editGroupRequest true "Fields to update"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/groups/{groupId} [patch]
 func (h *Handlers) updateGroup(c *gin.Context) {
 	var request editGroupRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -92,6 +143,20 @@ func (h *Handlers) updateGroup(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Update group status
+// @Tags Groups
+// @Accept json
+// @Produce json
+// @Param groupId path string true "Group id"
+// @Param request body statusRequest true "New status"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/groups/{groupId}/status [patch]
 func (h *Handlers) updateGroupStatus(c *gin.Context) {
 	var request statusRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -109,6 +174,17 @@ func (h *Handlers) updateGroupStatus(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Delete a group
+// @Tags Groups
+// @Produce json
+// @Param groupId path string true "Group id"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/groups/{groupId} [delete]
 func (h *Handlers) deleteGroup(c *gin.Context) {
 	if err := h.svc.DeleteGroups(c.Request.Context(), []string{c.Param("groupId")}); err != nil {
 		fail(c, err)
@@ -117,6 +193,18 @@ func (h *Handlers) deleteGroup(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Delete groups
+// @Tags Groups
+// @Produce json
+// @Param ids query string true "Comma-separated group ids"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/groups [delete]
 func (h *Handlers) deleteGroupIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {

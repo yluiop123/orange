@@ -14,6 +14,7 @@ import {
 const Login = lazy(() => import("@/pages/login"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Forbidden = lazy(() => import("@/pages/forbidden"));
+const SwaggerPage = lazy(() => import("@/components/swagger-page"));
 // 布局也懒加载，登录页不必下载侧边栏和站点头部
 const PageLayout = lazy(() => import("@/layout"));
 
@@ -41,6 +42,7 @@ export default function Index() {
                     <Routes>
                         <Route path="/login" element={<Login />} />
                         <Route path="/forbidden" element={<Forbidden />} />
+                        <Route path="/swagger" element={<SwaggerPage />} />
                         <Route path="/" Component={PageLayout}>
                             <Route index element={<MenuRedirect />} />
                             {containerPaths.map(path => (

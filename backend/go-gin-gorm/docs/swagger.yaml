@@ -1,0 +1,1961 @@
+basePath: /api/v1
+definitions:
+  http.Envelope:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+      timestamp:
+        type: integer
+      traceId:
+        type: string
+    type: object
+  http.OperationLogPageData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/service.OperationLogBean'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  http.RolePageData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/service.RoleBean'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  http.UserPageData:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/service.UserBean'
+        type: array
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  http.addGroupRequest:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      parentId:
+        type: string
+    required:
+    - id
+    - name
+    type: object
+  http.addPermissionRequest:
+    properties:
+      action:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      parentId:
+        type: string
+      path:
+        type: string
+      type:
+        type: string
+    required:
+    - id
+    - name
+    - path
+    - type
+    type: object
+  http.addRoleRequest:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
+  http.addUserRequest:
+    properties:
+      email:
+        type: string
+      groupId:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      phone:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - groupId
+    - name
+    - phone
+    - username
+    type: object
+  http.changePasswordRequest:
+    properties:
+      newPassword:
+        type: string
+      oldPassword:
+        type: string
+    required:
+    - newPassword
+    - oldPassword
+    type: object
+  http.editGroupRequest:
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+    required:
+    - name
+    type: object
+  http.editPermissionRequest:
+    properties:
+      action:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  http.editRoleRequest:
+    properties:
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+    type: object
+  http.editUserRequest:
+    properties:
+      email:
+        type: string
+      groupId:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      phone:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+      username:
+        type: string
+    type: object
+  http.loginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  http.statusRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  service.GroupBean:
+    properties:
+      createTime:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      parentId:
+        type: string
+      status:
+        type: string
+      updateTime:
+        type: string
+    type: object
+  service.LoginResult:
+    properties:
+      expiresIn:
+        type: integer
+      field:
+        type: string
+      msg:
+        type: string
+      refreshExpiresIn:
+        type: integer
+      status:
+        type: string
+      token:
+        type: string
+    type: object
+  service.MenuNode:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/service.MenuNode'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      type:
+        type: string
+    type: object
+  service.OperationLogBean:
+    properties:
+      createTime:
+        type: string
+      durationMs:
+        type: integer
+      id:
+        type: integer
+      ip:
+        type: string
+      method:
+        type: string
+      path:
+        type: string
+      queryString:
+        type: string
+      requestBody:
+        type: string
+      status:
+        type: integer
+      traceId:
+        type: string
+      username:
+        type: string
+    type: object
+  service.PermissionBean:
+    properties:
+      action:
+        type: string
+      createTime:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      parentId:
+        type: string
+      path:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+      updateTime:
+        type: string
+    type: object
+  service.PermissionInfo:
+    properties:
+      action:
+        type: string
+      path:
+        type: string
+      role:
+        type: string
+      type:
+        type: string
+    type: object
+  service.RoleBean:
+    properties:
+      createTime:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      status:
+        type: string
+      updateTime:
+        type: string
+    type: object
+  service.RoleInfo:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  service.UserBean:
+    properties:
+      createTime:
+        type: string
+      email:
+        type: string
+      groupId:
+        type: string
+      groupName:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      phone:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/service.UserRoleBean'
+        type: array
+      status:
+        type: string
+      updateTime:
+        type: string
+      username:
+        type: string
+    type: object
+  service.UserInfo:
+    properties:
+      createTime:
+        type: string
+      email:
+        type: string
+      groupId:
+        type: string
+      groupName:
+        type: string
+      id:
+        type: string
+      mustChangePassword:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      rolePermissions:
+        items:
+          $ref: '#/definitions/service.PermissionInfo'
+        type: array
+      roles:
+        items:
+          $ref: '#/definitions/service.RoleInfo'
+        type: array
+      status:
+        type: string
+      updateTime:
+        type: string
+      userPermissions:
+        items:
+          $ref: '#/definitions/service.PermissionInfo'
+        type: array
+      username:
+        type: string
+    type: object
+  service.UserRoleBean:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: |-
+    REST API for the ORANGE administration console, implemented with Gin and GORM.
+    Every response uses the envelope {code, message, data, timestamp, traceId}.
+    Authenticate with the access token returned by POST /auth/login.
+  title: Orange API (Go / Gin / GORM)
+  version: 1.0.0
+paths:
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Changes the password of the authenticated user and invalidates
+        all existing sessions.
+      parameters:
+      - description: Old and new password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.changePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Change password
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns an access token. The refresh token
+        is stored in an HttpOnly cookie.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.LoginResult'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      summary: User login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      description: Revokes the current session and clears the refresh cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - Auth
+  /auth/menus:
+    get:
+      description: Returns the enabled menu tree available to the authenticated user.
+      parameters:
+      - description: Locale used to translate menu names (for example en or zh-CN)
+        in: header
+        name: Locale
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/service.MenuNode'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: User menus
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      description: Rotates the refresh token cookie and returns a new access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.LoginResult'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      summary: Refresh access token
+      tags:
+      - Auth
+  /auth/user-info:
+    get:
+      description: Returns the profile, roles and effective permissions of the authenticated
+        user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.UserInfo'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Current user information
+      tags:
+      - Auth
+  /system/groups:
+    delete:
+      parameters:
+      - description: Comma-separated group ids
+        in: query
+        name: ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete groups
+      tags:
+      - Groups
+    get:
+      description: Returns the group tree, optionally filtered by id, name or status.
+        Matching rows keep their ancestors.
+      parameters:
+      - description: Group id prefix (digits and letters)
+        in: query
+        name: id
+        type: string
+      - description: Group name prefix
+        in: query
+        name: name
+        type: string
+      - description: 'Status filter: 0, 1 or all'
+        enum:
+        - "0"
+        - "1"
+        - all
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/service.GroupBean'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: List groups
+      tags:
+      - Groups
+  /system/groups/{groupId}:
+    delete:
+      parameters:
+      - description: Group id
+        in: path
+        name: groupId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete a group
+      tags:
+      - Groups
+    get:
+      parameters:
+      - description: Group id
+        in: path
+        name: groupId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.GroupBean'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Get a group
+      tags:
+      - Groups
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Group id
+        in: path
+        name: groupId
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.editGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Update a group
+      tags:
+      - Groups
+  /system/groups/{groupId}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Group id
+        in: path
+        name: groupId
+        required: true
+        type: string
+      - description: New status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.statusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Update group status
+      tags:
+      - Groups
+  /system/groups/children:
+    post:
+      consumes:
+      - application/json
+      description: Creates a group under an optional parent group.
+      parameters:
+      - description: Group to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.addGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.GroupBean'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Add a group
+      tags:
+      - Groups
+  /system/operation-logs:
+    get:
+      description: Returns a paginated list of audited HTTP operations.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size (1-100)
+        in: query
+        name: size
+        type: integer
+      - description: Username filter
+        in: query
+        name: username
+        type: string
+      - description: Request path prefix
+        in: query
+        name: path
+        type: string
+      - description: HTTP status code (3 digits)
+        in: query
+        name: status
+        type: string
+      - description: Start of the time range (RFC 3339)
+        in: query
+        name: from
+        type: string
+      - description: End of the time range (RFC 3339)
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/http.OperationLogPageData'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: List operation logs
+      tags:
+      - Operation Logs
+  /system/permissions:
+    delete:
+      parameters:
+      - description: Comma-separated permission ids
+        in: query
+        name: ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete permissions
+      tags:
+      - Permissions
+    get:
+      description: Returns the permission tree, optionally filtered by id, name, path,
+        status or type.
+      parameters:
+      - description: Permission id prefix
+        in: query
+        name: id
+        type: string
+      - description: Permission name prefix
+        in: query
+        name: name
+        type: string
+      - description: Permission path prefix
+        in: query
+        name: path
+        type: string
+      - description: 'Status filter: 0, 1 or all'
+        enum:
+        - "0"
+        - "1"
+        - all
+        in: query
+        name: status
+        type: string
+      - description: 'Permission type filter: menu, directory, action or all'
+        enum:
+        - menu
+        - directory
+        - action
+        - all
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/service.PermissionBean'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: List permissions
+      tags:
+      - Permissions
+  /system/permissions/{permissionId}:
+    delete:
+      parameters:
+      - description: Permission id
+        in: path
+        name: permissionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete a permission
+      tags:
+      - Permissions
+    get:
+      parameters:
+      - description: Permission id
+        in: path
+        name: permissionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.PermissionBean'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Get a permission
+      tags:
+      - Permissions
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Permission id
+        in: path
+        name: permissionId
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.editPermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Update a permission
+      tags:
+      - Permissions
+  /system/permissions/children:
+    post:
+      consumes:
+      - application/json
+      description: Creates a menu, directory or action permission under an optional
+        parent.
+      parameters:
+      - description: Permission to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.addPermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.PermissionBean'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Add a permission
+      tags:
+      - Permissions
+  /system/roles:
+    delete:
+      parameters:
+      - description: Comma-separated role ids
+        in: query
+        name: ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete roles
+      tags:
+      - Roles
+    get:
+      description: Returns a paginated list of roles.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size (1-100)
+        in: query
+        name: size
+        type: integer
+      - description: Role id prefix
+        in: query
+        name: id
+        type: string
+      - description: Role name prefix
+        in: query
+        name: name
+        type: string
+      - description: 'Status filter: 0, 1 or all'
+        enum:
+        - "0"
+        - "1"
+        - all
+        in: query
+        name: status
+        type: string
+      - description: Sort column
+        enum:
+        - id
+        - name
+        - status
+        - createTime
+        - updateTime
+        in: query
+        name: sort
+        type: string
+      - description: Sort direction
+        enum:
+        - asc
+        - desc
+        in: query
+        name: direction
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/http.RolePageData'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: List roles
+      tags:
+      - Roles
+    post:
+      consumes:
+      - application/json
+      description: Creates a role and optionally assigns permissions. The response
+        data is the role id.
+      parameters:
+      - description: Role to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.addRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Add a role
+      tags:
+      - Roles
+  /system/roles/{roleId}:
+    delete:
+      parameters:
+      - description: Role id
+        in: path
+        name: roleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete a role
+      tags:
+      - Roles
+    get:
+      parameters:
+      - description: Role id
+        in: path
+        name: roleId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.RoleBean'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Get a role
+      tags:
+      - Roles
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role id
+        in: path
+        name: roleId
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.editRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Update a role
+      tags:
+      - Roles
+  /system/users:
+    delete:
+      parameters:
+      - description: Comma-separated user ids
+        in: query
+        name: ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete users
+      tags:
+      - Users
+    get:
+      description: Returns a paginated list of users.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size (1-100)
+        in: query
+        name: size
+        type: integer
+      - description: Matches id, name, username, email or phone
+        in: query
+        name: keyword
+        type: string
+      - description: 'Status filter: 0, 1 or all'
+        enum:
+        - "0"
+        - "1"
+        - all
+        in: query
+        name: status
+        type: string
+      - description: Group id filter
+        in: query
+        name: groupId
+        type: string
+      - description: Sort column
+        enum:
+        - id
+        - name
+        - username
+        - email
+        - status
+        - createTime
+        - updateTime
+        in: query
+        name: sort
+        type: string
+      - description: Sort direction
+        enum:
+        - asc
+        - desc
+        in: query
+        name: direction
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/http.UserPageData'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Creates a user and returns the generated temporary password in
+        data.
+      parameters:
+      - description: User to create
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.addUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Add a user
+      tags:
+      - Users
+  /system/users/{userId}:
+    delete:
+      parameters:
+      - description: User id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Delete a user
+      tags:
+      - Users
+    get:
+      parameters:
+      - description: User id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.UserBean'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Get a user
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User id
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.editUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Update a user
+      tags:
+      - Users
+  /system/users/{userId}/reset-password:
+    post:
+      description: Resets the password and returns the generated temporary password
+        in data.
+      parameters:
+      - description: User id
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Reset a user password
+      tags:
+      - Users
+  /system/users/{userId}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User id
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: New status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/http.statusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/http.Envelope'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/http.Envelope'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/http.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Update user status
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the access token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -2,13 +2,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using Orange.Api.Configuration;
 using Orange.Api.Data;
 using Orange.Api.Domain;
 using Orange.Api.Middleware;
 using Orange.Api.Security;
 using Orange.Api.Services;
-using Orange.Api.Swagger;
 
 DotEnv.Load(".env.local");
 var options = AppOptions.FromEnvironment();
@@ -42,6 +42,29 @@ builder.Services.AddScoped<OperationLogService>();
 builder.Services.AddSingleton<OperationLogWriter>();
 builder.Services.AddHostedService<OperationLogRetentionService>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(swagger =>
+{
+    swagger.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "ORANGE API (ASP.NET Core)",
+        Version = "1.0.0",
+        Description = "Generated from the ASP.NET Core controllers and DTOs"
+    });
+    swagger.AddSecurityDefinition("bearerAuth", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header
+    });
+    swagger.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+    {
+        { new OpenApiSecuritySchemeReference("bearerAuth"), new List<string>() }
+    });
+});
+
 builder.Services
     .AddControllers(controllerOptions => controllerOptions.Filters.Add<ValidationFilter>())
     .ConfigureApiBehaviorOptions(apiOptions =>
@@ -71,9 +94,6 @@ builder.Services.AddCors(cors => cors.AddPolicy("frontend", policy =>
 }));
 
 var app = builder.Build();
-
-// Read the shared contract once; the endpoints reuse these bytes for every request.
-var openApiJson = SwaggerSupport.LoadContract(app.Logger);
 
 app.Logger.LogInformation(
     "Orange API on port {Port} using database driver {Driver} ({Source})",
@@ -114,24 +134,22 @@ app.UseStatusCodePages(async statusContext =>
     }
 });
 
+// Documentation is generated from the controllers/DTOs and mounted before the
+// authentication middleware, so both endpoints stay anonymous.
+app.UseSwagger(swagger => swagger.RouteTemplate = "openapi/{documentName}.json");
+app.UseSwaggerUI(swagger =>
+{
+    swagger.RoutePrefix = "swagger";
+    swagger.SwaggerEndpoint("/openapi/v1.json", "Orange API");
+    swagger.DocumentTitle = "Orange API";
+});
+
 app.UseRouting();
 app.UseMiddleware<AuthenticationMiddleware>();
-app.MapControllers();
-
-// Documentation endpoints are anonymous despite the global authentication middleware.
-app.MapGet("/openapi.json", () =>
-{
-    if (openApiJson is null)
-    {
-        app.Logger.LogError(
-            "GET /openapi.json: contracts/openapi.json was not found at startup; returning 500");
-        return Results.StatusCode(StatusCodes.Status500InternalServerError);
-    }
-    return Results.Text(openApiJson, "application/json");
-}).AllowAnonymous();
-
-app.MapGet("/swagger", () =>
-        Results.Content(SwaggerSupport.UiHtml, "text/html; charset=utf-8"))
+// Keep the cross-stack /openapi.json path while Swashbuckle serves the document
+// under its document-name template.
+app.MapGet("/openapi.json", () => Results.Redirect("/openapi/v1.json"))
     .AllowAnonymous();
+app.MapControllers();
 
 app.Run();

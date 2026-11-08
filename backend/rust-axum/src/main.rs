@@ -48,9 +48,11 @@ async fn main() {
             std::process::exit(1);
         }
     };
-    tracing::info!(engine = pool.engine(), driver, "database connection established");
-
-    swagger::warm_cache();
+    tracing::info!(
+        engine = pool.engine(),
+        driver,
+        "database connection established"
+    );
 
     let state = state::AppState::new(pool, config);
     spawn_cleanup(state.clone());

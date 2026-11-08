@@ -19,6 +19,7 @@ use axum::{Json, Router};
 use serde::Deserialize;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::trace::TraceLayer;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::auth::AuthUser;
 use crate::config::Config;
@@ -31,7 +32,8 @@ use crate::state::AppState;
 
 pub type ApiResult<T> = Result<Json<ApiResponse<T>>, AppError>;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams, ToSchema)]
+#[into_params(parameter_in = Query)]
 pub struct IdsQuery {
     pub ids: Option<String>,
 }
@@ -41,8 +43,7 @@ pub fn parse_json<T>(payload: Result<Json<T>, JsonRejection>) -> Result<T, AppEr
         // A malformed or shape-invalid body is a DTO validation failure (40002)
         // with the offending message in `data`, not a generic 40001.
         let message = rejection.to_string();
-        AppError::validation("请求体格式错误")
-            .with_data(serde_json::json!({ "body": message }))
+        AppError::validation("请求体格式错误").with_data(serde_json::json!({ "body": message }))
     })
 }
 
@@ -152,7 +153,9 @@ pub fn router(state: AppState) -> Router {
         // Roles
         .route(
             "/api/v1/system/roles",
-            get(roles::list).post(roles::create).delete(roles::delete_many),
+            get(roles::list)
+                .post(roles::create)
+                .delete(roles::delete_many),
         )
         .route(
             "/api/v1/system/roles/{roleId}",
@@ -166,7 +169,9 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/system/groups/children", post(groups::create))
         .route(
             "/api/v1/system/groups/{groupId}",
-            get(groups::get).patch(groups::edit).delete(groups::delete_one),
+            get(groups::get)
+                .patch(groups::edit)
+                .delete(groups::delete_one),
         )
         .route(
             "/api/v1/system/groups/{groupId}/status",
@@ -197,8 +202,7 @@ pub fn router(state: AppState) -> Router {
         .route("/api/v1/auth/menus", get(menus::tree))
         .route(
             "/api/v1/auth/change-password",
-            post(auth::change_password)
-                .layer(from_fn_with_state(state.clone(), operation_log)),
+            post(auth::change_password).layer(from_fn_with_state(state.clone(), operation_log)),
         )
         .layer(from_fn_with_state(state.clone(), require_auth));
 
@@ -213,19 +217,18 @@ pub fn router(state: AppState) -> Router {
     let cors = cors_layer(&state.config);
 
     Router::new()
-        // Documentation endpoints stay outside the `/api/v1` routers, so no auth
-        // middleware wraps them.
-        .route("/openapi.json", get(crate::swagger::openapi_json))
-        .route("/swagger", get(crate::swagger::swagger_ui))
         .merge(system)
         .merge(auth_protected)
         .merge(public)
         .fallback(not_found)
         .method_not_allowed_fallback(method_not_allowed)
+        .with_state(state)
+        // Documentation is state-free and stays outside the `/api/v1` routers,
+        // so no auth middleware wraps it.
+        .merge(crate::swagger::router())
         // Outermost layer first: CORS preflight responses must carry the same
         // X-Trace-Id as every other response.
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .layer(axum::middleware::from_fn(trace_middleware))
-        .with_state(state)
 }

@@ -1,4 +1,4 @@
-/** Shared API types. Mirrors `docs/API.md` and `contracts/openapi.json`. */
+/** Shared API types. Mirrors `frontend/openapi.json`. */
 
 export type PermissionType = 'menu' | 'directory' | 'action';
 

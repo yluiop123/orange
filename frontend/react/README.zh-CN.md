@@ -29,7 +29,7 @@ pnpm install
 | `pnpm typecheck` | `tsc -b` | 只做类型检查 |
 | `pnpm test` | `vitest run` | 单测（`src/**/*.test.ts`，node 环境） |
 | `pnpm test:watch` | `vitest` | 监听模式 |
-| `pnpm gen:api` | `openapi-typescript ../../contracts/openapi.json -o src/api/schema.d.ts` | 从契约重新生成类型 |
+| `pnpm gen:api` | `openapi-typescript ../openapi.json -o src/api/schema.d.ts` | 从契约重新生成类型 |
 | `pnpm analyze` | `cross-env ANALYZE=true vite build` | 生成 `dist/stats.html` 体积报告 |
 
 ## 目录结构
@@ -74,10 +74,11 @@ frontend/react/
 
 ## 与契约的关系
 
-- 契约是 `contracts/openapi.json`。`pnpm gen:api` 生成 `src/api/schema.d.ts`；该文件头写明由 openapi-typescript 生成，不手改。
+- 契约是 `frontend/openapi.json`。`pnpm gen:api` 生成 `src/api/schema.d.ts`；该文件头写明由 openapi-typescript 生成，不手改。
 - `src/api/system/*.ts` 从 `components["schemas"][...]` 组合页面用的 `User`、`Role`、`Group`、`Permission` 类型，再发请求并返回 `data`。
 - Axios 基地址是 `VITE_BASE_API`，默认 `/api/v1/`；实例统一带 `Authorization` 与 `Locale`，并处理 401 单飞刷新、403 与 40302。
-- 契约变更流程是先生成、再改调用点；端点与错误码不在本页复述，见 [HTTP 契约](../../contracts/openapi.json)。
+- 契约变更流程是先生成、再改调用点；端点与错误码不在本页复述，见 [HTTP 契约](../openapi.json)。
+- 前端在 `/#/swagger`（或直接 `/swagger.html`）提供自己的冻结 Swagger 页面，读取 `public/openapi.json`，不向运行中的后端请求文档。
 
 ## 本栈约定与偏差
 
@@ -92,7 +93,7 @@ frontend/react/
 
 - [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.zh-CN.md)
 - [仓库技术栈与命令总表](../../README.zh-CN.md)
-- [HTTP 契约](../../contracts/openapi.json)
+- [HTTP 契约](../openapi.json)
 
 > Last verified: c7b6531 · 2026-11-08
 > 事实来源：frontend/react/package.json、frontend/react/vite.config.ts、frontend/react/vitest.config.ts、frontend/react/.env*、frontend/react/src/main.tsx、frontend/react/src/App.tsx、frontend/react/src/lib/page-routes.ts、frontend/react/src/lib/menu.ts、frontend/react/src/lib/axios.ts、frontend/react/src/locale/zh-CN.ts、frontend/react/src/config/permissions.test.ts

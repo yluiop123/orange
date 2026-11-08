@@ -4,6 +4,7 @@ import com.orange.domain.common.Response;
 import com.orange.domain.system.permission.req.*;
 import com.orange.domain.system.permission.resp.PermissionBean;
 import com.orange.service.system.PermissionService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -73,6 +74,7 @@ public class PermissionController {
 
     // ===== 兼容旧接口（已废弃，后续版本移除） =====
     @Deprecated
+    @Hidden
     @Operation(summary = "查询权限列表（旧）", deprecated = true)
     @PostMapping
     @PreAuthorize("hasAuthority('menu#/system/permission')")
@@ -81,6 +83,7 @@ public class PermissionController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "查询权限详情（旧）", deprecated = true)
     @GetMapping("/detail/{permissionId}")
     @PreAuthorize("hasAuthority('menu#/system/permission')")
@@ -89,6 +92,7 @@ public class PermissionController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "添加子权限（旧）", deprecated = true)
     @PostMapping("/addChild")
     @PreAuthorize("hasAuthority('action#/system/permission:add')")
@@ -97,6 +101,7 @@ public class PermissionController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "编辑权限（旧）", deprecated = true)
     @PostMapping("/edit")
     @PreAuthorize("hasAuthority('action#/system/permission:edit')")

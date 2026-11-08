@@ -2,7 +2,7 @@
 
 # Orange · Spring Boot 后端
 
-本栈是 Orange 的行为基准实现：用 Spring Boot 实现 `contracts/openapi.json` 的规范接口，其余五个后端以它的行为为准。
+本栈是 Orange 的行为基准实现：用 Spring Boot 定义规范接口行为，其余五个后端以它为准；控制器/DTO 上的注解也是生成 Swagger 文档的参考。
 
 ## 技术栈与版本
 
@@ -12,7 +12,7 @@
 | Java | 25（`<java.version>`） | `pom.xml` |
 | Starter | Web、Security、Data JPA、Validation、Cache、Devtools、Test | `pom.xml` |
 | JWT | jjwt 0.13.0（api / impl / jackson）；RSA 密钥对时 RS256，否则 HS256 回退 | `pom.xml`、`security/jwt/JwtUtil.java` |
-| 接口文档 | 统一入口 `/swagger` + `/openapi.json`；springdoc-openapi 3.0.0（webmvc-ui）由 `SPRINGDOC_ENABLED` 控制 | `web/OpenApiController.java`、`pom.xml` |
+| 接口文档 | 由 springdoc-openapi 3.0.0 从 `@Operation` / `@Schema` 生成；入口 `/swagger` + `/openapi.json` | `config/SwaggerConfig.java`、`pom.xml` |
 | JDBC | PostgreSQL、mysql-connector-j、sqlite-jdbc、hibernate-community-dialects | `pom.xml` |
 | 其他 | Lombok 1.18.42、commons-lang3、Caffeine | `pom.xml` |
 | 测试依赖 | spring-boot-starter-test、Testcontainers（postgresql） | `pom.xml` |
@@ -44,21 +44,20 @@ src/main/java/com/orange/
 ├── repository/     system/ 下的 Spring Data 仓储
 ├── security/       SecurityConfig、auth/、config/、jwt/
 ├── service/        system/ 接口与 impl/ 实现
-├── util/           查询构造、TraceId、数据库取值
-└── web/            OpenApiController（/swagger 与 /openapi.json）
+└── util/           查询构造、TraceId、数据库取值
 src/main/resources/ application.yaml、application-local.example.yaml、application-prod.yaml
 src/test/java/com/orange/  测试类（config、domain、security、service、util）
 ```
 
 ## 配置入口
 
-`application.yaml` 是唯一配置入口，覆盖端口、数据源与驱动、JWT 密钥、CORS、登录限流、审计保留；`local` profile 叠加被 gitignore 的 `application-local.yaml`（模板为 `application-local.example.yaml`），`prod` profile 用 `application-prod.yaml` 关闭接口文档。变量名、优先级以及与其他栈的对照见 [后端配置约定](../../backend/README.zh-CN.md)，此处不重复变量表。
+`application.yaml` 是唯一配置入口，覆盖端口、数据源与驱动、JWT 密钥、CORS、登录限流、审计保留与 springdoc 路径；`local` profile 叠加被 gitignore 的 `application-local.yaml`（模板为 `application-local.example.yaml`）。接口文档在运行时生成并默认开启，可用 `SPRINGDOC_ENABLED=false` 隐藏。变量名、优先级以及与其他栈的对照见 [后端配置约定](../../backend/README.zh-CN.md)，此处不重复变量表。
 
 ## 本栈偏差
 
 1. JWT 签名与其余五栈同一规则：`JWT_PRIVATE_KEY` 与 `JWT_PUBLIC_KEY` 同时配置时用 RS256（内联 PEM 或文件路径），否则用 `JWT_SECRET` 的 HS256。开发密钥用 `pnpm run jwt:keys` 生成，仓库不再提交私钥。详见[后端配置约定](../README.zh-CN.md)。
-2. 统一入口始终开启：`/swagger` + `/openapi.json` 由 `web/OpenApiController` 提供；springdoc 的 `/swagger-ui.html` 仍由 `${SPRINGDOC_ENABLED:false}` 控制，`application-prod.yaml` 再关一次。
-3. 只有本栈保留 15 个已弃用兼容路由（`/add`、`/edit`、`/detail/{id}`、`/reset/{userId}`）；它们刻意不写进 `contracts/openapi.json`，因此其余五栈的 `/swagger` 不会列出。
+2. `/swagger` + `/openapi.json` 直接由 springdoc 生成，没有静态契约读取器；`SPRINGDOC_ENABLED=false` 是唯一的隐藏开关。
+3. 只有本栈保留 15 个已弃用兼容路由（`/add`、`/edit`、`/detail/{id}`、`/reset/{userId}`）；它们都标了 `@Hidden`，因此生成文档不会列出。
 4. 只有本栈给分组树加缓存：Caffeine `group` 缓存，`service/system/impl/GroupServiceImpl.java` 使用 `@Cacheable` / `@CacheEvict`。
 5. 乐观锁靠 JPA `@Version`（`entity/*.java`）在更新时比较版本；Rust 与 Python 端口只把 `version` 自增、Go 端口创建时写 0 不自增，三者都不做版本比较，并发编辑为后写覆盖。
 6. 六栈中唯一没有 `.env.example` 的后端：配置走 `application*.yaml` 加环境变量覆盖。
@@ -67,11 +66,11 @@ src/test/java/com/orange/  测试类（config、domain、security、service、ut
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 130 |
-| Java 源文件 | 122（`src/main` 108、`src/test` 14） |
+| 受版本控制的文件 | 129 |
+| Java 源文件 | 121（`src/main` 107、`src/test` 14） |
 | 测试类 | 14，其中 1 个 Testcontainers 集成测试需 Docker |
 
-统计口径：`git ls-files backend/springboot`。端点、数据库方言与验证结论不在本页维护，分别见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
+统计口径：`git ls-files backend/springboot`。端点、数据库方言与验证结论不在本页维护：前端快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
 
 > Last verified: c7b6531 · 2026-11-08
 > 事实来源：`pom.xml`、`src/main/resources/application*.yaml`、`src/main/java/com/orange/**`、`src/test/java/com/orange/**`、`.github/workflows/main.yml`

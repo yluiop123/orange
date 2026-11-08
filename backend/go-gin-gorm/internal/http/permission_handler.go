@@ -36,6 +36,21 @@ func validQueryPermissionType(value string) bool {
 	}
 }
 
+// @Summary List permissions
+// @Description Returns the permission tree, optionally filtered by id, name, path, status or type.
+// @Tags Permissions
+// @Produce json
+// @Param id query string false "Permission id prefix"
+// @Param name query string false "Permission name prefix"
+// @Param path query string false "Permission path prefix"
+// @Param status query string false "Status filter: 0, 1 or all" Enums(0, 1, all)
+// @Param type query string false "Permission type filter: menu, directory, action or all" Enums(menu, directory, action, all)
+// @Success 200 {object} Envelope{data=[]service.PermissionBean}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Security BearerAuth
+// @Router /system/permissions [get]
 func (h *Handlers) listPermissions(c *gin.Context) {
 	status := c.Query("status")
 	permissionType := c.Query("type")
@@ -56,6 +71,16 @@ func (h *Handlers) listPermissions(c *gin.Context) {
 	success(c, permissions)
 }
 
+// @Summary Get a permission
+// @Tags Permissions
+// @Produce json
+// @Param permissionId path string true "Permission id"
+// @Success 200 {object} Envelope{data=service.PermissionBean}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/permissions/{permissionId} [get]
 func (h *Handlers) getPermission(c *gin.Context) {
 	permission, err := h.svc.GetPermission(c.Request.Context(), c.Param("permissionId"))
 	if err != nil {
@@ -65,6 +90,20 @@ func (h *Handlers) getPermission(c *gin.Context) {
 	success(c, permission)
 }
 
+// @Summary Add a permission
+// @Description Creates a menu, directory or action permission under an optional parent.
+// @Tags Permissions
+// @Accept json
+// @Produce json
+// @Param request body addPermissionRequest true "Permission to create"
+// @Success 200 {object} Envelope{data=service.PermissionBean}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/permissions/children [post]
 func (h *Handlers) addPermission(c *gin.Context) {
 	var request addPermissionRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -88,6 +127,20 @@ func (h *Handlers) addPermission(c *gin.Context) {
 	success(c, permission)
 }
 
+// @Summary Update a permission
+// @Tags Permissions
+// @Accept json
+// @Produce json
+// @Param permissionId path string true "Permission id"
+// @Param request body editPermissionRequest true "Fields to update"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/permissions/{permissionId} [patch]
 func (h *Handlers) updatePermission(c *gin.Context) {
 	var request editPermissionRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -135,6 +188,17 @@ func servicePermissionUpdate(request editPermissionRequest) service.PermissionUp
 	}
 }
 
+// @Summary Delete a permission
+// @Tags Permissions
+// @Produce json
+// @Param permissionId path string true "Permission id"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/permissions/{permissionId} [delete]
 func (h *Handlers) deletePermission(c *gin.Context) {
 	if err := h.svc.DeletePermissions(c.Request.Context(), []string{c.Param("permissionId")}); err != nil {
 		fail(c, err)
@@ -143,6 +207,18 @@ func (h *Handlers) deletePermission(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Delete permissions
+// @Tags Permissions
+// @Produce json
+// @Param ids query string true "Comma-separated permission ids"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/permissions [delete]
 func (h *Handlers) deletePermissionIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {

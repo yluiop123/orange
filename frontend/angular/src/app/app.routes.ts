@@ -32,6 +32,11 @@ export const routes: Routes = [
       import('./pages/forbidden/forbidden.component').then((m) => m.ForbiddenComponent),
   },
   {
+    path: 'swagger',
+    loadComponent: () =>
+      import('./pages/swagger/swagger-page.component').then((m) => m.SwaggerPageComponent),
+  },
+  {
     path: '',
     component: ShellComponent,
     canActivate: [authGuard, identityGuard],

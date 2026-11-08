@@ -32,6 +32,23 @@ type editUserRequest struct {
 	Permissions *[]string `json:"permissions"`
 }
 
+// @Summary List users
+// @Description Returns a paginated list of users.
+// @Tags Users
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param size query int false "Page size (1-100)" default(10)
+// @Param keyword query string false "Matches id, name, username, email or phone"
+// @Param status query string false "Status filter: 0, 1 or all" Enums(0, 1, all)
+// @Param groupId query string false "Group id filter"
+// @Param sort query string false "Sort column" Enums(id, name, username, email, status, createTime, updateTime)
+// @Param direction query string false "Sort direction" Enums(asc, desc)
+// @Success 200 {object} Envelope{data=UserPageData}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users [get]
 func (h *Handlers) listUsers(c *gin.Context) {
 	page, pageErr := intQuery(c, "page", 1)
 	if pageErr != nil {
@@ -73,6 +90,16 @@ func (h *Handlers) listUsers(c *gin.Context) {
 	success(c, result)
 }
 
+// @Summary Get a user
+// @Tags Users
+// @Produce json
+// @Param userId path string true "User id"
+// @Success 200 {object} Envelope{data=service.UserBean}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users/{userId} [get]
 func (h *Handlers) getUser(c *gin.Context) {
 	user, err := h.svc.GetUser(c.Request.Context(), c.Param("userId"))
 	if err != nil {
@@ -82,6 +109,20 @@ func (h *Handlers) getUser(c *gin.Context) {
 	success(c, user)
 }
 
+// @Summary Add a user
+// @Description Creates a user and returns the generated temporary password in data.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body addUserRequest true "User to create"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users [post]
 func (h *Handlers) addUser(c *gin.Context) {
 	var request addUserRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -127,6 +168,19 @@ func (h *Handlers) addUser(c *gin.Context) {
 	successMessage(c, "操作成功", tempPassword)
 }
 
+// @Summary Update a user
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param userId path string true "User id"
+// @Param request body editUserRequest true "Fields to update"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users/{userId} [patch]
 func (h *Handlers) updateUser(c *gin.Context) {
 	var request editUserRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -180,6 +234,19 @@ func (h *Handlers) updateUser(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Update user status
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param userId path string true "User id"
+// @Param request body statusRequest true "New status"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users/{userId}/status [patch]
 func (h *Handlers) updateUserStatus(c *gin.Context) {
 	var request statusRequest
 	if err := bindJSON(c, &request); err != nil {
@@ -200,6 +267,17 @@ func (h *Handlers) updateUserStatus(c *gin.Context) {
 	success(c, "操作成功")
 }
 
+// @Summary Reset a user password
+// @Description Resets the password and returns the generated temporary password in data.
+// @Tags Users
+// @Produce json
+// @Param userId path string true "User id"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users/{userId}/reset-password [post]
 func (h *Handlers) resetPassword(c *gin.Context) {
 	c.Header("Cache-Control", "no-store")
 	tempPassword, err := h.svc.ResetPassword(c.Request.Context(), actorOf(c), c.Param("userId"))
@@ -210,6 +288,17 @@ func (h *Handlers) resetPassword(c *gin.Context) {
 	successMessage(c, "操作成功", tempPassword)
 }
 
+// @Summary Delete a user
+// @Tags Users
+// @Produce json
+// @Param userId path string true "User id"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users/{userId} [delete]
 func (h *Handlers) deleteUser(c *gin.Context) {
 	if err := h.svc.DeleteUsers(c.Request.Context(), actorOf(c), []string{c.Param("userId")}); err != nil {
 		fail(c, err)
@@ -218,6 +307,18 @@ func (h *Handlers) deleteUser(c *gin.Context) {
 	success(c, "删除成功")
 }
 
+// @Summary Delete users
+// @Tags Users
+// @Produce json
+// @Param ids query string true "Comma-separated user ids"
+// @Success 200 {object} Envelope{data=string}
+// @Failure 400 {object} Envelope
+// @Failure 401 {object} Envelope
+// @Failure 403 {object} Envelope
+// @Failure 404 {object} Envelope
+// @Failure 409 {object} Envelope
+// @Security BearerAuth
+// @Router /system/users [delete]
 func (h *Handlers) deleteUserIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {

@@ -7,6 +7,7 @@ import com.orange.domain.system.role.req.EditRoleReq;
 import com.orange.domain.system.role.req.QueryRoleReq;
 import com.orange.domain.system.role.resp.RoleBean;
 import com.orange.service.system.RoleService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,6 +76,7 @@ public class RoleController {
 
     // ===== 兼容旧接口（已废弃，后续版本移除） =====
     @Deprecated
+    @Hidden
     @Operation(summary = "查询角色详情（旧）", deprecated = true)
     @GetMapping("/detail/{roleId}")
     @PreAuthorize("hasAuthority('menu#/system/role')")
@@ -83,6 +85,7 @@ public class RoleController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "新增角色（旧）", deprecated = true)
     @PostMapping("/add")
     @PreAuthorize("hasAuthority('action#/system/role:add')")
@@ -92,6 +95,7 @@ public class RoleController {
     }
 
     @Deprecated
+    @Hidden
     @Operation(summary = "编辑角色（旧）", deprecated = true)
     @PostMapping("/edit")
     @PreAuthorize("hasAuthority('action#/system/role:edit')")

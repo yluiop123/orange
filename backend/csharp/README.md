@@ -14,7 +14,7 @@ This stack implements the same API contract with .NET 10 + ASP.NET Core + EF Cor
 | Passwords | `BCrypt.Net-Next` 4.2.0 | `Orange.Api.csproj` |
 | Tests | xUnit 2.9.3, `Microsoft.NET.Test.Sdk` 17.14.1, `coverlet.collector` 6.0.4 | `Orange.Tests.csproj` |
 | Solution | `Orange.slnx` (two folders, `/src/` and `/tests/`) | `Orange.slnx` |
-| API documentation | unified `/swagger` + `/openapi.json` (no extra package) | `Swagger/SwaggerSupport.cs` |
+| API documentation | Swashbuckle 10 generates from controllers/DTOs; `/swagger` + `/openapi.json` | `Program.cs`, `Orange.Api.csproj` |
 | Launch settings | no `Properties/launchSettings.json` | repository-wide file list |
 
 ## Commands
@@ -44,8 +44,7 @@ src/Orange.Api/
 ├── Domain/                entities, error codes, exceptions, tree and permission policy, lockout and audit rules
 ├── Middleware/            TraceId, exceptions, validation, audit
 ├── Security/              JWT, refresh cookie, authentication middleware, RBAC guards, lockout
-├── Services/              business logic, menu tree, query utilities, audit cleanup
-└── Swagger/               Swagger UI and /openapi.json support
+└── Services/              business logic, menu tree, query utilities, audit cleanup
 tests/Orange.Tests/        xUnit unit tests
 ```
 
@@ -59,17 +58,17 @@ Copy `.env.example` to `.env.local` (gitignored); the first line of `Program.cs`
 2. The target framework is `net10.0` but EF Core is pinned to 9.x: a comment in `Orange.Api.csproj` explains that `Pomelo.EntityFrameworkCore.MySql` 9.0.0 requires EF Core 9, so the three providers and EF Core must move together; upgrading to EF Core 10 has to wait for Pomelo 10.
 3. JWT follows the shared rule: an RSA pair selects RS256, otherwise `JWT_SECRET` selects HS256 (`src/Orange.Api/Security/JwtService.cs`). Access and refresh tokens are still issued and validated by hand in this file, with no third-party JWT package.
 4. Audit-retention cleanup runs every 6 hours (class comment at `src/Orange.Api/Services/OperationLogService.cs:107`), not on a configurable cron, which differs from the daily cleanup cadence of the other ports.
-5. No third-party OpenAPI package and no migration tool: `/swagger` + `/openapi.json` are hand-wired in `Swagger/SwaggerSupport.cs`; the schema comes only from `database/<engine>/ddl.sql` and `dml.sql`.
+5. Swashbuckle 10 generates the OpenAPI document from controller metadata; `/swagger` + `/openapi.json` are mounted before the authentication middleware. Database schema still comes only from `database/<engine>/ddl.sql` and `dml.sql`.
 
 ## Size and tests
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 64 |
-| C# source files | 55 (`src/Orange.Api` 47, `tests/Orange.Tests` 8) |
+| Version-controlled files | 63 |
+| C# source files | 54 (`src/Orange.Api` 46, `tests/Orange.Tests` 8) |
 | Test files | 8 `*Tests.cs` files plus 1 test csproj; 72 tests |
 
-Counting basis: `git ls-files backend/csharp`. Endpoints, dialects and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md).
+Counting basis: `git ls-files backend/csharp`. The frontend-owned API snapshot is [frontend/openapi.json](../../frontend/openapi.json), dialects are in [database](../../database/), and the stack matrix is the [root README](../../README.md).
 
 > Last verified: c7b6531 · 2026-11-08
 > Sources: `Orange.slnx`, `src/Orange.Api/Orange.Api.csproj`, `tests/Orange.Tests/Orange.Tests.csproj`, `src/Orange.Api/Program.cs`, `src/Orange.Api/Configuration/AppOptions.cs`, `.env.example`, `.github/workflows/main.yml`
