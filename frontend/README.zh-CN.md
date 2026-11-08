@@ -31,7 +31,7 @@
 `openapi.json` 是前端自己维护的冻结快照。三个前端各自在 `/swagger`（React 为
 `#/swagger`）提供 Swagger UI 页面，读取 `public/swagger.html` 与
 `public/openapi.json`，不会向运行中的后端请求文档。修改 `openapi.json` 后要把它复制到
-三个前端的 `public/`；`node scripts/check-config.mjs` 会在副本漂移时失败。
+三个前端的 `public/`；快照变化时请同步更新三份副本。
 
 ## 路由与权限可见性
 

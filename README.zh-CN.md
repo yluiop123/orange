@@ -171,13 +171,13 @@ CHECK）和 `dml.sql`（种子数据）。
 
 ## 验证与 CI
 
-先跑改动栈的命令（见上面的矩阵），再跑根目录检查：`node scripts/check-config.mjs`、
-`pnpm run permissions:check`、`pnpm run docs:check`（本地相对链接检查）。
+先跑改动栈的命令（见上面的矩阵），再跑根目录检查：`pnpm run permissions:check`
+和 `pnpm run docs:check`（本地相对链接检查）。
 
 [.github/workflows/main.yml](.github/workflows/main.yml) 在向 `main` 提 PR、push 到
 `main` 以及手动触发时运行：
 
-- `config`：跑 check-config、permissions:check 和 docs:check。
+- `config`：跑 permissions:check 和 docs:check。
 - `frontend-react`、`frontend-vue`、`frontend-angular`：安装、lint、类型检查（React 与
   Vue）、测试、构建；React 在 push 时额外产出 Pages 工件。
 - `backend`：六个栈的测试与构建矩阵；push 时同一个 job 还会跑四引擎数据库矩阵和 SQLite

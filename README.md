@@ -169,13 +169,13 @@ Start with the two shared documents, then open the stack you are working on.
 ## Verification and CI
 
 Run the commands for the stack you changed (matrix above), then the root
-checks: `node scripts/check-config.mjs`, `pnpm run permissions:check` and
-`pnpm run docs:check` (local relative-link check).
+checks: `pnpm run permissions:check` and `pnpm run docs:check` (local
+relative-link check).
 
 [.github/workflows/main.yml](.github/workflows/main.yml) runs on pull requests
 to `main`, pushes to `main` and manual dispatch:
 
-- `config` — check-config, permissions:check and docs:check.
+- `config` — permissions:check and docs:check.
 - `frontend-react`, `frontend-vue`, `frontend-angular` — install, lint, type-check (React and Vue), test and build; React also builds the Pages artifact on push.
 - `backend` — test and build matrix over the six stacks; on push the same job also runs the four-engine database matrix and contract acceptance on SQLite.
 - `deploy` — publishes the React build to GitHub Pages; the other frontends are never deployed.

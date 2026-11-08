@@ -35,7 +35,7 @@ layer would lock all three Vite/Angular versions together.
 Swagger UI page at `/swagger` (`#/swagger` in React) from
 `public/swagger.html` and `public/openapi.json`; it never asks a running backend
 for documentation. When `openapi.json` changes, copy it into all three apps'
-`public/` directories; `node scripts/check-config.mjs` fails when a copy drifts.
+`public/` directories; keep the three copies in sync when the snapshot changes.
 
 ## Routing and permission visibility
 
