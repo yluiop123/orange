@@ -103,13 +103,14 @@ Startup order is database → backend → frontend. The frontends can also start
 alone: development mode enables the in-browser mock by default, so no backend is
 required to browse the demo.
 
-JWT keys are not committed. Generate a development pair with OpenSSL at the
-repository root and point `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` at it to use RS256;
-without keys the backends fall back to HS256 with `JWT_SECRET`.
+JWT keys are not committed. From the repository root, generate a development
+pair into `backend/keys/` with OpenSSL and point `JWT_PRIVATE_KEY` /
+`JWT_PUBLIC_KEY` at it to use RS256; without keys the backends fall back to HS256
+with `JWT_SECRET`.
 
 ```bash
-openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/jwt-private.pem
-openssl rsa -pubout -in keys/jwt-private.pem -out keys/jwt-public.pem
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out backend/keys/jwt-private.pem
+openssl rsa -pubout -in backend/keys/jwt-private.pem -out backend/keys/jwt-public.pem
 ```
 
 ## Configuration at a glance

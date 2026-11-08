@@ -109,15 +109,16 @@ Rust 在认证之后安装记录器，只记录到达 handler 的请求。“Rep
   `SPRING_PROFILES_ACTIVE=local`），Go、NestJS、ASP.NET Core 用 `.env.local`，
   Rust、FastAPI 用 `.env`。
 
-在仓库根目录用 OpenSSL 生成开发密钥对：
+在仓库根目录用 OpenSSL 把开发密钥对生成到 `backend/keys/`：
 
 ```bash
-openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/jwt-private.pem
-openssl rsa -pubout -in keys/jwt-private.pem -out keys/jwt-public.pem
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out backend/keys/jwt-private.pem
+openssl rsa -pubout -in backend/keys/jwt-private.pem -out backend/keys/jwt-public.pem
 ```
 
-后端按 `JWT_PRIVATE_KEY=../../keys/jwt-private.pem`、
-`JWT_PUBLIC_KEY=../../keys/jwt-public.pem` 指向它即可。
+后端按 `JWT_PRIVATE_KEY=../keys/jwt-private.pem`、
+`JWT_PUBLIC_KEY=../keys/jwt-public.pem` 指向它即可（路径相对于各
+`backend/<stack>` 目录）。
 
 | 技术栈 | 入库配置 | 本地文件 |
 | --- | --- | --- |

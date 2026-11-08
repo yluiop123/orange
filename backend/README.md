@@ -124,15 +124,17 @@ file at startup. Only the precedence rules are shared; each stack's README and
   `SPRING_PROFILES_ACTIVE=local` for Spring Boot, `.env.local` for Go, NestJS and
   ASP.NET Core, `.env` for Rust and FastAPI.
 
-Generate a development RSA pair with OpenSSL at the repository root:
+Generate a development RSA pair with OpenSSL from the repository root into
+`backend/keys/`:
 
 ```bash
-openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/jwt-private.pem
-openssl rsa -pubout -in keys/jwt-private.pem -out keys/jwt-public.pem
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out backend/keys/jwt-private.pem
+openssl rsa -pubout -in backend/keys/jwt-private.pem -out backend/keys/jwt-public.pem
 ```
 
-Point a backend at it with `JWT_PRIVATE_KEY=../../keys/jwt-private.pem` and
-`JWT_PUBLIC_KEY=../../keys/jwt-public.pem`.
+Point a backend at it with `JWT_PRIVATE_KEY=../keys/jwt-private.pem` and
+`JWT_PUBLIC_KEY=../keys/jwt-public.pem` (paths are relative to each
+`backend/<stack>` directory).
 
 | Stack | Committed configuration | Local file |
 | --- | --- | --- |

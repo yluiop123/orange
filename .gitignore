@@ -32,7 +32,7 @@ lerna-debug.log*
 **/build/
 
 # JWT keys (generate with OpenSSL; see README)
-/keys/
+/backend/keys/
 
 # Python
 **/__pycache__/
