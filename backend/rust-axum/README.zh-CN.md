@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # Orange · Rust + Axum 后端
 
 本栈用 Rust + Axum 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
@@ -41,6 +43,7 @@ src/error.rs         业务码与错误包体
 src/response.rs      响应包体与 task-local trace id
 src/middleware.rs    TraceId、认证、可选认证
 src/operation_log.rs 审计策略与中间件
+src/swagger.rs       /swagger UI 与 /openapi.json
 src/auth/            JWT、bcrypt、锁定计算、cookie
 src/domain/          实体、DTO、树与权限策略、校验
 src/repository/      SQLx 查询（按驱动各生成一份）
@@ -51,7 +54,7 @@ scripts/smoke-databases.ps1  四引擎冒烟脚本
 
 ## 配置入口
 
-复制 `.env.example` 为 `.env`（被 gitignore，`dotenvy::dotenv()` 加载）；真实环境变量优先。`DB_DRIVER` 优先于 `DATABASE_URL` 的 scheme；`DATABASE_URL` 优先于离散 `DB_*`，SQLite 另有 `DB_FILE`。变量清单与跨栈对照见 [后端配置约定](../../backend/README.md)。
+复制 `.env.example` 为 `.env`（被 gitignore，`dotenvy::dotenv()` 加载）；真实环境变量优先。`DB_DRIVER` 优先于 `DATABASE_URL` 的 scheme；`DATABASE_URL` 优先于离散 `DB_*`，SQLite 另有 `DB_FILE`。变量清单与跨栈对照见 [后端配置约定](../../backend/README.zh-CN.md)。
 
 ## 本栈偏差
 
@@ -65,11 +68,11 @@ scripts/smoke-databases.ps1  四引擎冒烟脚本
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 50 |
-| Rust 源文件 | 44（`src/`） |
+| 受版本控制的文件 | 52 |
+| Rust 源文件 | 45（`src/`） |
 | 测试文件 | 0 个独立测试文件；8 个模块内联 40 个 `#[test]` |
 
 统计口径：`git ls-files backend/rust-axum` 与 `src` 内 `#[test]` 计数。端点与方言见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)。
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: `Cargo.toml`、`Cargo.lock`、`.env.example`、`src/main.rs`、`src/config.rs`、`src/db.rs`、`src/auth/jwt.rs`、`scripts/smoke-databases.ps1`、`.github/workflows/main.yml`
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：`Cargo.toml`、`Cargo.lock`、`.env.example`、`src/main.rs`、`src/config.rs`、`src/db.rs`、`src/auth/jwt.rs`、`scripts/smoke-databases.ps1`、`.github/workflows/main.yml`

@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Frontend
 
 Three single-page applications — React, Vue and Angular — implement the same
@@ -53,10 +55,10 @@ Guards live where each router puts them:
 - Angular attaches `authGuard` and `identityGuard` to the shell, and
   `permissionGuard` to every `page()` route.
 
-Menu titles drift most between stacks. React translates `menu.<path>` keys with
-`react-intl` and falls back to the backend name. Vue reads the synced
-`config/permissions.json`. Angular uses a hand-written
-`core/permission-catalog.ts`, which `pnpm run permissions:sync` does not update.
+Menu titles come from `GET /api/v1/auth/menus`. The backend stores `name` and
+`name_en` on `sys_permission` and returns the one matching the `Locale` header,
+so no frontend ships a menu-title catalogue. Only icons are mapped locally by
+path, because the permission table has no icon column.
 
 Switching roles is a UI-only filter: user permissions are merged with the
 selected role's permissions and the menu and action buttons are recomputed. The
@@ -162,11 +164,13 @@ equivalents. They follow dark mode and all seven palettes. Never hard-code
    [../database/permissions.json](../database/permissions.json). Permission
    codes are 4 digits at the root and gain 2 digits per level; sibling order
    follows the code.
-3. From the repository root run `pnpm run permissions:sync`. This updates the
-   React/Vue mock catalogs; Angular's `core/permission-catalog.ts` is manual.
-4. Add translations. React needs both `menu.reports.sales` and
-   `page.reports.sales.*`; Vue needs the page keys; Angular adds both to
-   `i18n.service.ts`.
+3. From the repository root run `pnpm run permissions:sync`. This regenerates
+   the seed block in all seven `database/*/dml.sql` files and the React/Vue mock
+   catalog; Angular's `core/permission-catalog.ts` only feeds its mock and is
+   updated by hand.
+4. Add page-level translations (React `page.reports.sales.*`, Vue page keys,
+   Angular `i18n.service.ts`). Menu titles are not translated on the frontend:
+   set `name` and `name_en` in the permission seed instead.
 5. Style with design tokens and wrap actions in `ActionAuth` (React/Vue) or
    `auth.canAct(path, 'add')` (Angular).
 6. Run the stack's tests and typecheck, then verify the page as a `super` user

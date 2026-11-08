@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # ORANGE React 前端
 
 React 19 + Vite 实现，是 Orange 的参考前端；本页只列安装、命令、目录、依赖与偏差，不重复架构说明。
@@ -65,10 +67,10 @@ frontend/react/
 | UI 与交互 | `@base-ui/react`、`cmdk`、`sonner`、`vaul`、`embla-carousel-react`、`framer-motion`、`lucide-react`、`@tabler/icons-react`、`class-variance-authority`、`clsx`、`tailwind-merge` |
 | 表单 | `react-hook-form`、`@hookform/resolvers`、`zod`、`input-otp`、`react-dropzone`、`react-day-picker` |
 | 状态、路由、i18n | `zustand`、`react-router`（HashRouter）、`react-intl`、`axios`、`date-fns` |
-| 样式与主题 | `tailwindcss`、`@tailwindcss/vite`、`tailwindcss-animate`、`tailwind-scrollbar`、`next-themes`、`colorjs.io` |
+| 样式与主题 | `tailwindcss`、`@tailwindcss/vite`、`tailwindcss-animate`、`next-themes`、`colorjs.io` |
 | 上传与其他 | `@uppy/core`、`@uppy/react`、`@uppy/tus`、`qrcode.react`、`react-resizable-panels`、`leva`、`@faker-js/faker` |
 
-Cesium 由 `vite-plugin-cesium-build` 打包，页面按需加载，不需要 Ion token。
+`tailwind-scrollbar` 是构建期 devDependency（Tailwind 插件），不是运行时依赖。Cesium 由 `vite-plugin-cesium-build` 打包，页面按需加载，不需要 Ion token。
 
 ## 与契约的关系
 
@@ -81,16 +83,16 @@ Cesium 由 `vite-plugin-cesium-build` 打包，页面按需加载，不需要 Io
 
 - 路由固定 `HashRouter`，没有路由模式开关；页面路径由 `src/lib/page-routes.ts` 从 `pages/**/index.tsx` 自动收集，新增页面不改路由表。
 - mock 用 MSW；`src/main.tsx` 只在 `VITE_MOCK_ENABLE=true` 时动态加载 `src/mock`。
-- 菜单标题用 `menu.<path>` 的 react-intl key，数据库 `name` 作 `defaultMessage` 兜底；Vue/Angular 改用共享权限目录，三端策略并不完全一致。
+- 菜单标题和其他两栈一样来自 `GET /api/v1/auth/menus`，不再随包发布 `menu.<path>` 翻译 key。
 - 主题是 CSS 变量：`<html class="dark">` 加 `theme-<color>`，状态存 `theme-mode` / `theme-color`。
 - `build:github` 产出部署在 `/orange/`；CI 只在 push 时发布 React 到 GitHub Pages。
 - 单测跑在 node 环境，覆盖 access、path、permission catalog、tree-code、page-clamp、permission 合并；没有 DOM 组件测试。
 
 ## 延伸阅读
 
-- [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.md)
-- [仓库技术栈与命令总表](../../README.md)
+- [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.zh-CN.md)
+- [仓库技术栈与命令总表](../../README.zh-CN.md)
 - [HTTP 契约](../../contracts/openapi.json)
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: frontend/react/package.json、frontend/react/vite.config.ts、frontend/react/vitest.config.ts、frontend/react/.env*、frontend/react/src/main.tsx、frontend/react/src/App.tsx、frontend/react/src/lib/page-routes.ts、frontend/react/src/lib/menu.ts、frontend/react/src/lib/axios.ts、frontend/react/src/locale/zh-CN.ts、frontend/react/src/config/permissions.test.ts
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：frontend/react/package.json、frontend/react/vite.config.ts、frontend/react/vitest.config.ts、frontend/react/.env*、frontend/react/src/main.tsx、frontend/react/src/App.tsx、frontend/react/src/lib/page-routes.ts、frontend/react/src/lib/menu.ts、frontend/react/src/lib/axios.ts、frontend/react/src/locale/zh-CN.ts、frontend/react/src/config/permissions.test.ts

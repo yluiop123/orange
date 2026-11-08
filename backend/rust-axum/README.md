@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Orange · Rust + Axum backend
 
 This stack implements the same API contract with Rust + Axum, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER` / `DATABASE_URL`.
@@ -41,6 +43,7 @@ src/error.rs         business codes and error envelope
 src/response.rs      response envelope and task-local trace id
 src/middleware.rs    TraceId, authentication, optional authentication
 src/operation_log.rs audit policy and middleware
+src/swagger.rs       /swagger UI and /openapi.json
 src/auth/            JWT, bcrypt, lockout calculation, cookies
 src/domain/          entities, DTOs, tree and permission policy, validation
 src/repository/      SQLx queries (one generated set per driver)
@@ -65,11 +68,11 @@ Copy `.env.example` to `.env` (gitignored, loaded by `dotenvy::dotenv()`); real 
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 50 |
-| Rust source files | 44 (`src/`) |
+| Version-controlled files | 52 |
+| Rust source files | 45 (`src/`) |
 | Test files | 0 standalone test files; 8 modules hold 40 inline `#[test]` functions |
 
 Counting basis: `git ls-files backend/rust-axum` plus a count of `#[test]` inside `src`. Endpoints and dialects are in the [HTTP contract](../../contracts/openapi.json) and [database dialects](../../database/).
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: `Cargo.toml`, `Cargo.lock`, `.env.example`, `src/main.rs`, `src/config.rs`, `src/db.rs`, `src/auth/jwt.rs`, `scripts/smoke-databases.ps1`, `.github/workflows/main.yml`

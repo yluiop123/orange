@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # ORANGE Angular frontend
 
 Angular 21 + Angular Material implementation with the same product scope as the React reference; this page covers installation, commands, layout, dependencies and deviations only.
@@ -12,7 +14,7 @@ cd frontend/angular
 pnpm install --frozen-lockfile
 ```
 
-`pnpm start` uses the `local` configuration and swaps in `src/environments/environment.ts`. That configuration defaults `mock` to `false` and points at the real backend on 8080; to run without a backend, set `mock` to `true` in `environment.local.ts` and restart.
+`pnpm start` uses the `local` configuration, which replaces `src/environments/environment.ts` with `src/environments/environment.local.ts`. That configuration defaults `mock` to `false` and points at the real backend on 8080. To run without a backend, open the app with `?mock=1` (the choice persists in `orange.mock.enabled`) instead of editing the tracked environment file.
 
 ## Commands
 
@@ -73,7 +75,7 @@ Cesium is not listed as a dependency: `/map/cesium` loads a fixed 1.147 version 
 - Routes are registered by hand in `src/app/app.routes.ts`. `page(path, permissionPath, loader)` attaches `permissionGuard`, and `container('system')` and friends handle container redirects; both new pages and new containers require editing it.
 - Mocking is the in-memory implementation in `mock.interceptor.ts` + `mock-backend.ts`, ordered after the auth interceptor; `?mock=1` persists to `orange.mock.enabled` and `?mock=0` clears it.
 - The permission catalog `src/app/core/permission-catalog.ts` is a hand-written mirror that the root `permissions:sync` does not update; a new permission must be added there and to `ROLE_PERMISSIONS` at the same time.
-- The i18n dictionary lives in the `EN` / `ZH` constants of `src/app/core/i18n.service.ts`, with no separate locale files; menu titles come from the permission catalog via `menu-labels.ts`.
+- The i18n dictionary lives in the `EN` / `ZH` constants of `src/app/core/i18n.service.ts`, with no separate locale files; menu titles come from `GET /api/v1/auth/menus` (`name` / `name_en`, localized by the backend).
 - Theme and palette switching exist (`ThemeToggleComponent`, colour menu), with persistence keys `orange.angular.theme` and `orange.angular.color`, defaulting to dark.
 - Some chart pages are substituted: both the AntV and Recharts pages render with ECharts, and `/map/l7` uses a Leaflet base map with SVG flow lines instead of loading L7.
 - The root workflow's `deploy` publishes React only; this stack only runs build/lint/test and has no separate GitHub Pages configuration.
@@ -85,5 +87,5 @@ Cesium is not listed as a dependency: `/map/cesium` loads a fixed 1.147 version 
 - [Repository stack and command matrix](../../README.md)
 - [HTTP contract](../../contracts/openapi.json)
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: frontend/angular/package.json, frontend/angular/angular.json, frontend/angular/proxy.conf.json, frontend/angular/src/environments/environment*.ts, frontend/angular/src/app/app.config.ts, frontend/angular/src/app/app.routes.ts, frontend/angular/src/app/core/guards.ts, frontend/angular/src/app/core/auth.interceptor.ts, frontend/angular/src/app/core/refresh.service.ts, frontend/angular/src/app/core/permission-catalog.ts, frontend/angular/src/app/core/i18n.service.ts, frontend/angular/src/app/mock/mock-backend.ts, frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts, frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts, frontend/angular/src/styles.scss

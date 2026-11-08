@@ -1,9 +1,11 @@
+[English](README.md) | 简体中文
+
 # 前端
 
 三套单页应用——React、Vue、Angular——针对同一份 HTTP 契约实现同一个管理后台。
 它们共享事实与约定，但不共享运行时代码：每套栈各自维护 `package.json`、构建流程与
-组件库。请选择要改的栈：[React](react/README.md)（行为与视觉基线）、
-[Vue](vue/README.md)、[Angular](angular/README.md)。
+组件库。请选择要改的栈：[React](react/README.zh-CN.md)（行为与视觉基线）、
+[Vue](vue/README.zh-CN.md)、[Angular](angular/README.zh-CN.md)。
 
 ## 三栈边界
 
@@ -48,9 +50,9 @@
 - Angular 在 Shell 上挂 `authGuard`、`identityGuard`，每条 `page()` 路由挂
   `permissionGuard`。
 
-菜单标题最容易漂移。React 把 `menu.<path>` 交给 `react-intl`，缺失时回退后端名称；
-Vue 读取同步后的 `config/permissions.json`；Angular 使用手写的
-`core/permission-catalog.ts`，`pnpm run permissions:sync` 不会更新它。
+菜单标题统一来自 `GET /api/v1/auth/menus`：后端在 `sys_permission` 里保存 `name` 与
+`name_en`，按 `Locale` 请求头返回对应语言，前端不再维护菜单标题目录。只有图标仍在
+本地按路径映射，因为权限表没有图标列。
 
 角色切换只是前端视图过滤：把用户权限与所选角色的权限合并后重算菜单和操作按钮，
 从不改变后端 Authority。切到不含当前路径的角色时，落到 `firstVisibleLeaf` 或
@@ -142,10 +144,11 @@ key 分别是 `theme-mode`/`theme-color`、`orange.theme`/`orange.color` 与
 2. 在 [../database/permissions.json](../database/permissions.json) 加入目录、菜单与
    动作节点，并授权给角色。权限编码根级 4 位，每深一层追加 2 位，同级顺序由编码
    决定。
-3. 在仓库根目录执行 `pnpm run permissions:sync`：它会更新 React/Vue 的 mock 目录；
-   Angular 的 `core/permission-catalog.ts` 需要手改。
-4. 补翻译。React 要同时加 `menu.reports.sales` 与 `page.reports.sales.*`；Vue 加
-   页面 key；Angular 两处都加进 `i18n.service.ts`。
+3. 在仓库根目录执行 `pnpm run permissions:sync`：它会给七个
+   `database/*/dml.sql` 重新生成种子区块，并更新 React/Vue 的 mock 目录；Angular 的
+   `core/permission-catalog.ts` 只服务 mock，需要手改。
+4. 补页面级翻译（React 的 `page.reports.sales.*`、Vue 的页面 key、Angular 的
+   `i18n.service.ts`）。菜单标题不在前端翻译：在权限种子里填 `name` 与 `name_en`。
 5. 用设计 token 写样式，操作按钮包进 `ActionAuth`（React/Vue）或调用
    `auth.canAct(path, 'add')`（Angular）。
 6. 跑该栈的单测与类型检查，再分别用 `super` 账号和缺少该权限的角色验证页面。
@@ -173,4 +176,4 @@ E2E 脚本在 [../scripts/](../scripts/)，使用 Playwright + Chrome：
 超过 12 的像素占比。运行前先启动 5173、5174、4200 三个 dev server；parity 与控件
 检查使用 mock 账号 `super/super` 登录。
 
-产品层面的说明见[仓库 README](../README.md)。
+产品层面的说明见[仓库 README](../README.zh-CN.md)。

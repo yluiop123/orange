@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Orange · Python + FastAPI backend
 
 This stack implements the same API contract with Python + FastAPI, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER` / `DATABASE_URL`.
@@ -41,7 +43,7 @@ app/middleware.py      audit middleware
 app/models/            ORM models for the shared schema
 app/policies/          code shape, permission shape, effective permissions, tree index
 app/schemas/           request and response models
-app/routers/           auth, users, roles, groups, permissions, operation_logs
+app/routers/           auth, users, roles, groups, permissions, operation_logs, docs
 app/security/          JWT, refresh cookie, lockout, password, authorization dependencies
 app/services/          business logic and guards, menu tree, query utilities
 tests/                 pytest cases and conftest
@@ -64,11 +66,11 @@ Copy `.env.example` to `.env` (`app/config.py` loads it with `load_dotenv(".env"
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 63 |
-| Python files | 57 |
-| Test files | 10 `test_*.py` files plus `conftest.py` |
+| Version-controlled files | 66 |
+| Python files | 59 |
+| Test files | 11 `test_*.py` files plus `conftest.py` |
 
 Counting basis: `git ls-files backend/python-fastapi`. Endpoints, dialects and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md).
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: `requirements.txt`, `requirements-dev.txt`, `pyproject.toml`, `.env.example`, `app/config.py`, `app/main.py`, `app/errors.py`, `tests/conftest.py`, `.github/workflows/main.yml`

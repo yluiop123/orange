@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # ORANGE React frontend
 
 React 19 + Vite implementation, and the reference frontend for Orange; this page covers installation, commands, layout, dependencies and deviations only, and does not repeat the architecture.
@@ -65,10 +67,10 @@ frontend/react/
 | UI and interaction | `@base-ui/react`, `cmdk`, `sonner`, `vaul`, `embla-carousel-react`, `framer-motion`, `lucide-react`, `@tabler/icons-react`, `class-variance-authority`, `clsx`, `tailwind-merge` |
 | Forms | `react-hook-form`, `@hookform/resolvers`, `zod`, `input-otp`, `react-dropzone`, `react-day-picker` |
 | State, routing, i18n | `zustand`, `react-router` (HashRouter), `react-intl`, `axios`, `date-fns` |
-| Styling and theming | `tailwindcss`, `@tailwindcss/vite`, `tailwindcss-animate`, `tailwind-scrollbar`, `next-themes`, `colorjs.io` |
+| Styling and theming | `tailwindcss`, `@tailwindcss/vite`, `tailwindcss-animate`, `next-themes`, `colorjs.io` |
 | Upload and others | `@uppy/core`, `@uppy/react`, `@uppy/tus`, `qrcode.react`, `react-resizable-panels`, `leva`, `@faker-js/faker` |
 
-Cesium is bundled by `vite-plugin-cesium-build` and loaded on demand per page; no Ion token is needed.
+`tailwind-scrollbar` is a build-time dev dependency (a Tailwind plugin), not a runtime import. Cesium is bundled by `vite-plugin-cesium-build` and loaded on demand per page; no Ion token is needed.
 
 ## Relationship to the contract
 
@@ -81,7 +83,7 @@ Cesium is bundled by `vite-plugin-cesium-build` and loaded on demand per page; n
 
 - Routing is fixed on `HashRouter`, with no routing-mode switch; page paths are collected automatically from `pages/**/index.tsx` by `src/lib/page-routes.ts`, so new pages do not touch the route table.
 - Mocking uses MSW; `src/main.tsx` dynamically imports `src/mock` only when `VITE_MOCK_ENABLE=true`.
-- Menu titles use the `menu.<path>` react-intl key, with the database `name` as the `defaultMessage` fallback; Vue/Angular use the shared permission catalog instead, so the three implementations are not fully aligned.
+- Menu titles come from `GET /api/v1/auth/menus`, like the other two stacks; no `menu.<path>` translation keys are shipped.
 - The theme is CSS variables: `<html class="dark">` plus `theme-<color>`, with state stored under `theme-mode` / `theme-color`.
 - `build:github` produces a build deployed at `/orange/`; CI publishes React to GitHub Pages on push only.
 - Unit tests run in the node environment and cover access, path, the permission catalog, tree-code, page-clamp and permission merging; there are no DOM component tests.
@@ -92,5 +94,5 @@ Cesium is bundled by `vite-plugin-cesium-build` and loaded on demand per page; n
 - [Repository stack and command matrix](../../README.md)
 - [HTTP contract](../../contracts/openapi.json)
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: frontend/react/package.json, frontend/react/vite.config.ts, frontend/react/vitest.config.ts, frontend/react/.env*, frontend/react/src/main.tsx, frontend/react/src/App.tsx, frontend/react/src/lib/page-routes.ts, frontend/react/src/lib/menu.ts, frontend/react/src/lib/axios.ts, frontend/react/src/locale/zh-CN.ts, frontend/react/src/config/permissions.test.ts

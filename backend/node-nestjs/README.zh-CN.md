@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # Orange · Node.js + NestJS 后端
 
 本栈用 NestJS 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
@@ -26,7 +28,7 @@
 | 启动（产物） | `pnpm build` 后 `pnpm start:prod` | `package.json`（`node dist/main.js`） |
 | 测试 | `pnpm test` | `main.yml`；jest 只跑 `src/**/*.spec.ts` |
 | 构建 | `pnpm build` | `main.yml`（`nest build`） |
-| 类型检查 | `pnpm typecheck` | `package.json`（`tsc --noEmit`） |
+| 类型检查 | `pnpm typecheck` | `package.json`（`tsc --noEmit -p tsconfig.json`） |
 | 冒烟 | `pnpm smoke` | `package.json`（`node scripts/smoke.mjs`），需要已 seed 的库和已启动的服务 |
 
 端口来源变量：`int(process.env.APP_PORT ?? process.env.PORT, 3000)`（`src/config/app-config.ts:50`），默认 3000；`.env.example` 写 `PORT=3000`。
@@ -51,7 +53,7 @@ scripts/smoke.mjs        HTTP 级冒烟脚本
 
 ## 配置入口
 
-复制 `.env.example` 为 `.env.local`（被 gitignore）；`src/config/env.ts` 用 `dotenv` 加载该文件，真实环境变量优先。数据库引擎先看 `DB_DRIVER`，其次看 `DATABASE_URL` 的 scheme，兜底 `postgres`；`DATABASE_URL` 覆盖离散 `DB_*`。完整变量清单与跨栈对照见 [后端配置约定](../../backend/README.md)。
+复制 `.env.example` 为 `.env.local`（被 gitignore）；`src/config/env.ts` 用 `dotenv` 加载该文件，真实环境变量优先。数据库引擎先看 `DB_DRIVER`，其次看 `DATABASE_URL` 的 scheme，兜底 `postgres`；`DATABASE_URL` 覆盖离散 `DB_*`。完整变量清单与跨栈对照见 [后端配置约定](../../backend/README.zh-CN.md)。
 
 ## 本栈偏差
 
@@ -65,11 +67,11 @@ scripts/smoke.mjs        HTTP 级冒烟脚本
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 95 |
-| TypeScript 源文件 | 85（`src/`） |
+| 受版本控制的文件 | 96 |
+| TypeScript 源文件 | 83（`src/`） |
 | 测试文件 | 7 个 `.spec.ts`（纯单元测试，无需数据库） |
 
-统计口径：`git ls-files backend/node-nestjs`。端点清单、方言差异与验证结论分别见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.md)。
+统计口径：`git ls-files backend/node-nestjs`。端点清单、方言差异与验证结论分别见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: `package.json`、`pnpm-workspace.yaml`、`.env.example`、`src/config/*.ts`、`src/main.ts`、`src/**/*.spec.ts`、`.github/workflows/main.yml`
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：`package.json`、`pnpm-workspace.yaml`、`.env.example`、`src/config/*.ts`、`src/main.ts`、`src/**/*.spec.ts`、`.github/workflows/main.yml`

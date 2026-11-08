@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # ORANGE Vue 前端
 
 Vue 3 + Vuetify 实现，产品范围与 React 参考实现一致；本页只列安装、命令、目录、依赖与偏差。
@@ -39,7 +41,7 @@ frontend/vue/
     config/         permissions.json（同步副本）、menu-icons.ts
     i18n/           index.ts、zh-CN.ts、en-US.ts
     layouts/        AppLayout.vue
-    lib/            access、menu、menu-title、path、tree-code、validation
+    lib/            access、menu、path、tree-code、validation
     mock/           axios adapter 与内存种子
     router/         路由表与全局守卫
     stores/         auth、menu、ui、pinia
@@ -77,7 +79,7 @@ Vuetify 组件全量注册在 `src/main.ts`，默认表单变体为 `outlined`�
 - 路由用 `createWebHistory`；页面在 `src/router/index.ts` 手工登记，容器路径 `CONTAINER_PATHS` 也是手写清单，新增容器必须同步改它。
 - 全局守卫 `router.beforeEach` 检查 public 路由、token、user-info、菜单与 `canView`；动作权限由 `ActionAuth` 组件控制。
 - mock 不是 MSW，而是替换 `http.defaults.adapter` 的 Axios adapter（`src/mock/index.ts` + `seed.ts`），状态在内存中。
-- 菜单标题由 `src/lib/menu-title.ts` 从 `src/config/permissions.json` 按 Page Path 取中英文，缺失时回退后端名称。
+- 菜单标题来自 `GET /api/v1/auth/menus`（`sys_permission.name` / `name_en`，后端按 `Locale` 请求头选择）；前端不再维护标题目录。
 - 主题是 Vuetify 的 `light` / `dark` 主题对象；颜色选择器直接改 `theme.themes.value`，持久化 key 为 `orange.theme` / `orange.color`。
 - 图表页有替换：AntV 页面用 ECharts 渲染，Recharts 页面用 Chart.js；`/map/l7` 不加载 L7，使用 tokenless 的点层卡片演示。
 - Cesium 由 `vite-plugin-cesium-build` 复制到 `cesium-package/`，只在 `/map/cesium` 动态加载，使用 OpenStreetMap 影像，不需要 Ion token。
@@ -85,9 +87,9 @@ Vuetify 组件全量注册在 `src/main.ts`，默认表单变体为 `outlined`�
 
 ## 延伸阅读
 
-- [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.md)
-- [仓库技术栈与命令总表](../../README.md)
+- [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.zh-CN.md)
+- [仓库技术栈与命令总表](../../README.zh-CN.md)
 - [HTTP 契约](../../contracts/openapi.json)
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: frontend/vue/package.json、frontend/vue/vite.config.ts、frontend/vue/vitest.config.ts、frontend/vue/.env*、frontend/vue/src/main.ts、frontend/vue/src/router/index.ts、frontend/vue/src/api/http.ts、frontend/vue/src/lib/menu-title.ts、frontend/vue/src/mock/index.ts、frontend/vue/src/views/chart/AntvView.vue、frontend/vue/src/views/chart/RechartView.vue、frontend/vue/src/views/map/CesiumView.vue、frontend/vue/src/views/map/L7View.vue
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：frontend/vue/package.json、frontend/vue/vite.config.ts、frontend/vue/vitest.config.ts、frontend/vue/.env*、frontend/vue/src/main.ts、frontend/vue/src/router/index.ts、frontend/vue/src/api/http.ts、frontend/vue/src/mock/index.ts、frontend/vue/src/views/chart/AntvView.vue、frontend/vue/src/views/chart/RechartView.vue、frontend/vue/src/views/map/CesiumView.vue、frontend/vue/src/views/map/L7View.vue

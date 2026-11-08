@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # Orange · Go + Gin + GORM 后端
 
 本栈用 Go 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` 连一种数据库。
@@ -45,7 +47,7 @@ internal/http/         Gin 路由、中间件、处理器、响应包体
 
 ## 配置入口
 
-复制 `.env.example` 为 `.env.local`（被 gitignore，启动时由 godotenv 读入）；真实环境变量优先于该文件。`DATABASE_URL` 覆盖离散 `DB_*`，`DB_DRIVER` 未设时由 URL scheme 推断引擎。变量清单、优先级与跨栈对照见 [后端配置约定](../../backend/README.md)。
+复制 `.env.example` 为 `.env.local`（被 gitignore，启动时由 godotenv 读入）；真实环境变量优先于该文件。`DATABASE_URL` 覆盖离散 `DB_*`，`DB_DRIVER` 未设时由 URL scheme 推断引擎。变量清单、优先级与跨栈对照见 [后端配置约定](../../backend/README.zh-CN.md)。
 
 ## 本栈偏差
 
@@ -59,11 +61,11 @@ internal/http/         Gin 路由、中间件、处理器、响应包体
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 57 |
-| Go 源文件 | 52 |
-| 测试文件 | 11 个 `_test.go`（含 `internal/http` 的路由测试与可选数据库冒烟） |
+| 受版本控制的文件 | 60 |
+| Go 源文件 | 54 |
+| 测试文件 | 12 个 `_test.go`（含 `internal/http` 的路由测试与可选数据库冒烟） |
 
-统计口径：`git ls-files backend/go-gin-gorm`。栈级差异的成因见 [后端共享约定与偏差](../../backend/README.md)。
+统计口径：`git ls-files backend/go-gin-gorm`。栈级差异的成因见 [后端共享约定与偏差](../../backend/README.zh-CN.md)。
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: `go.mod`、`go.sum`、`.env.example`、`cmd/server/main.go`、`internal/**`、`.github/workflows/main.yml`
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：`go.mod`、`go.sum`、`.env.example`、`cmd/server/main.go`、`internal/**`、`.github/workflows/main.yml`

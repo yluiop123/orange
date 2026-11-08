@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Orange · Node.js + NestJS backend
 
 This stack implements the same API contract in NestJS, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER` / `DATABASE_URL`.
@@ -26,7 +28,7 @@ This stack implements the same API contract in NestJS, following the Spring Boot
 | Start (artifact) | `pnpm build` then `pnpm start:prod` | `package.json` (`node dist/main.js`) |
 | Test | `pnpm test` | `main.yml`; jest only runs `src/**/*.spec.ts` |
 | Build | `pnpm build` | `main.yml` (`nest build`) |
-| Type check | `pnpm typecheck` | `package.json` (`tsc --noEmit`) |
+| Type check | `pnpm typecheck` | `package.json` (`tsc --noEmit -p tsconfig.json`) |
 | Smoke | `pnpm smoke` | `package.json` (`node scripts/smoke.mjs`), needs a seeded database and a running service |
 
 Port source variable: `int(process.env.APP_PORT ?? process.env.PORT, 3000)` (`src/config/app-config.ts:50`), default 3000; `.env.example` sets `PORT=3000`.
@@ -65,11 +67,11 @@ Copy `.env.example` to `.env.local` (gitignored); `src/config/env.ts` loads that
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 95 |
-| TypeScript source files | 85 (`src/`) |
+| Version-controlled files | 96 |
+| TypeScript source files | 83 (`src/`) |
 | Test files | 7 `.spec.ts` files (pure unit tests, no database needed) |
 
 Counting basis: `git ls-files backend/node-nestjs`. The endpoint list, dialect differences and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md) respectively.
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: `package.json`, `pnpm-workspace.yaml`, `.env.example`, `src/config/*.ts`, `src/main.ts`, `src/**/*.spec.ts`, `.github/workflows/main.yml`

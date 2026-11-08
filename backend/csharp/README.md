@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Orange · C# / ASP.NET Core backend
 
 This stack implements the same API contract with .NET 10 + ASP.NET Core + EF Core, following the Spring Boot reference for behaviour; one binary connects to one database via `DB_DRIVER` / `DATABASE_URL`.
@@ -42,7 +44,8 @@ src/Orange.Api/
 ├── Domain/                entities, error codes, exceptions, tree and permission policy, lockout and audit rules
 ├── Middleware/            TraceId, exceptions, validation, audit
 ├── Security/              JWT, refresh cookie, authentication middleware, RBAC guards, lockout
-└── Services/              business logic, menu tree, query utilities, audit cleanup
+├── Services/              business logic, menu tree, query utilities, audit cleanup
+└── Swagger/               Swagger UI and /openapi.json support
 tests/Orange.Tests/        xUnit unit tests
 ```
 
@@ -62,11 +65,11 @@ Copy `.env.example` to `.env.local` (gitignored); the first line of `Program.cs`
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 61 |
-| C# source files | 53 (`src/Orange.Api` 46, `tests/Orange.Tests` 7) |
-| Test files | 7 `*Tests.cs` files plus 1 test csproj; the test count was not re-run in this round and is pending verification |
+| Version-controlled files | 63 |
+| C# source files | 54 (`src/Orange.Api` 47, `tests/Orange.Tests` 7) |
+| Test files | 7 `*Tests.cs` files plus 1 test csproj; 69 tests |
 
 Counting basis: `git ls-files backend/csharp`. Endpoints, dialects and verification results are in the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md).
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: `Orange.slnx`, `src/Orange.Api/Orange.Api.csproj`, `tests/Orange.Tests/Orange.Tests.csproj`, `src/Orange.Api/Program.cs`, `src/Orange.Api/Configuration/AppOptions.cs`, `.env.example`, `.github/workflows/main.yml`

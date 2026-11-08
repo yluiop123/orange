@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Backend
 
 Six API implementations serve one HTTP contract and one database schema. Spring
@@ -38,7 +40,8 @@ request
 ```
 
 Authorization precedes DTO validation so an unauthorized caller cannot probe
-parameter rules. Error mapping sits outside controllers, so no handler writes its
+parameter rules. Spring enforces this in a `HandlerInterceptor` and FastAPI in
+a `Depends(...)` authority, both of which run before body/argument validation. Error mapping sits outside controllers, so no handler writes its
 own error body. The operation log is written after the response, so a logging
 failure cannot turn a successful request into a failure.
 
@@ -67,9 +70,8 @@ Every `/api/v1` response, including errors and unknown routes, has the same shap
 
 `code` is the business code (`200` on success), `timestamp` is server time in
 milliseconds, `traceId` matches the `X-Trace-Id` response header, and `data` is
-the payload or a `{field: message}` map for validation failures. On success, five
-stacks copy a string payload into both `message` and `data`; FastAPI sets only
-`data`, so pass `message=` explicitly when parity matters.
+the payload or a `{field: message}` map for validation failures. On success, a
+string payload is copied into both `message` and `data` in every stack.
 
 | code | HTTP | Meaning | Typical trigger |
 | --- | --- | --- | --- |
@@ -213,4 +215,4 @@ envelope:
 The UI reads the contract; it never defines one. A path that exists only in a
 framework annotation is invisible to `/openapi.json`, so change the contract first.
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08

@@ -1,21 +1,23 @@
+[English](README.md) | 简体中文
+
 # 后端
 
 六套 API 实现共享同一份 HTTP 契约与同一套数据库 schema。Spring Boot 是行为基准，
 契约与契约测试是最终裁判；六套实现之间不共享运行时库，也互不调用。
 
-仓库结构与快速开始见 [../README.md](../README.md)。契约是
+仓库结构与快速开始见 [../README.md](../README.zh-CN.md)。契约是
 [../contracts/openapi.json](../contracts/openapi.json)，表结构与种子数据在
 [../database/](../database/)，跨栈检查脚本在 [../scripts/](../scripts/)，前端约定见
-[../frontend/README.md](../frontend/README.md)。
+[../frontend/README.md](../frontend/README.zh-CN.md)。
 
 | 栈 | 目录 | 角色 |
 | --- | --- | --- |
-| Java 25 + Spring Boot | [springboot/README.md](springboot/README.md) | 行为基准 |
-| Go + Gin + GORM | [go-gin-gorm/README.md](go-gin-gorm/README.md) | 第二实现 |
-| NestJS | [node-nestjs/README.md](node-nestjs/README.md) | 第三实现 |
-| ASP.NET Core (.NET 10) | [csharp/README.md](csharp/README.md) | 第四实现 |
-| Rust + Axum | [rust-axum/README.md](rust-axum/README.md) | 第五实现 |
-| Python + FastAPI | [python-fastapi/README.md](python-fastapi/README.md) | 第六实现 |
+| Java 25 + Spring Boot | [springboot/README.md](springboot/README.zh-CN.md) | 行为基准 |
+| Go + Gin + GORM | [go-gin-gorm/README.md](go-gin-gorm/README.zh-CN.md) | 第二实现 |
+| NestJS | [node-nestjs/README.md](node-nestjs/README.zh-CN.md) | 第三实现 |
+| ASP.NET Core (.NET 10) | [csharp/README.md](csharp/README.zh-CN.md) | 第四实现 |
+| Rust + Axum | [rust-axum/README.md](rust-axum/README.zh-CN.md) | 第五实现 |
+| Python + FastAPI | [python-fastapi/README.md](python-fastapi/README.zh-CN.md) | 第六实现 |
 
 ## 1. 共同分层与职责
 
@@ -36,7 +38,8 @@
   ↘ 响应之后 → 操作日志（写入失败不影响请求）
 ```
 
-授权必须先于 DTO 校验，否则无权限的调用方能借参数错误探测规则。错误映射必须在
+授权必须先于 DTO 校验，否则无权限的调用方能借参数错误探测规则。Spring 用
+`HandlerInterceptor`、FastAPI 用 `Depends(...)` 权限依赖，两者都在请求体/参数校验之前执行。错误映射必须在
 控制器之外，否则每个 handler 都要重复拼错误包体。操作日志必须在响应之后写，否则
 日志失败会把成功请求变成失败。
 
@@ -63,9 +66,8 @@
 ```
 
 `code` 是业务码（成功固定 `200`），`timestamp` 是服务端毫秒时间戳，`traceId` 与响应头
-`X-Trace-Id` 相同，`data` 是载荷；校验失败时是 `{字段: 消息}` 映射。成功时五套实现会
-把字符串载荷同时写进 `message` 与 `data`，FastAPI 只写 `data`，需要跨栈对齐时显式传
-`message=`。
+`X-Trace-Id` 相同，`data` 是载荷；校验失败时是 `{字段: 消息}` 映射。成功时字符串载荷
+会同时写进 `message` 与 `data`，六套实现一致。
 
 | code | HTTP | 含义 | 典型触发点 |
 | --- | --- | --- | --- |
@@ -193,4 +195,4 @@ base URL；或用数据库矩阵脚本让单栈依次连四个引擎。已设置
 Swagger UI 只是契约的阅读器，不是第二事实源。只写在框架注解里的 path 不会出现在
 `/openapi.json` 里，先改契约。
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08

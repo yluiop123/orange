@@ -33,7 +33,7 @@ stack directories — [contracts/openapi.json](contracts/openapi.json),
 | --- | --- | --- | --- |
 | React 19 + Vite + shadcn/Base UI | 5173 | `pnpm dev` | `pnpm test` |
 | Vue 3 + Vuetify 3 + Vite | 5174 | `pnpm dev` | `pnpm test` |
-| Angular 21 + Material | 4200 | `pnpm start` | `pnpm test -- --watch=false` |
+| Angular 21 + Material | 4200 | `pnpm start` | `pnpm test` |
 | Spring Boot 4 (Java 25) | 8080 | `mvn spring-boot:run` | `mvn -B test` |
 | Go + Gin + GORM | 8081 | `go run ./cmd/server` | `go test ./...` |
 | NestJS | 3000 | `pnpm start:dev` | `pnpm test` |
@@ -121,6 +121,12 @@ indexes, checks) and `dml.sql` (seed data).
 - Permission identity is `(type, path, action)`. PostgreSQL enforces it with
   two partial unique indexes; MySQL and MariaDB use a generated `action_key`
   column instead.
+- Menus are database rows: `sys_permission` stores `name` and `name_en`, and
+  `/auth/menus` returns the one matching the `Locale` header. The frontend ships
+  no menu-title catalogue.
+- `database/permissions.json` is the permission source of truth.
+  `pnpm run permissions:sync` regenerates the generated seed block in all seven
+  dialect `dml.sql` files, so none of them can drift silently.
 - PostgreSQL, MySQL, MariaDB and SQLite run in CI. openGauss, OceanBase and
   GoldenDB ship static SQL only and are not runtime-verified.
 - SQLite foreign keys are per-connection and off by default, so `ddl.sql` and
@@ -155,7 +161,7 @@ checks: `node scripts/check-config.mjs`, `pnpm run permissions:check` and
 [.github/workflows/main.yml](.github/workflows/main.yml) runs on pull requests
 to `main`, pushes to `main` and manual dispatch:
 
-- `config` — check-config and permissions:check.
+- `config` — check-config, permissions:check and docs:check.
 - `frontend-react`, `frontend-vue`, `frontend-angular` — install, lint, type-check (React and Vue), test and build; React also builds the Pages artifact on push.
 - `backend` — test and build matrix over the six stacks; on push the same job also runs the four-engine database matrix and contract acceptance on SQLite.
 - `deploy` — publishes the React build to GitHub Pages; the other frontends are never deployed.

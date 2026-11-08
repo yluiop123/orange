@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # ORANGE Angular 前端
 
 Angular 21 + Angular Material 实现，产品范围与 React 参考实现一致；本页只列安装、命令、目录、依赖与偏差。
@@ -12,7 +14,7 @@ cd frontend/angular
 pnpm install --frozen-lockfile
 ```
 
-`pnpm start` 使用 `local` 配置并替换 `src/environments/environment.ts`。该配置的 `mock` 默认为 `false`，指向 8080 的真实后端；要脱离后端，把 `environment.local.ts` 的 `mock` 改为 `true` 并重启。
+`pnpm start` 使用 `local` 配置，用 `src/environments/environment.local.ts` 替换 `src/environments/environment.ts`。该配置的 `mock` 默认为 `false`，指向 8080 的真实后端；要脱离后端，访问时带 `?mock=1`（选择会存入 `orange.mock.enabled`），不要改这个受版本控制的文件。
 
 ## 命令
 
@@ -72,8 +74,8 @@ Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载�
 
 - 路由在 `src/app/app.routes.ts` 手工登记。`page(path, permissionPath, loader)` 会挂 `permissionGuard`，`container('system')` 等负责容器跳转；新增页面与容器都要改这里。
 - mock 是 `mock.interceptor.ts` + `mock-backend.ts` 的内存实现，排在 auth 拦截器之后；`?mock=1` 会持久化到 `orange.mock.enabled`，`?mock=0` 清除。
-- 权限目录 `src/app/core/permission-catalog.ts` 是手写镜像，不随根目录的 `permissions:sync` 更新；新增权限必须同时改它和 `ROLE_PERMISSIONS`。
-- i18n 字典在 `src/app/core/i18n.service.ts` 的 `EN` / `ZH` 常量里，没有独立 locale 文件；菜单标题由 `menu-labels.ts` 从权限目录取。
+- 菜单标题来自 `GET /api/v1/auth/menus`（`sys_permission.name` / `name_en`，后端按 `Locale` 请求头选择）；权限目录 `permission-catalog.ts` 只服务于 mock，不参与真实菜单渲染。
+- i18n 字典在 `src/app/core/i18n.service.ts` 的 `EN` / `ZH` 常量里，没有独立 locale 文件。
 - 主题与配色切换存在（`ThemeToggleComponent`、颜色菜单），持久化 key 为 `orange.angular.theme`、`orange.angular.color`，默认深色。
 - 图表页有替换：AntV 与 Recharts 页面都用 ECharts 渲染，`/map/l7` 用 Leaflet 底图加 SVG 流线，不加载 L7。
 - 根工作流的 `deploy` 只发布 React；本栈只跑 build/lint/test，没有独立 GitHub Pages 配置。
@@ -81,9 +83,9 @@ Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载�
 
 ## 延伸阅读
 
-- [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.md)
-- [仓库技术栈与命令总表](../../README.md)
+- [前端总览：架构、设计系统、权限可见性、新增页面、mock 切换](../../frontend/README.zh-CN.md)
+- [仓库技术栈与命令总表](../../README.zh-CN.md)
 - [HTTP 契约](../../contracts/openapi.json)
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: frontend/angular/package.json、frontend/angular/angular.json、frontend/angular/proxy.conf.json、frontend/angular/src/environments/environment*.ts、frontend/angular/src/app/app.config.ts、frontend/angular/src/app/app.routes.ts、frontend/angular/src/app/core/guards.ts、frontend/angular/src/app/core/auth.interceptor.ts、frontend/angular/src/app/core/refresh.service.ts、frontend/angular/src/app/core/permission-catalog.ts、frontend/angular/src/app/core/i18n.service.ts、frontend/angular/src/app/mock/mock-backend.ts、frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts、frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts、frontend/angular/src/styles.scss
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：frontend/angular/package.json、frontend/angular/angular.json、frontend/angular/proxy.conf.json、frontend/angular/src/environments/environment*.ts、frontend/angular/src/app/app.config.ts、frontend/angular/src/app/app.routes.ts、frontend/angular/src/app/core/guards.ts、frontend/angular/src/app/core/auth.interceptor.ts、frontend/angular/src/app/core/refresh.service.ts、frontend/angular/src/app/core/permission-catalog.ts、frontend/angular/src/app/core/i18n.service.ts、frontend/angular/src/app/mock/mock-backend.ts、frontend/angular/src/app/pages/map/cesium/map-cesium.component.ts、frontend/angular/src/app/pages/chart/rechart/chart-rechart.component.ts、frontend/angular/src/styles.scss

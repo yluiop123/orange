@@ -34,7 +34,7 @@ Angular）和六套后端（Spring Boot、Go、NestJS、C#、Rust、FastAPI）�
 | --- | --- | --- | --- |
 | React 19 + Vite + shadcn/Base UI | 5173 | `pnpm dev` | `pnpm test` |
 | Vue 3 + Vuetify 3 + Vite | 5174 | `pnpm dev` | `pnpm test` |
-| Angular 21 + Material | 4200 | `pnpm start` | `pnpm test -- --watch=false` |
+| Angular 21 + Material | 4200 | `pnpm start` | `pnpm test` |
 | Spring Boot 4（Java 25） | 8080 | `mvn spring-boot:run` | `mvn -B test` |
 | Go + Gin + GORM | 8081 | `go run ./cmd/server` | `go test ./...` |
 | NestJS | 3000 | `pnpm start:dev` | `pnpm test` |
@@ -114,6 +114,10 @@ CHECK）和 `dml.sql`（种子数据）。
   追加 2 位；同级顺序就是编码的字典序，没有排序列。改编码等于改身份。
 - 权限身份是 `(type, path, action)`：PostgreSQL 用两个部分唯一索引保证，MySQL 与
   MariaDB 改用生成列 `action_key` 达到同样效果。
+- 菜单就是数据库行：`sys_permission` 保存 `name` 与 `name_en`，`/auth/menus` 按
+  `Locale` 请求头返回对应语言，前端不再携带菜单标题目录。
+- `database/permissions.json` 是权限事实源。`pnpm run permissions:sync` 会重新生成
+  七个方言 `dml.sql` 里的种子区块，任一文件都不会静默漂移。
 - PostgreSQL、MySQL、MariaDB、SQLite 在 CI 中实际运行；openGauss、OceanBase、GoldenDB
   只有静态 SQL，没有运行时矩阵，不能算“已验证”。
 - SQLite 的外键是连接级设置且默认关闭，`ddl.sql` 和 `dml.sql` 必须在同一个连接里依次执行。
@@ -122,15 +126,15 @@ CHECK）和 `dml.sql`（种子数据）。
 
 先读两篇公共文档，再进入要改的那套栈。
 
-- [frontend/README.md](frontend/README.md)：三套前端共享的约定——路由、权限可见性、
+- [frontend/README.md](frontend/README.zh-CN.md)：三套前端共享的约定——路由、权限可见性、
   API 与 mock 切换、设计 token。
-- [backend/README.md](backend/README.md)：六套后端共享的分层、响应包体、错误码与配置。
-- 前端各栈：[React](frontend/react/README.md)、[Vue](frontend/vue/README.md)、
-  [Angular](frontend/angular/README.md)。
-- 后端各栈：[Spring Boot](backend/springboot/README.md)、
-  [Go](backend/go-gin-gorm/README.md)、[NestJS](backend/node-nestjs/README.md)、
-  [C#](backend/csharp/README.md)、[Rust](backend/rust-axum/README.md)、
-  [FastAPI](backend/python-fastapi/README.md)。
+- [backend/README.md](backend/README.zh-CN.md)：六套后端共享的分层、响应包体、错误码与配置。
+- 前端各栈：[React](frontend/react/README.zh-CN.md)、[Vue](frontend/vue/README.zh-CN.md)、
+  [Angular](frontend/angular/README.zh-CN.md)。
+- 后端各栈：[Spring Boot](backend/springboot/README.zh-CN.md)、
+  [Go](backend/go-gin-gorm/README.zh-CN.md)、[NestJS](backend/node-nestjs/README.zh-CN.md)、
+  [C#](backend/csharp/README.zh-CN.md)、[Rust](backend/rust-axum/README.zh-CN.md)、
+  [FastAPI](backend/python-fastapi/README.zh-CN.md)。
 - 每套栈的文档都有英文 `README.md` 和中文 `README.zh-CN.md`。
 
 ## 设计决策
@@ -159,7 +163,7 @@ CHECK）和 `dml.sql`（种子数据）。
 [.github/workflows/main.yml](.github/workflows/main.yml) 在向 `main` 提 PR、push 到
 `main` 以及手动触发时运行：
 
-- `config`：跑 check-config 和 permissions:check。
+- `config`：跑 check-config、permissions:check 和 docs:check。
 - `frontend-react`、`frontend-vue`、`frontend-angular`：安装、lint、类型检查（React 与
   Vue）、测试、构建；React 在 push 时额外产出 Pages 工件。
 - `backend`：六个栈的测试与构建矩阵；push 时同一个 job 还会跑四引擎数据库矩阵和 SQLite

@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Orange · Go + Gin + GORM backend
 
 This stack implements the same API contract in Go, following the Spring Boot reference for behaviour; one process connects to one database via `DB_DRIVER`.
@@ -59,11 +61,11 @@ Copy `.env.example` to `.env.local` (gitignored, read by godotenv at startup); r
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 57 |
-| Go source files | 52 |
-| Test files | 11 `_test.go` files (including `internal/http` route tests and the optional database smoke test) |
+| Version-controlled files | 60 |
+| Go source files | 54 |
+| Test files | 12 `_test.go` files (including `internal/http` route tests and the optional database smoke test) |
 
 Counting basis: `git ls-files backend/go-gin-gorm`. Why the stacks differ is covered by the [backend shared conventions and deviations](../../backend/README.md).
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: `go.mod`, `go.sum`, `.env.example`, `cmd/server/main.go`, `internal/**`, `.github/workflows/main.yml`

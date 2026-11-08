@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # Orange · C# / ASP.NET Core 后端
 
 本栈用 .NET 10 + ASP.NET Core + EF Core 实现同一份接口契约，行为以 Spring Boot 基准为准；一个二进制通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
@@ -42,13 +44,14 @@ src/Orange.Api/
 ├── Domain/                实体、错误码、异常、树与权限策略、锁定与审计规则
 ├── Middleware/            TraceId、异常、校验、审计
 ├── Security/              JWT、刷新 cookie、认证中间件、RBAC 守卫、锁定
-└── Services/              业务逻辑、菜单树、查询工具、审计清理
+├── Services/              业务逻辑、菜单树、查询工具、审计清理
+└── Swagger/               Swagger UI 与 /openapi.json
 tests/Orange.Tests/        xUnit 单元测试
 ```
 
 ## 配置入口
 
-复制 `.env.example` 为 `.env.local`（被 gitignore）；`Program.cs` 首行 `DotEnv.Load(".env.local")` 读入，真实环境变量优先。`appsettings.json` 与 `appsettings.Development.json` 只含日志级别和 `AllowedHosts`，业务配置全部来自环境变量。连接优先级、变量清单与跨栈对照见 [后端配置约定](../../backend/README.md)。
+复制 `.env.example` 为 `.env.local`（被 gitignore）；`Program.cs` 首行 `DotEnv.Load(".env.local")` 读入，真实环境变量优先。`appsettings.json` 与 `appsettings.Development.json` 只含日志级别和 `AllowedHosts`，业务配置全部来自环境变量。连接优先级、变量清单与跨栈对照见 [后端配置约定](../../backend/README.zh-CN.md)。
 
 ## 本栈偏差
 
@@ -62,11 +65,11 @@ tests/Orange.Tests/        xUnit 单元测试
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 61 |
-| C# 源文件 | 53（`src/Orange.Api` 46、`tests/Orange.Tests` 7） |
-| 测试文件 | 7 个 `*Tests.cs`，另 1 个测试 csproj；测试数量未在本轮复跑，待核 |
+| 受版本控制的文件 | 63 |
+| C# 源文件 | 54（`src/Orange.Api` 47、`tests/Orange.Tests` 7） |
+| 测试文件 | 7 个 `*Tests.cs`，另 1 个测试 csproj；共 69 个测试 |
 
-统计口径：`git ls-files backend/csharp`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.md)。
+统计口径：`git ls-files backend/csharp`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: `Orange.slnx`、`src/Orange.Api/Orange.Api.csproj`、`tests/Orange.Tests/Orange.Tests.csproj`、`src/Orange.Api/Program.cs`、`src/Orange.Api/Configuration/AppOptions.cs`、`.env.example`、`.github/workflows/main.yml`
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：`Orange.slnx`、`src/Orange.Api/Orange.Api.csproj`、`tests/Orange.Tests/Orange.Tests.csproj`、`src/Orange.Api/Program.cs`、`src/Orange.Api/Configuration/AppOptions.cs`、`.env.example`、`.github/workflows/main.yml`

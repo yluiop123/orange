@@ -1,3 +1,5 @@
+English | [简体中文](README.zh-CN.md)
+
 # Orange · Spring Boot backend
 
 This stack is Orange's behavioural reference implementation: it implements the canonical endpoints of `contracts/openapi.json` with Spring Boot, and the other five backends follow its behaviour.
@@ -42,7 +44,8 @@ src/main/java/com/orange/
 ├── repository/     Spring Data repositories under system/
 ├── security/       SecurityConfig, auth/, config/, jwt/
 ├── service/        system/ interfaces and impl/ implementations
-└── util/           query builders, TraceId, database value extraction
+├── util/           query builders, TraceId, database value extraction
+└── web/            OpenApiController (/swagger and /openapi.json)
 src/main/resources/ application.yaml, application-local.example.yaml, application-prod.yaml, keys/
 src/test/java/com/orange/  test classes (config, domain, security, service, util)
 ```
@@ -55,19 +58,20 @@ src/test/java/com/orange/  test classes (config, domain, security, service, util
 
 1. The only stack using asymmetric signing: RS256 with a PEM key pair (`security/jwt/JwtUtil.java:84`, keys under `src/main/resources/keys/`). Go can optionally use RS256; the other four backends use HS256 only.
 2. The unified entry is always on: `/swagger` + `/openapi.json` are provided by `web/OpenApiController`; springdoc's `/swagger-ui.html` is still gated by `${SPRINGDOC_ENABLED:false}`, and `application-prod.yaml` disables it again.
-3. The only stack that caches the group tree: a Caffeine `group` cache, with `@Cacheable` / `@CacheEvict` in `service/system/impl/GroupServiceImpl.java`.
-4. Optimistic locking relies on JPA `@Version` (`entity/*.java`) comparing versions on update; the Rust and Python ports only increment `version`, and the Go port writes 0 on create without incrementing, so none of the three compares versions and concurrent edits are last-write-wins.
-5. The only backend of the six without `.env.example`: configuration goes through `application*.yaml` plus environment-variable overrides.
+3. This is the only stack that keeps the 15 deprecated compatibility routes (`/add`, `/edit`, `/detail/{id}`, `/reset/{userId}`); they are intentionally absent from `contracts/openapi.json`, so `/swagger` on the other five stacks never lists them.
+4. The only stack that caches the group tree: a Caffeine `group` cache, with `@Cacheable` / `@CacheEvict` in `service/system/impl/GroupServiceImpl.java`.
+5. Optimistic locking relies on JPA `@Version` (`entity/*.java`) comparing versions on update; the Rust and Python ports only increment `version`, and the Go port writes 0 on create without incrementing, so none of the three compares versions and concurrent edits are last-write-wins.
+6. The only backend of the six without `.env.example`: configuration goes through `application*.yaml` plus environment-variable overrides.
 
 ## Size and tests
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 128 |
-| Java source files | 119 (`src/main` 105, `src/test` 14) |
+| Version-controlled files | 131 |
+| Java source files | 121 (`src/main` 107, `src/test` 14) |
 | Test classes | 14, of which 1 Testcontainers integration test needs Docker |
 
 Counting basis: `git ls-files backend/springboot`. Endpoints, database dialects and verification results are not maintained on this page; see the [HTTP contract](../../contracts/openapi.json), [database dialects](../../database/) and [stack matrix](../../README.md) respectively.
 
-> Last verified: 24826bb · 2026-11-07
+> Last verified: c7b6531 · 2026-11-08
 > Sources: `pom.xml`, `src/main/resources/application*.yaml`, `src/main/java/com/orange/**`, `src/test/java/com/orange/**`, `.github/workflows/main.yml`

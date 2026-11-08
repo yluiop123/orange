@@ -1,3 +1,5 @@
+[English](README.md) | 简体中文
+
 # Orange · Python + FastAPI 后端
 
 本栈用 Python + FastAPI 实现同一份接口契约，行为以 Spring Boot 基准为准；一个进程通过 `DB_DRIVER` / `DATABASE_URL` 连一种数据库。
@@ -41,7 +43,7 @@ app/middleware.py      审计中间件
 app/models/            共享 schema 的 ORM 模型
 app/policies/          编码形状、权限形状、有效权限、树索引
 app/schemas/           请求与响应模型
-app/routers/           auth、users、roles、groups、permissions、operation_logs
+app/routers/           auth、users、roles、groups、permissions、operation_logs、docs
 app/security/          JWT、刷新 cookie、锁定、密码、授权依赖
 app/services/          业务逻辑与守卫、菜单树、查询工具
 tests/                 pytest 用例与 conftest
@@ -50,7 +52,7 @@ scripts/               smoke_http.py、smoke_pg.py
 
 ## 配置入口
 
-复制 `.env.example` 为 `.env`（`app/config.py` 用 `load_dotenv(".env")` 读入，真实环境变量优先）。连接优先级为 `DATABASE_URL` → `DB_DRIVER` + `DB_*` → PostgreSQL 默认值；`DATABASE_URL` 支持其他端口的短写 scheme 并自动补全 SQLAlchemy 方言。完整变量清单与跨栈对照见 [后端配置约定](../../backend/README.md)。
+复制 `.env.example` 为 `.env`（`app/config.py` 用 `load_dotenv(".env")` 读入，真实环境变量优先）。连接优先级为 `DATABASE_URL` → `DB_DRIVER` + `DB_*` → PostgreSQL 默认值；`DATABASE_URL` 支持其他端口的短写 scheme 并自动补全 SQLAlchemy 方言。完整变量清单与跨栈对照见 [后端配置约定](../../backend/README.zh-CN.md)。
 
 ## 本栈偏差
 
@@ -64,11 +66,11 @@ scripts/               smoke_http.py、smoke_pg.py
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 63 |
-| Python 文件 | 57 |
-| 测试文件 | 10 个 `test_*.py`，另 `conftest.py` |
+| 受版本控制的文件 | 66 |
+| Python 文件 | 59 |
+| 测试文件 | 11 个 `test_*.py`，另 `conftest.py` |
 
-统计口径：`git ls-files backend/python-fastapi`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.md)。
+统计口径：`git ls-files backend/python-fastapi`。端点、方言与验证结论见 [HTTP 契约](../../contracts/openapi.json)、[数据库方言](../../database/)、[技术栈总表](../../README.zh-CN.md)。
 
-> Last verified: 24826bb · 2026-11-07
-> 事实来源: `requirements.txt`、`requirements-dev.txt`、`pyproject.toml`、`.env.example`、`app/config.py`、`app/main.py`、`app/errors.py`、`tests/conftest.py`、`.github/workflows/main.yml`
+> Last verified: c7b6531 · 2026-11-08
+> 事实来源：`requirements.txt`、`requirements-dev.txt`、`pyproject.toml`、`.env.example`、`app/config.py`、`app/main.py`、`app/errors.py`、`tests/conftest.py`、`.github/workflows/main.yml`
