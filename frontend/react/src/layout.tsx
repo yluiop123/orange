@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { containerPaths } from "@/lib/page-routes";
 import { isSamePath } from "@/lib/path";
-import { useMenuStore, useUserStore } from '@/store';
+import { useLocaleStore, useMenuStore, useUserStore } from '@/store';
 import { useAccess } from "@/store/access";
 import { useForcedPasswordStore } from "@/store/forced-password";
 import { Suspense, useEffect, useRef, useState } from 'react';
@@ -16,10 +16,12 @@ export default function Index() {
     const { userInfo, fetchUser } = useUserStore();
     const access = useAccess();
     const { menus, loaded: menusLoaded, fetchMenus } = useMenuStore();
+    const locale = useLocaleStore((state) => state.locale);
     const forcedPasswordChange = useForcedPasswordStore((state) => state.required);
     const location = useLocation();
     const [loading, setLoading] = useState(true);
     const hasFetchedRef = useRef(false);
+    const previousLocaleRef = useRef(locale);
     // undefined 表示还没拿到 user-info，首次加载不应被当成角色切换
     const previousRoleRef = useRef<string | undefined>(userInfo?.currentRole);
     useEffect(() => {
@@ -42,6 +44,15 @@ export default function Index() {
             fetchMenus();
         }
     }, [token, menusLoaded, fetchMenus]);
+    useEffect(() => {
+        // Menu labels are returned by /auth/menus for the current Locale header,
+        // so a language switch has to refetch the tree instead of reusing names.
+        if (previousLocaleRef.current === locale) return;
+        previousLocaleRef.current = locale;
+        if (token) {
+            void fetchMenus();
+        }
+    }, [locale, token, fetchMenus]);
     useEffect(() => {
         previousRoleRef.current = userInfo?.currentRole;
     }, [userInfo?.currentRole]);
