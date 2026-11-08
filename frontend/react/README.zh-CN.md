@@ -36,9 +36,9 @@ pnpm dev        # http://127.0.0.1:5173
 | --- | --- | --- |
 | `pnpm dev` | `vite` | 开发服务器，端口 5173 |
 | `pnpm build` | `tsc -b && vite build` | 类型检查后生产构建 |
-| `pnpm build:github` | `tsc -b && vite build --mode github` | GitHub Pages 构建，base 为 `/orange/` |
+| `pnpm build:github` | `tsc -b && cross-env VITE_BASE=/orange/ VITE_MOCK_ENABLE=true vite build` | GitHub Pages 构建，base 为 `/orange/` |
 | `pnpm preview` | `vite preview` | 预览生产构建 |
-| `pnpm preview:github` | `vite preview --mode github` | 预览 Pages 构建 |
+| `pnpm preview:github` | `cross-env VITE_BASE=/orange/ vite preview` | 预览 Pages 构建 |
 | `pnpm lint` | `eslint .` | 代码检查 |
 | `pnpm typecheck` | `tsc -b` | 只做类型检查 |
 | `pnpm test` | `vitest run` | 单元测试 |
@@ -64,7 +64,7 @@ frontend/react/
     store/          Zustand：user、menu、permission、theme、locale
     themes/         主题色 CSS
     App.tsx / layout.tsx / main.tsx / index.css
-  .env / .env.development / .env.github
+  .env / .env.development / .env.production
   vite.config.ts / vitest.config.ts / components.json
 ```
 
@@ -98,7 +98,7 @@ Ion token。
 | API 地址 | `/api/v1/` | `.env`（`VITE_BASE_API`） | 修改环境文件或导出同名变量 |
 | 开发代理 | `http://127.0.0.1:8080` | `.env`（`VITE_PROXY_TARGET`） | 指向其他后端 |
 | Mock | 开发环境开启 | `.env.development`（`VITE_MOCK_ENABLE=true`） | 改为 `VITE_MOCK_ENABLE=false` |
-| Pages base | `/orange/` | `.env.github`（`VITE_BASE`） | 修改 `.env.github` |
+| Pages base | `/orange/` | `package.json`（`build:github`） | 修改脚本里的 `VITE_BASE` |
 
 ## 连接后端与 Mock
 
@@ -116,9 +116,9 @@ Vite 优先级为 `.env` < `.env.local` < `.env.<mode>` < `.env.<mode>.local`。
 | --- | --- |
 | 基础 | `.env` |
 | 开发 | `.env.development` |
-| GitHub Pages | `.env.github` |
+| 生产 | `.env.production` |
 | 本地覆盖（已 gitignore） | `.env.local`、`.env.development.local` |
-| 生产 | 基础配置 + 构建时环境变量 |
+| GitHub Pages | `.env.production` + `build:github` 命令内联的 `VITE_BASE` / `VITE_MOCK_ENABLE` |
 
 ## 本栈差异
 

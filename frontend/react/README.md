@@ -37,9 +37,9 @@ pnpm dev        # http://127.0.0.1:5173
 | --- | --- | --- |
 | `pnpm dev` | `vite` | Dev server on port 5173 |
 | `pnpm build` | `tsc -b && vite build` | Type-check and production build |
-| `pnpm build:github` | `tsc -b && vite build --mode github` | GitHub Pages build with base `/orange/` |
+| `pnpm build:github` | `tsc -b && cross-env VITE_BASE=/orange/ VITE_MOCK_ENABLE=true vite build` | GitHub Pages build with base `/orange/` |
 | `pnpm preview` | `vite preview` | Preview the production build |
-| `pnpm preview:github` | `vite preview --mode github` | Preview the Pages build |
+| `pnpm preview:github` | `cross-env VITE_BASE=/orange/ vite preview` | Preview the Pages build |
 | `pnpm lint` | `eslint .` | Lint |
 | `pnpm typecheck` | `tsc -b` | Type-check only |
 | `pnpm test` | `vitest run` | Unit tests |
@@ -65,7 +65,7 @@ frontend/react/
     store/          Zustand: user, menu, permission, theme, locale
     themes/         palette CSS files
     App.tsx / layout.tsx / main.tsx / index.css
-  .env / .env.development / .env.github
+  .env / .env.development / .env.production
   vite.config.ts / vitest.config.ts / components.json
 ```
 
@@ -102,7 +102,7 @@ page; no Cesium Ion token is required.
 | API base | `/api/v1/` | `.env` (`VITE_BASE_API`) | Edit the env file or export the variable |
 | Dev proxy | `http://127.0.0.1:8080` | `.env` (`VITE_PROXY_TARGET`) | Point it at another backend |
 | Mock | On in development | `.env.development` (`VITE_MOCK_ENABLE=true`) | `VITE_MOCK_ENABLE=false` |
-| Pages base | `/orange/` | `.env.github` (`VITE_BASE`) | Edit `.env.github` |
+| Pages base | `/orange/` | `package.json` (`build:github`) | Edit the `VITE_BASE` value in the script |
 
 ## Backend connection and mock
 
@@ -120,9 +120,9 @@ variable; `.env.local` is overridden by `.env.development`.
 | --- | --- |
 | Base | `.env` |
 | Development | `.env.development` |
-| GitHub Pages | `.env.github` |
+| Production | `.env.production` |
 | Local override (gitignored) | `.env.local`, `.env.development.local` |
-| Production | Base + build-time environment variables |
+| GitHub Pages | `.env.production` plus inline `VITE_BASE` / `VITE_MOCK_ENABLE` in `build:github` |
 
 ## Deviations of this stack
 

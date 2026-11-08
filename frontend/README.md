@@ -92,7 +92,7 @@ authorization.
 | Port location | `vite.config.ts` (`VITE_PORT`) | `vite.config.ts` (`VITE_PORT`) | `angular.json` (`serve.options.port`) |
 | API base | `VITE_BASE_API` (`/api/v1/`) | `VITE_API_BASE` (`/api/v1/`) | `environment.apiBase` (`/api/v1`) |
 | Dev proxy | `/api` → `VITE_PROXY_TARGET` | `/api` → `VITE_PROXY_TARGET` | `/api` → `proxy.conf.json` |
-| Env files | `.env`, `.env.development`, `.env.github` | `.env`, `.env.development` | `src/environments/environment*.ts` |
+| Env files | `.env`, `.env.development`, `.env.production` | `.env`, `.env.development`, `.env.production` | `src/environments/environment*.ts` |
 
 The default proxy target is `http://127.0.0.1:8080` (Spring Boot). Use
 `127.0.0.1` rather than `localhost` consistently: they are different origins and

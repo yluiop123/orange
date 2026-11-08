@@ -83,7 +83,7 @@ Mock 覆盖 UI、样式、国际化、路由和截图；它无法验证 refresh 
 | 端口位置 | `vite.config.ts`（`VITE_PORT`） | `vite.config.ts`（`VITE_PORT`） | `angular.json`（`serve.options.port`） |
 | API 地址 | `VITE_BASE_API`（`/api/v1/`） | `VITE_API_BASE`（`/api/v1/`） | `environment.apiBase`（`/api/v1`） |
 | 开发代理 | `/api` → `VITE_PROXY_TARGET` | `/api` → `VITE_PROXY_TARGET` | `/api` → `proxy.conf.json` |
-| 环境文件 | `.env`、`.env.development`、`.env.github` | `.env`、`.env.development` | `src/environments/environment*.ts` |
+| 环境文件 | `.env`、`.env.development`、`.env.production` | `.env`、`.env.development`、`.env.production` | `src/environments/environment*.ts` |
 
 默认代理目标是 `http://127.0.0.1:8080`（Spring Boot）。请统一使用 `127.0.0.1`
 而不是 `localhost`：它们属于不同源，不共享 Cookie。代理只对 dev server 生效；

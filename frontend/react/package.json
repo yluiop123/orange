@@ -5,14 +5,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:github": "tsc -b && vite build --mode github",
+    "build:github": "tsc -b && cross-env VITE_BASE=/orange/ VITE_MOCK_ENABLE=true vite build",
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
     "gen:api": "openapi-typescript ../openapi.json -o src/api/schema.d.ts",
     "preview": "vite preview",
-    "preview:github": "vite preview --mode github",
+    "preview:github": "cross-env VITE_BASE=/orange/ vite preview",
     "analyze": "cross-env ANALYZE=true vite build"
   },
   "dependencies": {
