@@ -31,7 +31,7 @@ lerna-debug.log*
 **/target/
 **/build/
 
-# JWT keys (generate with: pnpm run jwt:keys)
+# JWT keys (generate with OpenSSL; see README)
 /keys/
 
 # Python

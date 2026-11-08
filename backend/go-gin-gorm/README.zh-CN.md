@@ -53,7 +53,7 @@ internal/http/         Gin 路由、中间件、处理器、响应包体
 
 1. Swagger 由 swaggo 注解生成，经 gin-swagger 提供（`internal/http/swagger.go`、`docs/`）；没有静态契约读取器。
 2. SQLite 用纯 Go 驱动，`CGO_ENABLED=0` 可构建；为避开 `SQLITE_BUSY` 把 SQLite 连接池压到 1（`internal/store/store.go:57`），其他引擎为 10（同文件 :60）。
-3. JWT 遵循统一规则：`JWT_PRIVATE_KEY` + `JWT_PUBLIC_KEY`（内联 PEM 或文件路径，`_PATH` 别名仍可用）时用 RS256，否则用 `JWT_SECRET` 的 HS256。`pnpm run jwt:keys` 生成的同一对密钥六栈通用。
+3. JWT 遵循统一规则：`JWT_PRIVATE_KEY` + `JWT_PUBLIC_KEY`（内联 PEM 或文件路径，`_PATH` 别名仍可用）时用 RS256，否则用 `JWT_SECRET` 的 HS256。用 OpenSSL 生成的同一对 RSA 密钥六栈通用。
 4. 不维护 `version` 乐观锁：模型里有该列（`internal/store/models.go`），创建时写 0，更新时不自增，也不做 `WHERE version` 比较，并发编辑为后写覆盖。Rust 与 Python 会自增但同样不比较。
 5. Go 是六栈中唯一在 CI 里额外要求 `gofmt` 与 `go vet` 通过的端口。
 

@@ -10,7 +10,7 @@ Angular）和六套后端（Spring Boot、Go、NestJS、C#、Rust、FastAPI）�
 每套栈都要按同样的方式实现，这样实现之间的差异才来自框架或语言，而不是产品设计。九套
 实现之间没有运行时共享——前端不互相 import，后端不共用包；共享的是可验证的事实：
 前端冻结的接口快照 [frontend/openapi.json](frontend/openapi.json)、[database/](database/)
-里的数据模型，以及 [scripts/](scripts/) 里的检查脚本。
+里的数据模型，以及 [scripts/ci/](scripts/ci/) 里的跨栈契约测试。
 
 ## 功能范围
 
@@ -66,10 +66,12 @@ pnpm install
 pnpm dev                                             # http://localhost:5173
 ```
 
-JWT 密钥不入库。在仓库根目录执行 `pnpm run jwt:keys` 会生成
-`keys/jwt-private.pem` 与 `keys/jwt-public.pem`（已 gitignore）；把
-`JWT_PRIVATE_KEY`、`JWT_PUBLIC_KEY` 指向这两个文件即可使用 RS256。未配置时快速开始
-回退到 `JWT_SECRET` 的 HS256。六套后端接受同一对密钥。
+JWT 密钥不入库。在仓库根目录用 OpenSSL 生成开发密钥对（先执行
+`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out
+keys/jwt-private.pem`，再执行 `openssl rsa -pubout -in keys/jwt-private.pem -out
+keys/jwt-public.pem`），两个文件都已 gitignore。把 `JWT_PRIVATE_KEY`、
+`JWT_PUBLIC_KEY` 指向这两个文件即可使用 RS256。未配置时快速开始回退到
+`JWT_SECRET` 的 HS256。六套后端接受同一对密钥。
 
 没有 `sqlite3` 命令行时，用 Python 的 `sqlite3` 模块在同一个连接里依次执行两个脚本。
 React 开发模式默认走 mock；要连上面的后端，把 `VITE_MOCK_ENABLE=false` 和
@@ -129,8 +131,8 @@ CHECK）和 `dml.sql`（种子数据）。
 - 菜单就是数据库行：`sys_permission.name` 是默认名称，`sys_permission_i18n` 每种语言
   一行；`/auth/menus` 按 `Locale` 依次尝试精确语言、主语言和默认名称。前端不再携带
   菜单标题目录。
-- `database/permissions.json` 是权限事实源。`pnpm run permissions:sync` 会重新生成
-  七个方言 `dml.sql` 里的种子区块，任一文件都不会静默漂移。
+- `database/permissions.json` 是权限事实源。修改后要手工同步七个方言
+  `dml.sql` 里的种子区块。
 - PostgreSQL、MySQL、MariaDB、SQLite 在 CI 中实际运行；openGauss、OceanBase、GoldenDB
   只有静态 SQL，没有运行时矩阵，不能算“已验证”。
 - SQLite 的外键是连接级设置且默认关闭，`ddl.sql` 和 `dml.sql` 必须在同一个连接里依次执行。
@@ -171,13 +173,11 @@ CHECK）和 `dml.sql`（种子数据）。
 
 ## 验证与 CI
 
-先跑改动栈的命令（见上面的矩阵），再跑根目录检查：`pnpm run docs:check`
-（本地相对链接检查）。
+先跑改动栈的命令（见上面的矩阵）。
 
 [.github/workflows/main.yml](.github/workflows/main.yml) 在向 `main` 提 PR、push 到
 `main` 以及手动触发时运行：
 
-- `docs`：跑 docs:check。
 - `frontend-react`、`frontend-vue`、`frontend-angular`：安装、lint、类型检查（React 与
   Vue）、测试、构建；React 在 push 时额外产出 Pages 工件。
 - `backend`：六个栈的测试与构建矩阵；push 时同一个 job 还会跑 SQLite 上的契约验收。

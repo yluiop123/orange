@@ -55,7 +55,7 @@ src/test/java/com/orange/  test classes (config, domain, security, service, util
 
 ## Deviations of this stack
 
-1. JWT signing follows the same rule as the other five stacks: both `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` select RS256 (inline PEM or a path), otherwise `JWT_SECRET` selects HS256. Generate the development pair with `pnpm run jwt:keys`; the repository no longer commits a private key. See [backend configuration conventions](../README.md).
+1. JWT signing follows the same rule as the other five stacks: both `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` select RS256 (inline PEM or a path), otherwise `JWT_SECRET` selects HS256. Generate the development pair with OpenSSL; the repository no longer commits a private key. See [backend configuration conventions](../README.md).
 2. `/swagger` + `/openapi.json` come straight from springdoc; there is no static contract reader. `SPRINGDOC_ENABLED=false` is the only switch that hides them.
 3. This is the only stack that keeps the 15 deprecated compatibility routes (`/add`, `/edit`, `/detail/{id}`, `/reset/{userId}`); they are annotated `@Hidden`, so the generated document never lists them.
 4. The only stack that caches the group tree: a Caffeine `group` cache, with `@Cacheable` / `@CacheEvict` in `service/system/impl/GroupServiceImpl.java`.

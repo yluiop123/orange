@@ -55,7 +55,7 @@ src/test/java/com/orange/  测试类（config、domain、security、service、ut
 
 ## 本栈偏差
 
-1. JWT 签名与其余五栈同一规则：`JWT_PRIVATE_KEY` 与 `JWT_PUBLIC_KEY` 同时配置时用 RS256（内联 PEM 或文件路径），否则用 `JWT_SECRET` 的 HS256。开发密钥用 `pnpm run jwt:keys` 生成，仓库不再提交私钥。详见[后端配置约定](../README.zh-CN.md)。
+1. JWT 签名与其余五栈同一规则：`JWT_PRIVATE_KEY` 与 `JWT_PUBLIC_KEY` 同时配置时用 RS256（内联 PEM 或文件路径），否则用 `JWT_SECRET` 的 HS256。开发密钥用 OpenSSL 生成，仓库不再提交私钥。详见[后端配置约定](../README.zh-CN.md)。
 2. `/swagger` + `/openapi.json` 直接由 springdoc 生成，没有静态契约读取器；`SPRINGDOC_ENABLED=false` 是唯一的隐藏开关。
 3. 只有本栈保留 15 个已弃用兼容路由（`/add`、`/edit`、`/detail/{id}`、`/reset/{userId}`）；它们都标了 `@Hidden`，因此生成文档不会列出。
 4. 只有本栈给分组树加缓存：Caffeine `group` 缓存，`service/system/impl/GroupServiceImpl.java` 使用 `@Cacheable` / `@CacheEvict`。

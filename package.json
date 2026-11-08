@@ -2,10 +2,5 @@
   "name": "orange",
   "private": true,
   "version": "0.0.0",
-  "scripts": {
-    "permissions:sync": "node scripts/sync-permission-catalog.mjs && node scripts/sync-permission-seed.mjs",
-    "docs:check": "node scripts/check-docs-links.mjs",
-    "jwt:keys": "node scripts/generate-jwt-keys.mjs"
-  },
   "packageManager": "pnpm@12.15.0"
 }

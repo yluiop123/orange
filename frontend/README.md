@@ -26,8 +26,8 @@ each stack.
 
 What is shared is verifiable, not executable: the frozen OpenAPI snapshot
 ([openapi.json](openapi.json)), the permission catalog
-and seed data ([../database/](../database/)), and the cross-stack check scripts
-([../scripts/](../scripts/)). There is deliberately no workspace
+and seed data ([../database/](../database/)), and the cross-stack contract
+runner ([../scripts/ci/](../scripts/ci/)). There is deliberately no workspace
 package — JSX, SFC and Angular templates cannot share components, and a shared
 layer would lock all three Vite/Angular versions together.
 
@@ -170,10 +170,9 @@ equivalents. They follow dark mode and all seven palettes. Never hard-code
    [../database/permissions.json](../database/permissions.json). Permission
    codes are 4 digits at the root and gain 2 digits per level; sibling order
    follows the code.
-3. From the repository root run `pnpm run permissions:sync`. This regenerates
-   the seed block in all seven `database/*/dml.sql` files and the React/Vue mock
-   catalog; Angular's `core/permission-catalog.ts` only feeds its mock and is
-   updated by hand.
+3. Copy the seed block into all seven `database/*/dml.sql` files and update the
+   React/Vue mock catalog by hand; Angular's `core/permission-catalog.ts` only
+   feeds its mock and is also updated by hand.
 4. Add page-level translations (React `page.reports.sales.*`, Vue page keys,
    Angular `i18n.service.ts`). Menu titles are not translated on the frontend:
    set `name` and the `translations` map in the permission seed instead.
@@ -200,6 +199,6 @@ permissions, plus the generated seed block in `database/postgres/dml.sql`.
 Angular type the envelope by hand, so contract changes rely on review.
 
 There is no automated end-to-end suite in this repository; each frontend's own
-test command covers unit and component behaviour, and [../scripts/](../scripts/)
-holds the cross-stack checks. For the product-level view, see the
+test command covers unit and component behaviour, and [../scripts/ci/](../scripts/ci/)
+holds the cross-stack contract test. For the product-level view, see the
 [repository README](../README.md).

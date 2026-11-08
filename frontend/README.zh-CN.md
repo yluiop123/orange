@@ -24,7 +24,7 @@
 
 共享的是可验证的事实，不是可执行代码：冻结的 OpenAPI 快照
 （[openapi.json](openapi.json)）、权限目录与种子数据
-（[../database/](../database/)）、跨栈检查脚本（[../scripts/](../scripts/)）。
+（[../database/](../database/)）、跨栈契约测试（[../scripts/ci/](../scripts/ci/)）。
 仓库刻意不设 workspace 共享包：JSX、SFC 与 Angular 模板无法共用组件实现，共享层
 还会把三套 Vite/Angular 版本绑在一起。
 
@@ -149,9 +149,8 @@ key 分别是 `theme-mode`/`theme-color`、`orange.theme`/`orange.color` 与
 2. 在 [../database/permissions.json](../database/permissions.json) 加入目录、菜单与
    动作节点，并授权给角色。权限编码根级 4 位，每深一层追加 2 位，同级顺序由编码
    决定。
-3. 在仓库根目录执行 `pnpm run permissions:sync`：它会给七个
-   `database/*/dml.sql` 重新生成种子区块，并更新 React/Vue 的 mock 目录；Angular 的
-   `core/permission-catalog.ts` 只服务 mock，需要手改。
+3. 手工把种子区块同步到七个 `database/*/dml.sql`，并更新 React/Vue 的 mock
+   目录；Angular 的 `core/permission-catalog.ts` 只服务 mock，同样需要手改。
 4. 补页面级翻译（React 的 `page.reports.sales.*`、Vue 的页面 key、Angular 的
    `i18n.service.ts`）。菜单标题不在前端翻译：在权限种子里填 `name` 与 `translations`。
 5. 用设计 token 写样式，操作按钮包进 `ActionAuth`（React/Vue）或调用
@@ -175,6 +174,6 @@ React 的 `pnpm test` 会双向校验页面与菜单权限，并检查
 构建发现。
 
 本仓库没有自动化的端到端套件；各前端的测试命令覆盖单元与组件行为，
-[../scripts/](../scripts/) 里是跨栈检查脚本。
+[../scripts/ci/](../scripts/ci/) 里是跨栈契约测试。
 
 产品层面的说明见[仓库 README](../README.zh-CN.md)。

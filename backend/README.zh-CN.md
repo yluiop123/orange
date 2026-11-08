@@ -8,7 +8,7 @@
 
 仓库结构与快速开始见 [../README.md](../README.zh-CN.md)。前端快照是
 [../frontend/openapi.json](../frontend/openapi.json)，表结构与种子数据在
-[../database/](../database/)，跨栈检查脚本在 [../scripts/](../scripts/)，前端约定见
+[../database/](../database/)，跨栈契约测试在 [../scripts/ci/](../scripts/ci/)，前端约定见
 [../frontend/README.md](../frontend/README.zh-CN.md)。
 
 | 栈 | 目录 | 角色 |
@@ -125,9 +125,11 @@ NestJS、Go、ASP.NET Core、Rust 各自定义常量，FastAPI 在 auth 路由�
 - 密码：六套实现都用 bcrypt（cost 10），入库格式为 `{bcrypt}$2a$...` /
   `{bcrypt}$2b$...`；每套实现也接受不带前缀的旧 bcrypt 行，因此某一栈改过的密码在
   另一栈仍能验证。
-- 开发密钥在仓库根目录生成：`pnpm run jwt:keys`（写入已被 gitignore 的
-  `keys/jwt-private.pem` 与 `keys/jwt-public.pem`；`--force` 会轮换并使旧 token
-  失效）。后端按 `JWT_PRIVATE_KEY=../../keys/jwt-private.pem`、
+- 开发密钥在仓库根目录用 OpenSSL 生成（先执行
+  `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out
+  keys/jwt-private.pem`，再执行 `openssl rsa -pubout -in keys/jwt-private.pem
+  -out keys/jwt-public.pem`；两个文件都已 gitignore）。后端按
+  `JWT_PRIVATE_KEY=../../keys/jwt-private.pem`、
   `JWT_PUBLIC_KEY=../../keys/jwt-public.pem` 指过去，或使用绝对路径。六栈随后都会
   签发 `alg: RS256` 的 token。
 - 本地覆盖文件不入库：Spring 用 `application-local.yaml`（需

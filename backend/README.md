@@ -10,8 +10,8 @@ frontend owns a separate frozen snapshot for its types and Swagger page.
 
 Repository layout and quick start: [../README.md](../README.md). The frontend
 snapshot is [../frontend/openapi.json](../frontend/openapi.json), schema and seed
-data live in [../database/](../database/), cross-stack checks in
-[../scripts/](../scripts/), and the UI conventions in
+data live in [../database/](../database/), the cross-stack contract runner in
+[../scripts/ci/](../scripts/ci/), and the UI conventions in
 [../frontend/README.md](../frontend/README.md).
 
 | Stack | Directory | Role |
@@ -137,10 +137,11 @@ live in each stack's `.env.example` or YAML file and in its README, not here.
 - Passwords: all six use bcrypt with cost 10 and store `{bcrypt}$2a$...` /
   `{bcrypt}$2b$...`; every implementation accepts a bare bcrypt row too, so a
   password changed by one stack still verifies in another.
-- Generate a development pair at the repository root with `pnpm run jwt:keys`
-  (writes `keys/jwt-private.pem` and `keys/jwt-public.pem`, both gitignored;
-  `--force` rotates the pair and invalidates existing tokens). Point a backend
-  at it with `JWT_PRIVATE_KEY=../../keys/jwt-private.pem` and
+- Generate a development pair with OpenSSL at the repository root
+  (`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out
+  keys/jwt-private.pem`, then `openssl rsa -pubout -in keys/jwt-private.pem -out
+  keys/jwt-public.pem`); both files are gitignored. Point a backend at it with
+  `JWT_PRIVATE_KEY=../../keys/jwt-private.pem` and
   `JWT_PUBLIC_KEY=../../keys/jwt-public.pem`, or pass the absolute paths. All
   six then produce `alg: RS256` tokens.
 - Local overrides are never committed: `application-local.yaml` with

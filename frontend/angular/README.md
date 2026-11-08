@@ -75,7 +75,7 @@ Cesium is not listed as a dependency: `/map/cesium` loads a fixed 1.147 version 
 
 - Routes are registered by hand in `src/app/app.routes.ts`. `page(path, permissionPath, loader)` attaches `permissionGuard`, and `container('system')` and friends handle container redirects; both new pages and new containers require editing it.
 - Mocking is the in-memory implementation in `mock.interceptor.ts` + `mock-backend.ts`, ordered after the auth interceptor; `?mock=1` persists to `orange.mock.enabled` and `?mock=0` clears it.
-- The permission catalog `src/app/core/permission-catalog.ts` is a hand-written mirror that the root `permissions:sync` does not update; a new permission must be added there and to `ROLE_PERMISSIONS` at the same time.
+- The permission catalog `src/app/core/permission-catalog.ts` is a hand-written mirror; a new permission must be added there and to `ROLE_PERMISSIONS` at the same time.
 - The i18n dictionary lives in the `EN` / `ZH` constants of `src/app/core/i18n.service.ts`, with no separate locale files; menu titles come from `GET /api/v1/auth/menus` (`sys_permission_i18n`, localized by the backend).
 - Theme and palette switching exist (`ThemeToggleComponent`, colour menu), with persistence keys `orange.angular.theme` and `orange.angular.color`, defaulting to dark.
 - Some chart pages are substituted: both the AntV and Recharts pages render with ECharts, and `/map/l7` uses a Leaflet base map with SVG flow lines instead of loading L7.

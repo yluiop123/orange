@@ -14,7 +14,7 @@ spring:
     password: postgres
 
 jwt:
-  # RS256: generate the pair with `pnpm run jwt:keys` at the repository root.
+  # RS256: generate the pair with OpenSSL at the repository root.
   # Both values may also be inline PEM. Without keys this stack falls back to
   # HS256 using JWT_SECRET, exactly like the other five backends.
   # private-key: ../../keys/jwt-private.pem

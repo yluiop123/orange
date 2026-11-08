@@ -15,7 +15,8 @@ implementations is a difference between frameworks or languages, not between
 product designs. Nothing is shared at runtime: no frontend imports another, no
 backend shares a package. What is shared is verifiable — the frontend's frozen
 API snapshot [frontend/openapi.json](frontend/openapi.json), the data model in
-[database/](database/), and the check scripts in [scripts/](scripts/).
+[database/](database/), and the cross-stack contract runner in
+[scripts/ci/](scripts/ci/).
 
 ## Product scope
 
@@ -66,11 +67,12 @@ pnpm install
 pnpm dev                                             # http://localhost:5173
 ```
 
-JWT keys are not committed. From the repository root, `pnpm run jwt:keys`
-writes `keys/jwt-private.pem` and `keys/jwt-public.pem` (gitignored); set
-`JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` to those paths to use RS256. Without
-them the quick start falls back to HS256 with `JWT_SECRET`. All six backends
-accept the same pair.
+JWT keys are not committed. Generate a development pair with OpenSSL at the
+repository root (`openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048
+-out keys/jwt-private.pem` then `openssl rsa -pubout -in keys/jwt-private.pem
+-out keys/jwt-public.pem`); both files are gitignored. Set `JWT_PRIVATE_KEY` and
+`JWT_PUBLIC_KEY` to those paths to use RS256. Without them the quick start falls
+back to HS256 with `JWT_SECRET`. All six backends accept the same pair.
 
 Without the `sqlite3` CLI, run both scripts through Python's `sqlite3` module
 on one connection. React serves mocks by default; to use the backend above, put
@@ -138,9 +140,8 @@ indexes, checks) and `dml.sql` (seed data).
   `sys_permission_i18n` stores one row per locale. `/auth/menus` resolves the
   `Locale` header through exact locale, language and default-name fallbacks. The
   frontend ships no menu-title catalogue.
-- `database/permissions.json` is the permission source of truth.
-  `pnpm run permissions:sync` regenerates the generated seed block in all seven
-  dialect `dml.sql` files, so none of them can drift silently.
+- `database/permissions.json` is the permission source of truth. When it
+  changes, update the seed block in all seven dialect `dml.sql` files by hand.
 - PostgreSQL, MySQL, MariaDB and SQLite run in CI. openGauss, OceanBase and
   GoldenDB ship static SQL only and are not runtime-verified.
 - SQLite foreign keys are per-connection and off by default, so `ddl.sql` and
@@ -168,13 +169,11 @@ Start with the two shared documents, then open the stack you are working on.
 
 ## Verification and CI
 
-Run the commands for the stack you changed (matrix above), then the root
-check: `pnpm run docs:check` (local relative-link check).
+Run the commands for the stack you changed (matrix above).
 
 [.github/workflows/main.yml](.github/workflows/main.yml) runs on pull requests
 to `main`, pushes to `main` and manual dispatch:
 
-- `docs` — docs:check.
 - `frontend-react`, `frontend-vue`, `frontend-angular` — install, lint, type-check (React and Vue), test and build; React also builds the Pages artifact on push.
 - `backend` — test and build matrix over the six stacks; on push the same job also runs contract acceptance on SQLite.
 - `deploy` — publishes the React build to GitHub Pages; the other frontends are never deployed.

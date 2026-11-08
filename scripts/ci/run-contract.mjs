@@ -8,6 +8,7 @@
  * backend README). Each run gets a fresh SQLite database in the OS temp dir.
  */
 import { spawn, spawnSync } from 'node:child_process';
+import { generateKeyPairSync } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -25,6 +26,19 @@ const stacks = process.argv.slice(2).length
 const keyDir = path.join(root, 'keys');
 const jwtPrivateKey = path.join(keyDir, 'jwt-private.pem');
 const jwtPublicKey = path.join(keyDir, 'jwt-public.pem');
+
+function ensureKeys() {
+  if (fs.existsSync(jwtPrivateKey) && fs.existsSync(jwtPublicKey)) return;
+  fs.mkdirSync(keyDir, { recursive: true });
+  const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+  });
+  fs.writeFileSync(jwtPrivateKey, privateKey, { mode: 0o600 });
+  fs.writeFileSync(jwtPublicKey, publicKey, { mode: 0o644 });
+  console.log(`Generated a throwaway RS256 key pair in ${keyDir}`);
+}
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, { stdio: 'inherit', ...options });
@@ -115,8 +129,8 @@ async function stop(child) {
 
 const failures = [];
 
-// Idempotent: keeps an existing pair unless --force is passed.
-run(process.execPath, ['scripts/generate-jwt-keys.mjs'], { cwd: root, stdio: 'pipe' });
+// Reuse an existing pair so repeated runs keep the same keys.
+ensureKeys();
 
 for (const stack of stacks) {
   console.log(`\n=== contract: ${stack} ===`);
