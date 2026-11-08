@@ -303,6 +303,11 @@ const limited = await request('POST', '/system/users', {
 expectError('limited account cannot create users', limited, 40301);
 const limitedRead = await request('GET', '/system/roles?page=1&size=1', { token: limitedLogin.token });
 expectError('limited account cannot list roles', limitedRead, 40301);
+const unauthorizedInvalid = await request('POST', '/system/users', {
+  token: limitedLogin.token,
+  body: { name: 'X', username: 'ab', email: 'bad', groupId: '', phone: '123' },
+});
+expectError('authorization precedes DTO validation', unauthorizedInvalid, 40301);
 
 // batch delete + self-delete guard
 const batchNames = [`qa_a_${suffix}`, `qa_b_${suffix}`];
