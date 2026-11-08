@@ -54,7 +54,7 @@ src/test/java/com/orange/  test classes (config, domain, security, service, util
 ## Deviations of this stack
 
 1. The only stack using asymmetric signing: RS256 with a PEM key pair (`security/jwt/JwtUtil.java:84`, keys under `src/main/resources/keys/`). Go can optionally use RS256; the other four backends use HS256 only.
-2. API documentation is off by default: `springdoc.*.enabled` reads `${SPRINGDOC_ENABLED:false}`, and `application-prod.yaml` disables it again. FastAPI is the only stack that exposes `/docs` by default.
+2. The unified entry is always on: `/swagger` + `/openapi.json` are provided by `web/OpenApiController`; springdoc's `/swagger-ui.html` is still gated by `${SPRINGDOC_ENABLED:false}`, and `application-prod.yaml` disables it again.
 3. The only stack that caches the group tree: a Caffeine `group` cache, with `@Cacheable` / `@CacheEvict` in `service/system/impl/GroupServiceImpl.java`.
 4. Optimistic locking relies on JPA `@Version` (`entity/*.java`) comparing versions on update; the Rust and Python ports only increment `version`, and the Go port writes 0 on create without incrementing, so none of the three compares versions and concurrent edits are last-write-wins.
 5. The only backend of the six without `.env.example`: configuration goes through `application*.yaml` plus environment-variable overrides.

@@ -35,6 +35,7 @@ jobs:
           node-version: lts/*
       - run: node scripts/check-config.mjs
       - run: pnpm run permissions:check
+      - run: pnpm run docs:check
 
   frontend-react:
     runs-on: ubuntu-latest

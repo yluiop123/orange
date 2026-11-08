@@ -21,12 +21,7 @@ const SWAGGER_HTML = `<!DOCTYPE html>
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
-    SwaggerUIBundle({
-      url: '/openapi.json',
-      dom_id: '#swagger-ui',
-      persistAuthorization: true,
-      docExpansion: 'none'
-    });
+    SwaggerUIBundle({url:'/openapi.json', dom_id:'#swagger-ui', persistAuthorization:true, docExpansion:'none'});
   </script>
 </body>
 </html>

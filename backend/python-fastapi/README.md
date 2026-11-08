@@ -13,7 +13,7 @@ This stack implements the same API contract with Python + FastAPI, following the
 | Auth | PyJWT `>=2.9,<3.0` (HS256), `bcrypt` `>=4.2,<6.0` | `requirements.txt` |
 | Other | `python-dotenv` `>=1.0,<2.0` | `requirements.txt` |
 | Test dependencies | pytest `>=8.3,<10.0`, httpx `>=0.27,<1.0` (in `requirements-dev.txt`, which includes `-r requirements.txt`) | `requirements-dev.txt` |
-| API documentation | built in: `FastAPI()` leaves `docs_url` untouched, so `/docs` works by default | `app/main.py:61` |
+| API documentation | unified `/swagger` + `/openapi.json`; `/docs` 302-redirects to `/swagger` | `app/routers/docs.py` |
 | Build | no build/packaging step (interpreted; `pyproject.toml` holds metadata and pytest configuration only) | `pyproject.toml` |
 
 ## Commands
