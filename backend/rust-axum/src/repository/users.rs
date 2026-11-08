@@ -53,8 +53,9 @@ fn user_columns(dialect: Dialect) -> String {
 
 fn permission_columns(prefix: &str, dialect: Dialect) -> String {
     format!(
-        "{prefix}.id, {prefix}.{}, {prefix}.path, {prefix}.action, {prefix}.{} AS kind, \
-         {prefix}.status, {prefix}.parent_id, {prefix}.create_time, {prefix}.update_time",
+        "{prefix}.id, {prefix}.{}, {prefix}.name_en, {prefix}.path, {prefix}.action, \
+         {prefix}.{} AS kind, {prefix}.status, {prefix}.parent_id, {prefix}.create_time, \
+         {prefix}.update_time",
         dialect.quote("name"),
         dialect.quote("type")
     )
@@ -385,6 +386,7 @@ macro_rules! users_repository {
                     let permission = Permission {
                         id: row.try_get("id")?,
                         name: row.try_get("name")?,
+                        name_en: row.try_get("name_en")?,
                         path: row.try_get("path")?,
                         action: row.try_get("action")?,
                         kind: row.try_get("kind")?,

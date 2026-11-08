@@ -118,6 +118,7 @@ mod tests {
         Permission {
             id: id.to_string(),
             name: Some(id.to_string()),
+            name_en: None,
             path: path.to_string(),
             action: action.map(str::to_string),
             kind: kind.to_string(),

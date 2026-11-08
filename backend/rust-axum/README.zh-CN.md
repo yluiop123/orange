@@ -28,9 +28,9 @@
 | 构建 | `cargo build` | `main.yml` 同 job |
 | 跨引擎冒烟 | `pwsh -File scripts/smoke-databases.ps1`（可加 `-Engine sqlite`） | `scripts/smoke-databases.ps1`；需要各引擎已加载 schema 与种子 |
 
-端口来源变量：`parse_env_any(&["APP_PORT", "PORT"], 8083u16)`（`src/config.rs:75`），默认 8083；`.env.example` 写 `PORT=8083`，并注明该端口由端口分配约定保留。
+端口来源变量：`parse_env_any(&["APP_PORT", "PORT"], 8083u16)`（`src/config.rs`），默认 8083；`.env.example` 写 `PORT=8083`，并注明该端口由端口分配约定保留。
 
-本机若未安装 `cargo`，上述构建与测试命令无法复跑；此处命令取自 CI 与本栈 `Cargo.toml`（待核）。
+`cargo test`（41 项）与 `cargo build` 已在本地通过。Windows 上没有 MSVC 链接器时，安装 `stable-x86_64-pc-windows-gnu` 工具链并把 MSYS2 的 `gcc` 放进 `PATH`；CI 使用默认的 Linux 工具链。
 
 ## 目录结构与分层
 
@@ -58,7 +58,7 @@ scripts/smoke-databases.ps1  四引擎冒烟脚本
 
 ## 本栈偏差
 
-1. 测试全部内联：0 个独立测试文件、无 `[dev-dependencies]`，8 个模块内含 `#[cfg(test)]`，共 40 个 `#[test]`（`cargo test` 不需要数据库）。这与 Go、Python 的独立测试目录不同。
+1. 测试全部内联：0 个独立测试文件、无 `[dev-dependencies]`，8 个模块内含 `#[cfg(test)]`，共 41 个 `#[test]`（`cargo test` 不需要数据库）。这与 Go、Python 的独立测试目录不同。
 2. 组织为单一二进制 crate：只有 `src/main.rs`，`Cargo.toml` 没有 `[lib]` 目标，模块都是 bin 私有，因此测试只能内联；Go、Python、C# 都有可被外部测试引用的库/模块层。
 3. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/auth/jwt.rs`）。`pnpm run jwt:keys` 生成的同一对密钥六栈通用。
 4. 每个仓库查询按驱动各生成一份（`*_repository!` 宏），方言差异集中在 `src/db.rs`；SQLite 时间戳为 ISO-8601 文本，过滤走 `datetime(...)`。

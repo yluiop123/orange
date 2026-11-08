@@ -135,6 +135,7 @@ pub async fn create(
     let permission = Permission {
         id,
         name: Some(name),
+        name_en: None,
         path,
         action,
         kind,
