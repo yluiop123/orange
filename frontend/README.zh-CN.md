@@ -24,7 +24,7 @@
 
 共享的是可验证的事实，不是可执行代码：OpenAPI 契约
 （[../contracts/openapi.json](../contracts/openapi.json)）、权限目录与种子数据
-（[../database/](../database/)）、设计 token 与 E2E 脚本（[../scripts/](../scripts/)）。
+（[../database/](../database/)）、跨栈检查脚本（[../scripts/](../scripts/)）。
 仓库刻意不设 workspace 共享包：JSX、SFC 与 Angular 模板无法共用组件实现，共享层
 还会把三套 Vite/Angular 版本绑在一起。
 
@@ -156,7 +156,7 @@ key 分别是 `theme-mode`/`theme-color`、`orange.theme`/`orange.color` 与
 目录权限只影响菜单可见性，不授予接口调用权。动作权限必须匹配同一 Page Path 与
 action 名，最终仍由后端 Authority 拒绝越权请求。
 
-## 测试与 E2E
+## 测试
 
 | 栈 | 命令 |
 | --- | --- |
@@ -169,11 +169,7 @@ React 的 `pnpm test` 会双向校验页面与菜单权限，并检查
 `src/api/schema.d.ts`；Vue 与 Angular 手写 envelope 类型，契约变更靠 review 与
 构建发现。
 
-E2E 脚本在 [../scripts/](../scripts/)，使用 Playwright + Chrome：
-`scripts/e2e/mock-*.mjs` 走 mock 流程，`scripts/e2e/real-*.mjs` 针对真实后端与
-数据库，`scripts/e2e/check-controls.mjs` 校验语言与主题控件，`scripts/e2e/parity.mjs`
-在 1440x900、DPR 1、`zh` 下截取三套应用，以 React 为基线输出平均绝对误差与通道差
-超过 12 的像素占比。运行前先启动 5173、5174、4200 三个 dev server；parity 与控件
-检查使用 mock 账号 `super/super` 登录。
+本仓库没有自动化的端到端套件；各前端的测试命令覆盖单元与组件行为，
+[../scripts/](../scripts/) 里是跨栈检查脚本。
 
 产品层面的说明见[仓库 README](../README.zh-CN.md)。

@@ -79,7 +79,7 @@ Cesium is not listed as a dependency: `/map/cesium` loads a fixed 1.147 version 
 - Theme and palette switching exist (`ThemeToggleComponent`, colour menu), with persistence keys `orange.angular.theme` and `orange.angular.color`, defaulting to dark.
 - Some chart pages are substituted: both the AntV and Recharts pages render with ECharts, and `/map/l7` uses a Leaflet base map with SVG flow lines instead of loading L7.
 - The root workflow's `deploy` publishes React only; this stack only runs build/lint/test and has no separate GitHub Pages configuration.
-- Unit tests are 4 specs covering access, page-clamp, tree-code and the mock backend; there is no end-to-end suite, and E2E is driven externally by `scripts/e2e/*`.
+- Unit tests are 4 specs covering access, page-clamp, tree-code and the mock backend; there is no end-to-end suite.
 
 ## Further reading
 

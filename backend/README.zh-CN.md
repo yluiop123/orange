@@ -147,8 +147,9 @@ NestJS、Go、ASP.NET Core、Rust 各自定义常量，FastAPI 在 auth 路由�
 PostgreSQL 是基准，另支持 MySQL、MariaDB、SQLite。切换前先按引擎建库（SQLite 是
 文件，不需要服务），再依次执行对应 [../database/](../database/) 引擎目录下的
 `ddl.sql` 与 `dml.sql`。空 SQLite 文件能连上，但没灌 schema 时所有查询都会报表
-不存在。[../scripts/](../scripts/) 里的 `prepare-stack-databases.ps1` 可一次准备
-多栈的本地库。
+不存在。[../scripts/](../scripts/) 里的 `test-databases.ps1` 会启动本地的
+PostgreSQL、MySQL、MariaDB 容器并灌入 schema；CI 矩阵改用 GitHub Actions 的
+service containers。
 
 | 引擎 | `DB_DRIVER` | `DATABASE_URL`（五套实现） | Spring JDBC URL |
 | --- | --- | --- | --- |

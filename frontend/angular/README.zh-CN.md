@@ -79,7 +79,7 @@ Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载�
 - 主题与配色切换存在（`ThemeToggleComponent`、颜色菜单），持久化 key 为 `orange.angular.theme`、`orange.angular.color`，默认深色。
 - 图表页有替换：AntV 与 Recharts 页面都用 ECharts 渲染，`/map/l7` 用 Leaflet 底图加 SVG 流线，不加载 L7。
 - 根工作流的 `deploy` 只发布 React；本栈只跑 build/lint/test，没有独立 GitHub Pages 配置。
-- 单测 4 个 spec，覆盖 access、page-clamp、tree-code 与 mock backend；没有端到端套件，E2E 由 `scripts/e2e/*` 外部驱动。
+- 单测 4 个 spec，覆盖 access、page-clamp、tree-code 与 mock backend；没有端到端套件。
 
 ## 延伸阅读
 

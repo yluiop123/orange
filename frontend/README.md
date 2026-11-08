@@ -26,8 +26,8 @@ each stack.
 
 What is shared is verifiable, not executable: the OpenAPI contract
 ([../contracts/openapi.json](../contracts/openapi.json)), the permission catalog
-and seed data ([../database/](../database/)), and design tokens plus the
-E2E harness ([../scripts/](../scripts/)). There is deliberately no workspace
+and seed data ([../database/](../database/)), and the cross-stack check scripts
+([../scripts/](../scripts/)). There is deliberately no workspace
 package — JSX, SFC and Angular templates cannot share components, and a shared
 layer would lock all three Vite/Angular versions together.
 
@@ -180,7 +180,7 @@ Directory permissions only affect menu visibility and grant no API access.
 Action permissions must match the same page path and action name; the backend
 still enforces Authority.
 
-## Tests and E2E
+## Tests
 
 | Stack | Commands |
 | --- | --- |
@@ -193,12 +193,7 @@ permissions, plus the generated seed block in `database/postgres/dml.sql`.
 `pnpm gen:api` regenerates `src/api/schema.d.ts` from the contract; Vue and
 Angular type the envelope by hand, so contract changes rely on review.
 
-End-to-end scripts live in [../scripts/](../scripts/) and use Playwright with
-Chrome: `scripts/e2e/mock-*.mjs` exercise mock mode, `scripts/e2e/real-*.mjs`
-run the same flows against a real backend and database,
-`scripts/e2e/check-controls.mjs` verifies language and theme controls, and
-`scripts/e2e/parity.mjs` captures all three apps at 1440x900, DPR 1 and `zh`
-locale, then reports the diff against the React baseline as mean absolute error
-plus the share of pixels whose channel delta exceeds 12. Start the dev servers
-on 5173, 5174 and 4200 first; parity and control checks log in with `super/super`.
-For the product-level view, see the [repository README](../README.md).
+There is no automated end-to-end suite in this repository; each frontend's own
+test command covers unit and component behaviour, and [../scripts/](../scripts/)
+holds the cross-stack checks. For the product-level view, see the
+[repository README](../README.md).

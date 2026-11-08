@@ -160,8 +160,9 @@ PostgreSQL is the reference; MySQL, MariaDB and SQLite are supported. Before
 switching, create the database if the engine needs one, then load
 `ddl.sql` followed by `dml.sql` from the matching [../database/](../database/)
 engine directory. An empty SQLite file connects, but every query fails until the
-schema is loaded. `prepare-stack-databases.ps1` in [../scripts/](../scripts/)
-prepares local databases for several stacks at once.
+schema is loaded. `test-databases.ps1` in [../scripts/](../scripts/) starts local
+PostgreSQL, MySQL and MariaDB containers and loads the schema; the CI matrix uses
+GitHub Actions service containers instead.
 
 | Engine | `DB_DRIVER` | `DATABASE_URL` (five stacks) | Spring JDBC URL |
 | --- | --- | --- | --- |
