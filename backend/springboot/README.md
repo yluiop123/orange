@@ -47,7 +47,7 @@ src/main/java/com/orange/
 ├── security/       SecurityConfig, auth/, jwt/
 ├── service/        interfaces and implementations
 └── util/           query builders, TraceId, database value extraction
-src/main/resources/ application.yaml, application-local.example.yaml, application-prod.yaml
+src/main/resources/ application.yaml, application-local.example.yaml
 src/test/java/com/orange/  unit and integration tests
 ```
 
@@ -77,7 +77,7 @@ model and `GlobalExceptionHandler` as the only error mapper.
 | Context path | none | `server.servlet.context-path` (unset) | Add it if hosting under a prefix |
 | API prefix | `/api/v1` | `WebMvcConfig` / controller mappings | — |
 | Local profile | `application-local.yaml` | `src/main/resources/` (template `.example.yaml`) | Copy the template and edit |
-| Production profile | `application-prod.yaml` | `src/main/resources/` | Activate with `SPRING_PROFILES_ACTIVE=prod` |
+| Production | Environment variables | process environment | Optionally set `SPRING_PROFILES_ACTIVE=prod`; there is no dedicated file |
 | Swagger | `/swagger`, `/openapi.json` | `application.yaml` (`springdoc.*`) | `SPRINGDOC_ENABLED=false` hides both |
 | CORS | React/Vue/Angular dev origins | `app.cors.allowed-origins` | `CORS_ORIGINS` |
 
@@ -112,7 +112,7 @@ discrete values.
 | --- | --- |
 | Development | `application.yaml` + environment variables; optional `application-local.yaml` with `SPRING_PROFILES_ACTIVE=local` |
 | Test | `mvn -B test`; Testcontainers PostgreSQL, skipped without Docker |
-| Production | `application-prod.yaml` plus environment variables |
+| Production | environment variables; optionally `SPRING_PROFILES_ACTIVE=prod` (no dedicated file) |
 
 ## Further reading
 

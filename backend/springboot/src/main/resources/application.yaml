@@ -52,6 +52,7 @@ jwt:
 springdoc:
   # Swagger is generated from the controller/DTO annotations at runtime.
   # /openapi.json is the generated document; /swagger is its UI.
+  # It stays enabled in every profile; set SPRINGDOC_ENABLED=false to hide both.
   swagger-ui:
     path: /swagger
     enabled: ${SPRINGDOC_ENABLED:true}

@@ -46,7 +46,7 @@ src/main/java/com/orange/
 ├── security/       SecurityConfig、auth/、jwt/
 ├── service/        接口与实现
 └── util/           查询构造、TraceId、数据库取值
-src/main/resources/ application.yaml、application-local.example.yaml、application-prod.yaml
+src/main/resources/ application.yaml、application-local.example.yaml
 src/test/java/com/orange/  单元与集成测试
 ```
 
@@ -73,7 +73,7 @@ src/test/java/com/orange/  单元与集成测试
 | Context Path | 无 | `server.servlet.context-path`（未设置） | 需要前缀时添加 |
 | API 前缀 | `/api/v1` | 控制器映射 | — |
 | 本地 Profile | `application-local.yaml` | `src/main/resources/`（模板 `.example.yaml`） | 复制模板后修改 |
-| 生产 Profile | `application-prod.yaml` | `src/main/resources/` | 用 `SPRING_PROFILES_ACTIVE=prod` 激活 |
+| 生产 | 环境变量 | 进程环境 | 可选 `SPRING_PROFILES_ACTIVE=prod`；没有独立文件 |
 | Swagger | `/swagger`、`/openapi.json` | `application.yaml`（`springdoc.*`） | `SPRINGDOC_ENABLED=false` 同时隐藏 |
 | CORS | React/Vue/Angular 开发地址 | `app.cors.allowed-origins` | `CORS_ORIGINS` |
 
@@ -107,7 +107,7 @@ src/test/java/com/orange/  单元与集成测试
 | --- | --- |
 | 开发 | `application.yaml` + 环境变量；可选 `application-local.yaml` 配合 `SPRING_PROFILES_ACTIVE=local` |
 | 测试 | `mvn -B test`；Testcontainers PostgreSQL，无 Docker 时跳过 |
-| 生产 | `application-prod.yaml` + 环境变量 |
+| 生产 | 环境变量；可选 `SPRING_PROFILES_ACTIVE=prod`（没有独立文件） |
 
 ## 延伸阅读
 

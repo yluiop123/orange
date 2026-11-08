@@ -124,7 +124,7 @@ openssl rsa -pubout -in backend/keys/jwt-private.pem -out backend/keys/jwt-publi
 
 | 技术栈 | 入库配置 | 本地文件 |
 | --- | --- | --- |
-| Spring Boot | `src/main/resources/application.yaml`、`application-prod.yaml` | `application-local.yaml` |
+| Spring Boot | `src/main/resources/application.yaml` | `application-local.yaml` |
 | Go、NestJS、ASP.NET Core | `.env.example` | `.env.local` |
 | Rust、FastAPI | `.env.example` | `.env` |
 

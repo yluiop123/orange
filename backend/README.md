@@ -140,7 +140,7 @@ Point a backend at it with `JWT_PRIVATE_KEY=../keys/jwt-private.pem` and
 
 | Stack | Committed configuration | Local file |
 | --- | --- | --- |
-| Spring Boot | `src/main/resources/application.yaml`, `application-prod.yaml` | `application-local.yaml` |
+| Spring Boot | `src/main/resources/application.yaml` | `application-local.yaml` |
 | Go, NestJS, ASP.NET Core | `.env.example` | `.env.local` |
 | Rust, FastAPI | `.env.example` | `.env` |
 

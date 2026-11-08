@@ -1,2 +1,0 @@
-# Swagger/OpenAPI is generated from the controller annotations at runtime and
-# stays enabled in this profile. Set SPRINGDOC_ENABLED=false to hide it.
