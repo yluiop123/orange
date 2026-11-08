@@ -30,7 +30,7 @@
 
 端口来源变量：`parse_env_any(&["APP_PORT", "PORT"], 8083u16)`（`src/config.rs`），默认 8083；`.env.example` 写 `PORT=8083`，并注明该端口由端口分配约定保留。
 
-`cargo test`（47 项）与 `cargo build` 已在本地通过。Windows 上没有 MSVC 链接器时，安装 `stable-x86_64-pc-windows-gnu` 工具链并把 MSYS2 的 `gcc` 放进 `PATH`；CI 使用默认的 Linux 工具链。
+`cargo test`（58 项）与 `cargo build` 已在本地通过。Windows 上没有 MSVC 链接器时，安装 `stable-x86_64-pc-windows-gnu` 工具链并把 MSYS2 的 `gcc` 放进 `PATH`；CI 使用默认的 Linux 工具链。
 
 ## 目录结构与分层
 
@@ -58,7 +58,7 @@ scripts/smoke-databases.ps1  四引擎冒烟脚本
 
 ## 本栈偏差
 
-1. 测试全部内联：0 个独立测试文件、无 `[dev-dependencies]`，9 个模块内含 `#[cfg(test)]`，共 47 个测试函数（`cargo test` 不需要数据库）。这与 Go、Python 的独立测试目录不同。
+1. 测试全部内联：0 个独立测试文件、无 `[dev-dependencies]`，11 个模块内含 `#[cfg(test)]`，共 58 个测试函数（`cargo test` 不需要数据库）。这与 Go、Python 的独立测试目录不同。
 2. 组织为单一二进制 crate：只有 `src/main.rs`，`Cargo.toml` 没有 `[lib]` 目标，模块都是 bin 私有，因此测试只能内联；Go、Python、C# 都有可被外部测试引用的库/模块层。
 3. JWT 遵循统一规则：RSA 密钥对时用 RS256，否则用 `JWT_SECRET` 的 HS256（`src/auth/jwt.rs`）。`pnpm run jwt:keys` 生成的同一对密钥六栈通用。
 4. 每个仓库查询按驱动各生成一份（`*_repository!` 宏），方言差异集中在 `src/db.rs`；SQLite 时间戳为 ISO-8601 文本，过滤走 `datetime(...)`。
@@ -70,7 +70,7 @@ scripts/smoke-databases.ps1  四引擎冒烟脚本
 | --- | --- |
 | 受版本控制的文件 | 52 |
 | Rust 源文件 | 45（`src/`） |
-| 测试文件 | 0 个独立测试文件；9 个模块内联 47 个测试函数 |
+| 测试文件 | 0 个独立测试文件；11 个模块内联 58 个测试函数 |
 
 统计口径：`git ls-files backend/rust-axum` 与 `src` 内 `#[test]` 计数。端点与方言见 [HTTP 契约](../../frontend/openapi.json)、[数据库方言](../../database/)。
 

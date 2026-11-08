@@ -64,9 +64,9 @@ tests/Orange.Tests/        xUnit 单元测试
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 63 |
-| C# 源文件 | 54（`src/Orange.Api` 46、`tests/Orange.Tests` 8） |
-| 测试文件 | 8 个 `*Tests.cs`，另 1 个测试 csproj；共 72 个测试 |
+| 受版本控制的文件 | 69 |
+| C# 源文件 | 60（`src/Orange.Api` 48、`tests/Orange.Tests` 12） |
+| 测试文件 | 12 个 `*Tests.cs`，另 1 个测试 csproj；共 107 个测试 |
 
 统计口径：`git ls-files backend/csharp`。前端接口快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
 

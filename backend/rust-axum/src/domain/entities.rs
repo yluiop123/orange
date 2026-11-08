@@ -32,7 +32,6 @@ pub struct Group {
 pub struct Permission {
     pub id: String,
     pub name: Option<String>,
-    pub name_en: Option<String>,
     pub path: String,
     pub action: Option<String>,
     pub kind: String,
@@ -40,6 +39,15 @@ pub struct Permission {
     pub parent_id: Option<String>,
     pub create_time: Option<DateTime<Utc>>,
     pub update_time: Option<DateTime<Utc>>,
+}
+
+/// One localized permission name. `sys_permission.name` stays the default used
+/// when no translation matches the requested locale.
+#[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]
+pub struct PermissionI18n {
+    pub permission_id: String,
+    pub locale: String,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, sqlx::FromRow)]

@@ -80,7 +80,7 @@ Vuetify 组件全量注册在 `src/main.ts`，默认表单变体为 `outlined`�
 - 路由用 `createWebHistory`；页面在 `src/router/index.ts` 手工登记，容器路径 `CONTAINER_PATHS` 也是手写清单，新增容器必须同步改它。
 - 全局守卫 `router.beforeEach` 检查 public 路由、token、user-info、菜单与 `canView`；动作权限由 `ActionAuth` 组件控制。
 - mock 不是 MSW，而是替换 `http.defaults.adapter` 的 Axios adapter（`src/mock/index.ts` + `seed.ts`），状态在内存中。
-- 菜单标题来自 `GET /api/v1/auth/menus`（`sys_permission.name` / `name_en`，后端按 `Locale` 请求头选择）；前端不再维护标题目录。
+- 菜单标题来自 `GET /api/v1/auth/menus`（`sys_permission_i18n`，后端按 `Locale` 请求头选择）；前端不再维护标题目录。
 - 主题是 Vuetify 的 `light` / `dark` 主题对象；颜色选择器直接改 `theme.themes.value`，持久化 key 为 `orange.theme` / `orange.color`。
 - 图表页有替换：AntV 页面用 ECharts 渲染，Recharts 页面用 Chart.js；`/map/l7` 不加载 L7，使用 tokenless 的点层卡片演示。
 - Cesium 由 `vite-plugin-cesium-build` 复制到 `cesium-package/`，只在 `/map/cesium` 动态加载，使用 OpenStreetMap 影像，不需要 Ion token。

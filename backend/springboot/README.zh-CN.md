@@ -66,9 +66,9 @@ src/test/java/com/orange/  测试类（config、domain、security、service、ut
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 129 |
-| Java 源文件 | 121（`src/main` 107、`src/test` 14） |
-| 测试类 | 14，其中 1 个 Testcontainers 集成测试需 Docker |
+| 受版本控制的文件 | 134 |
+| Java 源文件 | 126（`src/main` 111、`src/test` 15） |
+| 测试类 | 15，其中 1 个 Testcontainers 集成测试需 Docker |
 
 统计口径：`git ls-files backend/springboot`。端点、数据库方言与验证结论不在本页维护：前端快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
 

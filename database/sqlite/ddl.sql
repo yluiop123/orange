@@ -63,7 +63,6 @@ CREATE INDEX idx_sys_group_parent ON sys_group(parent_id, id);
 CREATE TABLE sys_permission (
 	id TEXT NOT NULL, -- 权限id (varchar)
 	"name" TEXT NULL, -- 权限名 (varchar)
-	name_en TEXT NULL, -- 权限英文名 (varchar)
 	"path" TEXT NOT NULL, -- 权限路径 (varchar)
 	"action" TEXT NULL, -- 权限动作；menu/directory 必须为 NULL (varchar)
 	"type" TEXT NOT NULL, -- 权限类型 (varchar)
@@ -92,6 +91,14 @@ CREATE TABLE sys_permission (
 		)
 	),
 	CONSTRAINT fk_sys_permission_parent FOREIGN KEY (parent_id) REFERENCES sys_permission(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE sys_permission_i18n (
+	permission_id TEXT NOT NULL,
+	locale TEXT NOT NULL,
+	"name" TEXT NOT NULL,
+	CONSTRAINT sys_permission_i18n_pkey PRIMARY KEY (permission_id, locale),
+	CONSTRAINT fk_sys_permission_i18n_permission FOREIGN KEY (permission_id) REFERENCES sys_permission(id) ON DELETE CASCADE
 );
 CREATE INDEX idx_sys_permission_parent ON sys_permission(parent_id, id);
 -- 权限身份唯一：action 权限按 (type, path, action)，菜单/目录按 (type, path)

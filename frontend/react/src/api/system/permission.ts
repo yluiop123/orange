@@ -7,6 +7,7 @@ type PermissionContract = components["schemas"]["PermissionBean"];
 export type Permission = Omit<PermissionContract, "status" | "type"> & {
   id: string;
   name: string;
+  translations?: Record<string, string>;
   type?: "menu" | "action" | "directory";
   status?: Status;
 };
@@ -47,6 +48,7 @@ export async function updatePermission(
 export async function addPermissionChild(payload: {
   id: string;
   name: string;
+  translations?: Record<string, string>;
   path: string;
   type: "menu" | "action" | "directory";
   action?: string;

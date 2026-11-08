@@ -66,9 +66,9 @@ src/test/java/com/orange/  test classes (config, domain, security, service, util
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 129 |
-| Java source files | 121 (`src/main` 107, `src/test` 14) |
-| Test classes | 14, of which 1 Testcontainers integration test needs Docker |
+| Version-controlled files | 134 |
+| Java source files | 126 (`src/main` 111, `src/test` 15) |
+| Test classes | 15, of which 1 Testcontainers integration test needs Docker |
 
 Counting basis: `git ls-files backend/springboot`. Endpoints, database dialects and verification results are not maintained on this page; the frontend-owned snapshot is [frontend/openapi.json](../../frontend/openapi.json), dialects are in [database](../../database/), and the stack matrix is the [root README](../../README.md).
 

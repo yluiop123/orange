@@ -138,7 +138,6 @@ class Permission(AuditMixin, Base):
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    name_en: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     path: Mapped[str] = mapped_column(String(500), nullable=False)
     action: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     type: Mapped[str] = mapped_column(String(32), nullable=False)
@@ -146,6 +145,27 @@ class Permission(AuditMixin, Base):
     parent_id: Mapped[Optional[str]] = mapped_column(
         String(255), ForeignKey("sys_permission.id", ondelete="RESTRICT"), nullable=True
     )
+
+    translations: Mapped[list[PermissionI18n]] = relationship(
+        back_populates="permission",
+        lazy="select",
+        order_by="PermissionI18n.locale",
+        cascade="all, delete-orphan",
+    )
+
+
+class PermissionI18n(Base):
+    __tablename__ = "sys_permission_i18n"
+
+    permission_id: Mapped[str] = mapped_column(
+        String(255),
+        ForeignKey("sys_permission.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    locale: Mapped[str] = mapped_column(String(16), primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    permission: Mapped[Permission] = relationship(back_populates="translations")
 
 
 class Role(AuditMixin, Base):

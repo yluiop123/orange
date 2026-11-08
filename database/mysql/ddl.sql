@@ -46,7 +46,6 @@ CREATE INDEX `idx_sys_group_parent` ON `sys_group` (`parent_id`, `id`);
 CREATE TABLE `sys_permission` (
 	`id` varchar(64) NOT NULL COMMENT '权限id',
 	`name` varchar(255) NULL COMMENT '权限名',
-	`name_en` varchar(255) NULL COMMENT '权限英文名',
 	`path` varchar(500) NOT NULL COMMENT '权限路径',
 	`action` varchar(100) NULL COMMENT '权限动作；menu/directory 必须为 NULL',
 	`action_key` varchar(100) GENERATED ALWAYS AS (COALESCE(`action`, '')) STORED COMMENT '权限身份用动作键；NULL 归一化为空串',
@@ -75,6 +74,14 @@ CREATE TABLE `sys_permission` (
 	),
 	CONSTRAINT `fk_sys_permission_parent` FOREIGN KEY (`parent_id`) REFERENCES `sys_permission` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='权限表';
+
+CREATE TABLE `sys_permission_i18n` (
+	`permission_id` varchar(64) NOT NULL COMMENT '权限id',
+	`locale` varchar(16) NOT NULL COMMENT '语言标签',
+	`name` varchar(255) NOT NULL COMMENT '本地化名称',
+	CONSTRAINT `sys_permission_i18n_pkey` PRIMARY KEY (`permission_id`, `locale`),
+	CONSTRAINT `fk_sys_permission_i18n_permission` FOREIGN KEY (`permission_id`) REFERENCES `sys_permission` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE INDEX `idx_sys_permission_parent` ON `sys_permission` (`parent_id`, `id`);
 -- 权限身份唯一：action 权限按 (type, path, action)，菜单/目录按 (type, path)。
 -- Postgres 用两个部分唯一索引表达；MySQL 没有部分索引，用生成列 action_key

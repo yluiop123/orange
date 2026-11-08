@@ -21,7 +21,7 @@ import StatusSwitch from '@/components/system/StatusSwitch.vue'
 type PermissionNode = Permission & { subRows?: PermissionNode[] }
 type PermissionParams = PermissionQuery & { page: number; size: number }
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const ui = useUiStore()
 const { canAct } = useAccess()
 const currentPath = '/system/permission'
@@ -77,7 +77,7 @@ const {
   errorMessage: t('table.loadError'),
   tree: { id: (row) => row.id, parentId: (row) => row.parentId },
   getRowId: (row) => row.id,
-  labelOf: (row) => row.name,
+  labelOf: (row) => row.translations?.[locale.value] ?? row.name,
   deleteRows: permissionApi.deletePermissions,
   updateStatus: (row, status) => permissionApi.updatePermission(row.id, { status }),
   paginationMode: 'client',
@@ -151,6 +151,10 @@ const addFields = computed<FormField[]>(() => [
       String(value ?? '').trim().length >= 2 ? null : t('validate.required'),
   },
   {
+    key: 'nameEn',
+    label: 'page.system.permission.header.nameEn',
+  },
+  {
     key: 'path',
     label: 'page.system.permission.header.path',
     validate: permissionPathRule(t),
@@ -180,6 +184,10 @@ const editFields = computed<FormField[]>(() => [
     key: 'name',
     label: 'page.system.permission.header.name',
     validate: (value) => (String(value ?? '').trim().length >= 2 ? null : t('validate.required')),
+  },
+  {
+    key: 'nameEn',
+    label: 'page.system.permission.header.nameEn',
   },
   {
     key: 'path',
@@ -212,9 +220,12 @@ function openAddChild(row: PermissionNode | null) {
 
 async function submitAdd(values: Record<string, unknown>) {
   const type = String(values.type ?? 'menu') as PermissionTypeValue
+  const name = String(values.name ?? '')
+  const nameEn = String(values.nameEn ?? '').trim()
   await permissionApi.addPermissionChild({
     id: String(values.id ?? ''),
-    name: String(values.name ?? ''),
+    name,
+    translations: nameEn ? { zh: name, en: nameEn } : { zh: name },
     path: String(values.path ?? ''),
     type,
     action: type === 'action' ? String(values.action ?? '') : undefined,
@@ -231,6 +242,7 @@ async function openEdit(row: PermissionNode) {
     editValues.value = {
       id: permission.id,
       name: permission.name,
+      nameEn: permission.translations?.en ?? '',
       path: permission.path,
       type: permission.type ?? 'menu',
       action: permission.action ?? '',
@@ -245,8 +257,11 @@ async function openEdit(row: PermissionNode) {
 
 async function submitEdit(values: Record<string, unknown>) {
   const type = String(values.type ?? 'menu') as PermissionTypeValue
+  const name = String(values.name ?? '')
+  const nameEn = String(values.nameEn ?? '').trim()
   await permissionApi.updatePermission(editId.value, {
-    name: String(values.name ?? ''),
+    name,
+    translations: nameEn ? { zh: name, en: nameEn } : { zh: name },
     path: String(values.path ?? ''),
     type,
     action: type === 'action' ? String(values.action ?? '') : '',
@@ -398,7 +413,7 @@ watch(params, () => {
         <StatusSwitch
           v-if="canAct(currentPath, 'edit')"
           :initial="row.status ?? '1'"
-          :subject-name="row.name"
+          :subject-name="row.translations?.[locale] ?? row.name"
           :submit="(status) => handleStatusChange(row, status)"
         />
         <span v-else class="system-cell--muted">

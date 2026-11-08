@@ -1,7 +1,10 @@
 package com.orange.service.system.impl;
 
 import com.orange.domain.login.resp.MenuInfo;
+import com.orange.domain.system.permission.PermissionI18nPolicy;
 import com.orange.entity.Permission;
+import com.orange.entity.PermissionI18n;
+import com.orange.repository.system.PermissionI18nRepository;
 import com.orange.repository.system.PermissionRepository;
 import com.orange.service.system.MenuService;
 import jakarta.persistence.criteria.Predicate;
@@ -16,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static com.orange.config.Constanst.STATUS_ENABLE;
@@ -30,11 +32,12 @@ public class MenuServiceImpl implements MenuService {
     @Autowired
     private PermissionRepository permissionRepository;
 
+    @Autowired
+    private PermissionI18nRepository permissionI18nRepository;
+
     @Override
     @Transactional(readOnly = true)
     public List<MenuInfo> queryMenuTree(String locale) {
-        boolean english = locale != null
-                && locale.toLowerCase(Locale.ROOT).startsWith("en");
         Specification<Permission> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("status"), STATUS_ENABLE));
@@ -43,6 +46,7 @@ public class MenuServiceImpl implements MenuService {
         };
         List<Permission> permissions = permissionRepository.findAll(
                 spec, Sort.by(Sort.Direction.ASC, "id"));
+        Map<String, Map<String, String>> translations = loadTranslations(permissions);
 
         Map<String, MenuInfo> nodes = new LinkedHashMap<>();
         for (Permission permission : permissions) {
@@ -50,10 +54,10 @@ public class MenuServiceImpl implements MenuService {
             node.setId(permission.getId());
             node.setPath(permission.getPath());
             node.setType(permission.getType());
-            String nameEn = permission.getNameEn();
-            node.setName(english && StringUtils.isNotBlank(nameEn)
-                    ? nameEn
-                    : permission.getName());
+            node.setName(PermissionI18nPolicy.resolve(
+                    locale,
+                    translations.get(permission.getId()),
+                    permission.getName()));
             nodes.put(permission.getId(), node);
         }
 
@@ -73,5 +77,20 @@ public class MenuServiceImpl implements MenuService {
             }
         }
         return roots;
+    }
+
+    private Map<String, Map<String, String>> loadTranslations(List<Permission> permissions) {
+        if (permissions.isEmpty()) {
+            return Map.of();
+        }
+        List<String> ids = permissions.stream().map(Permission::getId).toList();
+        Map<String, Map<String, String>> translations = new LinkedHashMap<>();
+        for (PermissionI18n row :
+                permissionI18nRepository.findByPermissionIdInOrderByPermissionIdAscLocaleAsc(ids)) {
+            translations
+                    .computeIfAbsent(row.getPermissionId(), key -> new LinkedHashMap<>())
+                    .put(row.getLocale(), row.getName());
+        }
+        return translations;
     }
 }

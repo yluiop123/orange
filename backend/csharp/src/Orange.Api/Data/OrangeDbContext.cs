@@ -12,6 +12,7 @@ public class OrangeDbContext : DbContext
 
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<PermissionI18n> PermissionI18n => Set<PermissionI18n>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<User> Users => Set<User>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
@@ -44,7 +45,6 @@ public class OrangeDbContext : DbContext
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Id).HasColumnName("id");
             entity.Property(item => item.Name).HasColumnName("name");
-            entity.Property(item => item.NameEn).HasColumnName("name_en");
             entity.Property(item => item.Path).HasColumnName("path");
             entity.Property(item => item.Action).HasColumnName("action");
             entity.Property(item => item.Type).HasColumnName("type");
@@ -55,6 +55,26 @@ public class OrangeDbContext : DbContext
             entity.Property(item => item.CreatedBy).HasColumnName("created_by");
             entity.Property(item => item.UpdatedBy).HasColumnName("updated_by");
             entity.Property(item => item.Version).HasColumnName("version").IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<PermissionI18n>(entity =>
+        {
+            entity.ToTable("sys_permission_i18n");
+            entity.HasKey(item => new { item.PermissionId, item.Locale });
+            entity.Property(item => item.PermissionId)
+                .HasColumnName("permission_id")
+                .HasMaxLength(64);
+            entity.Property(item => item.Locale)
+                .HasColumnName("locale")
+                .HasMaxLength(16);
+            entity.Property(item => item.Name)
+                .HasColumnName("name")
+                .HasMaxLength(255)
+                .IsRequired();
+            entity.HasOne<Permission>()
+                .WithMany()
+                .HasForeignKey(item => item.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Role>(entity =>

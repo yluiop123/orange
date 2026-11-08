@@ -151,7 +151,7 @@
           <th mat-header-cell *matHeaderCellDef>{{ 'page.system.permission.header.name' | t }}</th>
           <td mat-cell *matCellDef="let row">
             <div class="system-tree-name" [style.paddingLeft.rem]="row.depth * 2">
-              {{ row.node.name }}
+              {{ permissionName(row.node) }}
             </div>
           </td>
         </ng-container>
@@ -182,7 +182,7 @@
             @if (auth.canAct(path, 'edit')) {
               <app-status-toggle
                 [status]="row.node.status"
-                [name]="row.node.name"
+                [name]="permissionName(row.node)"
                 (changed)="changeStatus(row.node, $event)"
               />
             } @else {

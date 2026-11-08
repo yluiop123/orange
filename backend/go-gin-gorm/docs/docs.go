@@ -2652,6 +2652,12 @@ const docTemplate = `{
                 "path": {
                     "type": "string"
                 },
+                "translations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "type": {
                     "type": "string"
                 }
@@ -2762,6 +2768,12 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "translations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "type": {
                     "type": "string"
@@ -2976,6 +2988,12 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "translations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "type": {
                     "type": "string"

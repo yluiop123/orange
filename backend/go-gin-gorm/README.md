@@ -61,9 +61,9 @@ Copy `.env.example` to `.env.local` (gitignored, read by godotenv at startup); r
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 64 |
-| Go source files | 56 |
-| Test files | 12 `_test.go` files (including `internal/http` route tests and the optional database smoke test) |
+| Version-controlled files | 68 |
+| Go source files | 60 |
+| Test files | 15 `_test.go` files (including `internal/http` route tests and the optional database smoke test) |
 
 Counting basis: `git ls-files backend/go-gin-gorm`. Why the stacks differ is covered by the [backend shared conventions and deviations](../../backend/README.md).
 

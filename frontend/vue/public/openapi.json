@@ -1436,7 +1436,7 @@
             "name": "Locale",
             "in": "header",
             "required": false,
-            "description": "zh（默认）或 en；决定菜单名使用 name 还是 name_en",
+            "description": "菜单名从 sys_permission_i18n 解析；精确语言 → 主语言 → 默认 name",
             "schema": {
               "type": "string",
               "enum": [
@@ -1775,6 +1775,13 @@
             "type": "string",
             "format": "date-time",
             "description": "更新时间"
+          },
+          "translations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "按 locale 的权限名称；缺失时回退到 name"
           }
         }
       },
@@ -1852,6 +1859,13 @@
             "description": "权限类型",
             "example": "menu",
             "pattern": "^(menu|action|directory)$"
+          },
+          "translations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "按 locale 的权限名称；缺失时回退到 name"
           }
         }
       },
@@ -1894,6 +1908,13 @@
             "type": "string",
             "description": "父权限编码",
             "example": "01"
+          },
+          "translations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "按 locale 的权限名称；缺失时回退到 name"
           }
         },
         "required": [

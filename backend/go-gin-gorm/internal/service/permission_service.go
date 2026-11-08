@@ -10,28 +10,33 @@ import (
 )
 
 type PermissionBean struct {
-	ID         string  `json:"id"`
-	Name       string  `json:"name"`
-	Path       string  `json:"path"`
-	Action     *string `json:"action"`
-	Type       string  `json:"type"`
-	Status     string  `json:"status"`
-	ParentID   *string `json:"parentId"`
-	CreateTime *string `json:"createTime"`
-	UpdateTime *string `json:"updateTime"`
+	ID           string            `json:"id"`
+	Name         string            `json:"name"`
+	Path         string            `json:"path"`
+	Action       *string           `json:"action"`
+	Type         string            `json:"type"`
+	Status       string            `json:"status"`
+	ParentID     *string           `json:"parentId"`
+	CreateTime   *string           `json:"createTime"`
+	UpdateTime   *string           `json:"updateTime"`
+	Translations map[string]string `json:"translations"`
 }
 
-func permissionBean(permission store.Permission) PermissionBean {
+func permissionBean(permission store.Permission, translations map[string]string) PermissionBean {
+	if translations == nil {
+		translations = make(map[string]string)
+	}
 	return PermissionBean{
-		ID:         permission.ID,
-		Name:       permission.Name,
-		Path:       permission.Path,
-		Action:     permission.Action,
-		Type:       permission.Type,
-		Status:     permission.Status,
-		ParentID:   permission.ParentID,
-		CreateTime: beanTime(permission.CreateTime),
-		UpdateTime: beanTime(permission.UpdateTime),
+		ID:           permission.ID,
+		Name:         permission.Name,
+		Path:         permission.Path,
+		Action:       permission.Action,
+		Type:         permission.Type,
+		Status:       permission.Status,
+		ParentID:     permission.ParentID,
+		CreateTime:   beanTime(permission.CreateTime),
+		UpdateTime:   beanTime(permission.UpdateTime),
+		Translations: translations,
 	}
 }
 
@@ -79,9 +84,13 @@ func (s *Service) ListPermissions(ctx context.Context, id, name, path, status, p
 			}
 		}
 	}
+	translations, err := s.store.AllPermissionTranslations(ctx)
+	if err != nil {
+		return nil, err
+	}
 	result := make([]PermissionBean, 0, len(selected))
 	for _, permission := range selected {
-		result = append(result, permissionBean(permission))
+		result = append(result, permissionBean(permission, translations[permission.ID]))
 	}
 	return result, nil
 }
@@ -94,11 +103,15 @@ func (s *Service) GetPermission(ctx context.Context, id string) (*PermissionBean
 	if permission == nil {
 		return nil, domain.NotFound("权限不存在")
 	}
-	bean := permissionBean(*permission)
+	translations, err := s.store.PermissionTranslations(ctx, permission.ID)
+	if err != nil {
+		return nil, err
+	}
+	bean := permissionBean(*permission, translations)
 	return &bean, nil
 }
 
-func (s *Service) AddPermission(ctx context.Context, id, name string, path string, action *string, permissionType string, parentID *string) (*PermissionBean, error) {
+func (s *Service) AddPermission(ctx context.Context, id, name string, path string, action *string, permissionType string, parentID *string, translations map[string]string) (*PermissionBean, error) {
 	parent := trimPointer(parentID)
 	normalizedAction := domain.NormalizeAction(action)
 	normalizedPath, err := requirePath(path)
@@ -145,10 +158,10 @@ func (s *Service) AddPermission(ctx context.Context, id, name string, path strin
 		CreateTime: &now,
 		UpdateTime: &now,
 	}
-	if err := s.store.CreatePermission(ctx, &permission); err != nil {
+	if err := s.store.CreatePermission(ctx, &permission, translations); err != nil {
 		return nil, err
 	}
-	bean := permissionBean(permission)
+	bean := permissionBean(permission, translations)
 	return &bean, nil
 }
 
@@ -158,6 +171,9 @@ type PermissionUpdate struct {
 	Action *string
 	Type   *string
 	Status *string
+	// Translations is nil when the caller omitted the field (keep existing
+	// rows) and non-nil when it provided a map (replace all rows).
+	Translations map[string]string
 }
 
 func (s *Service) UpdatePermission(ctx context.Context, id string, update PermissionUpdate) error {
@@ -213,7 +229,7 @@ func (s *Service) UpdatePermission(ctx context.Context, id string, update Permis
 	}
 	now := time.Now()
 	permission.UpdateTime = &now
-	return s.store.SavePermission(ctx, permission)
+	return s.store.SavePermission(ctx, permission, update.Translations)
 }
 
 func (s *Service) DeletePermissions(ctx context.Context, ids []string) error {

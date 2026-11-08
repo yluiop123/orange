@@ -92,7 +92,7 @@ function paginate<T>(rows: T[], page: number, size: number): PageResult<T> {
 }
 
 function localeName(entry: MockPermission, locale: Locale): string {
-  return locale === 'en' && entry.nameEn ? entry.nameEn : entry.name;
+  return entry.translations?.[locale] ?? (locale === 'en' && entry.nameEn ? entry.nameEn : entry.name);
 }
 
 function tempPassword(): string {
@@ -880,9 +880,14 @@ export class MockBackend {
           return failure(40901, '操作类型不能有子权限 / Action cannot have children', 409);
         }
       }
+      const name = trim(payload['name']);
       const entry: MockPermission = {
         id,
-        name: trim(payload['name']),
+        name,
+        translations:
+          (payload['translations'] as Record<string, string> | undefined) ?? {
+            [locale]: name,
+          },
         path: trim(payload['path']),
         action: trim(payload['action']) || null,
         type: trim(payload['type']) as PermissionRow['type'],
@@ -911,6 +916,10 @@ export class MockBackend {
         const next: MockPermission = {
           ...permission,
           name: payload['name'] !== undefined ? trim(payload['name']) : permission.name,
+          translations:
+            payload['translations'] !== undefined
+              ? (payload['translations'] as Record<string, string>)
+              : permission.translations,
           path: payload['path'] !== undefined ? trim(payload['path']) : permission.path,
           action:
             payload['action'] !== undefined ? trim(payload['action']) || null : permission.action,
@@ -1068,6 +1077,7 @@ export class MockBackend {
     return {
       id: permission.id,
       name: localeName(permission, locale),
+      translations: permission.translations ?? { zh: permission.name },
       path: permission.path,
       action: permission.action,
       type: permission.type,

@@ -3,6 +3,8 @@
 //! Every struct here is also an `utoipa` schema so the generated OpenAPI document
 //! stays in sync with the wire format: `serde` renames are honoured by the derive.
 
+use std::collections::BTreeMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -185,6 +187,9 @@ pub struct PermissionBean {
     pub parent_id: Option<String>,
     pub create_time: Option<DateTime<Utc>>,
     pub update_time: Option<DateTime<Utc>>,
+    /// Localized names keyed by locale tag (`zh`, `en`, `en-US`). `name` is the
+    /// default/fallback used when no translation matches.
+    pub translations: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
@@ -197,6 +202,7 @@ pub struct AddChildPermissionReq {
     #[serde(rename = "type")]
     pub kind: Option<String>,
     pub parent_id: Option<String>,
+    pub translations: Option<BTreeMap<String, String>>,
 }
 
 #[derive(Debug, Clone, Deserialize, ToSchema)]
@@ -208,6 +214,8 @@ pub struct EditPermissionReq {
     pub status: Option<String>,
     #[serde(rename = "type")]
     pub kind: Option<String>,
+    /// Omitted means "keep current translations"; provided means "replace all".
+    pub translations: Option<BTreeMap<String, String>>,
 }
 
 // ---------------------------------------------------------------------------

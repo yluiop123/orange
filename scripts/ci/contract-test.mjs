@@ -450,19 +450,40 @@ const permMenu = `${permRoot}00`;
 const permAction = `${permMenu}01`;
 const createPermRoot = await request('POST', '/system/permissions/children', {
   token,
-  body: { id: permRoot, name: 'QA Directory', path: `/qa-${suffix}`, type: 'directory' },
+  body: {
+    id: permRoot,
+    name: 'QA 目录',
+    translations: { zh: 'QA 目录', en: 'QA Directory' },
+    path: `/qa-${suffix}`,
+    type: 'directory',
+  },
 });
 expectOk('create permission directory', createPermRoot);
 created.permissions.push(permRoot);
 const createPermMenu = await request('POST', '/system/permissions/children', {
   token,
-  body: { id: permMenu, name: 'QA Menu', path: `/qa-${suffix}/menu`, type: 'menu', parentId: permRoot },
+  body: {
+    id: permMenu,
+    name: 'QA 菜单',
+    translations: { zh: 'QA 菜单', en: 'QA Menu EN' },
+    path: `/qa-${suffix}/menu`,
+    type: 'menu',
+    parentId: permRoot,
+  },
 });
 expectOk('create permission menu', createPermMenu);
 created.permissions.push(permMenu);
 const createPermAction = await request('POST', '/system/permissions/children', {
   token,
-  body: { id: permAction, name: 'QA Action', path: `/qa-${suffix}/menu`, type: 'action', action: 'view', parentId: permMenu },
+  body: {
+    id: permAction,
+    name: 'QA 动作',
+    translations: { zh: 'QA 动作', en: 'QA Action' },
+    path: `/qa-${suffix}/menu`,
+    type: 'action',
+    action: 'view',
+    parentId: permMenu,
+  },
 });
 expectOk('create permission action', createPermAction);
 created.permissions.push(permAction);
@@ -476,11 +497,59 @@ check('permissions list includes created nodes', Array.isArray(permissionRows) &
 const permissionDetail = await request('GET', `/system/permissions/${permAction}`, { token });
 expectOk('permission detail', permissionDetail);
 check('permission detail has type/action', field(permissionDetail.json, 'data')?.type === 'action' && field(permissionDetail.json, 'data')?.action === 'view', field(permissionDetail.json, 'data'));
+check(
+  'permission detail has translations',
+  field(permissionDetail.json, 'data')?.translations?.en === 'QA Action',
+  field(permissionDetail.json, 'data')?.translations,
+);
 
-const editPermission = await request('PATCH', `/system/permissions/${permAction}`, { token, body: { name: 'QA Action Renamed' } });
+const editPermission = await request('PATCH', `/system/permissions/${permAction}`, {
+  token,
+  body: {
+    name: 'QA Action Renamed',
+    translations: { zh: 'QA 动作', en: 'QA Action Updated' },
+  },
+});
 expectStringPayload('edit permission', editPermission, '操作成功');
 const permissionAfter = await request('GET', `/system/permissions/${permAction}`, { token });
 check('permission rename persisted', field(permissionAfter.json, 'data')?.name === 'QA Action Renamed', field(permissionAfter.json, 'data'));
+check(
+  'permission translations persisted',
+  field(permissionAfter.json, 'data')?.translations?.en === 'QA Action Updated',
+  field(permissionAfter.json, 'data')?.translations,
+);
+const clearTranslations = await request('PATCH', `/system/permissions/${permAction}`, {
+  token,
+  body: { translations: {} },
+});
+expectStringPayload('clear permission translations', clearTranslations, '操作成功');
+const cleared = await request('GET', `/system/permissions/${permAction}`, { token });
+check(
+  'empty translation map clears rows',
+  Object.keys(field(cleared.json, 'data')?.translations ?? {}).length === 0,
+  field(cleared.json, 'data')?.translations,
+);
+
+const zhMenus = await request('GET', '/auth/menus', { token, headers: { Locale: 'zh' } });
+const enMenus = await request('GET', '/auth/menus', { token, headers: { Locale: 'en-US' } });
+const findMenu = (nodes, id) => {
+  for (const node of nodes ?? []) {
+    if (node.id === id) return node;
+    const child = findMenu(node.children, id);
+    if (child) return child;
+  }
+  return null;
+};
+check(
+  'menu uses zh translation',
+  findMenu(field(zhMenus.json, 'data'), permMenu)?.name === 'QA 菜单',
+  findMenu(field(zhMenus.json, 'data'), permMenu),
+);
+check(
+  'menu uses exact/language English fallback',
+  findMenu(field(enMenus.json, 'data'), permMenu)?.name === 'QA Menu EN',
+  findMenu(field(enMenus.json, 'data'), permMenu),
+);
 
 const actionWithoutName = await request('POST', '/system/permissions/children', {
   token,

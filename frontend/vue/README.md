@@ -80,7 +80,7 @@ Vuetify components are registered globally in `src/main.ts`, the default form va
 - Routing uses `createWebHistory`; pages are registered by hand in `src/router/index.ts`, and the container paths `CONTAINER_PATHS` are a hand-written list too — a new container must update it.
 - The global guard `router.beforeEach` checks public routes, token, user-info, menus and `canView`; action permissions are controlled by the `ActionAuth` component.
 - Mocking is not MSW but an Axios adapter replacing `http.defaults.adapter` (`src/mock/index.ts` + `seed.ts`), with state kept in memory.
-- Menu titles are taken from `GET /api/v1/auth/menus` (`sys_permission.name` / `name_en`, selected by the backend from the `Locale` header); the frontend keeps no title catalogue.
+- Menu titles are taken from `GET /api/v1/auth/menus` (`sys_permission_i18n`, selected by the backend from the `Locale` header); the frontend keeps no title catalogue.
 - Theming uses Vuetify's `light` / `dark` theme objects; the colour picker writes `theme.themes.value` directly, and persistence keys are `orange.theme` / `orange.color`.
 - Some chart pages are substituted: AntV pages render with ECharts and Recharts pages with Chart.js; `/map/l7` does not load L7 and uses a tokenless point-layer card demo instead.
 - Cesium is copied to `cesium-package/` by `vite-plugin-cesium-build`, loaded dynamically only at `/map/cesium`, uses OpenStreetMap imagery and needs no Ion token.

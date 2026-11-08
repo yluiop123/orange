@@ -2,7 +2,7 @@
 
 use crate::db::{Db, Dialect};
 use crate::dispatch_db;
-use crate::domain::entities::Permission;
+use crate::domain::entities::{Permission, PermissionI18n};
 
 pub struct PermissionListParams {
     /// Already escaped LIKE prefix pattern.
@@ -17,7 +17,7 @@ pub struct PermissionListParams {
 
 fn columns(dialect: Dialect) -> String {
     format!(
-        "id, {}, name_en, path, action, {} AS kind, status, parent_id, create_time, update_time",
+        "id, {}, path, action, {} AS kind, status, parent_id, create_time, update_time",
         dialect.quote("name"),
         dialect.quote("type")
     )
@@ -229,6 +229,89 @@ macro_rules! permissions_repository {
                 Ok(())
             }
 
+            pub async fn all_i18n(
+                pool: &$pool,
+            ) -> Result<Vec<PermissionI18n>, sqlx::Error> {
+                let sql = format!(
+                    "SELECT permission_id, locale, {} FROM sys_permission_i18n \
+                     ORDER BY permission_id, locale",
+                    D.quote("name")
+                );
+                sqlx::query_as::<_, PermissionI18n>(&sql)
+                    .fetch_all(pool)
+                    .await
+            }
+
+            pub async fn i18n_for(
+                pool: &$pool,
+                permission_id: &str,
+            ) -> Result<Vec<PermissionI18n>, sqlx::Error> {
+                let sql = format!(
+                    "SELECT permission_id, locale, {} FROM sys_permission_i18n \
+                     WHERE permission_id = {} ORDER BY locale",
+                    D.quote("name"),
+                    D.placeholder(1)
+                );
+                sqlx::query_as::<_, PermissionI18n>(&sql)
+                    .bind(permission_id)
+                    .fetch_all(pool)
+                    .await
+            }
+
+            /// Replaces every translation row of one permission in a single
+            /// transaction: omitted locales disappear, supplied ones are set.
+            pub async fn replace_i18n(
+                pool: &$pool,
+                permission_id: &str,
+                rows: &[(String, String)],
+            ) -> Result<(), sqlx::Error> {
+                let delete_sql = format!(
+                    "DELETE FROM sys_permission_i18n WHERE permission_id = {}",
+                    D.placeholder(1)
+                );
+                let insert_sql = format!(
+                    "INSERT INTO sys_permission_i18n (permission_id, locale, {}) \
+                     VALUES ({}, {}, {})",
+                    D.quote("name"),
+                    D.placeholder(1),
+                    D.placeholder(2),
+                    D.placeholder(3)
+                );
+
+                let mut tx = pool.begin().await?;
+                sqlx::query(&delete_sql)
+                    .bind(permission_id)
+                    .execute(&mut *tx)
+                    .await?;
+                for (locale, name) in rows {
+                    sqlx::query(&insert_sql)
+                        .bind(permission_id)
+                        .bind(locale)
+                        .bind(name)
+                        .execute(&mut *tx)
+                        .await?;
+                }
+                tx.commit().await?;
+                Ok(())
+            }
+
+            /// Explicit cleanup so deletion works even where FK cascades are not
+            /// enforced by the engine or connection settings.
+            pub async fn delete_i18n(
+                pool: &$pool,
+                permission_id: &str,
+            ) -> Result<(), sqlx::Error> {
+                let sql = format!(
+                    "DELETE FROM sys_permission_i18n WHERE permission_id = {}",
+                    D.placeholder(1)
+                );
+                sqlx::query(&sql)
+                    .bind(permission_id)
+                    .execute(pool)
+                    .await?;
+                Ok(())
+            }
+
             pub async fn referenced_by_role(
                 pool: &$pool,
                 id: &str,
@@ -299,6 +382,29 @@ pub async fn update(db: &Db, permission: &Permission) -> Result<(), sqlx::Error>
 
 pub async fn delete(db: &Db, id: &str) -> Result<(), sqlx::Error> {
     dispatch_db!(db, delete(id))
+}
+
+pub async fn all_i18n(db: &Db) -> Result<Vec<PermissionI18n>, sqlx::Error> {
+    dispatch_db!(db, all_i18n())
+}
+
+pub async fn i18n_for(
+    db: &Db,
+    permission_id: &str,
+) -> Result<Vec<PermissionI18n>, sqlx::Error> {
+    dispatch_db!(db, i18n_for(permission_id))
+}
+
+pub async fn replace_i18n(
+    db: &Db,
+    permission_id: &str,
+    rows: &[(String, String)],
+) -> Result<(), sqlx::Error> {
+    dispatch_db!(db, replace_i18n(permission_id, rows))
+}
+
+pub async fn delete_i18n(db: &Db, permission_id: &str) -> Result<(), sqlx::Error> {
+    dispatch_db!(db, delete_i18n(permission_id))
 }
 
 pub async fn referenced_by_role(db: &Db, id: &str) -> Result<bool, sqlx::Error> {

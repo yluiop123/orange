@@ -21,7 +21,6 @@ public class Permission
 {
     public string Id { get; set; } = "";
     public string? Name { get; set; }
-    public string? NameEn { get; set; }
     public string Path { get; set; } = "";
     public string? Action { get; set; }
     public string Type { get; set; } = "";
@@ -32,6 +31,14 @@ public class Permission
     public string? CreatedBy { get; set; }
     public string? UpdatedBy { get; set; }
     public int Version { get; set; }
+}
+
+/// <summary>Localized display name of a permission, one row per locale.</summary>
+public class PermissionI18n
+{
+    public string PermissionId { get; set; } = "";
+    public string Locale { get; set; } = "";
+    public string Name { get; set; } = "";
 }
 
 public class Role

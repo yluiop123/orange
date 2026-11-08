@@ -105,10 +105,10 @@ curl -s http://127.0.0.1:8000/openapi.json | head
 
 ## 数据库设计
 
-所有引擎共享同一套逻辑模型：10 张表，全部以 `sys_` 为前缀——`sys_group`、
-`sys_permission`、`sys_role`、`sys_role_permission`、`sys_user`、
-`sys_user_permission`、`sys_user_role`、`sys_revoked_token`、`sys_login_attempt`、
-`sys_operation_log`。结构以 [database/postgres/ddl.sql](database/postgres/ddl.sql) 为
+所有引擎共享同一套逻辑模型：11 张表，全部以 `sys_` 为前缀——`sys_group`、
+`sys_permission`、`sys_permission_i18n`、`sys_role`、`sys_role_permission`、
+`sys_user`、`sys_user_permission`、`sys_user_role`、`sys_revoked_token`、
+`sys_login_attempt`、`sys_operation_log`。结构以 [database/postgres/ddl.sql](database/postgres/ddl.sql) 为
 基线，其他引擎目录都是它的移植；每个目录只有两个文件：`ddl.sql`（建表、主外键、索引、
 CHECK）和 `dml.sql`（种子数据）。
 
@@ -126,8 +126,9 @@ CHECK）和 `dml.sql`（种子数据）。
   追加 2 位；同级顺序就是编码的字典序，没有排序列。改编码等于改身份。
 - 权限身份是 `(type, path, action)`：PostgreSQL 用两个部分唯一索引保证，MySQL 与
   MariaDB 改用生成列 `action_key` 达到同样效果。
-- 菜单就是数据库行：`sys_permission` 保存 `name` 与 `name_en`，`/auth/menus` 按
-  `Locale` 请求头返回对应语言，前端不再携带菜单标题目录。
+- 菜单就是数据库行：`sys_permission.name` 是默认名称，`sys_permission_i18n` 每种语言
+  一行；`/auth/menus` 按 `Locale` 依次尝试精确语言、主语言和默认名称。前端不再携带
+  菜单标题目录。
 - `database/permissions.json` 是权限事实源。`pnpm run permissions:sync` 会重新生成
   七个方言 `dml.sql` 里的种子区块，任一文件都不会静默漂移。
 - PostgreSQL、MySQL、MariaDB、SQLite 在 CI 中实际运行；openGauss、OceanBase、GoldenDB

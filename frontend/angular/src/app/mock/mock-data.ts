@@ -3,6 +3,7 @@ import { PERMISSION_CATALOG, ROLE_PERMISSIONS } from '../core/permission-catalog
 
 export interface MockPermission extends PermissionRow {
   nameEn?: string;
+  translations?: Record<string, string>;
 }
 
 export interface MockUser extends User {
@@ -27,6 +28,7 @@ function permissionFromCatalog(entry: (typeof PERMISSION_CATALOG)[number]): Mock
     id: entry.id,
     name: entry.nameZh,
     nameEn: entry.nameEn,
+    translations: { zh: entry.nameZh, en: entry.nameEn },
     path: entry.path,
     action: entry.action,
     type: entry.type,

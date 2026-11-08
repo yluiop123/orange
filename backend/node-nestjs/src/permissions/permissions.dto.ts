@@ -1,3 +1,4 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsOptional,
@@ -5,7 +6,46 @@ import {
   Length,
   Matches,
   MaxLength,
+  ValidateBy,
+  ValidationOptions,
 } from 'class-validator';
+
+const LOCALE_KEY = /^[a-z]{2}(-[A-Za-z]{2})?$/;
+const TRANSLATION_NAME_MAX_LENGTH = 255;
+
+function isValidTranslations(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false;
+  }
+  return Object.entries(value).every(
+    ([locale, name]) =>
+      LOCALE_KEY.test(locale) &&
+      typeof name === 'string' &&
+      name.trim().length > 0 &&
+      name.length <= TRANSLATION_NAME_MAX_LENGTH,
+  );
+}
+
+function IsTranslations(validationOptions?: ValidationOptions): PropertyDecorator {
+  return ValidateBy(
+    {
+      name: 'isTranslations',
+      validator: {
+        validate: isValidTranslations,
+        defaultMessage: () =>
+          'translations 必须是 locale 到非空名称的对象，locale 形如 zh-CN，名称不超过 255 个字符',
+      },
+    },
+    validationOptions,
+  );
+}
+
+const TRANSLATIONS_METADATA = {
+  description: '按 locale 的权限名称；缺失时回退到 name',
+  type: 'object' as const,
+  additionalProperties: { type: 'string' as const },
+  example: { 'en-US': 'User management' },
+};
 
 export class AddChildPermissionDto {
   @IsString()
@@ -33,6 +73,11 @@ export class AddChildPermissionDto {
   @IsOptional()
   @IsString()
   parentId?: string;
+
+  @ApiPropertyOptional(TRANSLATIONS_METADATA)
+  @IsOptional()
+  @IsTranslations()
+  translations?: Record<string, string>;
 }
 
 export class EditPermissionDto {
@@ -57,6 +102,11 @@ export class EditPermissionDto {
   @IsOptional()
   @Matches(/^(menu|action|directory)$/, { message: '权限类型只能是 menu、action 或 directory' })
   type?: string;
+
+  @ApiPropertyOptional(TRANSLATIONS_METADATA)
+  @IsOptional()
+  @IsTranslations()
+  translations?: Record<string, string>;
 }
 
 export class QueryPermissionDto {

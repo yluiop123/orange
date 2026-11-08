@@ -64,9 +64,9 @@ Copy `.env.example` to `.env.local` (gitignored); the first line of `Program.cs`
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 63 |
-| C# source files | 54 (`src/Orange.Api` 46, `tests/Orange.Tests` 8) |
-| Test files | 8 `*Tests.cs` files plus 1 test csproj; 72 tests |
+| Version-controlled files | 69 |
+| C# source files | 60 (`src/Orange.Api` 48, `tests/Orange.Tests` 12) |
+| Test files | 12 `*Tests.cs` files plus 1 test csproj; 107 tests |
 
 Counting basis: `git ls-files backend/csharp`. The frontend-owned API snapshot is [frontend/openapi.json](../../frontend/openapi.json), dialects are in [database](../../database/), and the stack matrix is the [root README](../../README.md).
 

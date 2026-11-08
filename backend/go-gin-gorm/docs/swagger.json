@@ -2645,6 +2645,12 @@
                 "path": {
                     "type": "string"
                 },
+                "translations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "type": {
                     "type": "string"
                 }
@@ -2755,6 +2761,12 @@
                 },
                 "status": {
                     "type": "string"
+                },
+                "translations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "type": {
                     "type": "string"
@@ -2969,6 +2981,12 @@
                 },
                 "status": {
                     "type": "string"
+                },
+                "translations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "type": {
                     "type": "string"

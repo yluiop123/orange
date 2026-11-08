@@ -122,6 +122,7 @@ export default {
   'page.system.group.header.createTime': 'Created',
   'page.system.group.header.parentGroup': 'Parent organization',
   'page.system.permission.header.name': 'Name',
+  'page.system.permission.header.nameEn': 'English Name',
   'page.system.permission.header.id': 'Code',
   'page.system.permission.header.path': 'Path',
   'page.system.permission.header.action': 'Action',

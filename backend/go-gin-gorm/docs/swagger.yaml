@@ -81,6 +81,10 @@ definitions:
         type: string
       path:
         type: string
+      translations:
+        additionalProperties:
+          type: string
+        type: object
       type:
         type: string
     required:
@@ -160,6 +164,10 @@ definitions:
         type: string
       status:
         type: string
+      translations:
+        additionalProperties:
+          type: string
+        type: object
       type:
         type: string
     type: object
@@ -300,6 +308,10 @@ definitions:
         type: string
       status:
         type: string
+      translations:
+        additionalProperties:
+          type: string
+        type: object
       type:
         type: string
       updateTime:

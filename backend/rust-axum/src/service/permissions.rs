@@ -1,14 +1,14 @@
 //! Permission tree rules. Identity is `(type, path, action)` with a NULL action
 //! treated as a single value; action nodes cannot have children.
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use crate::db::Db;
 
 use crate::domain::dto::{
     AddChildPermissionReq, EditPermissionReq, PermissionBean, PermissionListQuery,
 };
-use crate::domain::entities::Permission;
+use crate::domain::entities::{Permission, PermissionI18n};
 use crate::domain::permission_shape::{
     normalise_action, validate_shape, TYPE_ACTION, TYPE_DIRECTORY, TYPE_MENU,
 };
@@ -16,13 +16,57 @@ use crate::domain::tree::{
     delete_order, has_enabled_descendant, subtree_ids, with_ancestor_ids,
 };
 use crate::domain::tree_code::PERMISSION_CODE;
-use crate::domain::validate::{check_path, check_path_length, check_status, require_text};
+use crate::domain::validate::{
+    check_path, check_path_length, check_status, check_translation_name, is_locale, require_text,
+};
 use crate::error::AppError;
 use crate::repository::permissions as permission_repo;
 
 use super::{non_blank, pattern, status_filter};
 
-pub fn to_bean(permission: &Permission) -> PermissionBean {
+type TranslationMap = BTreeMap<String, String>;
+
+fn by_permission(rows: Vec<PermissionI18n>) -> HashMap<String, TranslationMap> {
+    let mut grouped: HashMap<String, TranslationMap> = HashMap::new();
+    for row in rows {
+        grouped
+            .entry(row.permission_id)
+            .or_default()
+            .insert(row.locale, row.name);
+    }
+    grouped
+}
+
+fn to_map(rows: Vec<PermissionI18n>) -> TranslationMap {
+    rows.into_iter()
+        .map(|row| (row.locale, row.name))
+        .collect()
+}
+
+/// Validates requested translations and flattens them into repository rows.
+/// Locale keys follow `^[a-z]{2}(-[A-Za-z]{2})?$`; names are non-blank and
+/// at most 255 characters.
+fn translation_rows(
+    translations: Option<&TranslationMap>,
+) -> Result<Vec<(String, String)>, AppError> {
+    let Some(translations) = translations else {
+        return Ok(Vec::new());
+    };
+    let mut rows = Vec::with_capacity(translations.len());
+    for (locale, name) in translations {
+        let locale = locale.trim();
+        if !is_locale(locale) {
+            return Err(AppError::param(
+                "翻译语言代码格式不正确，应为 zh 或 en-US 形式",
+            ));
+        }
+        check_translation_name(name)?;
+        rows.push((locale.to_string(), name.trim().to_string()));
+    }
+    Ok(rows)
+}
+
+fn to_bean(permission: &Permission, translations: TranslationMap) -> PermissionBean {
     PermissionBean {
         id: permission.id.clone(),
         name: permission.name.clone(),
@@ -33,6 +77,7 @@ pub fn to_bean(permission: &Permission) -> PermissionBean {
         parent_id: permission.parent_id.clone(),
         create_time: permission.create_time,
         update_time: permission.update_time,
+        translations,
     }
 }
 
@@ -77,8 +122,24 @@ pub async fn list(
     )
     .await?;
 
+    let translations = by_permission(permission_repo::all_i18n(pool).await?);
+    let beans = |nodes: &[Permission]| -> Vec<PermissionBean> {
+        nodes
+            .iter()
+            .map(|permission| {
+                to_bean(
+                    permission,
+                    translations
+                        .get(&permission.id)
+                        .cloned()
+                        .unwrap_or_default(),
+                )
+            })
+            .collect()
+    };
+
     if !text_filter {
-        return Ok(matched.iter().map(to_bean).collect());
+        return Ok(beans(&matched));
     }
 
     let all = permission_repo::all(pool).await?;
@@ -89,14 +150,15 @@ pub async fn list(
         .filter(|permission| ids.contains(&permission.id))
         .collect();
     result.sort_by(|left, right| left.id.cmp(&right.id));
-    Ok(result.iter().map(to_bean).collect())
+    Ok(beans(&result))
 }
 
 pub async fn get(pool: &Db, id: &str) -> Result<PermissionBean, AppError> {
     let permission = permission_repo::find(pool, id)
         .await?
         .ok_or_else(|| AppError::business("权限不存在"))?;
-    Ok(to_bean(&permission))
+    let translations = to_map(permission_repo::i18n_for(pool, id).await?);
+    Ok(to_bean(&permission, translations))
 }
 
 pub async fn create(
@@ -113,6 +175,7 @@ pub async fn create(
     let kind = require_text(req.kind.as_deref(), "权限类型不能为空")?;
     let parent_id = non_blank(req.parent_id.as_deref());
     let action = normalise_action(req.action.as_deref());
+    let translations = translation_rows(req.translations.as_ref())?;
 
     PERMISSION_CODE.validate(&id, parent_id)?;
     validate_shape(&kind, action.as_deref())?;
@@ -135,7 +198,6 @@ pub async fn create(
     let permission = Permission {
         id,
         name: Some(name),
-        name_en: None,
         path,
         action,
         kind,
@@ -145,11 +207,15 @@ pub async fn create(
         update_time: None,
     };
     permission_repo::create(pool, &permission).await?;
+    if !translations.is_empty() {
+        permission_repo::replace_i18n(pool, &permission.id, &translations).await?;
+    }
 
     let saved = permission_repo::find(pool, &permission.id)
         .await?
         .ok_or_else(|| AppError::business("权限不存在"))?;
-    Ok(to_bean(&saved))
+    let translations = to_map(permission_repo::i18n_for(pool, &saved.id).await?);
+    Ok(to_bean(&saved, translations))
 }
 
 pub async fn edit(
@@ -160,6 +226,12 @@ pub async fn edit(
     let mut permission = permission_repo::find(pool, id)
         .await?
         .ok_or_else(|| AppError::business("权限不存在"))?;
+
+    // `None` keeps the current rows; `Some` replaces them wholesale.
+    let translations = match req.translations.as_ref() {
+        Some(map) => Some(translation_rows(Some(map))?),
+        None => None,
+    };
 
     let name = match req.name.as_deref() {
         Some(value) => {
@@ -228,6 +300,9 @@ pub async fn edit(
     permission.status = status;
 
     permission_repo::update(pool, &permission).await?;
+    if let Some(translations) = translations {
+        permission_repo::replace_i18n(pool, id, &translations).await?;
+    }
     Ok(())
 }
 
@@ -254,7 +329,62 @@ pub async fn delete(pool: &Db, ids: &[String]) -> Result<(), AppError> {
     }
 
     for permission_id in delete_order(&all, &subtree) {
+        permission_repo::delete_i18n(pool, &permission_id).await?;
         permission_repo::delete(pool, &permission_id).await?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn translations(pairs: &[(&str, &str)]) -> TranslationMap {
+        pairs
+            .iter()
+            .map(|(locale, name)| (locale.to_string(), name.to_string()))
+            .collect()
+    }
+
+    #[test]
+    fn valid_translations_become_repository_rows() {
+        let map = translations(&[("zh", " 仪表盘 "), ("en-US", "Dashboard")]);
+        let rows = translation_rows(Some(&map)).expect("valid translations");
+
+        assert_eq!(
+            rows,
+            vec![
+                ("en-US".to_string(), "Dashboard".to_string()),
+                ("zh".to_string(), "仪表盘".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn omitted_translations_produce_no_rows() {
+        assert!(translation_rows(None).expect("None is valid").is_empty());
+        assert!(translation_rows(Some(&TranslationMap::new()))
+            .expect("empty map is valid")
+            .is_empty());
+    }
+
+    #[test]
+    fn invalid_locales_are_rejected() {
+        for locale in ["EN", "e", "eng", "en_US", "en-USA", ""] {
+            let map = translations(&[(locale, "Name")]);
+            assert!(
+                translation_rows(Some(&map)).is_err(),
+                "locale {locale:?} should be rejected"
+            );
+        }
+    }
+
+    #[test]
+    fn blank_and_oversized_names_are_rejected() {
+        let blank = translations(&[("en", "   ")]);
+        assert!(translation_rows(Some(&blank)).is_err());
+
+        let oversized = translations(&[("en", &"x".repeat(256))]);
+        assert!(translation_rows(Some(&oversized)).is_err());
+    }
 }

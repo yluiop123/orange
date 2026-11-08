@@ -132,6 +132,9 @@ public sealed class PermissionBean
     public string? ParentId { get; set; }
     public DateTimeOffset? CreateTime { get; set; }
     public DateTimeOffset? UpdateTime { get; set; }
+
+    /// <summary>Locale-to-name map; callers fall back to <see cref="Name"/>.</summary>
+    public Dictionary<string, string> Translations { get; set; } = new();
 }
 
 public sealed class OperationLogBean

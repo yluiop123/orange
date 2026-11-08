@@ -1,11 +1,14 @@
 package com.orange.service.system.impl;
 
 import com.orange.domain.common.BusinessException;
+import com.orange.domain.system.permission.PermissionI18nPolicy;
 import com.orange.domain.system.permission.req.*;
 import com.orange.domain.system.permission.policy.PermissionShapePolicy;
 import com.orange.domain.system.tree.TreeCodePolicy;
 import com.orange.domain.system.tree.TreeIndex;
 import com.orange.entity.Permission;
+import com.orange.entity.PermissionI18n;
+import com.orange.repository.system.PermissionI18nRepository;
 import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
@@ -21,8 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +41,9 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Autowired
     private PermissionRepository permissionRepository;
+
+    @Autowired
+    private PermissionI18nRepository permissionI18nRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -102,6 +110,10 @@ public class PermissionServiceImpl implements PermissionService {
             throw new BusinessException("权限已被用户引用，不能删除");
         }
 
+        // 显式删除翻译行：即使数据库外键声明了级联，也不依赖具体引擎的实现
+        permissionI18nRepository.deleteByPermissionIdIn(subtreeIds);
+        permissionI18nRepository.flush();
+
         // 先删深层节点，避免父子同时选中时父节点先删导致子节点找不到
         for (Permission permission : index.deleteOrder(subtreeIds)) {
             if (permissionRepository.existsById(permission.getId())) {
@@ -114,6 +126,8 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     @Transactional
     public Permission addChild(AddChildPermissionReq req) {
+        Map<String, String> translations =
+                PermissionI18nPolicy.normalize(req.getTranslations());
         String id = req.getId();
         String parentId = StringUtils.trimToNull(req.getParentId());
         String path = requirePath(req.getPath());
@@ -138,7 +152,10 @@ public class PermissionServiceImpl implements PermissionService {
         permission.setType(req.getType());
         permission.setAction(action);
         permission.setParentId(parent == null ? null : parent.getId());
-        return permissionRepository.save(permission);
+        // 先落库权限本身，保证翻译行插入时外键已可解析
+        permissionRepository.saveAndFlush(permission);
+        saveTranslations(permission.getId(), translations);
+        return permission;
     }
 
     @Override
@@ -147,6 +164,10 @@ public class PermissionServiceImpl implements PermissionService {
         if (req.getId() == null) {
             throw new BusinessException("权限ID不能为空");
         }
+        // translations 为 null 表示“不修改”，空 Map 表示“清空全部翻译”
+        Map<String, String> translations = req.getTranslations() == null
+                ? null
+                : PermissionI18nPolicy.normalize(req.getTranslations());
         Optional<Permission> optionalPermission = permissionRepository.findById(req.getId());
         if(optionalPermission.isEmpty()){
             throw new BusinessException("权限不存在");
@@ -180,6 +201,9 @@ public class PermissionServiceImpl implements PermissionService {
             }
             permission.setStatus(req.getStatus());
         }
+        if (translations != null) {
+            replaceTranslations(permission.getId(), translations);
+        }
         return permission;
     }
 
@@ -198,6 +222,48 @@ public class PermissionServiceImpl implements PermissionService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
         return permissionRepository.findAll(spec, Sort.by("id"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, String> queryTranslations(String permissionId) {
+        Map<String, String> translations = new LinkedHashMap<>();
+        for (PermissionI18n row :
+                permissionI18nRepository.findByPermissionIdOrderByLocaleAsc(permissionId)) {
+            translations.put(row.getLocale(), row.getName());
+        }
+        return translations;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Map<String, String>> queryTranslations(List<String> permissionIds) {
+        if (permissionIds == null || permissionIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, Map<String, String>> result = new LinkedHashMap<>();
+        for (PermissionI18n row : permissionI18nRepository
+                .findByPermissionIdInOrderByPermissionIdAscLocaleAsc(permissionIds)) {
+            result.computeIfAbsent(row.getPermissionId(), key -> new LinkedHashMap<>())
+                    .put(row.getLocale(), row.getName());
+        }
+        return result;
+    }
+
+    private void saveTranslations(String permissionId, Map<String, String> translations) {
+        if (translations.isEmpty()) {
+            return;
+        }
+        List<PermissionI18n> rows = translations.entrySet().stream()
+                .map(entry -> new PermissionI18n(permissionId, entry.getKey(), entry.getValue()))
+                .toList();
+        permissionI18nRepository.saveAll(rows);
+    }
+
+    /** 整体替换：先删后插，避免复合主键冲突。 */
+    private void replaceTranslations(String permissionId, Map<String, String> translations) {
+        permissionI18nRepository.deleteByPermissionId(permissionId);
+        saveTranslations(permissionId, translations);
     }
 
     /**

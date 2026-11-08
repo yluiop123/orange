@@ -663,6 +663,10 @@ export interface components {
              * @description 更新时间
              */
             updateTime?: string;
+            /** @description 按 locale 的权限名称；缺失时回退到 name */
+            translations?: {
+                [key: string]: string;
+            };
         };
         /** @description 通用响应体 */
         ResponseListPermissionBean: {
@@ -723,6 +727,10 @@ export interface components {
              * @example menu
              */
             type?: string;
+            /** @description 按 locale 的权限名称；缺失时回退到 name */
+            translations?: {
+                [key: string]: string;
+            };
         };
         /** @description 添加子权限请求参数 */
         AddChildPermissionReq: {
@@ -756,6 +764,10 @@ export interface components {
              * @example 01
              */
             parentId?: string;
+            /** @description 按 locale 的权限名称；缺失时回退到 name */
+            translations?: {
+                [key: string]: string;
+            };
         };
         /** @description 通用响应体 */
         ResponsePermissionBean: {
@@ -2469,7 +2481,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                /** @description zh（默认）或 en；决定菜单名使用 name 还是 name_en */
+                /** @description 菜单名从 sys_permission_i18n 解析；精确语言 → 主语言 → 默认 name */
                 Locale?: "zh" | "en";
             };
             path?: never;

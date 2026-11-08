@@ -48,6 +48,7 @@ export default {
     'page.system.group.header.parentGroup': 'Parent Group',
     'page.system.group.header.brotherGroup': 'Brother Group',
     'page.system.permission.header.name': 'Name',
+    'page.system.permission.header.nameEn': 'English Name',
     'page.system.permission.header.id': 'Id',
     'page.system.permission.header.path': 'Path',
     'page.system.permission.header.action': 'Action',

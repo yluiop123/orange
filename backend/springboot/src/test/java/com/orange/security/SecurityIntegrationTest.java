@@ -10,6 +10,7 @@ import com.orange.entity.Permission;
 import com.orange.entity.Role;
 import com.orange.entity.User;
 import com.orange.repository.system.GroupRepository;
+import com.orange.repository.system.PermissionI18nRepository;
 import com.orange.repository.system.PermissionRepository;
 import com.orange.repository.system.RoleRepository;
 import com.orange.repository.system.UserRepository;
@@ -81,6 +82,9 @@ class SecurityIntegrationTest {
     private PermissionRepository permissionRepository;
 
     @Autowired
+    private PermissionI18nRepository permissionI18nRepository;
+
+    @Autowired
     private RoleRepository roleRepository;
 
     @Autowired
@@ -137,6 +141,20 @@ class SecurityIntegrationTest {
         assertThat(roots.isArray()).isTrue();
         assertThat(roots.size()).isEqualTo(6);
         assertThat(roots.get(0).path("path").asText()).isEqualTo("/dashboard");
+
+        ResponseEntity<String> englishMenus = authorizedGet(
+                "/api/v1/auth/menus", login.token(), "en-US");
+        assertThat(englishMenus.getStatusCode()).isEqualTo(HttpStatus.OK);
+        JsonNode englishRoots = JSON.readTree(englishMenus.getBody()).path("data");
+        assertThat(englishRoots.get(0).path("name").asText()).isEqualTo("Dashboard");
+        assertThat(englishRoots.get(0).path("children").get(0).path("name").asText())
+                .isEqualTo("Normal Dashboard");
+
+        ResponseEntity<String> languageOnly = authorizedGet(
+                "/api/v1/auth/menus", login.token(), "zh-CN");
+        assertThat(languageOnly.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(JSON.readTree(languageOnly.getBody()).path("data").get(0).path("name").asText())
+                .isEqualTo(roots.get(0).path("name").asText());
     }
 
     @Test
@@ -320,6 +338,69 @@ class SecurityIntegrationTest {
                 permissionService.deletePermissions(List.of(code));
             }
         }
+    }
+
+    @Test
+    void permissionTranslationsAreCreatedKeptReplacedAndDeleted() {
+        String code = String.format("96%03d",
+                Math.floorMod(UUID.randomUUID().hashCode(), 1000));
+
+        AddChildPermissionReq invalid = new AddChildPermissionReq();
+        invalid.setId(code);
+        invalid.setName("Invalid Translation");
+        invalid.setPath("/__i18n__/" + code);
+        invalid.setType("menu");
+        invalid.setTranslations(Map.of("english", "bad locale"));
+        assertThatThrownBy(() -> permissionService.addChild(invalid))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("语言标签格式不正确");
+        assertThat(permissionRepository.existsById(code)).isFalse();
+
+        AddChildPermissionReq req = new AddChildPermissionReq();
+        req.setId(code);
+        req.setName("I18n Default " + code);
+        req.setPath("/__i18n__/" + code);
+        req.setType("menu");
+        req.setTranslations(Map.of("en", "I18n English", "zh-CN", "本地化名称"));
+        permissionService.addChild(req);
+
+        try {
+            assertThat(permissionService.queryTranslations(code))
+                    .containsEntry("en", "I18n English")
+                    .containsEntry("zh-CN", "本地化名称");
+
+            // translations 为 null：保留现有翻译，只改默认名称
+            EditPermissionReq rename = new EditPermissionReq();
+            rename.setId(code);
+            rename.setName("I18n Renamed " + code);
+            permissionService.editPermission(rename);
+            assertThat(permissionService.queryTranslations(code))
+                    .containsOnlyKeys("en", "zh-CN");
+
+            // 显式提供 translations：整体替换
+            EditPermissionReq replace = new EditPermissionReq();
+            replace.setId(code);
+            replace.setTranslations(Map.of("en-US", "Replaced English"));
+            permissionService.editPermission(replace);
+            assertThat(permissionService.queryTranslations(code))
+                    .containsExactly(Map.entry("en-US", "Replaced English"));
+
+            EditPermissionReq invalidEdit = new EditPermissionReq();
+            invalidEdit.setId(code);
+            invalidEdit.setTranslations(Map.of("en", "   "));
+            assertThatThrownBy(() -> permissionService.editPermission(invalidEdit))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("本地化名称不能为空");
+            assertThat(permissionService.queryTranslations(code))
+                    .containsExactly(Map.entry("en-US", "Replaced English"));
+        } finally {
+            if (permissionRepository.existsById(code)) {
+                permissionService.deletePermissions(List.of(code));
+            }
+        }
+
+        assertThat(permissionRepository.existsById(code)).isFalse();
+        assertThat(permissionI18nRepository.findByPermissionIdOrderByLocaleAsc(code)).isEmpty();
     }
 
     @Test
@@ -545,6 +626,13 @@ class SecurityIntegrationTest {
     private ResponseEntity<String> authorizedGet(String path, String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
+        return rest.exchange(path, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    }
+
+    private ResponseEntity<String> authorizedGet(String path, String token, String locale) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        headers.set("Locale", locale);
         return rest.exchange(path, HttpMethod.GET, new HttpEntity<>(headers), String.class);
     }
 

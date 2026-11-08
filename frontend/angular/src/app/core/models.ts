@@ -85,6 +85,7 @@ export interface Group {
 export interface PermissionRow {
   id: string;
   name: string;
+  translations?: Record<string, string>;
   path: string;
   type: PermissionType;
   action?: string | null;

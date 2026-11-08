@@ -55,9 +55,9 @@
 - Angular 在 Shell 上挂 `authGuard`、`identityGuard`，每条 `page()` 路由挂
   `permissionGuard`。
 
-菜单标题统一来自 `GET /api/v1/auth/menus`：后端在 `sys_permission` 里保存 `name` 与
-`name_en`，按 `Locale` 请求头返回对应语言，前端不再维护菜单标题目录。只有图标仍在
-本地按路径映射，因为权限表没有图标列。
+菜单标题统一来自 `GET /api/v1/auth/menus`：后端用 `sys_permission.name` 作默认名，
+`sys_permission_i18n` 按语言保存名称，并按 `Locale` 请求头返回对应语言，前端不再维护
+菜单标题目录。只有图标仍在本地按路径映射，因为权限表没有图标列。
 
 角色切换只是前端视图过滤：把用户权限与所选角色的权限合并后重算菜单和操作按钮，
 从不改变后端 Authority。切到不含当前路径的角色时，落到 `firstVisibleLeaf` 或
@@ -153,7 +153,7 @@ key 分别是 `theme-mode`/`theme-color`、`orange.theme`/`orange.color` 与
    `database/*/dml.sql` 重新生成种子区块，并更新 React/Vue 的 mock 目录；Angular 的
    `core/permission-catalog.ts` 只服务 mock，需要手改。
 4. 补页面级翻译（React 的 `page.reports.sales.*`、Vue 的页面 key、Angular 的
-   `i18n.service.ts`）。菜单标题不在前端翻译：在权限种子里填 `name` 与 `name_en`。
+   `i18n.service.ts`）。菜单标题不在前端翻译：在权限种子里填 `name` 与 `translations`。
 5. 用设计 token 写样式，操作按钮包进 `ActionAuth`（React/Vue）或调用
    `auth.canAct(path, 'add')`（Angular）。
 6. 跑该栈的单测与类型检查，再分别用 `super` 账号和缺少该权限的角色验证页面。

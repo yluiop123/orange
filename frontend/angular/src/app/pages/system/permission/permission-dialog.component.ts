@@ -71,6 +71,11 @@ const PERMISSION_TYPES = ['directory', 'menu', 'action'] as const;
             </mat-form-field>
 
             <mat-form-field appearance="outline">
+              <mat-label>{{ 'page.system.permission.header.nameEn' | t }}</mat-label>
+              <input matInput formControlName="nameEn" autocomplete="off" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
               <mat-label>{{ 'page.system.permission.header.path' | t }}</mat-label>
               <input matInput formControlName="path" autocomplete="off" placeholder="/system/user" />
               @if (form.controls.path.touched && form.controls.path.invalid) {
@@ -163,6 +168,7 @@ export class PermissionDialogComponent {
     {
       id: ['', [Validators.required, (control: AbstractControl) => this.codeValidator(control)]],
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      nameEn: [''],
       path: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9/]{2,}$/)]],
       type: ['menu' as (typeof PERMISSION_TYPES)[number], Validators.required],
       action: [''],
@@ -180,6 +186,7 @@ export class PermissionDialogComponent {
           this.form.patchValue({
             id: permission.id,
             name: permission.name,
+            nameEn: permission.translations?.['en'] ?? '',
             path: permission.path,
             type: permission.type,
             action: permission.action ?? '',
@@ -225,9 +232,13 @@ export class PermissionDialogComponent {
     if (this.form.invalid) return;
     this.pending.set(true);
     const value = this.form.getRawValue();
+    const nameEn = value.nameEn.trim();
+    const translations: Record<string, string> = { zh: value.name };
+    if (nameEn) translations['en'] = nameEn;
     const payload = {
       id: value.id,
       name: value.name,
+      translations,
       path: value.path,
       type: value.type,
       action: value.type === 'action' ? value.action : null,

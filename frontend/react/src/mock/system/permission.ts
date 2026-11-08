@@ -8,6 +8,8 @@ type Locale = "zh" | "en";
 
 type Permission = {
   name: string;
+  /** Localized names keyed by locale; `name` is the default/fallback. */
+  translations?: Record<string, string>;
   id: string;
   path?: string;
   type: "menu" | "directory" | "action";
@@ -101,6 +103,7 @@ export function getPermissionList(locale: string): Permission[] {
     .map((permission) => ({
       id: permission.id,
       name: permission.name[lang] ?? permission.name.zh,
+      translations: { ...permission.name },
       path: permission.path,
       type: permission.type as Permission["type"],
       action: permission.action ?? undefined,
@@ -227,9 +230,11 @@ const handlers = [
     if (codeError) {
       return HttpResponse.json({ code: 40001, message: codeError }, { status: 400 });
     }
+    const name = body.name || id;
     const permission: Permission = {
       id,
-      name: body.name || id,
+      name,
+      translations: body.translations ?? { [locale]: name },
       path: body.path,
       type: (body.type as Permission["type"]) || "menu",
       action: body.action,
@@ -366,6 +371,9 @@ const handlers = [
 
     updatePermission(params.id, {
       name: body.name !== undefined ? body.name : permission.name,
+      translations: body.translations !== undefined
+        ? body.translations
+        : permission.translations,
       path,
       type,
       action,

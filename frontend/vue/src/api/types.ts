@@ -145,6 +145,7 @@ export type PermissionTypeValue = 'menu' | 'directory' | 'action'
 export type Permission = {
   id: string
   name: string
+  translations?: Record<string, string>
   path: string
   action?: string | null
   type?: PermissionTypeValue
@@ -165,6 +166,7 @@ export type PermissionQuery = {
 export type PermissionPayload = {
   id?: string
   name?: string
+  translations?: Record<string, string>
   path?: string
   action?: string
   type?: PermissionTypeValue

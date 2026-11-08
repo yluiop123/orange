@@ -80,6 +80,7 @@ export interface GroupPayload {
 export interface PermissionPayload {
   id?: string;
   name?: string;
+  translations?: Record<string, string>;
   path?: string;
   type?: 'menu' | 'directory' | 'action';
   action?: string | null;

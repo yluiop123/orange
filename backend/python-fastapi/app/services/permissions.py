@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 from sqlalchemy import delete, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.errors import conflict, invalid, not_found
-from app.models import Permission, sys_role_permission, sys_user_permission
+from app.models import (
+    Permission,
+    PermissionI18n,
+    sys_role_permission,
+    sys_user_permission,
+)
 from app.models.entities import utcnow
 from app.policies.permission_shape import validate as validate_shape
 from app.policies.tree_code import PERMISSION as PERMISSION_CODE_POLICY
@@ -29,11 +34,21 @@ def serialize(permission: Permission) -> dict:
         "parentId": permission.parent_id,
         "createTime": permission.create_time,
         "updateTime": permission.update_time,
+        "translations": {
+            translation.locale: translation.name
+            for translation in permission.translations
+        },
     }
 
 
 def _all(db: Session) -> list[Permission]:
-    return list(db.scalars(select(Permission).order_by(Permission.id)))
+    return list(
+        db.scalars(
+            select(Permission)
+            .options(selectinload(Permission.translations))
+            .order_by(Permission.id)
+        )
+    )
 
 
 def _index(permissions: list[Permission]) -> TreeIndex[Permission]:
@@ -48,7 +63,7 @@ def list_permissions(
     status: str | None,
     type_: str | None,
 ) -> list[dict]:
-    statement = select(Permission)
+    statement = select(Permission).options(selectinload(Permission.translations))
     conditions = []
     if permission_id:
         conditions.append(prefix_filter(Permission.id, permission_id))
@@ -87,7 +102,11 @@ def list_permissions(
 
 
 def get_permission(db: Session, permission_id: str) -> Permission:
-    permission = db.get(Permission, permission_id)
+    permission = db.get(
+        Permission,
+        permission_id,
+        options=[selectinload(Permission.translations)],
+    )
     if permission is None:
         raise not_found("权限不存在")
     return permission
@@ -105,6 +124,7 @@ def create_permission(
     action: str | None,
     type_: str,
     parent_id: str | None,
+    translations: dict[str, str] | None,
     actor: str,
 ) -> dict:
     parent = (parent_id or "").strip() or None
@@ -137,6 +157,10 @@ def create_permission(
         updated_by=actor,
         version=0,
     )
+    permission.translations = [
+        PermissionI18n(locale=locale, name=translation_name)
+        for locale, translation_name in (translations or {}).items()
+    ]
     db.add(permission)
     db.commit()
     db.refresh(permission)
@@ -151,6 +175,7 @@ def update_permission(
     action: str | None,
     status: str | None,
     type_: str | None,
+    translations: dict[str, str] | None,
     actor: str,
 ) -> dict:
     permission = get_permission(db, permission_id)
@@ -183,6 +208,22 @@ def update_permission(
         if disabling:
             _assert_no_enabled_descendants(db, permission.id)
         permission.status = status
+
+    if translations is not None:
+        # Omitted translations keep every row; a supplied map replaces them all.
+        db.execute(
+            delete(PermissionI18n).where(PermissionI18n.permission_id == permission.id)
+        )
+        db.flush()
+        db.add_all(
+            PermissionI18n(
+                permission_id=permission.id,
+                locale=locale,
+                name=translation_name,
+            )
+            for locale, translation_name in translations.items()
+        )
+        db.expire(permission, ["translations"])
 
     permission.updated_by = actor
     permission.update_time = utcnow()
@@ -223,6 +264,7 @@ def delete_permissions(db: Session, ids: list[str], actor: str) -> None:
     db.execute(
         delete(sys_user_permission).where(sys_user_permission.c.permission_id.in_(subtree))
     )
+    db.execute(delete(PermissionI18n).where(PermissionI18n.permission_id.in_(subtree)))
     for permission in index.delete_order(subtree):
         db.execute(delete(Permission).where(Permission.id == permission.id))
         db.flush()

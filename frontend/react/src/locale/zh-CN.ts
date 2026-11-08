@@ -49,6 +49,7 @@ export default {
     'page.system.group.header.parentGroup': '上级组织',
     'page.system.group.header.brotherGroup': '同级组织',
     'page.system.permission.header.name': '名称',
+    'page.system.permission.header.nameEn': '英文名称',
     'page.system.permission.header.id': '编码',
     'page.system.permission.header.path': '路径',
     'page.system.permission.header.action': '操作',

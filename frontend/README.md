@@ -61,9 +61,9 @@ Guards live where each router puts them:
 - Angular attaches `authGuard` and `identityGuard` to the shell, and
   `permissionGuard` to every `page()` route.
 
-Menu titles come from `GET /api/v1/auth/menus`. The backend stores `name` and
-`name_en` on `sys_permission` and returns the one matching the `Locale` header,
-so no frontend ships a menu-title catalogue. Only icons are mapped locally by
+Menu titles come from `GET /api/v1/auth/menus`. The backend stores a default
+`sys_permission.name` plus per-locale rows in `sys_permission_i18n` and returns
+the match for the `Locale` header, so no frontend ships a menu-title catalogue. Only icons are mapped locally by
 path, because the permission table has no icon column.
 
 Switching roles is a UI-only filter: user permissions are merged with the
@@ -176,7 +176,7 @@ equivalents. They follow dark mode and all seven palettes. Never hard-code
    updated by hand.
 4. Add page-level translations (React `page.reports.sales.*`, Vue page keys,
    Angular `i18n.service.ts`). Menu titles are not translated on the frontend:
-   set `name` and `name_en` in the permission seed instead.
+   set `name` and the `translations` map in the permission seed instead.
 5. Style with design tokens and wrap actions in `ActionAuth` (React/Vue) or
    `auth.canAct(path, 'add')` (Angular).
 6. Run the stack's tests and typecheck, then verify the page as a `super` user

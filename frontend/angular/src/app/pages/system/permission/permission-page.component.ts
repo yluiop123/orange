@@ -49,6 +49,10 @@ export class PermissionPageComponent {
 
   readonly formatDateTime = formatDateTime;
   readonly path = '/system/permission';
+
+  permissionName(node: PermissionRow): string {
+    return node.translations?.[this.i18n.locale()] ?? node.name;
+  }
   readonly types = ['all', 'directory', 'menu', 'action'];
 
   readonly columnDefs = [

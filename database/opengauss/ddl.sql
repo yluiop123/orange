@@ -60,7 +60,6 @@ COMMENT ON COLUMN public.sys_group.update_time IS '更新时间';
 CREATE TABLE public.sys_permission (
 	id varchar NOT NULL, -- 权限id
 	"name" varchar NULL, -- 权限名
-	name_en varchar NULL, -- 权限英文名
 	"path" varchar NOT NULL, -- 权限路径
 	"action" varchar NULL, -- 权限动作；menu/directory 必须为 NULL
 	"type" varchar NOT NULL, -- 权限类型
@@ -87,6 +86,14 @@ CREATE TABLE public.sys_permission (
 		)
 	),
 	CONSTRAINT fk_sys_permission_parent FOREIGN KEY (parent_id) REFERENCES public.sys_permission(id) ON DELETE RESTRICT
+);
+
+CREATE TABLE public.sys_permission_i18n (
+	permission_id varchar NOT NULL, -- 权限id
+	locale varchar(16) NOT NULL, -- 语言标签
+	"name" varchar(255) NOT NULL, -- 本地化名称
+	CONSTRAINT sys_permission_i18n_pkey PRIMARY KEY (permission_id, locale),
+	CONSTRAINT fk_sys_permission_i18n_permission FOREIGN KEY (permission_id) REFERENCES public.sys_permission(id) ON DELETE CASCADE
 );
 CREATE INDEX idx_sys_permission_parent ON public.sys_permission(parent_id, id);
 -- 权限身份唯一：action 权限按 (type, path, action)，菜单/目录按 (type, path)

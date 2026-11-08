@@ -109,9 +109,9 @@ Replace the port with the one from the matrix to use another backend.
 
 ## Database design
 
-One logical model, ten tables, all prefixed `sys_`: `sys_group`,
-`sys_permission`, `sys_role`, `sys_role_permission`, `sys_user`,
-`sys_user_permission`, `sys_user_role`, `sys_revoked_token`,
+One logical model, eleven tables, all prefixed `sys_`: `sys_group`,
+`sys_permission`, `sys_permission_i18n`, `sys_role`, `sys_role_permission`,
+`sys_user`, `sys_user_permission`, `sys_user_role`, `sys_revoked_token`,
 `sys_login_attempt` and `sys_operation_log`. Structure is canonical in
 [database/postgres/ddl.sql](database/postgres/ddl.sql); every other engine
 directory is a port. Each directory contains exactly `ddl.sql` (tables, keys,
@@ -134,9 +134,10 @@ indexes, checks) and `dml.sql` (seed data).
 - Permission identity is `(type, path, action)`. PostgreSQL enforces it with
   two partial unique indexes; MySQL and MariaDB use a generated `action_key`
   column instead.
-- Menus are database rows: `sys_permission` stores `name` and `name_en`, and
-  `/auth/menus` returns the one matching the `Locale` header. The frontend ships
-  no menu-title catalogue.
+- Menus are database rows: `sys_permission.name` is the default and
+  `sys_permission_i18n` stores one row per locale. `/auth/menus` resolves the
+  `Locale` header through exact locale, language and default-name fallbacks. The
+  frontend ships no menu-title catalogue.
 - `database/permissions.json` is the permission source of truth.
   `pnpm run permissions:sync` regenerates the generated seed block in all seven
   dialect `dml.sql` files, so none of them can drift silently.

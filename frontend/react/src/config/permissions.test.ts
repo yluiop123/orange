@@ -108,13 +108,36 @@ describe("permission catalog", () => {
     )?.[0];
     expect(block, `${dialect}/dml.sql is missing generated permission markers`).toBeTruthy();
 
-    const ids = [...(block ?? "").matchAll(/\('([^']*)','[^']*','[^']*','([^']*)'/g)];
+    const ids = [...(block ?? "").matchAll(/\('([^']*)','[^']*','([^']*)'/g)];
     expect(ids).toHaveLength(catalog.permissions.length);
     for (const permission of catalog.permissions) {
       expect(
         ids.some((match) => match[1] === permission.id && match[2] === permission.path),
         `${dialect}/dml.sql missing ${permission.id} ${permission.path}`,
       ).toBe(true);
+    }
+
+    const i18nBlock = dml.match(
+      /-- BEGIN GENERATED PERMISSION_I18N[\s\S]*?-- END GENERATED PERMISSION_I18N/,
+    )?.[0];
+    expect(i18nBlock, `${dialect}/dml.sql is missing generated i18n markers`).toBeTruthy();
+    const translations = [
+      ...(i18nBlock ?? "").matchAll(/\('([^']*)','([^']*)','([^']*)'\)/g),
+    ];
+    const expectedTranslations = catalog.permissions.reduce(
+      (total, permission) => total + Object.keys(permission.name).length,
+      0,
+    );
+    expect(translations).toHaveLength(expectedTranslations);
+    for (const permission of catalog.permissions) {
+      for (const locale of Object.keys(permission.name)) {
+        expect(
+          translations.some(
+            (match) => match[1] === permission.id && match[2] === locale,
+          ),
+          `${dialect}/dml.sql missing ${permission.id} ${locale}`,
+        ).toBe(true);
+      }
     }
 
     const grantsBlock = dml.match(

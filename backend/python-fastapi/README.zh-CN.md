@@ -66,9 +66,9 @@ scripts/               smoke_http.py、smoke_pg.py
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 66 |
-| Python 文件 | 59 |
-| 测试文件 | 12 个 `test_*.py`，另 `conftest.py` |
+| 受版本控制的文件 | 67 |
+| Python 文件 | 60 |
+| 测试文件 | 13 个 `test_*.py`，另 `conftest.py` |
 
 统计口径：`git ls-files backend/python-fastapi`。前端接口快照见 [frontend/openapi.json](../../frontend/openapi.json)，方言见 [database](../../database/)，技术栈总表见[根 README](../../README.zh-CN.md)。
 

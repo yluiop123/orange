@@ -328,12 +328,13 @@ func (s *Service) Menus(ctx context.Context, locale string) ([]*MenuNode, error)
 	if err != nil {
 		return nil, err
 	}
+	translations, err := s.store.AllPermissionTranslations(ctx)
+	if err != nil {
+		return nil, err
+	}
 	nodes := make(map[string]*MenuNode, len(permissions))
 	for _, permission := range permissions {
-		name := permission.Name
-		if strings.HasPrefix(strings.ToLower(locale), "en") && permission.NameEN != nil && *permission.NameEN != "" {
-			name = *permission.NameEN
-		}
+		name := localizedPermissionName(locale, translations[permission.ID], permission.Name)
 		nodes[permission.ID] = &MenuNode{
 			ID:       permission.ID,
 			Path:     permission.Path,

@@ -206,6 +206,9 @@ public sealed class AddChildPermissionRequest
     public string Type { get; set; } = "";
 
     public string? ParentId { get; set; }
+
+    /// <summary>Locale-to-name map inserted together with the permission.</summary>
+    public Dictionary<string, string>? Translations { get; set; }
 }
 
 public sealed class EditPermissionRequest
@@ -223,6 +226,12 @@ public sealed class EditPermissionRequest
 
     [RegularExpression("^(menu|action|directory)$", ErrorMessage = "权限类型只能是 menu、action 或 directory")]
     public string? Type { get; set; }
+
+    /// <summary>
+    /// Locale-to-name map. Omitted keeps the current rows; provided replaces
+    /// every row for this permission (an empty map clears them).
+    /// </summary>
+    public Dictionary<string, string>? Translations { get; set; }
 }
 
 public sealed class QueryPermissionRequest

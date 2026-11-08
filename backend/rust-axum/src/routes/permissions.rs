@@ -69,6 +69,7 @@ pub async fn get(
     path = "/api/v1/system/permissions/children",
     tag = "permissions",
     summary = "新增子权限",
+    description = "`translations` 为可选的 locale -> 名称映射，创建时写入 `sys_permission_i18n`；`name` 为默认名称与回退值。",
     security(("bearer_auth" = [])),
     request_body = AddChildPermissionReq,
     responses(
@@ -95,6 +96,7 @@ pub async fn create(
     path = "/api/v1/system/permissions/{permissionId}",
     tag = "permissions",
     summary = "修改权限",
+    description = "`translations` 省略时保留现有翻译，提供时整体替换；`name` 为默认名称与回退值。",
     security(("bearer_auth" = [])),
     params(("permissionId" = String, Path, description = "权限 ID")),
     request_body = EditPermissionReq,

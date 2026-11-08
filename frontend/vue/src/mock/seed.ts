@@ -29,7 +29,10 @@ export type MockUser = User & {
   mustChangePassword: boolean
 }
 
-export type MockPermission = Permission & { nameEn?: string }
+export type MockPermission = Permission & {
+  nameEn?: string
+  translations?: Record<string, string>
+}
 
 export type MockState = {
   users: MockUser[]
@@ -46,6 +49,7 @@ function permissionFromCatalog(entry: CatalogPermission): MockPermission {
     id: entry.id,
     name: entry.name.zh,
     nameEn: entry.name.en,
+    translations: { ...entry.name },
     path: entry.path,
     action: entry.action,
     type: entry.type,

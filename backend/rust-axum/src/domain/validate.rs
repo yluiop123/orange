@@ -121,6 +121,36 @@ pub fn check_path(value: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+/// Locale tag accepted by permission translations: `xx` or `xx-YY`, with a
+/// lowercase language part (for example `zh`, `en`, `en-US`).
+pub fn is_locale(value: &str) -> bool {
+    let mut parts = value.split('-');
+    let Some(language) = parts.next() else {
+        return false;
+    };
+    if language.len() != 2 || !language.chars().all(|ch| ch.is_ascii_lowercase()) {
+        return false;
+    }
+    match parts.next() {
+        None => true,
+        Some(region) => {
+            region.len() == 2
+                && region.chars().all(|ch| ch.is_ascii_alphabetic())
+                && parts.next().is_none()
+        }
+    }
+}
+
+pub fn check_translation_name(value: &str) -> Result<(), AppError> {
+    if is_blank(value) {
+        return Err(AppError::validation("翻译名称不能为空"));
+    }
+    if value.trim().chars().count() > 255 {
+        return Err(AppError::validation("翻译名称长度不能超过 255"));
+    }
+    Ok(())
+}
+
 /// `EditPermissionReq.path` is annotated `@Size(max = 200)`; create has no
 /// upper bound in the reference.
 pub fn check_path_length(value: &str) -> Result<(), AppError> {
@@ -222,5 +252,28 @@ mod tests {
             split_ids("a, b, ,c"),
             vec!["a".to_string(), "b".to_string(), "c".to_string()]
         );
+    }
+
+    #[test]
+    fn locale_tags_match_contract() {
+        assert!(is_locale("zh"));
+        assert!(is_locale("en"));
+        assert!(is_locale("en-US"));
+        assert!(is_locale("pt-BR"));
+        assert!(is_locale("en-us"));
+        assert!(!is_locale("EN"));
+        assert!(!is_locale("e"));
+        assert!(!is_locale("eng"));
+        assert!(!is_locale("en-USA"));
+        assert!(!is_locale("en_US"));
+        assert!(!is_locale(""));
+    }
+
+    #[test]
+    fn translation_names_are_non_blank_and_bounded() {
+        assert!(check_translation_name("Dashboard").is_ok());
+        assert!(check_translation_name("  ").is_err());
+        assert!(check_translation_name(&"a".repeat(255)).is_ok());
+        assert!(check_translation_name(&"a".repeat(256)).is_err());
     }
 }

@@ -35,6 +35,12 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
             validate: z.string().min(2)
         },
         {
+            name: "nameEn",
+            label: "page.system.permission.header.nameEn",
+            defaultValue: "",
+            validate: z.string().optional(),
+        },
+        {
             name: "path",
             label: "page.system.permission.header.path",
             defaultValue: "",
@@ -68,9 +74,12 @@ export default function Index(props: { setOpen: (open: boolean) => void, open: b
         setValues({ parentId });
     }, [parentId])
 function onSubmit(fieldValues: Record<string, unknown>) {
+        const name = fieldValues.name as string;
+        const nameEn = (fieldValues.nameEn as string | undefined)?.trim();
         return addPermissionChild({
             id: fieldValues.id as string,
-            name: fieldValues.name as string,
+            name,
+            translations: nameEn ? { zh: name, en: nameEn } : { zh: name },
             path: fieldValues.path as string,
             type: fieldValues.type as PermissionType,
             action: fieldValues.action as string,

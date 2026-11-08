@@ -96,8 +96,11 @@ function paginate<T>(rows: T[], page: number, size: number): PageResult<T> {
   return { total, list: rows.slice(start, start + size), page: safePage, size, totalPages }
 }
 
-function localeName(entry: { name: string; nameEn?: string }, locale: Locale): string {
-  return locale === 'en' && entry.nameEn ? entry.nameEn : entry.name
+function localeName(
+  entry: { name: string; nameEn?: string; translations?: Record<string, string> },
+  locale: Locale,
+): string {
+  return entry.translations?.[locale] ?? (locale === 'en' && entry.nameEn ? entry.nameEn : entry.name)
 }
 
 function currentUsername(): string {
@@ -120,6 +123,7 @@ function permissionDto(permission: MockPermission, locale: Locale): Permission {
   return {
     id: permission.id,
     name: localeName(permission, locale),
+    translations: permission.translations ?? { zh: permission.name },
     path: permission.path,
     action: permission.action,
     type: permission.type,
@@ -917,9 +921,14 @@ function handlePermissions(
         return failure(40901, '操作类型不能有子权限 / Action cannot have children', 409)
       }
     }
+    const name = trim(payload.name)
     const entry = {
       id,
-      name: trim(payload.name),
+      name,
+      translations:
+        (payload.translations as Record<string, string> | undefined) ?? {
+          [locale]: name,
+        },
       path: trim(payload.path),
       action: trim(payload.action) || null,
       type: trim(payload.type) as 'menu' | 'action' | 'directory',
@@ -948,6 +957,10 @@ function handlePermissions(
       const next = {
         ...permission,
         name: payload.name !== undefined ? trim(payload.name) : permission.name,
+        translations:
+          payload.translations !== undefined
+            ? (payload.translations as Record<string, string>)
+            : permission.translations,
         path: payload.path !== undefined ? trim(payload.path) : permission.path,
         action: payload.action !== undefined ? trim(payload.action) || null : permission.action,
         type:

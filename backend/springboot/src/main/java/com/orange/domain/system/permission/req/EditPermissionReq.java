@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.Map;
+
 
 @Schema(description = "编辑权限请求参数")
 @Data
@@ -31,4 +33,7 @@ public class EditPermissionReq {
     @Schema(description = "权限类型",example = "menu")
     @Pattern(regexp = "^(menu|action|directory)$", message = "权限类型只能是 menu、action 或 directory")
     private String type;
+
+    @Schema(description = "本地化名称，locale -> 名称；null 表示不修改，空对象表示清空", example = "{\"en\":\"Users\"}")
+    private Map<String, String> translations;
 }

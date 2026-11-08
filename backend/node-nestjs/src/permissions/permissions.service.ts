@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BusinessException } from '../common/business-exception';
 import { STATUS_ALL, STATUS_DISABLE, STATUS_ENABLE } from '../common/constants';
 import { toIso } from '../common/page';
 import { likePrefix, LIKE_ESCAPE } from '../common/query.util';
 import { TreeCodePolicy, trimToNull } from '../common/tree-code.policy';
 import { TreeIndex } from '../common/tree-index';
+import { PermissionI18n } from '../entities/permission-i18n.entity';
 import { Permission } from '../entities/permission.entity';
 import { Role } from '../entities/role.entity';
 import { User } from '../entities/user.entity';
@@ -23,9 +24,13 @@ export interface PermissionBean {
   parentId: string | null;
   createTime: string | null;
   updateTime: string | null;
+  translations: Record<string, string>;
 }
 
-export function toPermissionBean(permission: Permission): PermissionBean {
+export function toPermissionBean(
+  permission: Permission,
+  translations: Record<string, string> = {},
+): PermissionBean {
   return {
     id: permission.id,
     name: permission.name,
@@ -36,6 +41,7 @@ export function toPermissionBean(permission: Permission): PermissionBean {
     parentId: permission.parentId,
     createTime: toIso(permission.createTime),
     updateTime: toIso(permission.updateTime),
+    translations,
   };
 }
 
@@ -48,6 +54,8 @@ export class PermissionsService {
     private readonly roles: Repository<Role>,
     @InjectRepository(User)
     private readonly users: Repository<User>,
+    @InjectRepository(PermissionI18n)
+    private readonly translations: Repository<PermissionI18n>,
   ) {}
 
   async list(query: QueryPermissionDto): Promise<PermissionBean[]> {
@@ -76,11 +84,16 @@ export class PermissionsService {
       isNotBlank(query.path) ||
       (isNotBlank(query.type) && query.type !== STATUS_ALL);
     const result = textFilter ? await this.includeAncestors(matched) : matched;
-    return result.map(toPermissionBean);
+    const translations = await this.loadTranslations(result.map((permission) => permission.id));
+    return result.map((permission) =>
+      toPermissionBean(permission, translations.get(permission.id) ?? {}),
+    );
   }
 
   async get(id: string): Promise<PermissionBean> {
-    return toPermissionBean(await this.requirePermission(id));
+    const permission = await this.requirePermission(id);
+    const translations = await this.loadTranslations([permission.id]);
+    return toPermissionBean(permission, translations.get(permission.id) ?? {});
   }
 
   async addChild(dto: AddChildPermissionDto): Promise<PermissionBean> {
@@ -117,7 +130,14 @@ export class PermissionsService {
       status: STATUS_ENABLE,
       parentId: parent?.id ?? null,
     });
-    return toPermissionBean(await this.permissions.save(permission));
+    return this.permissions.manager.transaction(async (manager) => {
+      const saved = await manager.getRepository(Permission).save(permission);
+      const rows = toTranslationRows(id, dto.translations);
+      if (rows.length > 0) {
+        await manager.getRepository(PermissionI18n).save(rows);
+      }
+      return toPermissionBean(saved, translationsOf(rows));
+    });
   }
 
   async edit(id: string, dto: EditPermissionDto): Promise<void> {
@@ -150,7 +170,17 @@ export class PermissionsService {
       }
       permission.status = dto.status;
     }
-    await this.permissions.save(permission);
+    await this.permissions.manager.transaction(async (manager) => {
+      await manager.getRepository(Permission).save(permission);
+      if (dto.translations !== undefined) {
+        const repository = manager.getRepository(PermissionI18n);
+        await repository.delete({ permissionId: id });
+        const rows = toTranslationRows(id, dto.translations);
+        if (rows.length > 0) {
+          await repository.save(rows);
+        }
+      }
+    });
   }
 
   async remove(ids: string[]): Promise<void> {
@@ -189,6 +219,10 @@ export class PermissionsService {
       if (userReferences > 0) {
         throw BusinessException.conflict('权限已被用户引用，不能删除');
       }
+
+      await manager
+        .getRepository(PermissionI18n)
+        .delete({ permissionId: In(subtree) });
 
       for (const permission of index.deleteOrder(subtree)) {
         await repository.delete({ id: permission.id });
@@ -241,6 +275,53 @@ export class PermissionsService {
     const ids = index.withAncestorIds(matched);
     return all.filter((permission) => ids.has(permission.id));
   }
+
+  private async loadTranslations(ids: string[]): Promise<Map<string, Record<string, string>>> {
+    const byPermission = new Map<string, Record<string, string>>();
+    if (ids.length === 0) {
+      return byPermission;
+    }
+    const rows = await this.translations.find({
+      where: { permissionId: In([...new Set(ids)]) },
+      order: { locale: 'ASC' },
+    });
+    for (const row of rows) {
+      let record = byPermission.get(row.permissionId);
+      if (!record) {
+        record = {};
+        byPermission.set(row.permissionId, record);
+      }
+      record[row.locale] = row.name;
+    }
+    return byPermission;
+  }
+}
+
+/** Collapses case-insensitively duplicate locale keys, keeping the last value. */
+function toTranslationRows(
+  permissionId: string,
+  translations: Record<string, string> | undefined,
+): PermissionI18n[] {
+  if (!translations) {
+    return [];
+  }
+  const byLocale = new Map<string, PermissionI18n>();
+  for (const [locale, name] of Object.entries(translations)) {
+    const row = new PermissionI18n();
+    row.permissionId = permissionId;
+    row.locale = locale;
+    row.name = name;
+    byLocale.set(locale.toLowerCase(), row);
+  }
+  return [...byLocale.values()];
+}
+
+function translationsOf(rows: PermissionI18n[]): Record<string, string> {
+  const record: Record<string, string> = {};
+  for (const row of rows) {
+    record[row.locale] = row.name;
+  }
+  return record;
 }
 
 function requirePath(path: string | null | undefined): string {

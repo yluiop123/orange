@@ -18,9 +18,6 @@ export class Permission {
   @Column({ type: 'varchar', nullable: true })
   name: string | null;
 
-  @Column({ name: 'name_en', type: 'varchar', nullable: true })
-  nameEn: string | null;
-
   @Column({ type: 'varchar' })
   path: string;
 

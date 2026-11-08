@@ -75,7 +75,7 @@ Cesium 没有列在依赖里：`/map/cesium` 在运行时从 Cesium CDN 加载�
 
 - 路由在 `src/app/app.routes.ts` 手工登记。`page(path, permissionPath, loader)` 会挂 `permissionGuard`，`container('system')` 等负责容器跳转；新增页面与容器都要改这里。
 - mock 是 `mock.interceptor.ts` + `mock-backend.ts` 的内存实现，排在 auth 拦截器之后；`?mock=1` 会持久化到 `orange.mock.enabled`，`?mock=0` 清除。
-- 菜单标题来自 `GET /api/v1/auth/menus`（`sys_permission.name` / `name_en`，后端按 `Locale` 请求头选择）；权限目录 `permission-catalog.ts` 只服务于 mock，不参与真实菜单渲染。
+- 菜单标题来自 `GET /api/v1/auth/menus`（`sys_permission_i18n`，后端按 `Locale` 请求头选择）；权限目录 `permission-catalog.ts` 只服务于 mock，不参与真实菜单渲染。
 - i18n 字典在 `src/app/core/i18n.service.ts` 的 `EN` / `ZH` 常量里，没有独立 locale 文件。
 - 主题与配色切换存在（`ThemeToggleComponent`、颜色菜单），持久化 key 为 `orange.angular.theme`、`orange.angular.color`，默认深色。
 - 图表页有替换：AntV 与 Recharts 页面都用 ECharts 渲染，`/map/l7` 用 Leaflet 底图加 SVG 流线，不加载 L7。

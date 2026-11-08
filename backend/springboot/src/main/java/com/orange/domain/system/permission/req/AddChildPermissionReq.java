@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
+import java.util.Map;
+
 @Schema(description = "添加子权限请求参数")
 @Data
 public class AddChildPermissionReq {
@@ -31,4 +33,7 @@ public class AddChildPermissionReq {
 
     @Schema(description = "父权限编码",example = "01")
     private String parentId;
+
+    @Schema(description = "本地化名称，locale -> 名称", example = "{\"en\":\"Users\",\"zh\":\"用户管理\"}")
+    private Map<String, String> translations;
 }

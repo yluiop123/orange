@@ -53,15 +53,24 @@ public sealed class PermissionService
             || !string.IsNullOrWhiteSpace(request.Name)
             || !string.IsNullOrWhiteSpace(request.Path)
             || typeFilter;
+        List<Permission> result;
         if (!textFilter)
         {
-            return matched.Select(ToBean).ToList();
+            result = matched;
+        }
+        else
+        {
+            var all = await _db.Permissions.AsNoTracking().OrderBy(item => item.Id).ToListAsync(cancellationToken);
+            var index = TreeIndex<Permission>.Of(all, item => item.Id, item => item.ParentId);
+            var ids = index.WithAncestorIds(matched);
+            result = all.Where(item => ids.Contains(item.Id)).OrderBy(item => item.Id).ToList();
         }
 
-        var all = await _db.Permissions.AsNoTracking().OrderBy(item => item.Id).ToListAsync(cancellationToken);
-        var index = TreeIndex<Permission>.Of(all, item => item.Id, item => item.ParentId);
-        var ids = index.WithAncestorIds(matched);
-        return all.Where(item => ids.Contains(item.Id)).OrderBy(item => item.Id).Select(ToBean).ToList();
+        var translations = await PermissionTranslationLoader.LoadAsync(
+            _db, result.Select(item => item.Id), cancellationToken);
+        return result
+            .Select(item => ToBean(item, translations.GetValueOrDefault(item.Id)))
+            .ToList();
     }
 
     public async Task<PermissionBean> GetAsync(string id, CancellationToken cancellationToken)
@@ -69,7 +78,9 @@ public sealed class PermissionService
         var permission = await _db.Permissions.AsNoTracking()
             .FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
             ?? throw new BusinessException("权限不存在");
-        return ToBean(permission);
+        var translations = await PermissionTranslationLoader.LoadAsync(
+            _db, new[] { permission.Id }, cancellationToken);
+        return ToBean(permission, translations.GetValueOrDefault(permission.Id));
     }
 
     public async Task<PermissionBean> AddChildAsync(
@@ -79,6 +90,7 @@ public sealed class PermissionService
         var parentId = QueryUtils.TrimToNull(request.ParentId);
         var path = RequirePath(request.Path);
         var action = QueryUtils.TrimToNull(request.Action);
+        var translations = PermissionI18nPolicy.Normalize(request.Translations);
         CodePolicy.Permission.Validate(request.Id, parentId);
         if (await _db.Permissions.AnyAsync(item => item.Id == request.Id, cancellationToken))
         {
@@ -108,14 +120,27 @@ public sealed class PermissionService
             Status = EffectivePermissions.StatusEnabled
         };
         _db.Permissions.Add(permission);
+        foreach (var (locale, name) in translations)
+        {
+            _db.PermissionI18n.Add(new PermissionI18n
+            {
+                PermissionId = permission.Id,
+                Locale = locale,
+                Name = name
+            });
+        }
         await _db.SaveChangesAsync(cancellationToken);
-        return ToBean(permission);
+        return ToBean(permission, translations);
     }
 
     public async Task EditAsync(string id, EditPermissionRequest request, CancellationToken cancellationToken)
     {
         var permission = await _db.Permissions.FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
             ?? throw new BusinessException("权限不存在");
+        // null keeps the current rows; a provided map replaces all of them.
+        var translations = request.Translations is null
+            ? null
+            : PermissionI18nPolicy.Normalize(request.Translations);
 
         var effectiveType = request.Type ?? permission.Type;
         var effectivePath = request.Path is not null
@@ -152,7 +177,26 @@ public sealed class PermissionService
             }
             permission.Status = request.Status;
         }
+
+        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+        if (translations is not null)
+        {
+            var existing = await _db.PermissionI18n
+                .Where(row => row.PermissionId == id)
+                .ToListAsync(cancellationToken);
+            _db.PermissionI18n.RemoveRange(existing);
+            foreach (var (locale, name) in translations)
+            {
+                _db.PermissionI18n.Add(new PermissionI18n
+                {
+                    PermissionId = id,
+                    Locale = locale,
+                    Name = name
+                });
+            }
+        }
         await _db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     public async Task DeleteAsync(IReadOnlyCollection<string> ids, CancellationToken cancellationToken)
@@ -177,8 +221,16 @@ public sealed class PermissionService
             throw new BusinessException("权限已被用户引用，不能删除");
         }
 
+        // Remove translations explicitly: some engines/connections do not
+        // enforce the ON DELETE CASCADE declared by the schema.
+        var translations = await _db.PermissionI18n
+            .Where(row => subtree.Contains(row.PermissionId))
+            .ToListAsync(cancellationToken);
+        var translationsByPermission = translations.ToLookup(row => row.PermissionId, StringComparer.Ordinal);
+
         foreach (var permission in index.DeleteOrder(subtree))
         {
+            _db.PermissionI18n.RemoveRange(translationsByPermission[permission.Id]);
             _db.Permissions.Remove(permission);
             await _db.SaveChangesAsync(cancellationToken);
         }
@@ -228,7 +280,9 @@ public sealed class PermissionService
         return normalized ?? throw new BusinessException("权限路径不能为空");
     }
 
-    public static PermissionBean ToBean(Permission permission) => new()
+    public static PermissionBean ToBean(
+        Permission permission,
+        IReadOnlyDictionary<string, string>? translations = null) => new()
     {
         Id = permission.Id,
         Name = permission.Name,
@@ -238,6 +292,9 @@ public sealed class PermissionService
         Status = permission.Status,
         ParentId = permission.ParentId,
         CreateTime = permission.CreateTime,
-        UpdateTime = permission.UpdateTime
+        UpdateTime = permission.UpdateTime,
+        Translations = translations is null
+            ? new Dictionary<string, string>()
+            : new Dictionary<string, string>(translations, StringComparer.Ordinal)
     };
 }

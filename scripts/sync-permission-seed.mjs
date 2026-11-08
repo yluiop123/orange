@@ -14,37 +14,50 @@ const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
 const DIALECTS = {
   postgres: {
     permission:
-      'INSERT INTO public.sys_permission (id,"name",name_en,"path","action","type",status,parent_id) VALUES',
+      'INSERT INTO public.sys_permission (id,"name","path","action","type",status,parent_id) VALUES',
+    permissionI18n:
+      'INSERT INTO public.sys_permission_i18n (permission_id, locale, "name") VALUES',
     rolePermission: "INSERT INTO public.sys_role_permission (role_id,permission_id) VALUES",
   },
   opengauss: {
     permission:
-      'INSERT INTO public.sys_permission (id,"name",name_en,"path","action","type",status,parent_id) VALUES',
+      'INSERT INTO public.sys_permission (id,"name","path","action","type",status,parent_id) VALUES',
+    permissionI18n:
+      'INSERT INTO public.sys_permission_i18n (permission_id, locale, "name") VALUES',
     rolePermission: "INSERT INTO public.sys_role_permission (role_id,permission_id) VALUES",
   },
   sqlite: {
     permission:
-      'INSERT INTO sys_permission (id,"name",name_en,"path","action","type",status,parent_id) VALUES',
+      'INSERT INTO sys_permission (id,"name","path","action","type",status,parent_id) VALUES',
+    permissionI18n: 'INSERT INTO sys_permission_i18n (permission_id, locale, "name") VALUES',
     rolePermission: "INSERT INTO sys_role_permission (role_id,permission_id) VALUES",
   },
   mysql: {
     permission:
-      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+      "INSERT INTO `sys_permission` (`id`,`name`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    permissionI18n:
+      "INSERT INTO `sys_permission_i18n` (`permission_id`,`locale`,`name`) VALUES",
     rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
   },
   mariadb: {
     permission:
-      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+      "INSERT INTO `sys_permission` (`id`,`name`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    permissionI18n:
+      "INSERT INTO `sys_permission_i18n` (`permission_id`,`locale`,`name`) VALUES",
     rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
   },
   oceanbase: {
     permission:
-      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+      "INSERT INTO `sys_permission` (`id`,`name`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    permissionI18n:
+      "INSERT INTO `sys_permission_i18n` (`permission_id`,`locale`,`name`) VALUES",
     rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
   },
   goldendb: {
     permission:
-      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+      "INSERT INTO `sys_permission` (`id`,`name`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    permissionI18n:
+      "INSERT INTO `sys_permission_i18n` (`permission_id`,`locale`,`name`) VALUES",
     rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
   },
 };
@@ -59,7 +72,6 @@ function renderPermissions(dialect) {
     const values = [
       quote(permission.id),
       quote(permission.name.zh),
-      quote(permission.name.en),
       quote(permission.path),
       quote(permission.action),
       quote(permission.type),
@@ -69,6 +81,16 @@ function renderPermissions(dialect) {
     return `\t (${values.join(",")})`;
   });
   return [`${DIALECTS[dialect].permission}`, rows.join(",\n") + ";"].join("\n");
+}
+
+function renderPermissionI18n(dialect) {
+  const rows = [];
+  for (const permission of catalog.permissions) {
+    for (const [locale, name] of Object.entries(permission.name)) {
+      rows.push(`\t (${quote(permission.id)},${quote(locale)},${quote(name)})`);
+    }
+  }
+  return [`${DIALECTS[dialect].permissionI18n}`, rows.join(",\n") + ";"].join("\n");
 }
 
 function renderRolePermissions(dialect) {
@@ -99,6 +121,12 @@ function withMarkers(source) {
       (block) => `-- BEGIN GENERATED PERMISSIONS\n${block}\n-- END GENERATED PERMISSIONS`,
     );
   }
+  if (!next.includes("-- BEGIN GENERATED PERMISSION_I18N")) {
+    next = next.replace(
+      "-- END GENERATED PERMISSIONS",
+      "-- END GENERATED PERMISSIONS\n-- BEGIN GENERATED PERMISSION_I18N\n-- END GENERATED PERMISSION_I18N",
+    );
+  }
   if (!next.includes("-- BEGIN GENERATED ROLE_PERMISSIONS")) {
     next = next.replace(
       /INSERT INTO (?:public\.)?[`"]?sys_role_permission[`"]?[\s\S]*?;/,
@@ -117,9 +145,13 @@ for (const dialect of Object.keys(DIALECTS)) {
   const source = fs.readFileSync(dmlPath, "utf8");
   const next = replaceBlock(
     replaceBlock(
-      withMarkers(source),
-      "PERMISSIONS",
-      renderPermissions(dialect),
+      replaceBlock(
+        withMarkers(source),
+        "PERMISSIONS",
+        renderPermissions(dialect),
+      ),
+      "PERMISSION_I18N",
+      renderPermissionI18n(dialect),
     ),
     "ROLE_PERMISSIONS",
     renderRolePermissions(dialect),
@@ -133,6 +165,10 @@ for (const dialect of Object.keys(DIALECTS)) {
   }
 }
 
+const translations = catalog.permissions.reduce(
+  (total, permission) => total + Object.keys(permission.name).length,
+  0,
+);
 const grants = Object.values(catalog.rolePermissions).flat().length;
 if (check) {
   if (stale.length > 0) {
@@ -145,6 +181,6 @@ if (check) {
 } else {
   console.log(
     `permission seed synced in ${updated} dialect(s): ${catalog.permissions.length} permissions, ` +
-      `${grants} grants`,
+      `${translations} translations, ${grants} grants`,
   );
 }

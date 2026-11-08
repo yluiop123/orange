@@ -61,9 +61,9 @@ internal/http/         Gin 路由、中间件、处理器、响应包体
 
 | 指标 | 数值 |
 | --- | --- |
-| 受版本控制的文件 | 64 |
-| Go 源文件 | 56 |
-| 测试文件 | 12 个 `_test.go`（含 `internal/http` 的路由测试与可选数据库冒烟） |
+| 受版本控制的文件 | 68 |
+| Go 源文件 | 60 |
+| 测试文件 | 15 个 `_test.go`（含 `internal/http` 的路由测试与可选数据库冒烟） |
 
 统计口径：`git ls-files backend/go-gin-gorm`。栈级差异的成因见 [后端共享约定与偏差](../../backend/README.zh-CN.md)。
 

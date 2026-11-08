@@ -287,6 +287,20 @@ mod tests {
         assert!(user.get("group_id").is_none());
         let permission = &schemas["PermissionBean"]["properties"];
         assert!(permission.get("type").is_some());
+        assert!(permission.get("translations").is_some());
+
+        // Translation maps are exposed as string-valued objects on the
+        // permission response and both write payloads.
+        assert_eq!(
+            permission["translations"]["additionalProperties"]["type"],
+            "string"
+        );
+        for schema in ["AddChildPermissionReq", "EditPermissionReq"] {
+            assert!(
+                schemas[schema]["properties"].get("translations").is_some(),
+                "{schema} is missing translations"
+            );
+        }
     }
 
     #[test]

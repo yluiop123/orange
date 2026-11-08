@@ -57,6 +57,7 @@ def edit_permission(
         payload.action,
         payload.status,
         payload.type,
+        payload.translations,
         auth.user.username,
     )
     return success("操作成功")
@@ -77,6 +78,7 @@ def add_child_permission(
             payload.action,
             payload.type,
             payload.parent_id,
+            payload.translations,
             auth.user.username,
         )
     )

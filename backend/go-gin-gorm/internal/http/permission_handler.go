@@ -1,6 +1,8 @@
 package http
 
 import (
+	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -10,21 +12,48 @@ import (
 	"github.com/orange/backend-go-gin-gorm/internal/service"
 )
 
+var permissionLocalePattern = regexp.MustCompile(`^[a-z]{2}(-[A-Za-z]{2})?$`)
+
 type addPermissionRequest struct {
-	ID       string  `json:"id" binding:"required"`
-	Name     string  `json:"name" binding:"required"`
-	Path     string  `json:"path" binding:"required"`
-	Action   *string `json:"action"`
-	Type     string  `json:"type" binding:"required"`
-	ParentID *string `json:"parentId"`
+	ID           string            `json:"id" binding:"required"`
+	Name         string            `json:"name" binding:"required"`
+	Path         string            `json:"path" binding:"required"`
+	Action       *string           `json:"action"`
+	Type         string            `json:"type" binding:"required"`
+	ParentID     *string           `json:"parentId"`
+	Translations map[string]string `json:"translations"`
 }
 
 type editPermissionRequest struct {
-	Name   *string `json:"name"`
-	Path   *string `json:"path"`
-	Action *string `json:"action"`
-	Status *string `json:"status"`
-	Type   *string `json:"type"`
+	Name         *string           `json:"name"`
+	Path         *string           `json:"path"`
+	Action       *string           `json:"action"`
+	Status       *string           `json:"status"`
+	Type         *string           `json:"type"`
+	Translations map[string]string `json:"translations"`
+}
+
+// validatePermissionTranslations checks the locale keys and display names of a
+// provided translations map. A nil map means "not provided" and is valid.
+func validatePermissionTranslations(translations map[string]string) *domain.Error {
+	locales := make([]string, 0, len(translations))
+	for locale := range translations {
+		locales = append(locales, locale)
+	}
+	sort.Strings(locales)
+	for _, locale := range locales {
+		if !permissionLocalePattern.MatchString(locale) {
+			return fieldError("translations", "翻译语言代码需形如 en 或 en-US")
+		}
+		name := translations[locale]
+		if strings.TrimSpace(name) == "" {
+			return fieldError("translations", "翻译名称不能为空")
+		}
+		if utf8.RuneCountInString(name) > 255 {
+			return fieldError("translations", "翻译名称长度不能超过 255")
+		}
+	}
+	return nil
 }
 
 func validQueryPermissionType(value string) bool {
@@ -118,8 +147,12 @@ func (h *Handlers) addPermission(c *gin.Context) {
 		fail(c, err)
 		return
 	}
+	if err := validatePermissionTranslations(request.Translations); err != nil {
+		fail(c, err)
+		return
+	}
 	permission, err := h.svc.AddPermission(c.Request.Context(), request.ID, request.Name, request.Path,
-		request.Action, request.Type, request.ParentID)
+		request.Action, request.Type, request.ParentID, request.Translations)
 	if err != nil {
 		fail(c, err)
 		return
@@ -170,6 +203,10 @@ func (h *Handlers) updatePermission(c *gin.Context) {
 			return
 		}
 	}
+	if err := validatePermissionTranslations(request.Translations); err != nil {
+		fail(c, err)
+		return
+	}
 	err := h.svc.UpdatePermission(c.Request.Context(), c.Param("permissionId"), servicePermissionUpdate(request))
 	if err != nil {
 		fail(c, err)
@@ -180,11 +217,12 @@ func (h *Handlers) updatePermission(c *gin.Context) {
 
 func servicePermissionUpdate(request editPermissionRequest) service.PermissionUpdate {
 	return service.PermissionUpdate{
-		Name:   request.Name,
-		Path:   request.Path,
-		Action: request.Action,
-		Type:   request.Type,
-		Status: request.Status,
+		Name:         request.Name,
+		Path:         request.Path,
+		Action:       request.Action,
+		Type:         request.Type,
+		Status:       request.Status,
+		Translations: request.Translations,
 	}
 }
 

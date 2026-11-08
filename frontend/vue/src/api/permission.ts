@@ -24,6 +24,7 @@ export async function updatePermission(id: string, payload: PermissionPayload) {
 export async function addPermissionChild(payload: {
   id: string
   name: string
+  translations?: Record<string, string>
   path: string
   type: PermissionTypeValue
   action?: string

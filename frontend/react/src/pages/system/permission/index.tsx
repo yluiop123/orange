@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { formatDateTime } from "@/lib/date-time";
 import type { Status } from "@/lib/status";
+import { useLocaleStore } from "@/store";
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -36,6 +37,7 @@ import EditDialog from "./edit-dialog";
 
 type Permission = {
   name: string
+  translations?: Record<string, string>
   id: string
   path?: string
   type?: string
@@ -101,12 +103,14 @@ export default function Permission() {
       parentId: (row) => row.parentId,
     },
     getRowId: (row) => row.id,
-    labelOf: (row) => row.name,
+    labelOf: (row) => row.translations?.[locale] ?? row.name,
     deleteRows: deletePermissions,
     updateStatus: (row, status) => updatePermission(row.id, { status }),
     paginationMode: "client",
     cascadeDelete: true,
   });
+
+  const locale = useLocaleStore((state) => state.locale);
 
   const [id, setId] = useState('' as string);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);

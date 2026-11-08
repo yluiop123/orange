@@ -66,9 +66,9 @@ Copy `.env.example` to `.env` (`app/config.py` loads it with `load_dotenv(".env"
 
 | Metric | Value |
 | --- | --- |
-| Version-controlled files | 66 |
-| Python files | 59 |
-| Test files | 12 `test_*.py` files plus `conftest.py` |
+| Version-controlled files | 67 |
+| Python files | 60 |
+| Test files | 13 `test_*.py` files plus `conftest.py` |
 
 Counting basis: `git ls-files backend/python-fastapi`. The frontend-owned API snapshot is [frontend/openapi.json](../../frontend/openapi.json), dialects are in [database](../../database/), and the stack matrix is the [root README](../../README.md).
 
