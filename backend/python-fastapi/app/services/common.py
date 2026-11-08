@@ -8,7 +8,7 @@ from typing import Any
 
 from sqlalchemy import ColumnElement
 
-from app.errors import invalid
+from app.errors import bad_request, invalid
 
 
 def like_prefix(value: str) -> str:
@@ -31,6 +31,14 @@ def split_ids(raw: str | None) -> list[str]:
     if not raw:
         return []
     return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def required_ids(raw: str | None) -> list[str]:
+    """The `?ids=` batch-delete parameter: missing or blank is a 40001."""
+    ids = split_ids(raw)
+    if not ids:
+        raise bad_request("ids 不能为空")
+    return ids
 
 
 def normalize_status(status: str | None) -> str | None:

@@ -37,9 +37,13 @@ pub struct IdsQuery {
 }
 
 pub fn parse_json<T>(payload: Result<Json<T>, JsonRejection>) -> Result<T, AppError> {
-    payload
-        .map(|Json(value)| value)
-        .map_err(|_| AppError::param("参数错误"))
+    payload.map(|Json(value)| value).map_err(|rejection| {
+        // A malformed or shape-invalid body is a DTO validation failure (40002)
+        // with the offending message in `data`, not a generic 40001.
+        let message = rejection.to_string();
+        AppError::validation("请求体格式错误")
+            .with_data(serde_json::json!({ "body": message }))
+    })
 }
 
 pub fn parse_query<T>(params: Result<Query<T>, QueryRejection>) -> Result<T, AppError> {
@@ -50,7 +54,14 @@ pub fn parse_query<T>(params: Result<Query<T>, QueryRejection>) -> Result<T, App
 
 pub fn ids_from_query(query: IdsQuery) -> Result<Vec<String>, AppError> {
     match query.ids.as_deref() {
-        Some(raw) => Ok(split_ids(raw)),
+        Some(raw) => {
+            let ids = split_ids(raw);
+            if ids.is_empty() {
+                Err(AppError::param("ids 不能为空"))
+            } else {
+                Ok(ids)
+            }
+        }
         None => Err(AppError::param("ids 不能为空")),
     }
 }
@@ -97,6 +108,12 @@ fn cors_layer(config: &Config) -> CorsLayer {
             header::ACCEPT,
             header::ORIGIN,
             HeaderName::from_static("locale"),
+            HeaderName::from_static("x-trace-id"),
+            HeaderName::from_static("x-request-id"),
+        ])
+        .expose_headers([
+            HeaderName::from_static("x-trace-id"),
+            HeaderName::from_static("x-request-id"),
         ])
         .allow_credentials(true)
         .max_age(Duration::from_secs(3600))
@@ -205,8 +222,10 @@ pub fn router(state: AppState) -> Router {
         .merge(public)
         .fallback(not_found)
         .method_not_allowed_fallback(method_not_allowed)
-        .layer(axum::middleware::from_fn(trace_middleware))
-        .layer(TraceLayer::new_for_http())
+        // Outermost layer first: CORS preflight responses must carry the same
+        // X-Trace-Id as every other response.
         .layer(cors)
+        .layer(TraceLayer::new_for_http())
+        .layer(axum::middleware::from_fn(trace_middleware))
         .with_state(state)
 }

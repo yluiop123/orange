@@ -6,28 +6,22 @@ import {
   SidebarMenuSub
 } from "@/components/ui/sidebar"
 import { getMenuIcon } from "@/config/menu-icons"
-import { menuTitleKey } from "@/lib/menu"
 import { isPathWithin, isSamePath } from "@/lib/path"
 import { cn } from "@/lib/utils"
 import type { MenuNode } from "@/types/menu"
 import { ChevronRight } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useIntl } from "react-intl"
 import { useLocation, useNavigate } from "react-router"
 
 export function SidebarMenuTree({ item }: { item: MenuNode }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const intl = useIntl()
   const Icon = getMenuIcon(item.path, item.type)
   const hasChildren = item.children.length > 0
   const defaultOpen = isPathWithin(location.pathname, item.path)
   const [open, setOpen] = useState(defaultOpen)
-  // 数据库 name 是兜底；有对应 i18n key 时随语言切换
-  const title = intl.formatMessage({
-    id: menuTitleKey(item.path),
-    defaultMessage: item.name,
-  })
+  // 标题直接取 /auth/menus 返回的数据库名称（后端已按 Locale 本地化）
+  const title = item.name
 
   // 路由变化时自动展开当前路径上的父节点
   useEffect(() => {

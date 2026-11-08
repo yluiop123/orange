@@ -4,8 +4,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
 import { isPathWithin } from '../core/path';
 import { menuIcon } from '../core/menu-icons';
-import { menuLabel } from '../core/menu-labels';
-import { I18nService } from '../core/i18n.service';
 import { NavigationState } from '../core/navigation-state';
 import type { MenuNode } from '../core/models';
 
@@ -128,12 +126,10 @@ export class SidebarItemComponent {
   readonly depth = input(0);
 
   private readonly navigation = inject(NavigationState);
-  private readonly i18n = inject(I18nService);
   readonly expanded = signal(false);
   readonly icon = computed(() => menuIcon(this.node()));
-  readonly label = computed(() =>
-    menuLabel(this.node().path, this.node().name, this.i18n.locale()),
-  );
+  // 标题来自 /auth/menus（数据库名称，后端按 Locale 本地化）
+  readonly label = computed(() => this.node().name);
   readonly isActive = computed(() =>
     isPathWithin(this.navigation.currentUrl().split('?')[0], this.node().path),
   );

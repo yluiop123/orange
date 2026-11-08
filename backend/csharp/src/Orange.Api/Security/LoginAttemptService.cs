@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 using Orange.Api.Configuration;
 using Orange.Api.Data;
@@ -133,10 +134,26 @@ public sealed class LoginAttemptService
     public Task ClearUserAttemptsAsync(string? username, CancellationToken cancellationToken = default)
         => _store.DeleteAsync(LoginAttemptTracker.UserKey(username), cancellationToken);
 
+    /// <summary>
+    /// Serialises the read-modify-write for one counter key inside this
+    /// process. The database UPSERT makes concurrent inserts safe, but two
+    /// requests that both read the old value would otherwise lose an update.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> KeyLocks = new();
+
     private async Task RecordAsync(string key, int maxAttempts, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        var current = await _store.FindAsync(key, cancellationToken);
-        var next = LoginAttemptTracker.OnFailure(current, now, maxAttempts, _lockMinutes) with { Key = key };
-        await _store.SaveAsync(next, cancellationToken);
+        var gate = KeyLocks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(cancellationToken);
+        try
+        {
+            var current = await _store.FindAsync(key, cancellationToken);
+            var next = LoginAttemptTracker.OnFailure(current, now, maxAttempts, _lockMinutes) with { Key = key };
+            await _store.SaveAsync(next, cancellationToken);
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 }

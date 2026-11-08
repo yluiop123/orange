@@ -84,7 +84,7 @@ jobs:
         working-directory: frontend/angular
       - run: pnpm run lint
         working-directory: frontend/angular
-      - run: pnpm test -- --watch=false
+      - run: pnpm test
         working-directory: frontend/angular
       - run: pnpm run build
         working-directory: frontend/angular

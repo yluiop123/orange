@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 const base = process.env.E2E_BASE ?? 'http://localhost:4200';
-const shots = process.env.E2E_EVIDENCE ?? 'D:/User/Cache/Temp/opencode/evidence';
+const shots = process.env.E2E_EVIDENCE ?? path.join(os.tmpdir(), 'orange-evidence');
 const backend = process.env.E2E_BACKEND ?? 'fastapi';
 const db = process.env.E2E_DB ?? 'postgres';
 const apiBase = `${base}/api/v1`;

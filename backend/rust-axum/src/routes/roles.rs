@@ -63,7 +63,7 @@ pub async fn delete_one(
     Path(role_id): Path<String>,
 ) -> ApiResult<String> {
     require(&auth, "action#/system/role:delete")?;
-    role_service::delete(&state.db, &[role_id]).await?;
+    role_service::delete(&state.db, &auth, &[role_id]).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }
 
@@ -74,6 +74,6 @@ pub async fn delete_many(
 ) -> ApiResult<String> {
     require(&auth, "action#/system/role:delete")?;
     let ids = ids_from_query(parse_query(params)?)?;
-    role_service::delete(&state.db, &ids).await?;
+    role_service::delete(&state.db, &auth, &ids).await?;
     Ok(Json(ApiResponse::ok_text("操作成功")))
 }

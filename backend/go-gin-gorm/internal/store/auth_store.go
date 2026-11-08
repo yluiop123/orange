@@ -2,11 +2,16 @@ package store
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+// errAttemptRetry signals that a concurrent request created the same attempt
+// row first; the caller should re-read it instead of dropping the increment.
+var errAttemptRetry = errors.New("login attempt row created concurrently")
 
 func (s *Store) RevokeToken(ctx context.Context, jti, tokenType string, expiresAt time.Time) (bool, error) {
 	now := time.Now()
@@ -62,23 +67,37 @@ func (s *Store) DeleteLoginAttempt(ctx context.Context, key string) error {
 
 // WithLockedAttempt runs fn against a locked row, creating it when missing.
 func (s *Store) WithLockedAttempt(ctx context.Context, key string, fn func(attempt *LoginAttempt) error) error {
-	return s.transaction(ctx, func(tx *gorm.DB) error {
-		var attempt LoginAttempt
-		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("attempt_key = ?", key).First(&attempt).Error
-		if err != nil && !notFound(err) {
-			return err
-		}
-		if notFound(err) {
-			attempt = LoginAttempt{AttemptKey: key, Failures: 0, WindowStart: time.Now(), UpdateTime: time.Now()}
+	for attemptNo := 0; attemptNo < 2; attemptNo++ {
+		err := s.transaction(ctx, func(tx *gorm.DB) error {
+			var attempt LoginAttempt
+			err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				Where("attempt_key = ?", key).First(&attempt).Error
+			if err != nil && !notFound(err) {
+				return err
+			}
+			if notFound(err) {
+				attempt = LoginAttempt{AttemptKey: key, Failures: 0, WindowStart: time.Now(), UpdateTime: time.Now()}
+				if err := fn(&attempt); err != nil {
+					return err
+				}
+				result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&attempt)
+				if result.Error != nil {
+					return result.Error
+				}
+				if result.RowsAffected == 0 {
+					return errAttemptRetry
+				}
+				return nil
+			}
 			if err := fn(&attempt); err != nil {
 				return err
 			}
-			return tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&attempt).Error
+			return tx.Save(&attempt).Error
+		})
+		if errors.Is(err, errAttemptRetry) {
+			continue
 		}
-		if err := fn(&attempt); err != nil {
-			return err
-		}
-		return tx.Save(&attempt).Error
-	})
+		return err
+	}
+	return errAttemptRetry
 }

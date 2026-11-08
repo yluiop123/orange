@@ -10,19 +10,20 @@ use std::time::Instant;
 
 use axum::body::{to_bytes, Body};
 use axum::extract::{ConnectInfo, Request, State};
-use axum::http::{HeaderMap, Method};
+use axum::http::{header, HeaderMap, Method};
 use axum::middleware::Next;
-use axum::response::Response;
+use axum::response::{IntoResponse, Response};
 use regex::Regex;
 
 use crate::auth::AuthUser;
+use crate::error::AppError;
 use crate::repository::operation_logs::{self, NewOperationLog};
 use crate::response::TraceId;
 use crate::state::AppState;
 
 const QUERY_LIMIT: usize = 500;
 const BODY_LIMIT: usize = 4000;
-const BODY_READ_LIMIT: usize = 16 * 1024;
+const BODY_READ_LIMIT: usize = 1024 * 1024;
 
 fn sensitive_field() -> &'static Regex {
     static REDACTOR: OnceLock<Regex> = OnceLock::new();
@@ -91,19 +92,28 @@ pub async fn operation_log(
         .extensions()
         .get::<TraceId>()
         .map(|trace| trace.0.clone());
-    let username = req
-        .extensions()
-        .get::<AuthUser>()
-        .map(|user| user.username.clone());
+    let username = Some(
+        req.extensions()
+            .get::<AuthUser>()
+            .map(|user| user.username.clone())
+            .unwrap_or_else(|| "anonymous".to_string()),
+    );
     let query_string = req
         .uri()
         .query()
         .map(|query| truncate(query, QUERY_LIMIT));
     let ip = client_ip(req.headers(), req.extensions().get::<ConnectInfo<SocketAddr>>());
 
+    let is_json = req
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .map(|value| value.to_ascii_lowercase().contains("json"))
+        .unwrap_or(false);
     let capture_body = !is_sensitive_path(&path)
         && method != Method::GET
-        && method != Method::OPTIONS;
+        && method != Method::OPTIONS
+        && is_json;
 
     let (parts, body) = req.into_parts();
     let (forwarded_body, request_body) = if capture_body {
@@ -115,7 +125,9 @@ pub async fn operation_log(
             }
             Err(error) => {
                 tracing::warn!(error = ?error, "operation log body capture failed");
-                (Body::empty(), None)
+                // Never forward an empty body to the handler: failing the
+                // request is safer than executing a write with a lost payload.
+                return AppError::param("请求体过大").into_response();
             }
         }
     } else {

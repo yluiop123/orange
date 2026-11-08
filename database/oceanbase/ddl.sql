@@ -1,6 +1,6 @@
 -- OceanBase (MySQL mode) schema for Orange (ported from database/postgres/ddl.sql)
 -- Target: OceanBase 4.x MySQL mode. CHECK constraints are declared for parity
--- but may be ignored by older versions; see README.md.
+-- but may be ignored by older versions; see the repository README.
 
 SET NAMES utf8mb4;
 
@@ -47,6 +47,7 @@ CREATE INDEX `idx_sys_group_parent` ON `sys_group` (`parent_id`, `id`);
 CREATE TABLE `sys_permission` (
 	`id` varchar(64) NOT NULL COMMENT '权限id',
 	`name` varchar(255) NULL COMMENT '权限名',
+	`name_en` varchar(255) NULL COMMENT '权限英文名',
 	`path` varchar(500) NOT NULL COMMENT '权限路径',
 	`action` varchar(100) NULL COMMENT '权限动作；menu/directory 必须为 NULL',
 	`action_key` varchar(100) GENERATED ALWAYS AS (COALESCE(`action`, '')) STORED COMMENT '权限身份用动作键；NULL 归一化为空串',

@@ -11,7 +11,8 @@ import (
 	"github.com/orange/backend-go-gin-gorm/internal/store"
 )
 
-const beanTimeLayout = "2006-01-02 15:04:05-07:00"
+// Bean timestamps use the same ISO-8601 shape as the other five stacks.
+const beanTimeLayout = time.RFC3339Nano
 
 // Service contains the business rules. It has no Gin or HTTP dependency so the
 // policies can be exercised directly.

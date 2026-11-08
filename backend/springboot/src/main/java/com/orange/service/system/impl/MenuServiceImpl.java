@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.orange.config.Constanst.STATUS_ENABLE;
@@ -31,7 +32,9 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MenuInfo> queryMenuTree() {
+    public List<MenuInfo> queryMenuTree(String locale) {
+        boolean english = locale != null
+                && locale.toLowerCase(Locale.ROOT).startsWith("en");
         Specification<Permission> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("status"), STATUS_ENABLE));
@@ -47,7 +50,10 @@ public class MenuServiceImpl implements MenuService {
             node.setId(permission.getId());
             node.setPath(permission.getPath());
             node.setType(permission.getType());
-            node.setName(permission.getName());
+            String nameEn = permission.getNameEn();
+            node.setName(english && StringUtils.isNotBlank(nameEn)
+                    ? nameEn
+                    : permission.getName());
             nodes.put(permission.getId(), node);
         }
 

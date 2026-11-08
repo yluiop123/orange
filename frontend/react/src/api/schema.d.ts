@@ -52,66 +52,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/system/users/reset/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 重置用户密码（旧）
-         * @deprecated
-         */
-        post: operations["resetUserLegacy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/users/edit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 编辑用户（旧）
-         * @deprecated
-         */
-        post: operations["editUserLegacy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/users/add": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 新增用户（旧）
-         * @deprecated
-         */
-        post: operations["addUserLegacy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/system/roles": {
         parameters: {
             query?: never;
@@ -140,46 +80,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/system/roles/edit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 编辑角色（旧）
-         * @deprecated
-         */
-        post: operations["editRoleLegacy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/roles/add": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 新增角色（旧）
-         * @deprecated
-         */
-        post: operations["addRoleLegacy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/system/permissions": {
         parameters: {
             query?: never;
@@ -193,36 +93,12 @@ export interface paths {
          */
         get: operations["queryPermissions"];
         put?: never;
-        /**
-         * 查询权限列表（旧）
-         * @deprecated
-         */
-        post: operations["queryPermissionsLegacy"];
+        post?: never;
         /**
          * 删除权限
          * @description 根据权限ID列表删除权限，多个 ID 用逗号分隔
          */
         delete: operations["deletePermissions"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/permissions/edit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 编辑权限（旧）
-         * @deprecated
-         */
-        post: operations["editPermissionLegacy"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -248,26 +124,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/system/permissions/addChild": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 添加子权限（旧）
-         * @deprecated
-         */
-        post: operations["addChildLegacy"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/system/groups": {
         parameters: {
             query?: never;
@@ -281,36 +137,12 @@ export interface paths {
          */
         get: operations["queryGroups"];
         put?: never;
-        /**
-         * 查询组织列表（旧）
-         * @deprecated
-         */
-        post: operations["queryGroupsLegacy"];
+        post?: never;
         /**
          * 删除组织
          * @description 根据组织ID列表删除组织，多个 ID 用逗号分隔
          */
         delete: operations["deleteGroups"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/groups/edit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 编辑组织（旧）
-         * @deprecated
-         */
-        post: operations["editGroupLegacy"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -329,27 +161,7 @@ export interface paths {
          * 添加子组织
          * @description 在指定父组织下添加子组织
          */
-        post: operations["addChild_1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/groups/addChild": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 添加子组织（旧）
-         * @deprecated
-         */
-        post: operations["addChildLegacy_1"];
+        post: operations["addChild_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -569,67 +381,7 @@ export interface paths {
          * 更新组织状态
          * @description 启用或禁用组织
          */
-        patch: operations["updateStatus_1"];
-        trace?: never;
-    };
-    "/api/v1/system/users/detail/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 查询用户详情（旧）
-         * @deprecated
-         */
-        get: operations["queryUserLegacy"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/roles/detail/{roleId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 查询角色详情（旧）
-         * @deprecated
-         */
-        get: operations["queryRoleLegacy"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/permissions/detail/{permissionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 查询权限详情（旧）
-         * @deprecated
-         */
-        get: operations["queryPermissionLegacy"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
+        patch: operations["updateStatus_2"];
         trace?: never;
     };
     "/api/v1/system/operation-logs": {
@@ -644,26 +396,6 @@ export interface paths {
          * @description 支持按操作人、路径、状态和时间范围过滤
          */
         get: operations["queryOperationLogs"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/system/groups/detail/{groupId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 查询组织详情（旧）
-         * @deprecated
-         */
-        get: operations["queryGroupLegacy"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1290,26 +1022,6 @@ export interface components {
              */
             direction?: "asc" | "desc";
             /**
-             * @deprecated
-             * @description 旧版过滤字段，仅用于兼容
-             */
-            filterField?: string;
-            /**
-             * @deprecated
-             * @description 旧版过滤值，仅用于兼容
-             */
-            filterValue?: string;
-            /**
-             * @deprecated
-             * @description 旧版排序字段，仅用于兼容
-             */
-            orderField?: string;
-            /**
-             * @deprecated
-             * @description 旧版排序方向，仅用于兼容
-             */
-            orderValue?: string;
-            /**
              * Format: int32
              * @description 页码
              * @example 1
@@ -1434,12 +1146,20 @@ export interface components {
             updateTime?: string;
             /**
              * @description 角色列表
-             * @example {'id':'1','name':'管理员'}
+             * @example [
+             *       {
+             *         "id": "1",
+             *         "name": "管理员"
+             *       }
+             *     ]
              */
             roles?: components["schemas"]["UserRoleBean"][];
             /**
              * @description 权限列表
-             * @example {'admin','user'}
+             * @example [
+             *       "admin",
+             *       "user"
+             *     ]
              */
             permissions?: string[];
         };
@@ -1511,16 +1231,6 @@ export interface components {
              * @enum {string}
              */
             direction?: "asc" | "desc";
-            /**
-             * @deprecated
-             * @description 旧版排序字段，仅用于兼容
-             */
-            orderField?: string;
-            /**
-             * @deprecated
-             * @description 旧版排序方向，仅用于兼容
-             */
-            orderValue?: string;
             /**
              * Format: int32
              * @description 页码
@@ -1916,13 +1626,10 @@ export interface components {
              * @example menu
              */
             type?: string;
-            /**
-             * @description 菜单名称
-             * @example 用户管理
-             */
+            /** @description 菜单名称，由后端按 Locale 请求头从数据库返回 */
             name?: string;
             /** @description 子菜单 */
-            children?: unknown;
+            children?: components["schemas"]["MenuInfo"][];
         };
         /** @description 通用响应体 */
         ResponseListMenuInfo: {
@@ -1962,8 +1669,14 @@ export type $defs = Record<string, never>;
 export interface operations {
     queryUsers: {
         parameters: {
-            query: {
-                req: components["schemas"]["QueryUserReq"];
+            query?: {
+                keyword?: string;
+                status?: "0" | "1" | "all";
+                groupId?: string;
+                sort?: string;
+                direction?: "asc" | "desc";
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -1977,7 +1690,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponsePageDataUserBean"];
+                    "application/json": components["schemas"]["ResponsePageDataUserBean"];
                 };
             };
         };
@@ -2001,7 +1714,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2023,7 +1736,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2046,85 +1759,21 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    resetUserLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    editUserLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EditUserReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    addUserLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddUserReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
     };
     queryRoles: {
         parameters: {
-            query: {
-                req: components["schemas"]["QueryRoleReq"];
+            query?: {
+                id?: string;
+                name?: string;
+                status?: string;
+                sort?: string;
+                direction?: "asc" | "desc";
+                page?: number;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -2138,7 +1787,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponsePageDataRoleBean"];
+                    "application/json": components["schemas"]["ResponsePageDataRoleBean"];
                 };
             };
         };
@@ -2162,7 +1811,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2184,63 +1833,19 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    editRoleLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EditRoleReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    addRoleLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddRoleReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
     };
     queryPermissions: {
         parameters: {
-            query: {
-                req: components["schemas"]["QueryPermissionReq"];
+            query?: {
+                id?: string;
+                name?: string;
+                path?: string;
+                status?: "1" | "0" | "all";
+                type?: "menu" | "directory" | "action" | "all";
             };
             header?: never;
             path?: never;
@@ -2254,31 +1859,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseListPermissionBean"];
-                };
-            };
-        };
-    };
-    queryPermissionsLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QueryPermissionReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseListPermissionBean"];
+                    "application/json": components["schemas"]["ResponseListPermissionBean"];
                 };
             };
         };
@@ -2300,31 +1881,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    editPermissionLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EditPermissionReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2348,39 +1905,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponsePermissionBean"];
-                };
-            };
-        };
-    };
-    addChildLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddChildPermissionReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponsePermissionBean"];
+                    "application/json": components["schemas"]["ResponsePermissionBean"];
                 };
             };
         };
     };
     queryGroups: {
         parameters: {
-            query: {
-                req: components["schemas"]["QueryGroupReq"];
+            query?: {
+                id?: string;
+                name?: string;
+                status?: string;
             };
             header?: never;
             path?: never;
@@ -2394,31 +1929,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseListGroupBean"];
-                };
-            };
-        };
-    };
-    queryGroupsLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QueryGroupReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseListGroupBean"];
+                    "application/json": components["schemas"]["ResponseListGroupBean"];
                 };
             };
         };
@@ -2440,36 +1951,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
     };
-    editGroupLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EditGroupReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    addChild_1: {
+    addChild_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -2488,31 +1975,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseGroupBean"];
-                };
-            };
-        };
-    };
-    addChildLegacy_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddChildGroupReq"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseGroupBean"];
+                    "application/json": components["schemas"]["ResponseGroupBean"];
                 };
             };
         };
@@ -2534,7 +1997,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseLoginResp"];
+                    "application/json": components["schemas"]["ResponseLoginResp"];
                 };
             };
         };
@@ -2556,7 +2019,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2580,7 +2043,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseLoginResp"];
+                    "application/json": components["schemas"]["ResponseLoginResp"];
                 };
             };
         };
@@ -2604,7 +2067,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2627,7 +2090,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseUserBean"];
+                    "application/json": components["schemas"]["ResponseUserBean"];
                 };
             };
         };
@@ -2649,7 +2112,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2675,7 +2138,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2701,7 +2164,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2727,7 +2190,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseRoleBean"];
+                    "application/json": components["schemas"]["ResponseRoleBean"];
                 };
             };
         };
@@ -2749,7 +2212,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2775,7 +2238,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2801,7 +2264,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponsePermissionBean"];
+                    "application/json": components["schemas"]["ResponsePermissionBean"];
                 };
             };
         };
@@ -2823,7 +2286,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2849,7 +2312,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2875,7 +2338,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseGroupBean"];
+                    "application/json": components["schemas"]["ResponseGroupBean"];
                 };
             };
         };
@@ -2897,7 +2360,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
@@ -2923,12 +2386,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
     };
-    updateStatus_1: {
+    updateStatus_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -2949,81 +2412,21 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseString"];
-                };
-            };
-        };
-    };
-    queryUserLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseUserBean"];
-                };
-            };
-        };
-    };
-    queryRoleLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                roleId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseRoleBean"];
-                };
-            };
-        };
-    };
-    queryPermissionLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                permissionId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponsePermissionBean"];
+                    "application/json": components["schemas"]["ResponseString"];
                 };
             };
         };
     };
     queryOperationLogs: {
         parameters: {
-            query: {
-                req: components["schemas"]["QueryOperationLogReq"];
+            query?: {
+                page?: number;
+                size?: number;
+                username?: string;
+                path?: string;
+                status?: string;
+                from?: string;
+                to?: string;
             };
             header?: never;
             path?: never;
@@ -3037,29 +2440,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponsePageDataOperationLogBean"];
-                };
-            };
-        };
-    };
-    queryGroupLegacy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                groupId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ResponseGroupBean"];
+                    "application/json": components["schemas"]["ResponsePageDataOperationLogBean"];
                 };
             };
         };
@@ -3079,7 +2460,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseUserInfo"];
+                    "application/json": components["schemas"]["ResponseUserInfo"];
                 };
             };
         };
@@ -3087,7 +2468,10 @@ export interface operations {
     menus: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description zh（默认）或 en；决定菜单名使用 name 还是 name_en */
+                Locale?: "zh" | "en";
+            };
             path?: never;
             cookie?: never;
         };
@@ -3099,7 +2483,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResponseListMenuInfo"];
+                    "application/json": components["schemas"]["ResponseListMenuInfo"];
                 };
             };
         };

@@ -10,6 +10,7 @@ import { Response } from 'express';
 import { OptimisticLockVersionMismatchError, QueryFailedError } from 'typeorm';
 import { AppRequest } from './app-request';
 import { BusinessException } from './business-exception';
+import { isConstraintViolation } from './db-errors';
 import { BusinessCode, DEFAULT_MESSAGES, httpStatusOf } from './error-code';
 import { errorEnvelope } from './response';
 import { newTraceId } from './trace-id';
@@ -77,8 +78,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (exception instanceof QueryFailedError) {
-      const driverCode = (exception as QueryFailedError & { driverError?: { code?: string } }).driverError?.code;
-      if (driverCode === '23505' || driverCode === '23503' || driverCode === '23502') {
+      // Covers PostgreSQL, MySQL, MariaDB and SQLite, not just PostgreSQL.
+      if (isConstraintViolation(exception)) {
         return {
           code: BusinessCode.CONFLICT,
           message: '数据冲突，请刷新后重试',

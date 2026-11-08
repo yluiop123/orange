@@ -12,7 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const outDir = path.resolve(
-  process.env.CONTROLS_OUT ?? 'D:/User/Cache/Temp/opencode/controls',
+  process.env.CONTROLS_OUT ?? path.join(os.tmpdir(), 'orange-controls'),
 );
 fs.mkdirSync(outDir, { recursive: true });
 

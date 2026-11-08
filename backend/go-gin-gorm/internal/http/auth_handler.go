@@ -79,7 +79,7 @@ func (h *Handlers) userInfo(c *gin.Context) {
 }
 
 func (h *Handlers) menus(c *gin.Context) {
-	menus, err := h.svc.Menus(c.Request.Context())
+	menus, err := h.svc.Menus(c.Request.Context(), c.GetHeader("Locale"))
 	if err != nil {
 		fail(c, err)
 		return

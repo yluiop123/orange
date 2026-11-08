@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiResult } from '../common/response';
-import { splitIds } from '../common/query.util';
+import { requiredIds } from '../common/query.util';
 import { StatusDto } from '../common/status.dto';
 import { RequireAuthority } from '../auth/decorators';
 import { AddChildGroupDto, EditGroupDto, QueryGroupDto } from './groups.dto';
@@ -53,7 +53,7 @@ export class GroupsController {
   @Delete()
   @RequireAuthority('action#/system/group:delete')
   async removeMany(@Query('ids') ids: string) {
-    await this.groups.remove(splitIds(ids));
+    await this.groups.remove(requiredIds(ids));
     return ApiResult.message('操作成功');
   }
 }

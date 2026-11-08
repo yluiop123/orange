@@ -1,1 +1,3108 @@
-{"openapi":"3.1.0","info":{"title":"API 接口文档","version":"1.0"},"servers":[{"url":"/"}],"security":[{"bearerAuth":[]}],"tags":[{"name":"用户管理","description":"用户管理相关接口"},{"name":"操作日志","description":"系统管理写操作审计日志"},{"name":"组织管理","description":"组织管理相关接口"},{"name":"角色管理","description":"角色管理相关接口"},{"name":"权限管理","description":"权限管理相关接口"}],"paths":{"/api/v1/system/users":{"get":{"tags":["用户管理"],"summary":"查询用户列表","description":"支持分页、过滤和排序","operationId":"queryUsers","parameters":[{"name":"req","in":"query","required":true,"schema":{"$ref":"#/components/schemas/QueryUserReq"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponsePageDataUserBean"}}}}}},"post":{"tags":["用户管理"],"summary":"新增用户","description":"根据用户信息新增用户","operationId":"addUser","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddUserReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}},"delete":{"tags":["用户管理"],"summary":"批量删除用户","description":"根据用户ID列表删除用户，多个 ID 用逗号分隔","operationId":"deleteUsers","parameters":[{"name":"ids","in":"query","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/users/{userId}/reset-password":{"post":{"tags":["用户管理"],"summary":"重置用户密码","description":"根据用户ID重置用户密码","operationId":"resetUser","parameters":[{"name":"userId","in":"path","description":"用户ID","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/users/reset/{userId}":{"post":{"tags":["用户管理"],"summary":"重置用户密码（旧）","operationId":"resetUserLegacy","parameters":[{"name":"userId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}},"deprecated":true}},"/api/v1/system/users/edit":{"post":{"tags":["用户管理"],"summary":"编辑用户（旧）","operationId":"editUserLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditUserReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}},"deprecated":true}},"/api/v1/system/users/add":{"post":{"tags":["用户管理"],"summary":"新增用户（旧）","operationId":"addUserLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddUserReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}},"deprecated":true}},"/api/v1/system/roles":{"get":{"tags":["角色管理"],"summary":"查询角色列表","description":"支持分页、过滤和排序","operationId":"queryRoles","parameters":[{"name":"req","in":"query","required":true,"schema":{"$ref":"#/components/schemas/QueryRoleReq"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponsePageDataRoleBean"}}}}}},"post":{"tags":["角色管理"],"summary":"新增角色","description":"根据角色信息新增角色","operationId":"addRole","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddRoleReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}},"delete":{"tags":["角色管理"],"summary":"删除角色","description":"根据角色ID列表删除角色，多个 ID 用逗号分隔","operationId":"deleteRoles","parameters":[{"name":"ids","in":"query","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/roles/edit":{"post":{"tags":["角色管理"],"summary":"编辑角色（旧）","operationId":"editRoleLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditRoleReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}},"deprecated":true}},"/api/v1/system/roles/add":{"post":{"tags":["角色管理"],"summary":"新增角色（旧）","operationId":"addRoleLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddRoleReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}},"deprecated":true}},"/api/v1/system/permissions":{"get":{"tags":["权限管理"],"summary":"查询权限列表","description":"支持按 ID、名称、状态过滤","operationId":"queryPermissions","parameters":[{"name":"req","in":"query","required":true,"schema":{"$ref":"#/components/schemas/QueryPermissionReq"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseListPermissionBean"}}}}}},"post":{"tags":["权限管理"],"summary":"查询权限列表（旧）","operationId":"queryPermissionsLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryPermissionReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseListPermissionBean"}}}}},"deprecated":true},"delete":{"tags":["权限管理"],"summary":"删除权限","description":"根据权限ID列表删除权限，多个 ID 用逗号分隔","operationId":"deletePermissions","parameters":[{"name":"ids","in":"query","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/permissions/edit":{"post":{"tags":["权限管理"],"summary":"编辑权限（旧）","operationId":"editPermissionLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditPermissionReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}},"deprecated":true}},"/api/v1/system/permissions/children":{"post":{"tags":["权限管理"],"summary":"添加子权限","description":"在指定父权限下添加子权限","operationId":"addChild","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddChildPermissionReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponsePermissionBean"}}}}}}},"/api/v1/system/permissions/addChild":{"post":{"tags":["权限管理"],"summary":"添加子权限（旧）","operationId":"addChildLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddChildPermissionReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponsePermissionBean"}}}}},"deprecated":true}},"/api/v1/system/groups":{"get":{"tags":["组织管理"],"summary":"查询组织列表","description":"支持按 ID、名称、状态过滤","operationId":"queryGroups","parameters":[{"name":"req","in":"query","required":true,"schema":{"$ref":"#/components/schemas/QueryGroupReq"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseListGroupBean"}}}}}},"post":{"tags":["组织管理"],"summary":"查询组织列表（旧）","operationId":"queryGroupsLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryGroupReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseListGroupBean"}}}}},"deprecated":true},"delete":{"tags":["组织管理"],"summary":"删除组织","description":"根据组织ID列表删除组织，多个 ID 用逗号分隔","operationId":"deleteGroups","parameters":[{"name":"ids","in":"query","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/groups/edit":{"post":{"tags":["组织管理"],"summary":"编辑组织（旧）","operationId":"editGroupLegacy","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditGroupReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}},"deprecated":true}},"/api/v1/system/groups/children":{"post":{"tags":["组织管理"],"summary":"添加子组织","description":"在指定父组织下添加子组织","operationId":"addChild_1","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddChildGroupReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseGroupBean"}}}}}}},"/api/v1/system/groups/addChild":{"post":{"tags":["组织管理"],"summary":"添加子组织（旧）","operationId":"addChildLegacy_1","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AddChildGroupReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseGroupBean"}}}}},"deprecated":true}},"/api/v1/auth/refresh":{"post":{"tags":["login-controller"],"operationId":"refresh","parameters":[{"name":"refresh_token","in":"cookie","required":false,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseLoginResp"}}}}}}},"/api/v1/auth/logout":{"post":{"tags":["login-controller"],"operationId":"logout","parameters":[{"name":"refresh_token","in":"cookie","required":false,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/auth/login":{"post":{"tags":["login-controller"],"operationId":"login","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/LoginReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseLoginResp"}}}}}}},"/api/v1/auth/change-password":{"post":{"tags":["login-controller"],"operationId":"changePassword","requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ChangePasswordReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/users/{userId}":{"get":{"tags":["用户管理"],"summary":"查询用户详情","description":"根据用户ID查询用户详情","operationId":"queryUser","parameters":[{"name":"userId","in":"path","description":"用户ID","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseUserBean"}}}}}},"delete":{"tags":["用户管理"],"summary":"删除用户","description":"根据用户ID删除用户","operationId":"deleteUser","parameters":[{"name":"userId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}},"patch":{"tags":["用户管理"],"summary":"编辑用户","description":"根据用户ID更新用户信息","operationId":"editUser","parameters":[{"name":"userId","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditUserReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/users/{userId}/status":{"patch":{"tags":["用户管理"],"summary":"更新用户状态","description":"启用或禁用用户","operationId":"updateStatus","parameters":[{"name":"userId","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/roles/{roleId}":{"get":{"tags":["角色管理"],"summary":"查询角色详情","description":"根据角色ID查询角色详情","operationId":"queryRole","parameters":[{"name":"roleId","in":"path","description":"角色ID","required":true,"schema":{"type":"string"},"example":1}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseRoleBean"}}}}}},"delete":{"tags":["角色管理"],"summary":"删除角色","description":"根据角色ID删除角色","operationId":"deleteRole","parameters":[{"name":"roleId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}},"patch":{"tags":["角色管理"],"summary":"编辑角色","description":"根据角色ID更新角色信息","operationId":"editRole","parameters":[{"name":"roleId","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditRoleReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/permissions/{permissionId}":{"get":{"tags":["权限管理"],"summary":"查询权限详情","description":"根据权限ID查询权限详情","operationId":"queryPermission","parameters":[{"name":"permissionId","in":"path","description":"权限ID","required":true,"schema":{"type":"string","description":"权限ID","example":1},"example":1}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponsePermissionBean"}}}}}},"delete":{"tags":["权限管理"],"summary":"删除权限","description":"根据权限ID删除权限","operationId":"deletePermission","parameters":[{"name":"permissionId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}},"patch":{"tags":["权限管理"],"summary":"编辑权限","description":"根据权限ID更新权限信息","operationId":"editPermission","parameters":[{"name":"permissionId","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditPermissionReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/groups/{groupId}":{"get":{"tags":["组织管理"],"summary":"查询组织详情","description":"根据组织ID查询组织详情","operationId":"queryGroup","parameters":[{"name":"groupId","in":"path","description":"组织ID","required":true,"schema":{"type":"string"},"example":1}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseGroupBean"}}}}}},"delete":{"tags":["组织管理"],"summary":"删除组织","description":"根据组织ID删除组织","operationId":"deleteGroup","parameters":[{"name":"groupId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}},"patch":{"tags":["组织管理"],"summary":"编辑组织","description":"根据组织ID更新组织信息","operationId":"editGroup","parameters":[{"name":"groupId","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/EditGroupReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/groups/{groupId}/status":{"patch":{"tags":["组织管理"],"summary":"更新组织状态","description":"启用或禁用组织","operationId":"updateStatus_1","parameters":[{"name":"groupId","in":"path","required":true,"schema":{"type":"string"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/StatusReq"}}},"required":true},"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseString"}}}}}}},"/api/v1/system/users/detail/{userId}":{"get":{"tags":["用户管理"],"summary":"查询用户详情（旧）","operationId":"queryUserLegacy","parameters":[{"name":"userId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseUserBean"}}}}},"deprecated":true}},"/api/v1/system/roles/detail/{roleId}":{"get":{"tags":["角色管理"],"summary":"查询角色详情（旧）","operationId":"queryRoleLegacy","parameters":[{"name":"roleId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseRoleBean"}}}}},"deprecated":true}},"/api/v1/system/permissions/detail/{permissionId}":{"get":{"tags":["权限管理"],"summary":"查询权限详情（旧）","operationId":"queryPermissionLegacy","parameters":[{"name":"permissionId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponsePermissionBean"}}}}},"deprecated":true}},"/api/v1/system/operation-logs":{"get":{"tags":["操作日志"],"summary":"查询操作日志","description":"支持按操作人、路径、状态和时间范围过滤","operationId":"queryOperationLogs","parameters":[{"name":"req","in":"query","required":true,"schema":{"$ref":"#/components/schemas/QueryOperationLogReq"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponsePageDataOperationLogBean"}}}}}}},"/api/v1/system/groups/detail/{groupId}":{"get":{"tags":["组织管理"],"summary":"查询组织详情（旧）","operationId":"queryGroupLegacy","parameters":[{"name":"groupId","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseGroupBean"}}}}},"deprecated":true}},"/api/v1/auth/user-info":{"get":{"tags":["login-controller"],"operationId":"userInfo","responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseUserInfo"}}}}}}},"/api/v1/auth/menus":{"get":{"tags":["菜单"],"summary":"查询菜单树","description":"返回全部启用的菜单和目录，前端按当前角色权限过滤可见性","operationId":"menus","responses":{"200":{"description":"OK","content":{"*/*":{"schema":{"$ref":"#/components/schemas/ResponseListMenuInfo"}}}}}}}},"components":{"schemas":{"AddUserReq":{"type":"object","description":"添加用户请求体","properties":{"name":{"type":"string","description":"用户名","example":"张三","maxLength":50,"minLength":2},"username":{"type":"string","description":"用户名","example":"admin","maxLength":50,"minLength":4,"pattern":"^[A-Za-z0-9_]+$"},"email":{"type":"string","format":"email","description":"邮箱","example":"admin@example.com","minLength":1},"groupId":{"type":"string","description":"用户组ID","example":1,"minLength":1},"phone":{"type":"string","description":"手机号","example":13800000000,"minLength":1,"pattern":"^1[3-9]\\d{9}$"},"status":{"type":"string","description":"状态","example":1,"pattern":"^(0|1)$"},"roles":{"type":"array","description":"角色ID列表","example":["1001","1002"],"items":{"type":"string"}},"permissions":{"type":"array","description":"权限ID列表","example":["1001","1002"],"items":{"type":"string"}}},"required":["email","groupId","name","phone","username"]},"ResponseString":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"type":"string","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"EditUserReq":{"type":"object","description":"编辑用户请求体","properties":{"id":{"type":"string","description":"用户ID","example":1},"name":{"type":"string","description":"用户姓名","example":"张三","maxLength":50,"minLength":2},"username":{"type":"string","description":"用户名","example":"zhangsan","maxLength":50,"minLength":4,"pattern":"^[A-Za-z0-9_]{4,50}$"},"email":{"type":"string","format":"email","description":"用户邮箱","example":"zhangsan@example.com"},"groupId":{"type":"string","description":"用户组ID","example":1},"phone":{"type":"string","description":"用户手机号","example":13800000000,"pattern":"^1[3-9]\\d{9}$"},"status":{"type":"string","description":"用户状态","example":1,"pattern":"^(0|1)$"},"roles":{"type":"array","description":"用户角色ID列表","example":["admin","user"],"items":{"type":"string"}},"permissions":{"type":"array","description":"用户权限ID列表","example":["0001","0002"],"items":{"type":"string"}}}},"AddRoleReq":{"type":"object","description":"添加角色请求参数","properties":{"name":{"type":"string","description":"角色名称","example":"管理员","maxLength":50,"minLength":2},"id":{"type":"string","description":"角色ID","example":1,"pattern":"^[A-Za-z0-9_-]{2,32}$"},"permissions":{"type":"array","description":"权限列表","items":{"type":"string"}}},"required":["name"]},"EditRoleReq":{"type":"object","description":"编辑角色请求参数","properties":{"id":{"type":"string","description":"角色ID","example":1},"name":{"type":"string","description":"角色名称","example":"管理员","maxLength":50,"minLength":2},"status":{"type":"string","description":"角色状态","example":1,"pattern":"^(0|1)$"},"permissions":{"type":"array","description":"权限ID列表","example":["1","2","3"],"items":{"type":"string"}}}},"QueryPermissionReq":{"type":"object","description":"查询权限请求参数","properties":{"id":{"type":"string","description":"权限ID"},"name":{"type":"string","description":"权限名称"},"path":{"type":"string","description":"权限路径"},"status":{"type":"string","description":"权限状态","enum":["1","0","all"],"pattern":"^(0|1|all)$"},"type":{"type":"string","description":"权限类型","enum":["menu","directory","action","all"],"pattern":"^(menu|directory|action|all)$"}}},"PermissionBean":{"type":"object","description":"权限列表项","properties":{"id":{"type":"string","description":"权限编码"},"name":{"type":"string","description":"权限名称"},"path":{"type":"string","description":"权限路径"},"action":{"type":"string","description":"权限操作"},"type":{"type":"string","description":"权限类型"},"status":{"type":"string","description":"权限状态"},"parentId":{"type":"string","description":"父权限编码"},"createTime":{"type":"string","format":"date-time","description":"创建时间"},"updateTime":{"type":"string","format":"date-time","description":"更新时间"}}},"ResponseListPermissionBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"type":"array","description":"数据","items":{"$ref":"#/components/schemas/PermissionBean"}},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"EditPermissionReq":{"type":"object","description":"编辑权限请求参数","properties":{"id":{"type":"string","description":"权限编码","example":1},"name":{"type":"string","description":"权限名称","example":"用户管理","maxLength":50,"minLength":2},"path":{"type":"string","description":"权限路径","example":"/user","maxLength":200,"minLength":0},"action":{"type":"string","description":"权限操作","example":"list"},"status":{"type":"string","description":"权限状态","example":1,"pattern":"^(0|1)$"},"type":{"type":"string","description":"权限类型","example":"menu","pattern":"^(menu|action|directory)$"}}},"AddChildPermissionReq":{"type":"object","description":"添加子权限请求参数","properties":{"id":{"type":"string","description":"权限编码","example":"0102","minLength":1,"pattern":"^[0-9]{2,}$"},"name":{"type":"string","description":"权限名称","example":"用户管理","minLength":1},"path":{"type":"string","description":"权限路径","example":"/user","minLength":1},"action":{"type":"string","description":"权限操作","example":"list"},"type":{"type":"string","description":"权限类型","example":"menu","minLength":1,"pattern":"^(menu|action|directory)$"},"parentId":{"type":"string","description":"父权限编码","example":"01"}},"required":["id","name","path","type"]},"ResponsePermissionBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/PermissionBean","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"QueryGroupReq":{"type":"object","description":"查询组织请求参数","properties":{"id":{"type":"string","description":"组织ID","pattern":"^[A-Za-z0-9]+$"},"name":{"type":"string","description":"组织名称"},"status":{"type":"string","description":"组织状态","pattern":"^(0|1|all)$"}}},"GroupBean":{"type":"object","description":"组织列表项","properties":{"id":{"type":"string","description":"组织编码"},"name":{"type":"string","description":"组织名称"},"status":{"type":"string","description":"组织状态"},"parentId":{"type":"string","description":"父组织编码"},"createTime":{"type":"string","format":"date-time","description":"创建时间"},"updateTime":{"type":"string","format":"date-time","description":"更新时间"}}},"ResponseListGroupBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"type":"array","description":"数据","items":{"$ref":"#/components/schemas/GroupBean"}},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"EditGroupReq":{"type":"object","description":"编辑组织请求参数","properties":{"id":{"type":"string","description":"组织ID","example":1,"pattern":"^[A-Za-z0-9]{2,}$"},"name":{"type":"string","description":"组织名称","example":"管理员","minLength":1},"status":{"type":"string","description":"组织状态","enum":["0","1"],"example":1,"pattern":"^[01]$"}},"required":["name"]},"AddChildGroupReq":{"type":"object","description":"添加子组织请求参数","properties":{"id":{"type":"string","description":"子组织ID","minLength":1,"pattern":"^[0-9]{2,}$"},"name":{"type":"string","description":"子组织名称","minLength":1},"parentId":{"type":"string","description":"父组织ID"}},"required":["id","name"]},"ResponseGroupBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/GroupBean","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"LoginResp":{"type":"object","description":"登录响应参数","properties":{"token":{"type":"string","description":"登录凭证","example":123456},"status":{"type":"string","description":"状态码","enum":["ok","error"],"example":"ok"},"field":{"type":"string","description":"错误字段","example":"username"},"msg":{"type":"string","description":"错误信息","example":"用户名或密码错误"},"expiresIn":{"type":"integer","format":"int64","description":"access token 有效期（秒）","example":1800},"refreshExpiresIn":{"type":"integer","format":"int64","description":"refresh token 有效期（秒）","example":604800}}},"ResponseLoginResp":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/LoginResp","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"LoginReq":{"type":"object","description":"登录请求参数","properties":{"username":{"type":"string","description":"用户名","example":"admin","minLength":1,"pattern":"^[A-Za-z0-9_]{4,50}$"},"password":{"type":"string","description":"密码","example":123456,"minLength":1}},"required":["password","username"]},"ChangePasswordReq":{"type":"object","description":"修改密码请求参数","properties":{"oldPassword":{"type":"string","description":"原密码","example":"old-password","minLength":1},"newPassword":{"type":"string","description":"新密码","example":"new-password","maxLength":64,"minLength":8,"pattern":"^(?=.*[A-Za-z])(?=.*\\d).{8,64}$"}},"required":["newPassword","oldPassword"]},"StatusReq":{"type":"object","description":"状态更新请求体","properties":{"status":{"type":"string","description":"状态","enum":["0","1"],"example":1,"minLength":1,"pattern":"^(0|1)$"}},"required":["status"]},"QueryUserReq":{"type":"object","description":"用户列表查询请求参数","properties":{"keyword":{"type":"string","description":"关键词，匹配姓名、用户名、邮箱或手机号","example":"admin"},"status":{"type":"string","description":"用户状态","enum":["0","1","all"],"pattern":"^$|^(0|1|all)$"},"groupId":{"type":"string","description":"分组ID","example":1001},"sort":{"type":"string","description":"排序字段","example":"username"},"direction":{"type":"string","description":"排序方向","enum":["asc","desc"],"pattern":"^$|^(asc|desc)$"},"filterField":{"type":"string","deprecated":true,"description":"旧版过滤字段，仅用于兼容"},"filterValue":{"type":"string","deprecated":true,"description":"旧版过滤值，仅用于兼容"},"orderField":{"type":"string","deprecated":true,"description":"旧版排序字段，仅用于兼容"},"orderValue":{"type":"string","deprecated":true,"description":"旧版排序方向，仅用于兼容","pattern":"^$|^(asc|desc)$"},"page":{"type":"integer","format":"int32","description":"页码","example":1,"maximum":10000,"minimum":1},"size":{"type":"integer","format":"int32","description":"每页数量","example":10,"maximum":100,"minimum":1}}},"PageDataUserBean":{"type":"object","description":"分页数据响应参数","properties":{"total":{"type":"integer","format":"int64","description":"总记录数","example":100},"list":{"type":"array","description":"分页数据列表","items":{"$ref":"#/components/schemas/UserBean"}},"page":{"type":"integer","format":"int32","description":"当前页码","example":1},"size":{"type":"integer","format":"int32","description":"每页数量","example":10},"totalPages":{"type":"integer","format":"int32","description":"总页数","example":10}}},"ResponsePageDataUserBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/PageDataUserBean","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"UserBean":{"type":"object","description":"用户信息","properties":{"id":{"type":"string","description":"用户ID","example":1},"name":{"type":"string","description":"用户名","example":"张三"},"username":{"type":"string","description":"用户名","example":"admin1"},"email":{"type":"string","description":"邮箱","example":"zhangsan@example.com"},"groupId":{"type":"string","description":"用户组ID","example":1},"groupName":{"type":"string","description":"用户组名称","example":"管理部"},"phone":{"type":"string","description":"手机号","example":13800000000},"status":{"type":"string","description":"状态","example":1},"createTime":{"type":"string","format":"date-time","description":"创建时间","example":"2023-01-01 00:00:00"},"updateTime":{"type":"string","format":"date-time","description":"更新时间","example":"2023-01-01 00:00:00"},"roles":{"type":"array","description":"角色列表","example":"{'id':'1','name':'管理员'}","items":{"$ref":"#/components/schemas/UserRoleBean"},"uniqueItems":true},"permissions":{"type":"array","description":"权限列表","example":"{'admin','user'}","items":{"type":"string"},"uniqueItems":true}}},"UserRoleBean":{"type":"object","description":"用户所属角色","properties":{"id":{"type":"string","description":"角色ID","example":1},"name":{"type":"string","description":"角色名称","example":"管理员"}}},"ResponseUserBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/UserBean","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"QueryRoleReq":{"type":"object","description":"查询角色请求参数","properties":{"id":{"type":"string","description":"角色ID","example":1},"name":{"type":"string","description":"角色名称","example":"管理员"},"status":{"type":"string","description":"角色状态","example":1},"sort":{"type":"string","description":"排序字段","example":"name"},"direction":{"type":"string","description":"排序方向","enum":["asc","desc"],"example":"asc","pattern":"^$|^(asc|desc)$"},"orderField":{"type":"string","deprecated":true,"description":"旧版排序字段，仅用于兼容"},"orderValue":{"type":"string","deprecated":true,"description":"旧版排序方向，仅用于兼容","pattern":"^$|^(asc|desc)$"},"page":{"type":"integer","format":"int32","description":"页码","example":1,"maximum":10000,"minimum":1},"size":{"type":"integer","format":"int32","description":"每页数量","example":10,"maximum":100,"minimum":1}}},"PageDataRoleBean":{"type":"object","description":"分页数据响应参数","properties":{"total":{"type":"integer","format":"int64","description":"总记录数","example":100},"list":{"type":"array","description":"分页数据列表","items":{"$ref":"#/components/schemas/RoleBean"}},"page":{"type":"integer","format":"int32","description":"当前页码","example":1},"size":{"type":"integer","format":"int32","description":"每页数量","example":10},"totalPages":{"type":"integer","format":"int32","description":"总页数","example":10}}},"ResponsePageDataRoleBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/PageDataRoleBean","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"RoleBean":{"type":"object","description":"角色详情","properties":{"name":{"type":"string","description":"角色名称"},"id":{"type":"string","description":"角色ID"},"status":{"type":"string","description":"角色状态","example":1},"permissions":{"type":"array","description":"权限列表","items":{"type":"string"}},"createTime":{"type":"string","format":"date-time","description":"创建时间"},"updateTime":{"type":"string","format":"date-time","description":"更新时间"}}},"ResponseRoleBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/RoleBean","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"QueryOperationLogReq":{"type":"object","description":"查询操作日志请求参数","properties":{"page":{"type":"integer","format":"int32","description":"页码","example":1,"minimum":1},"size":{"type":"integer","format":"int32","description":"每页数量","example":10,"maximum":100,"minimum":1},"username":{"type":"string","description":"操作人用户名"},"path":{"type":"string","description":"请求路径"},"status":{"type":"string","description":"HTTP 状态码","example":200,"pattern":"^$|^\\d{3}$"},"from":{"type":"string","format":"date-time","description":"开始时间（ISO 8601）","example":"2026-11-01T00:00:00Z"},"to":{"type":"string","format":"date-time","description":"结束时间（ISO 8601）","example":"2026-11-02T23:59:59Z"}}},"OperationLogBean":{"type":"object","description":"操作日志","properties":{"id":{"type":"integer","format":"int64","description":"日志 ID"},"traceId":{"type":"string","description":"链路追踪 ID"},"username":{"type":"string","description":"操作人"},"method":{"type":"string","description":"HTTP 方法"},"path":{"type":"string","description":"请求路径"},"queryString":{"type":"string","description":"查询参数"},"requestBody":{"type":"string","description":"请求体（已脱敏）"},"status":{"type":"integer","format":"int32","description":"HTTP 状态码"},"durationMs":{"type":"integer","format":"int64","description":"耗时毫秒"},"ip":{"type":"string","description":"客户端 IP"},"createTime":{"type":"string","format":"date-time","description":"操作时间"}}},"PageDataOperationLogBean":{"type":"object","description":"分页数据响应参数","properties":{"total":{"type":"integer","format":"int64","description":"总记录数","example":100},"list":{"type":"array","description":"分页数据列表","items":{"$ref":"#/components/schemas/OperationLogBean"}},"page":{"type":"integer","format":"int32","description":"当前页码","example":1},"size":{"type":"integer","format":"int32","description":"每页数量","example":10},"totalPages":{"type":"integer","format":"int32","description":"总页数","example":10}}},"ResponsePageDataOperationLogBean":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/PageDataOperationLogBean","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"PermissionInfo":{"type":"object","description":"权限信息","properties":{"path":{"type":"string","description":"权限路径","example":"/user"},"role":{"type":"string","description":"所属角色","example":"admin"},"type":{"type":"string","description":"权限类型","example":"menu"},"action":{"type":"string","description":"权限操作","example":"add"}}},"ResponseUserInfo":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"$ref":"#/components/schemas/UserInfo","description":"数据"},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}},"RoleInfo":{"type":"object","description":"角色信息","properties":{"id":{"type":"string","description":"角色编码","example":1},"name":{"type":"string","description":"角色名称","example":"admin"}}},"UserInfo":{"type":"object","description":"用户信息","properties":{"id":{"type":"string","description":"用户编码","example":1},"name":{"type":"string","description":"用户姓名","example":"admin"},"username":{"type":"string","description":"用户名","example":"admin"},"email":{"type":"string","description":"用户邮箱","example":"admin@example.com"},"groupId":{"type":"string","description":"用户组编码","example":1},"groupName":{"type":"string","description":"用户组名称","example":"admin"},"phone":{"type":"string","description":"用户手机号","example":13800000000},"status":{"type":"string","description":"用户状态","example":"active"},"mustChangePassword":{"type":"boolean","description":"是否需要强制修改密码","example":false},"createTime":{"type":"string","format":"date-time","description":"创建时间","example":"2023-01-01 00:00:00"},"updateTime":{"type":"string","format":"date-time","description":"更新时间","example":"2023-01-01 00:00:00"},"roles":{"type":"array","description":"用户角色列表","items":{"$ref":"#/components/schemas/RoleInfo"},"uniqueItems":true},"rolePermissions":{"type":"array","description":"用户角色权限列表","items":{"$ref":"#/components/schemas/PermissionInfo"},"uniqueItems":true},"userPermissions":{"type":"array","description":"用户权限列表","items":{"$ref":"#/components/schemas/PermissionInfo"},"uniqueItems":true}}},"MenuInfo":{"type":"object","description":"菜单节点","properties":{"id":{"type":"string","description":"菜单ID","example":"000500"},"path":{"type":"string","description":"菜单路径","example":"/system/user"},"type":{"type":"string","description":"菜单类型","example":"menu"},"name":{"type":"string","description":"菜单名称","example":"用户管理"},"children":{"description":"子菜单"}}},"ResponseListMenuInfo":{"type":"object","description":"通用响应体","properties":{"code":{"type":"integer","format":"int32","description":"状态码","example":200},"message":{"type":"string","description":"状态信息","example":"操作成功"},"data":{"type":"array","description":"数据","items":{"$ref":"#/components/schemas/MenuInfo"}},"timestamp":{"type":"integer","format":"int64","description":"时间戳","example":1694502400000},"traceId":{"type":"string","description":"链路追踪 ID","example":"9f8c1b2d3e4f5a6b"}}}},"securitySchemes":{"bearerAuth":{"type":"http","name":"Authorization","scheme":"bearer","bearerFormat":"JWT"}}}}
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API 接口文档",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "认证",
+      "description": "登录、刷新、登出、当前用户与菜单"
+    },
+    {
+      "name": "用户管理",
+      "description": "用户管理相关接口"
+    },
+    {
+      "name": "操作日志",
+      "description": "系统管理写操作审计日志"
+    },
+    {
+      "name": "组织管理",
+      "description": "组织管理相关接口"
+    },
+    {
+      "name": "角色管理",
+      "description": "角色管理相关接口"
+    },
+    {
+      "name": "权限管理",
+      "description": "权限管理相关接口"
+    }
+  ],
+  "paths": {
+    "/api/v1/system/users": {
+      "get": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "查询用户列表",
+        "description": "支持分页、过滤和排序",
+        "operationId": "queryUsers",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "关键词，匹配姓名、用户名、邮箱或手机号",
+              "example": "admin"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "用户状态",
+              "enum": [
+                "0",
+                "1",
+                "all"
+              ],
+              "pattern": "^$|^(0|1|all)$"
+            }
+          },
+          {
+            "name": "groupId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "分组ID",
+              "example": "1001"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "排序字段",
+              "example": "username"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "排序方向",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "pattern": "^$|^(asc|desc)$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "页码",
+              "example": 1,
+              "maximum": 10000,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "每页数量",
+              "example": 10,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePageDataUserBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "新增用户",
+        "description": "根据用户信息新增用户",
+        "operationId": "addUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddUserReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "批量删除用户",
+        "description": "根据用户ID列表删除用户，多个 ID 用逗号分隔",
+        "operationId": "deleteUsers",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/users/{userId}/reset-password": {
+      "post": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "重置用户密码",
+        "description": "根据用户ID重置用户密码",
+        "operationId": "resetUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "用户ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/roles": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "查询角色列表",
+        "description": "支持分页、过滤和排序",
+        "operationId": "queryRoles",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "角色ID",
+              "example": "1"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "角色名称",
+              "example": "管理员"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "角色状态",
+              "example": "1"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "排序字段",
+              "example": "name"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "排序方向",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "example": "asc",
+              "pattern": "^$|^(asc|desc)$"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "页码",
+              "example": 1,
+              "maximum": 10000,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "每页数量",
+              "example": 10,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePageDataRoleBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "新增角色",
+        "description": "根据角色信息新增角色",
+        "operationId": "addRole",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddRoleReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "删除角色",
+        "description": "根据角色ID列表删除角色，多个 ID 用逗号分隔",
+        "operationId": "deleteRoles",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/permissions": {
+      "get": {
+        "tags": [
+          "权限管理"
+        ],
+        "summary": "查询权限列表",
+        "description": "支持按 ID、名称、状态过滤",
+        "operationId": "queryPermissions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "权限ID"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "权限名称"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "权限路径"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "权限状态",
+              "enum": [
+                "1",
+                "0",
+                "all"
+              ],
+              "pattern": "^(0|1|all)$"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "权限类型",
+              "enum": [
+                "menu",
+                "directory",
+                "action",
+                "all"
+              ],
+              "pattern": "^(menu|directory|action|all)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseListPermissionBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "权限管理"
+        ],
+        "summary": "删除权限",
+        "description": "根据权限ID列表删除权限，多个 ID 用逗号分隔",
+        "operationId": "deletePermissions",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/permissions/children": {
+      "post": {
+        "tags": [
+          "权限管理"
+        ],
+        "summary": "添加子权限",
+        "description": "在指定父权限下添加子权限",
+        "operationId": "addChild",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddChildPermissionReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePermissionBean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/groups": {
+      "get": {
+        "tags": [
+          "组织管理"
+        ],
+        "summary": "查询组织列表",
+        "description": "支持按 ID、名称、状态过滤",
+        "operationId": "queryGroups",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "组织ID",
+              "pattern": "^[0-9]*$"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "组织名称"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "组织状态",
+              "pattern": "^(0|1|all)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseListGroupBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "组织管理"
+        ],
+        "summary": "删除组织",
+        "description": "根据组织ID列表删除组织，多个 ID 用逗号分隔",
+        "operationId": "deleteGroups",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/groups/children": {
+      "post": {
+        "tags": [
+          "组织管理"
+        ],
+        "summary": "添加子组织",
+        "description": "在指定父组织下添加子组织",
+        "operationId": "addChild_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddChildGroupReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseGroupBean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "operationId": "refresh",
+        "parameters": [
+          {
+            "name": "refresh_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseLoginResp"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "operationId": "logout",
+        "parameters": [
+          {
+            "name": "refresh_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseLoginResp"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "tags": [
+          "认证"
+        ],
+        "operationId": "changePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/users/{userId}": {
+      "get": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "查询用户详情",
+        "description": "根据用户ID查询用户详情",
+        "operationId": "queryUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "用户ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseUserBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "删除用户",
+        "description": "根据用户ID删除用户",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "编辑用户",
+        "description": "根据用户ID更新用户信息",
+        "operationId": "editUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditUserReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/users/{userId}/status": {
+      "patch": {
+        "tags": [
+          "用户管理"
+        ],
+        "summary": "更新用户状态",
+        "description": "启用或禁用用户",
+        "operationId": "updateStatus",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/roles/{roleId}": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "查询角色详情",
+        "description": "根据角色ID查询角色详情",
+        "operationId": "queryRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "description": "角色ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseRoleBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "删除角色",
+        "description": "根据角色ID删除角色",
+        "operationId": "deleteRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "编辑角色",
+        "description": "根据角色ID更新角色信息",
+        "operationId": "editRole",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditRoleReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/permissions/{permissionId}": {
+      "get": {
+        "tags": [
+          "权限管理"
+        ],
+        "summary": "查询权限详情",
+        "description": "根据权限ID查询权限详情",
+        "operationId": "queryPermission",
+        "parameters": [
+          {
+            "name": "permissionId",
+            "in": "path",
+            "description": "权限ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "权限ID",
+              "example": 1
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePermissionBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "权限管理"
+        ],
+        "summary": "删除权限",
+        "description": "根据权限ID删除权限",
+        "operationId": "deletePermission",
+        "parameters": [
+          {
+            "name": "permissionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "权限管理"
+        ],
+        "summary": "编辑权限",
+        "description": "根据权限ID更新权限信息",
+        "operationId": "editPermission",
+        "parameters": [
+          {
+            "name": "permissionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditPermissionReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/groups/{groupId}": {
+      "get": {
+        "tags": [
+          "组织管理"
+        ],
+        "summary": "查询组织详情",
+        "description": "根据组织ID查询组织详情",
+        "operationId": "queryGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "description": "组织ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseGroupBean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "组织管理"
+        ],
+        "summary": "删除组织",
+        "description": "根据组织ID删除组织",
+        "operationId": "deleteGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "组织管理"
+        ],
+        "summary": "编辑组织",
+        "description": "根据组织ID更新组织信息",
+        "operationId": "editGroup",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditGroupReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/groups/{groupId}/status": {
+      "patch": {
+        "tags": [
+          "组织管理"
+        ],
+        "summary": "更新组织状态",
+        "description": "启用或禁用组织",
+        "operationId": "updateStatus_2",
+        "parameters": [
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseString"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/operation-logs": {
+      "get": {
+        "tags": [
+          "操作日志"
+        ],
+        "summary": "查询操作日志",
+        "description": "支持按操作人、路径、状态和时间范围过滤",
+        "operationId": "queryOperationLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "页码",
+              "example": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "description": "每页数量",
+              "example": 10,
+              "maximum": 100,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "操作人用户名"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "请求路径"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "HTTP 状态码",
+              "example": "200",
+              "pattern": "^$|^\\d{3}$"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "开始时间（ISO 8601）",
+              "example": "2026-11-01T00:00:00Z"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "结束时间（ISO 8601）",
+              "example": "2026-11-02T23:59:59Z"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePageDataOperationLogBean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/user-info": {
+      "get": {
+        "tags": [
+          "认证"
+        ],
+        "operationId": "userInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseUserInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/menus": {
+      "get": {
+        "tags": [
+          "认证"
+        ],
+        "summary": "查询菜单树",
+        "description": "返回全部启用的菜单和目录，前端按当前角色权限过滤可见性",
+        "operationId": "menus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseListMenuInfo"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Locale",
+            "in": "header",
+            "required": false,
+            "description": "zh（默认）或 en；决定菜单名使用 name 还是 name_en",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "zh",
+                "en"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddUserReq": {
+        "type": "object",
+        "description": "添加用户请求体",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "用户名",
+            "example": "张三",
+            "maxLength": 50,
+            "minLength": 2
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "admin",
+            "maxLength": 50,
+            "minLength": 4,
+            "pattern": "^[A-Za-z0-9_]+$"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "邮箱",
+            "example": "admin@example.com",
+            "minLength": 1
+          },
+          "groupId": {
+            "type": "string",
+            "description": "用户组ID",
+            "example": 1,
+            "minLength": 1
+          },
+          "phone": {
+            "type": "string",
+            "description": "手机号",
+            "example": 13800000000,
+            "minLength": 1,
+            "pattern": "^1[3-9]\\d{9}$"
+          },
+          "status": {
+            "type": "string",
+            "description": "状态",
+            "example": 1,
+            "pattern": "^(0|1)$"
+          },
+          "roles": {
+            "type": "array",
+            "description": "角色ID列表",
+            "example": [
+              "1001",
+              "1002"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "description": "权限ID列表",
+            "example": [
+              "1001",
+              "1002"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "email",
+          "groupId",
+          "name",
+          "phone",
+          "username"
+        ]
+      },
+      "ResponseString": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "string",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "EditUserReq": {
+        "type": "object",
+        "description": "编辑用户请求体",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "用户ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名",
+            "example": "张三",
+            "maxLength": 50,
+            "minLength": 2
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "zhangsan",
+            "maxLength": 50,
+            "minLength": 4,
+            "pattern": "^[A-Za-z0-9_]{4,50}$"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "用户邮箱",
+            "example": "zhangsan@example.com"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "用户组ID",
+            "example": 1
+          },
+          "phone": {
+            "type": "string",
+            "description": "用户手机号",
+            "example": 13800000000,
+            "pattern": "^1[3-9]\\d{9}$"
+          },
+          "status": {
+            "type": "string",
+            "description": "用户状态",
+            "example": 1,
+            "pattern": "^(0|1)$"
+          },
+          "roles": {
+            "type": "array",
+            "description": "用户角色ID列表",
+            "example": [
+              "admin",
+              "user"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "description": "用户权限ID列表",
+            "example": [
+              "0001",
+              "0002"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AddRoleReq": {
+        "type": "object",
+        "description": "添加角色请求参数",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员",
+            "maxLength": 50,
+            "minLength": 2
+          },
+          "id": {
+            "type": "string",
+            "description": "角色ID",
+            "example": 1,
+            "pattern": "^[A-Za-z0-9_-]{2,32}$"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "权限列表",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "EditRoleReq": {
+        "type": "object",
+        "description": "编辑角色请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "角色ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员",
+            "maxLength": 50,
+            "minLength": 2
+          },
+          "status": {
+            "type": "string",
+            "description": "角色状态",
+            "example": 1,
+            "pattern": "^(0|1)$"
+          },
+          "permissions": {
+            "type": "array",
+            "description": "权限ID列表",
+            "example": [
+              "1",
+              "2",
+              "3"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "QueryPermissionReq": {
+        "type": "object",
+        "description": "查询权限请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "权限ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "权限名称"
+          },
+          "path": {
+            "type": "string",
+            "description": "权限路径"
+          },
+          "status": {
+            "type": "string",
+            "description": "权限状态",
+            "enum": [
+              "1",
+              "0",
+              "all"
+            ],
+            "pattern": "^(0|1|all)$"
+          },
+          "type": {
+            "type": "string",
+            "description": "权限类型",
+            "enum": [
+              "menu",
+              "directory",
+              "action",
+              "all"
+            ],
+            "pattern": "^(menu|directory|action|all)$"
+          }
+        }
+      },
+      "PermissionBean": {
+        "type": "object",
+        "description": "权限列表项",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "权限编码"
+          },
+          "name": {
+            "type": "string",
+            "description": "权限名称"
+          },
+          "path": {
+            "type": "string",
+            "description": "权限路径"
+          },
+          "action": {
+            "type": "string",
+            "description": "权限操作"
+          },
+          "type": {
+            "type": "string",
+            "description": "权限类型"
+          },
+          "status": {
+            "type": "string",
+            "description": "权限状态"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "父权限编码"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          }
+        }
+      },
+      "ResponseListPermissionBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "array",
+            "description": "数据",
+            "items": {
+              "$ref": "#/components/schemas/PermissionBean"
+            }
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "EditPermissionReq": {
+        "type": "object",
+        "description": "编辑权限请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "权限编码",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "description": "权限名称",
+            "example": "用户管理",
+            "maxLength": 50,
+            "minLength": 2
+          },
+          "path": {
+            "type": "string",
+            "description": "权限路径",
+            "example": "/user",
+            "maxLength": 500,
+            "minLength": 1
+          },
+          "action": {
+            "type": "string",
+            "description": "权限操作",
+            "example": "list"
+          },
+          "status": {
+            "type": "string",
+            "description": "权限状态",
+            "example": "1",
+            "pattern": "^(0|1)$"
+          },
+          "type": {
+            "type": "string",
+            "description": "权限类型",
+            "example": "menu",
+            "pattern": "^(menu|action|directory)$"
+          }
+        }
+      },
+      "AddChildPermissionReq": {
+        "type": "object",
+        "description": "添加子权限请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "权限编码",
+            "example": "0102",
+            "minLength": 1,
+            "pattern": "^[0-9]{2,}$"
+          },
+          "name": {
+            "type": "string",
+            "description": "权限名称",
+            "example": "用户管理",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "权限路径",
+            "example": "/user",
+            "minLength": 1
+          },
+          "action": {
+            "type": "string",
+            "description": "权限操作",
+            "example": "list"
+          },
+          "type": {
+            "type": "string",
+            "description": "权限类型",
+            "example": "menu",
+            "minLength": 1,
+            "pattern": "^(menu|action|directory)$"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "父权限编码",
+            "example": "01"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "path",
+          "type"
+        ]
+      },
+      "ResponsePermissionBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PermissionBean",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "QueryGroupReq": {
+        "type": "object",
+        "description": "查询组织请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "组织ID",
+            "pattern": "^[0-9]*$"
+          },
+          "name": {
+            "type": "string",
+            "description": "组织名称"
+          },
+          "status": {
+            "type": "string",
+            "description": "组织状态",
+            "pattern": "^(0|1|all)$"
+          }
+        }
+      },
+      "GroupBean": {
+        "type": "object",
+        "description": "组织列表项",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "组织编码"
+          },
+          "name": {
+            "type": "string",
+            "description": "组织名称"
+          },
+          "status": {
+            "type": "string",
+            "description": "组织状态"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "父组织编码"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          }
+        }
+      },
+      "ResponseListGroupBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "array",
+            "description": "数据",
+            "items": {
+              "$ref": "#/components/schemas/GroupBean"
+            }
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "EditGroupReq": {
+        "type": "object",
+        "description": "编辑组织请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "组织ID",
+            "example": "1",
+            "pattern": "^[0-9]{2,}$"
+          },
+          "name": {
+            "type": "string",
+            "description": "组织名称",
+            "example": "管理员",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "description": "组织状态",
+            "enum": [
+              "0",
+              "1"
+            ],
+            "example": "1",
+            "pattern": "^[01]$"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "AddChildGroupReq": {
+        "type": "object",
+        "description": "添加子组织请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "子组织ID",
+            "minLength": 1,
+            "pattern": "^[0-9]{2,}$"
+          },
+          "name": {
+            "type": "string",
+            "description": "子组织名称",
+            "minLength": 1
+          },
+          "parentId": {
+            "type": "string",
+            "description": "父组织ID"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "ResponseGroupBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/GroupBean",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "LoginResp": {
+        "type": "object",
+        "description": "登录响应参数",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "登录凭证",
+            "example": 123456
+          },
+          "status": {
+            "type": "string",
+            "description": "状态码",
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "example": "ok"
+          },
+          "field": {
+            "type": "string",
+            "description": "错误字段",
+            "example": "username"
+          },
+          "msg": {
+            "type": "string",
+            "description": "错误信息",
+            "example": "用户名或密码错误"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64",
+            "description": "access token 有效期（秒）",
+            "example": 1800
+          },
+          "refreshExpiresIn": {
+            "type": "integer",
+            "format": "int64",
+            "description": "refresh token 有效期（秒）",
+            "example": 604800
+          }
+        }
+      },
+      "ResponseLoginResp": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginResp",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "LoginReq": {
+        "type": "object",
+        "description": "登录请求参数",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "admin",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_]{4,50}$"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码",
+            "example": 123456,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "password",
+          "username"
+        ]
+      },
+      "ChangePasswordReq": {
+        "type": "object",
+        "description": "修改密码请求参数",
+        "properties": {
+          "oldPassword": {
+            "type": "string",
+            "description": "原密码",
+            "example": "old-password",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "新密码",
+            "example": "new-password",
+            "maxLength": 64,
+            "minLength": 8,
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d).{8,64}$"
+          }
+        },
+        "required": [
+          "newPassword",
+          "oldPassword"
+        ]
+      },
+      "StatusReq": {
+        "type": "object",
+        "description": "状态更新请求体",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "状态",
+            "enum": [
+              "0",
+              "1"
+            ],
+            "example": 1,
+            "minLength": 1,
+            "pattern": "^(0|1)$"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "QueryUserReq": {
+        "type": "object",
+        "description": "用户列表查询请求参数",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "description": "关键词，匹配姓名、用户名、邮箱或手机号",
+            "example": "admin"
+          },
+          "status": {
+            "type": "string",
+            "description": "用户状态",
+            "enum": [
+              "0",
+              "1",
+              "all"
+            ],
+            "pattern": "^$|^(0|1|all)$"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "分组ID",
+            "example": "1001"
+          },
+          "sort": {
+            "type": "string",
+            "description": "排序字段",
+            "example": "username"
+          },
+          "direction": {
+            "type": "string",
+            "description": "排序方向",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "pattern": "^$|^(asc|desc)$"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "页码",
+            "example": 1,
+            "maximum": 10000,
+            "minimum": 1
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每页数量",
+            "example": 10,
+            "maximum": 100,
+            "minimum": 1
+          }
+        }
+      },
+      "PageDataUserBean": {
+        "type": "object",
+        "description": "分页数据响应参数",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "总记录数",
+            "example": 100
+          },
+          "list": {
+            "type": "array",
+            "description": "分页数据列表",
+            "items": {
+              "$ref": "#/components/schemas/UserBean"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "当前页码",
+            "example": 1
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每页数量",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "description": "总页数",
+            "example": 10
+          }
+        }
+      },
+      "ResponsePageDataUserBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageDataUserBean",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "UserBean": {
+        "type": "object",
+        "description": "用户信息",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "用户ID",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "description": "用户名",
+            "example": "张三"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "admin1"
+          },
+          "email": {
+            "type": "string",
+            "description": "邮箱",
+            "example": "zhangsan@example.com"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "用户组ID",
+            "example": "1"
+          },
+          "groupName": {
+            "type": "string",
+            "description": "用户组名称",
+            "example": "管理部"
+          },
+          "phone": {
+            "type": "string",
+            "description": "手机号",
+            "example": "13800000000"
+          },
+          "status": {
+            "type": "string",
+            "description": "状态",
+            "example": "1"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间",
+            "example": "2023-01-01 00:00:00"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间",
+            "example": "2023-01-01 00:00:00"
+          },
+          "roles": {
+            "type": "array",
+            "description": "角色列表",
+            "example": [
+              {
+                "id": "1",
+                "name": "管理员"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/UserRoleBean"
+            },
+            "uniqueItems": true
+          },
+          "permissions": {
+            "type": "array",
+            "description": "权限列表",
+            "example": [
+              "admin",
+              "user"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "UserRoleBean": {
+        "type": "object",
+        "description": "用户所属角色",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "角色ID",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员"
+          }
+        }
+      },
+      "ResponseUserBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserBean",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "QueryRoleReq": {
+        "type": "object",
+        "description": "查询角色请求参数",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "角色ID",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "管理员"
+          },
+          "status": {
+            "type": "string",
+            "description": "角色状态",
+            "example": "1"
+          },
+          "sort": {
+            "type": "string",
+            "description": "排序字段",
+            "example": "name"
+          },
+          "direction": {
+            "type": "string",
+            "description": "排序方向",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "example": "asc",
+            "pattern": "^$|^(asc|desc)$"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "页码",
+            "example": 1,
+            "maximum": 10000,
+            "minimum": 1
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每页数量",
+            "example": 10,
+            "maximum": 100,
+            "minimum": 1
+          }
+        }
+      },
+      "PageDataRoleBean": {
+        "type": "object",
+        "description": "分页数据响应参数",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "总记录数",
+            "example": 100
+          },
+          "list": {
+            "type": "array",
+            "description": "分页数据列表",
+            "items": {
+              "$ref": "#/components/schemas/RoleBean"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "当前页码",
+            "example": 1
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每页数量",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "description": "总页数",
+            "example": 10
+          }
+        }
+      },
+      "ResponsePageDataRoleBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageDataRoleBean",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "RoleBean": {
+        "type": "object",
+        "description": "角色详情",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "角色名称"
+          },
+          "id": {
+            "type": "string",
+            "description": "角色ID"
+          },
+          "status": {
+            "type": "string",
+            "description": "角色状态",
+            "example": 1
+          },
+          "permissions": {
+            "type": "array",
+            "description": "权限列表",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间"
+          }
+        }
+      },
+      "ResponseRoleBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RoleBean",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "QueryOperationLogReq": {
+        "type": "object",
+        "description": "查询操作日志请求参数",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "页码",
+            "example": 1,
+            "minimum": 1
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每页数量",
+            "example": 10,
+            "maximum": 100,
+            "minimum": 1
+          },
+          "username": {
+            "type": "string",
+            "description": "操作人用户名"
+          },
+          "path": {
+            "type": "string",
+            "description": "请求路径"
+          },
+          "status": {
+            "type": "string",
+            "description": "HTTP 状态码",
+            "example": "200",
+            "pattern": "^$|^\\d{3}$"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "开始时间（ISO 8601）",
+            "example": "2026-11-01T00:00:00Z"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "结束时间（ISO 8601）",
+            "example": "2026-11-02T23:59:59Z"
+          }
+        }
+      },
+      "OperationLogBean": {
+        "type": "object",
+        "description": "操作日志",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "日志 ID"
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "操作人"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP 方法"
+          },
+          "path": {
+            "type": "string",
+            "description": "请求路径"
+          },
+          "queryString": {
+            "type": "string",
+            "description": "查询参数"
+          },
+          "requestBody": {
+            "type": "string",
+            "description": "请求体（已脱敏）"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "HTTP 状态码"
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64",
+            "description": "耗时毫秒"
+          },
+          "ip": {
+            "type": "string",
+            "description": "客户端 IP"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "操作时间"
+          }
+        }
+      },
+      "PageDataOperationLogBean": {
+        "type": "object",
+        "description": "分页数据响应参数",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "总记录数",
+            "example": 100
+          },
+          "list": {
+            "type": "array",
+            "description": "分页数据列表",
+            "items": {
+              "$ref": "#/components/schemas/OperationLogBean"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "description": "当前页码",
+            "example": 1
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "每页数量",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "description": "总页数",
+            "example": 10
+          }
+        }
+      },
+      "ResponsePageDataOperationLogBean": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageDataOperationLogBean",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "PermissionInfo": {
+        "type": "object",
+        "description": "权限信息",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "权限路径",
+            "example": "/user"
+          },
+          "role": {
+            "type": "string",
+            "description": "所属角色",
+            "example": "admin"
+          },
+          "type": {
+            "type": "string",
+            "description": "权限类型",
+            "example": "menu"
+          },
+          "action": {
+            "type": "string",
+            "description": "权限操作",
+            "example": "add"
+          }
+        }
+      },
+      "ResponseUserInfo": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserInfo",
+            "description": "数据"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      },
+      "RoleInfo": {
+        "type": "object",
+        "description": "角色信息",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "角色编码",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "角色名称",
+            "example": "admin"
+          }
+        }
+      },
+      "UserInfo": {
+        "type": "object",
+        "description": "用户信息",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "用户编码",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "用户姓名",
+            "example": "admin"
+          },
+          "username": {
+            "type": "string",
+            "description": "用户名",
+            "example": "admin"
+          },
+          "email": {
+            "type": "string",
+            "description": "用户邮箱",
+            "example": "admin@example.com"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "用户组编码",
+            "example": 1
+          },
+          "groupName": {
+            "type": "string",
+            "description": "用户组名称",
+            "example": "admin"
+          },
+          "phone": {
+            "type": "string",
+            "description": "用户手机号",
+            "example": 13800000000
+          },
+          "status": {
+            "type": "string",
+            "description": "用户状态",
+            "example": "active"
+          },
+          "mustChangePassword": {
+            "type": "boolean",
+            "description": "是否需要强制修改密码",
+            "example": false
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "创建时间",
+            "example": "2023-01-01 00:00:00"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "更新时间",
+            "example": "2023-01-01 00:00:00"
+          },
+          "roles": {
+            "type": "array",
+            "description": "用户角色列表",
+            "items": {
+              "$ref": "#/components/schemas/RoleInfo"
+            },
+            "uniqueItems": true
+          },
+          "rolePermissions": {
+            "type": "array",
+            "description": "用户角色权限列表",
+            "items": {
+              "$ref": "#/components/schemas/PermissionInfo"
+            },
+            "uniqueItems": true
+          },
+          "userPermissions": {
+            "type": "array",
+            "description": "用户权限列表",
+            "items": {
+              "$ref": "#/components/schemas/PermissionInfo"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "MenuInfo": {
+        "type": "object",
+        "description": "菜单节点",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "菜单ID",
+            "example": "000500"
+          },
+          "path": {
+            "type": "string",
+            "description": "菜单路径",
+            "example": "/system/user"
+          },
+          "type": {
+            "type": "string",
+            "description": "菜单类型",
+            "example": "menu"
+          },
+          "name": {
+            "type": "string",
+            "description": "菜单名称，由后端按 Locale 请求头从数据库返回"
+          },
+          "children": {
+            "type": "array",
+            "description": "子菜单",
+            "items": {
+              "$ref": "#/components/schemas/MenuInfo"
+            }
+          }
+        }
+      },
+      "ResponseListMenuInfo": {
+        "type": "object",
+        "description": "通用响应体",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "description": "状态码",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "状态信息",
+            "example": "操作成功"
+          },
+          "data": {
+            "type": "array",
+            "description": "数据",
+            "items": {
+              "$ref": "#/components/schemas/MenuInfo"
+            }
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "时间戳",
+            "example": 1694502400000
+          },
+          "traceId": {
+            "type": "string",
+            "description": "链路追踪 ID",
+            "example": "9f8c1b2d3e4f5a6b"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "name": "Authorization",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

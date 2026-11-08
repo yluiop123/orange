@@ -8,7 +8,7 @@ $ErrorActionPreference = "Continue"
 $pg = "orange-test-pg"
 $mysql = "orange-test-mysql"
 $maria = "orange-test-mariadb"
-$sqlite = "D:\User\Cache\Temp\opencode\orange-test.db"
+$sqlite = Join-Path $env:TEMP "orange-test.db"
 
 if ($Stop) {
   docker rm -f $pg $mysql $maria 2>$null | Out-Null

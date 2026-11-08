@@ -107,6 +107,10 @@ public sealed class RoleService
     {
         var role = await _db.Roles.FirstOrDefaultAsync(item => item.Id == id, cancellationToken)
             ?? throw new BusinessException("角色不存在");
+        if (role.Id == "super" && !_grantGuard.IsSuperAdmin())
+        {
+            throw new BusinessException("只有超级管理员可以修改 super 角色", ErrorCodes.Forbidden);
+        }
         if (request.Name is not null)
         {
             role.Name = request.Name;
@@ -130,6 +134,10 @@ public sealed class RoleService
         if (roles.Count == 0)
         {
             throw new BusinessException("角色不存在");
+        }
+        if (roles.Any(role => role.Id == "super") && !_grantGuard.IsSuperAdmin())
+        {
+            throw new BusinessException("只有超级管理员可以删除 super 角色", ErrorCodes.Forbidden);
         }
 
         foreach (var role in roles)

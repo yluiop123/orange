@@ -17,7 +17,7 @@ pub struct PermissionListParams {
 
 fn columns(dialect: Dialect) -> String {
     format!(
-        "id, {}, path, action, {} AS kind, status, parent_id, create_time, update_time",
+        "id, {}, name_en, path, action, {} AS kind, status, parent_id, create_time, update_time",
         dialect.quote("name"),
         dialect.quote("type")
     )

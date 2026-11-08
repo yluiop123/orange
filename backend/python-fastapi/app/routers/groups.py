@@ -9,9 +9,9 @@ from app.db import get_db
 from app.envelope import success
 from app.schemas.common import StatusIn
 from app.schemas.group import AddChildGroupIn, EditGroupIn
-from app.security.dependencies import AuthContext, get_auth_context, require
+from app.security.dependencies import AuthContext, authority
 from app.services import groups
-from app.services.common import split_ids
+from app.services.common import required_ids
 
 router = APIRouter(prefix="/api/v1/system/groups", tags=["groups"])
 
@@ -26,20 +26,18 @@ def list_groups(
     id: str | None = Query(None),
     name: str | None = Query(None),
     status: str | None = Query(None),
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(MENU)),
     db: Session = Depends(get_db),
 ):
-    require(auth, MENU)
     return success(groups.list_groups(db, id, name, status))
 
 
 @router.get("/{group_id}")
 def get_group(
     group_id: str,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(MENU)),
     db: Session = Depends(get_db),
 ):
-    require(auth, MENU)
     return success(groups.get_group_payload(db, group_id))
 
 
@@ -47,39 +45,30 @@ def get_group(
 def edit_group(
     group_id: str,
     payload: EditGroupIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(EDIT)),
     db: Session = Depends(get_db),
 ):
-    require(auth, EDIT)
-    return success(
-        groups.update_group(
-            db, group_id, payload.name, payload.status, auth.user.username
-        ),
-        message="操作成功",
-    )
+    groups.update_group(db, group_id, payload.name, payload.status, auth.user.username)
+    return success("操作成功")
 
 
 @router.patch("/{group_id}/status")
 def update_group_status(
     group_id: str,
     payload: StatusIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(EDIT)),
     db: Session = Depends(get_db),
 ):
-    require(auth, EDIT)
-    return success(
-        groups.update_group(db, group_id, None, payload.status, auth.user.username),
-        message="操作成功",
-    )
+    groups.update_group(db, group_id, None, payload.status, auth.user.username)
+    return success("操作成功")
 
 
 @router.post("/children")
 def add_child_group(
     payload: AddChildGroupIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(ADD)),
     db: Session = Depends(get_db),
 ):
-    require(auth, ADD)
     return success(
         groups.create_group(
             db,
@@ -93,21 +82,19 @@ def add_child_group(
 
 @router.delete("")
 def delete_groups(
-    ids: str = Query(...),
-    auth: AuthContext = Depends(get_auth_context),
+    ids: str | None = Query(None),
+    auth: AuthContext = Depends(authority(DELETE)),
     db: Session = Depends(get_db),
 ):
-    require(auth, DELETE)
-    groups.delete_groups(db, split_ids(ids), auth.user.username)
+    groups.delete_groups(db, required_ids(ids), auth.user.username)
     return success("操作成功")
 
 
 @router.delete("/{group_id}")
 def delete_group(
     group_id: str,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(DELETE)),
     db: Session = Depends(get_db),
 ):
-    require(auth, DELETE)
     groups.delete_groups(db, [group_id], auth.user.username)
     return success("操作成功")

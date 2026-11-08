@@ -23,6 +23,7 @@ func (Group) TableName() string { return "sys_group" }
 type Permission struct {
 	ID         string     `gorm:"column:id;primaryKey"`
 	Name       string     `gorm:"column:name"`
+	NameEN     *string    `gorm:"column:name_en"`
 	Path       string     `gorm:"column:path"`
 	Action     *string    `gorm:"column:action"`
 	Type       string     `gorm:"column:type"`

@@ -24,19 +24,20 @@ export class MenusService {
    * and a branch whose parent is disabled stays hidden instead of being
    * promoted to a root (the frontend filters visible pages itself).
    */
-  async tree(): Promise<MenuInfo[]> {
+  async tree(locale?: string): Promise<MenuInfo[]> {
     const rows = await this.permissions.find({
       where: { status: STATUS_ENABLE, type: In(MENU_TYPES) },
       order: { id: 'ASC' },
     });
 
+    const english = (locale ?? '').toLowerCase().startsWith('en');
     const nodes = new Map<string, MenuInfo>();
     for (const row of rows) {
       nodes.set(row.id, {
         id: row.id,
         path: row.path,
         type: row.type,
-        name: row.name,
+        name: english ? row.nameEn || row.name : row.name,
         children: [],
       });
     }

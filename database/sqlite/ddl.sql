@@ -63,6 +63,7 @@ CREATE INDEX idx_sys_group_parent ON sys_group(parent_id, id);
 CREATE TABLE sys_permission (
 	id TEXT NOT NULL, -- 权限id (varchar)
 	"name" TEXT NULL, -- 权限名 (varchar)
+	name_en TEXT NULL, -- 权限英文名 (varchar)
 	"path" TEXT NOT NULL, -- 权限路径 (varchar)
 	"action" TEXT NULL, -- 权限动作；menu/directory 必须为 NULL (varchar)
 	"type" TEXT NOT NULL, -- 权限类型 (varchar)

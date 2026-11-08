@@ -89,6 +89,17 @@ function expectOk(name, response) {
   check(`${name}: body traceId`, typeof field(response.json, 'traceId') === 'string' && response.json.traceId.length > 0, response.json);
 }
 
+function expectStringPayload(name, response, expected) {
+  expectOk(name, response);
+  const data = field(response.json, 'data');
+  check(`${name}: data is ${JSON.stringify(expected)}`, data === expected, data);
+  check(
+    `${name}: message mirrors data`,
+    field(response.json, 'message') === expected,
+    field(response.json, 'message'),
+  );
+}
+
 function expectError(name, response, code) {
   check(`${name}: HTTP status matches code`, response.status === Number(String(code).slice(0, 3)), {
     status: response.status,
@@ -277,7 +288,7 @@ const changed = await request('POST', '/auth/change-password', {
   token: tempLogin.token,
   body: { oldPassword: resetPassword, newPassword: 'QaPass1234' },
 });
-expectOk('change password', changed);
+expectStringPayload('change password', changed, '密码已修改，请重新登录');
 const newLogin = await login(username, 'QaPass1234');
 expectOk('login with changed password', newLogin.response);
 check('changed account no longer forced', field(field(newLogin.response.json, 'data'), 'status') === 'ok', newLogin.response.json);
@@ -311,6 +322,8 @@ if (batchIds.length) {
   const batchDelete = await request('DELETE', `/system/users?ids=${batchIds.join(',')}`, { token });
   expectOk('batch delete users', batchDelete);
 }
+const deleteWithoutIds = await request('DELETE', '/system/users', { token });
+expectError('delete without ids', deleteWithoutIds, 40001);
 const selfDelete = await request('DELETE', `/system/users/${info.id}`, { token });
 check('self delete rejected', Number(field(selfDelete.json, 'code')) !== 200, selfDelete.json);
 
@@ -365,7 +378,7 @@ expectOk('group detail', groupDetail);
 check('group detail parent is null', field(groupDetail.json, 'data')?.parentId === null, field(groupDetail.json, 'data'));
 
 const editGroup = await request('PATCH', `/system/groups/${rootGroup}`, { token, body: { name: 'QA Group Renamed' } });
-expectOk('edit group', editGroup);
+expectStringPayload('edit group', editGroup, '操作成功');
 const disableParent = await request('PATCH', `/system/groups/${rootGroup}/status`, { token, body: { status: '0' } });
 expectError('disable parent with enabled child', disableParent, 40901);
 const disableChild = await request('PATCH', `/system/groups/${childGroup}/status`, { token, body: { status: '0' } });
@@ -421,7 +434,7 @@ expectOk('permission detail', permissionDetail);
 check('permission detail has type/action', field(permissionDetail.json, 'data')?.type === 'action' && field(permissionDetail.json, 'data')?.action === 'view', field(permissionDetail.json, 'data'));
 
 const editPermission = await request('PATCH', `/system/permissions/${permAction}`, { token, body: { name: 'QA Action Renamed' } });
-expectOk('edit permission', editPermission);
+expectStringPayload('edit permission', editPermission, '操作成功');
 const permissionAfter = await request('GET', `/system/permissions/${permAction}`, { token });
 check('permission rename persisted', field(permissionAfter.json, 'data')?.name === 'QA Action Renamed', field(permissionAfter.json, 'data'));
 

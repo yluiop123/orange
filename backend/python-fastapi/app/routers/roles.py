@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.envelope import success
 from app.schemas.role import AddRoleIn, EditRoleIn
-from app.security.dependencies import AuthContext, get_auth_context, require
+from app.security.dependencies import AuthContext, authority
 from app.services import roles
-from app.services.common import split_ids
+from app.services.common import required_ids
 
 router = APIRouter(prefix="/api/v1/system/roles", tags=["roles"])
 
@@ -29,10 +29,9 @@ def list_roles(
     direction: str | None = Query(None),
     page: int = Query(1, ge=1, le=10000),
     size: int = Query(10, ge=1, le=100),
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(MENU)),
     db: Session = Depends(get_db),
 ):
-    require(auth, MENU)
     return success(
         roles.list_roles(db, id, name, status, sort, direction, page, size)
     )
@@ -41,20 +40,18 @@ def list_roles(
 @router.get("/{role_id}")
 def get_role(
     role_id: str,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(MENU)),
     db: Session = Depends(get_db),
 ):
-    require(auth, MENU)
     return success(roles.get_role_payload(db, role_id))
 
 
 @router.post("")
 def add_role(
     payload: AddRoleIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(ADD)),
     db: Session = Depends(get_db),
 ):
-    require(auth, ADD)
     role_id = roles.create_role(
         db, auth, payload.id, payload.name, payload.permissions
     )
@@ -65,10 +62,9 @@ def add_role(
 def edit_role(
     role_id: str,
     payload: EditRoleIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(EDIT)),
     db: Session = Depends(get_db),
 ):
-    require(auth, EDIT)
     roles.update_role(
         db,
         auth,
@@ -82,21 +78,19 @@ def edit_role(
 
 @router.delete("")
 def delete_roles(
-    ids: str = Query(...),
-    auth: AuthContext = Depends(get_auth_context),
+    ids: str | None = Query(None),
+    auth: AuthContext = Depends(authority(DELETE)),
     db: Session = Depends(get_db),
 ):
-    require(auth, DELETE)
-    roles.delete_roles(db, split_ids(ids), auth.user.username)
+    roles.delete_roles(db, required_ids(ids), auth.user.username, auth.is_super)
     return success("操作成功")
 
 
 @router.delete("/{role_id}")
 def delete_role(
     role_id: str,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(DELETE)),
     db: Session = Depends(get_db),
 ):
-    require(auth, DELETE)
-    roles.delete_roles(db, [role_id], auth.user.username)
+    roles.delete_roles(db, [role_id], auth.user.username, auth.is_super)
     return success("操作成功")

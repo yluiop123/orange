@@ -3,20 +3,63 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const catalogPath = path.join(root, "database/permissions.json");
-const dmlPath = path.join(root, "database/postgres/dml.sql");
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
+
+/**
+ * Every dialect ships the same generated seed. Only the identifier quoting and
+ * the schema prefix differ; keeping them in one place stops the seven dml.sql
+ * files from drifting apart.
+ */
+const DIALECTS = {
+  postgres: {
+    permission:
+      'INSERT INTO public.sys_permission (id,"name",name_en,"path","action","type",status,parent_id) VALUES',
+    rolePermission: "INSERT INTO public.sys_role_permission (role_id,permission_id) VALUES",
+  },
+  opengauss: {
+    permission:
+      'INSERT INTO public.sys_permission (id,"name",name_en,"path","action","type",status,parent_id) VALUES',
+    rolePermission: "INSERT INTO public.sys_role_permission (role_id,permission_id) VALUES",
+  },
+  sqlite: {
+    permission:
+      'INSERT INTO sys_permission (id,"name",name_en,"path","action","type",status,parent_id) VALUES',
+    rolePermission: "INSERT INTO sys_role_permission (role_id,permission_id) VALUES",
+  },
+  mysql: {
+    permission:
+      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
+  },
+  mariadb: {
+    permission:
+      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
+  },
+  oceanbase: {
+    permission:
+      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
+  },
+  goldendb: {
+    permission:
+      "INSERT INTO `sys_permission` (`id`,`name`,`name_en`,`path`,`action`,`type`,`status`,`parent_id`) VALUES",
+    rolePermission: "INSERT INTO `sys_role_permission` (`role_id`,`permission_id`) VALUES",
+  },
+};
 
 function quote(value) {
   if (value === null || value === undefined) return "NULL";
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function renderPermissions() {
+function renderPermissions(dialect) {
   const rows = catalog.permissions.map((permission) => {
     const values = [
       quote(permission.id),
       quote(permission.name.zh),
+      quote(permission.name.en),
       quote(permission.path),
       quote(permission.action),
       quote(permission.type),
@@ -25,23 +68,17 @@ function renderPermissions() {
     ];
     return `\t (${values.join(",")})`;
   });
-  return [
-    "INSERT INTO public.sys_permission (id,\"name\",\"path\",\"action\",\"type\",status,parent_id) VALUES",
-    rows.join(",\n") + ";",
-  ].join("\n");
+  return [`${DIALECTS[dialect].permission}`, rows.join(",\n") + ";"].join("\n");
 }
 
-function renderRolePermissions() {
+function renderRolePermissions(dialect) {
   const rows = [];
   for (const [role, permissions] of Object.entries(catalog.rolePermissions)) {
     for (const permission of permissions) {
       rows.push(`\t (${quote(role)},${quote(permission)})`);
     }
   }
-  return [
-    "INSERT INTO public.sys_role_permission (role_id,permission_id) VALUES",
-    rows.join(",\n") + ";",
-  ].join("\n");
+  return [`${DIALECTS[dialect].rolePermission}`, rows.join(",\n") + ";"].join("\n");
 }
 
 function replaceBlock(source, name, content) {
@@ -54,39 +91,60 @@ function replaceBlock(source, name, content) {
   return source.replace(pattern, `${begin}\n${content}\n${end}`);
 }
 
-let dml = fs.readFileSync(dmlPath, "utf8");
-
-// 首次运行时给现有 INSERT 加上生成标记
-if (!dml.includes("-- BEGIN GENERATED PERMISSIONS")) {
-  dml = dml.replace(
-    /INSERT INTO public\.sys_permission[\s\S]*?;/,
-    (block) => `-- BEGIN GENERATED PERMISSIONS\n${block}\n-- END GENERATED PERMISSIONS`,
-  );
+function withMarkers(source) {
+  let next = source;
+  if (!next.includes("-- BEGIN GENERATED PERMISSIONS")) {
+    next = next.replace(
+      /INSERT INTO (?:public\.)?[`"]?sys_permission[`"]?[\s\S]*?;/,
+      (block) => `-- BEGIN GENERATED PERMISSIONS\n${block}\n-- END GENERATED PERMISSIONS`,
+    );
+  }
+  if (!next.includes("-- BEGIN GENERATED ROLE_PERMISSIONS")) {
+    next = next.replace(
+      /INSERT INTO (?:public\.)?[`"]?sys_role_permission[`"]?[\s\S]*?;/,
+      (block) => `-- BEGIN GENERATED ROLE_PERMISSIONS\n${block}\n-- END GENERATED ROLE_PERMISSIONS`,
+    );
+  }
+  return next;
 }
-if (!dml.includes("-- BEGIN GENERATED ROLE_PERMISSIONS")) {
-  dml = dml.replace(
-    /INSERT INTO public\.sys_role_permission[\s\S]*?;/,
-    (block) => `-- BEGIN GENERATED ROLE_PERMISSIONS\n${block}\n-- END GENERATED ROLE_PERMISSIONS`,
-  );
-}
-
-const next = replaceBlock(
-  replaceBlock(dml, "PERMISSIONS", renderPermissions()),
-  "ROLE_PERMISSIONS",
-  renderRolePermissions(),
-);
 
 const check = process.argv.includes("--check");
+const stale = [];
+let updated = 0;
+
+for (const dialect of Object.keys(DIALECTS)) {
+  const dmlPath = path.join(root, `database/${dialect}/dml.sql`);
+  const source = fs.readFileSync(dmlPath, "utf8");
+  const next = replaceBlock(
+    replaceBlock(
+      withMarkers(source),
+      "PERMISSIONS",
+      renderPermissions(dialect),
+    ),
+    "ROLE_PERMISSIONS",
+    renderRolePermissions(dialect),
+  );
+  if (next === source) continue;
+  if (check) {
+    stale.push(`database/${dialect}/dml.sql`);
+  } else {
+    fs.writeFileSync(dmlPath, next, "utf8");
+    updated += 1;
+  }
+}
+
+const grants = Object.values(catalog.rolePermissions).flat().length;
 if (check) {
-  if (next !== dml) {
-    console.error("permission seed is out of date; run `pnpm db:seed`");
+  if (stale.length > 0) {
+    for (const file of stale) {
+      console.error(`${file} is out of date; run \`pnpm run permissions:sync\``);
+    }
     process.exit(1);
   }
-  console.log("permission seed is up to date");
+  console.log("permission seed is up to date in all 7 dialects");
 } else {
-  fs.writeFileSync(dmlPath, next, "utf8");
   console.log(
-    `permission seed synced: ${catalog.permissions.length} permissions, ` +
-      `${Object.values(catalog.rolePermissions).flat().length} grants`,
+    `permission seed synced in ${updated} dialect(s): ${catalog.permissions.length} permissions, ` +
+      `${grants} grants`,
   );
 }

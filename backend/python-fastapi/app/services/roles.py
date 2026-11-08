@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from app.errors import conflict, not_found
+from app.errors import conflict, forbidden, not_found
 from app.models import Permission, Role, sys_role_permission, sys_user_role
 from app.models.entities import utcnow
 from app.security.dependencies import AuthContext
@@ -127,6 +127,8 @@ def update_role(
     permission_ids: list[str] | None,
 ) -> None:
     role = get_role(db, role_id)
+    if role.id == "super" and not auth.is_super:
+        raise forbidden("只有超级管理员可以修改 super 角色")
 
     if name is not None:
         role.name = name
@@ -142,12 +144,14 @@ def update_role(
     db.commit()
 
 
-def delete_roles(db: Session, ids: list[str], actor: str) -> None:
+def delete_roles(db: Session, ids: list[str], actor: str, is_super: bool) -> None:
     if not ids:
         raise not_found("角色不存在")
     roles = list(db.scalars(select(Role).where(Role.id.in_(ids))))
     if not roles:
         raise not_found("角色不存在")
+    if any(role.id == "super" for role in roles) and not is_super:
+        raise forbidden("只有超级管理员可以删除 super 角色")
 
     for role in roles:
         referenced = db.scalar(

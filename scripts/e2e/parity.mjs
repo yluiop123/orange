@@ -28,7 +28,7 @@ const args = new Map(
   }),
 );
 
-const outDir = path.resolve(args.get('out') ?? 'D:/User/Cache/Temp/opencode/parity');
+const outDir = path.resolve(args.get('out') ?? path.join(os.tmpdir(), 'orange-parity'));
 const tabs = (args.get('tabs') ?? 'button,floatButton,affix,typography').split(',').filter(Boolean);
 const themes = (args.get('themes') ?? 'dark,light').split(',').filter(Boolean);
 const colors = (args.get('colors') ?? 'default,blue').split(',').filter(Boolean);

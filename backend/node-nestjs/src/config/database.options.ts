@@ -24,7 +24,13 @@ export function buildTypeOrmOptions(config: AppConfig): TypeOrmModuleOptions {
       ...common,
       type: 'better-sqlite3',
       database: sqlitePath(config),
-    };
+      // SQLite foreign keys are per-connection and off by default; the schema
+      // depends on them, so enable enforcement like the other five stacks.
+      prepareDatabase: (db: { pragma: (source: string) => unknown }) => {
+        db.pragma('foreign_keys = ON');
+        db.pragma('busy_timeout = 5000');
+      },
+    } as TypeOrmModuleOptions;
   }
 
   if (driver === 'postgres') {

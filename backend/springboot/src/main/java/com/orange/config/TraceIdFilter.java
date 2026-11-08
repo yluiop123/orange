@@ -31,6 +31,9 @@ public class TraceIdFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String incoming = request.getHeader(TraceId.HEADER);
+        if (incoming == null || incoming.isBlank()) {
+            incoming = request.getHeader("X-Request-Id");
+        }
         String traceId = incoming != null && SAFE_TRACE_ID.matcher(incoming).matches()
                 ? incoming
                 : TraceId.newId();

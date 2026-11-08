@@ -138,6 +138,7 @@ class Permission(AuditMixin, Base):
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    name_en: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     path: Mapped[str] = mapped_column(String(500), nullable=False)
     action: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     type: Mapped[str] = mapped_column(String(32), nullable=False)

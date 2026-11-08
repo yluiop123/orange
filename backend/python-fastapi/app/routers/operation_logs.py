@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.envelope import success
-from app.security.dependencies import AuthContext, get_auth_context, require
+from app.security.dependencies import AuthContext, authority
 from app.services.operation_logs import query_logs
 
 router = APIRouter(prefix="/api/v1/system/operation-logs", tags=["operation-logs"])
@@ -26,10 +26,9 @@ def list_operation_logs(
     to: datetime | None = Query(None),
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(MENU)),
     db: Session = Depends(get_db),
 ):
-    require(auth, MENU)
     return success(
         query_logs(
             db,

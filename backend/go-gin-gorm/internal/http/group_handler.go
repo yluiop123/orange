@@ -120,7 +120,7 @@ func (h *Handlers) deleteGroup(c *gin.Context) {
 func (h *Handlers) deleteGroupIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {
-		fail(c, fieldError("ids", "组织ID列表不能为空"))
+		fail(c, domain.ParamError("ids 不能为空"))
 		return
 	}
 	if err := h.svc.DeleteGroups(c.Request.Context(), splitIDs(ids)); err != nil {

@@ -47,6 +47,7 @@ impl AppError {
         } else if message.contains("已存在")
             || message.contains("已被")
             || message.contains("不能删除")
+            || message.contains("请先禁用子组织")
         {
             Self::new(CODE_CONFLICT, StatusCode::CONFLICT, message)
         } else {

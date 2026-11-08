@@ -1,12 +1,12 @@
 ﻿param(
-  [string[]]$Stacks = @("spring", "go", "nest", "csharp", "fastapi")
+  [string[]]$Stacks = @("spring", "go", "nest", "csharp", "rust", "fastapi")
 )
 
 $ErrorActionPreference = "Continue"
 $pg = "orange-test-pg"
 $mysql = "orange-test-mysql"
 $maria = "orange-test-mariadb"
-$sqlite = "D:\User\Cache\Temp\opencode\orange-test.db"
+$sqlite = Join-Path $env:TEMP "orange-test.db"
 
 foreach ($stack in $Stacks) {
   $db = "orange_$stack"
@@ -36,7 +36,7 @@ foreach ($stack in $Stacks) {
   }
 
   # SQLite: one file per stack.
-  $target = "D:\User\Cache\Temp\opencode\orange-$stack.db"
+  $target = Join-Path $env:TEMP "orange-$stack.db"
   Copy-Item -Force $sqlite $target
   Write-Host "$db ready (sqlite: $target)"
 }

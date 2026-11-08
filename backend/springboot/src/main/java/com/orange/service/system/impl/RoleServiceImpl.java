@@ -174,6 +174,8 @@ public class RoleServiceImpl implements RoleService {
         roleBean.setId(role.getId());
         roleBean.setName(role.getName());
         roleBean.setStatus(role.getStatus());
+        roleBean.setCreateTime(role.getCreateTime());
+        roleBean.setUpdateTime(role.getUpdateTime());
         roleBean.setPermissions(role.getPermissions().stream().map(Permission::getId).collect(Collectors.toList()));
         return roleBean;
     }

@@ -45,6 +45,11 @@ def success(
     headers: dict[str, str] | None = None,
     trace_id: str | None = None,
 ) -> EnvelopeJSONResponse:
+    # The other five stacks copy a string payload into both `message` and
+    # `data`; keep the envelope identical here instead of special-casing every
+    # call site.
+    if message == "success" and isinstance(data, str):
+        message = data
     return EnvelopeJSONResponse(
         status_code=status_code,
         content=envelope(SUCCESS_CODE, message, data, trace_id),

@@ -9,9 +9,9 @@ from app.db import get_db
 from app.envelope import success
 from app.schemas.common import StatusIn
 from app.schemas.user import AddUserIn, EditUserIn
-from app.security.dependencies import AuthContext, get_auth_context, require
+from app.security.dependencies import AuthContext, authority
 from app.services import users
-from app.services.common import split_ids
+from app.services.common import required_ids
 
 router = APIRouter(prefix="/api/v1/system/users", tags=["users"])
 
@@ -30,10 +30,9 @@ def list_users(
     direction: str | None = Query(None),
     page: int = Query(1, ge=1, le=10000),
     size: int = Query(10, ge=1, le=100),
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(MENU)),
     db: Session = Depends(get_db),
 ):
-    require(auth, MENU)
     return success(
         users.list_users(
             db, keyword, status, groupId, sort, direction, page, size
@@ -44,20 +43,18 @@ def list_users(
 @router.get("/{user_id}")
 def get_user(
     user_id: str,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(MENU)),
     db: Session = Depends(get_db),
 ):
-    require(auth, MENU)
     return success(users.get_user_payload(db, user_id))
 
 
 @router.post("")
 def add_user(
     payload: AddUserIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(ADD)),
     db: Session = Depends(get_db),
 ):
-    require(auth, ADD)
     temporary = users.create_user(
         db,
         auth,
@@ -77,10 +74,9 @@ def add_user(
 def edit_user(
     user_id: str,
     payload: EditUserIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(EDIT)),
     db: Session = Depends(get_db),
 ):
-    require(auth, EDIT)
     users.update_user(
         db,
         auth,
@@ -101,10 +97,9 @@ def edit_user(
 def update_user_status(
     user_id: str,
     payload: StatusIn,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(EDIT)),
     db: Session = Depends(get_db),
 ):
-    require(auth, EDIT)
     users.update_user(
         db,
         auth,
@@ -124,31 +119,28 @@ def update_user_status(
 @router.post("/{user_id}/reset-password")
 def reset_password(
     user_id: str,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(EDIT)),
     db: Session = Depends(get_db),
 ):
-    require(auth, EDIT)
     temporary = users.reset_password(db, auth, user_id)
     return success(temporary, message="操作成功", headers={"Cache-Control": "no-store"})
 
 
 @router.delete("")
 def delete_users(
-    ids: str = Query(...),
-    auth: AuthContext = Depends(get_auth_context),
+    ids: str | None = Query(None),
+    auth: AuthContext = Depends(authority(DELETE)),
     db: Session = Depends(get_db),
 ):
-    require(auth, DELETE)
-    users.delete_users(db, auth, split_ids(ids))
+    users.delete_users(db, auth, required_ids(ids))
     return success("删除成功")
 
 
 @router.delete("/{user_id}")
 def delete_user(
     user_id: str,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext = Depends(authority(DELETE)),
     db: Session = Depends(get_db),
 ):
-    require(auth, DELETE)
     users.delete_users(db, auth, [user_id])
     return success("删除成功")

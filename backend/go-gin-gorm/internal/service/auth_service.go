@@ -323,18 +323,22 @@ type MenuNode struct {
 	Children []*MenuNode `json:"children"`
 }
 
-func (s *Service) Menus(ctx context.Context) ([]*MenuNode, error) {
+func (s *Service) Menus(ctx context.Context, locale string) ([]*MenuNode, error) {
 	permissions, err := s.store.EnabledMenuPermissions(ctx)
 	if err != nil {
 		return nil, err
 	}
 	nodes := make(map[string]*MenuNode, len(permissions))
 	for _, permission := range permissions {
+		name := permission.Name
+		if strings.HasPrefix(strings.ToLower(locale), "en") && permission.NameEN != nil && *permission.NameEN != "" {
+			name = *permission.NameEN
+		}
 		nodes[permission.ID] = &MenuNode{
 			ID:       permission.ID,
 			Path:     permission.Path,
 			Type:     permission.Type,
-			Name:     permission.Name,
+			Name:     name,
 			Children: make([]*MenuNode, 0),
 		}
 	}

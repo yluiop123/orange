@@ -29,7 +29,8 @@ public class BusinessException : Exception
         }
         if (message.Contains("已存在", StringComparison.Ordinal)
             || message.Contains("已被", StringComparison.Ordinal)
-            || message.Contains("不能删除", StringComparison.Ordinal))
+            || message.Contains("不能删除", StringComparison.Ordinal)
+            || message.Contains("请先禁用子组织", StringComparison.Ordinal))
         {
             return ErrorCodes.Conflict;
         }

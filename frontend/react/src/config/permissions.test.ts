@@ -89,20 +89,31 @@ describe("permission catalog", () => {
     }
   });
 
-  it("keeps dml.sql permission seed in sync with the catalog", () => {
-    const dmlPath = path.resolve(import.meta.dirname, "../../../../database/postgres/dml.sql");
+  it.each([
+    "postgres",
+    "mysql",
+    "mariadb",
+    "sqlite",
+    "opengauss",
+    "oceanbase",
+    "goldendb",
+  ])("keeps %s dml.sql permission seed in sync with the catalog", (dialect) => {
+    const dmlPath = path.resolve(
+      import.meta.dirname,
+      `../../../../database/${dialect}/dml.sql`,
+    );
     const dml = fs.readFileSync(dmlPath, "utf8");
     const block = dml.match(
       /-- BEGIN GENERATED PERMISSIONS[\s\S]*?-- END GENERATED PERMISSIONS/,
     )?.[0];
-    expect(block, "dml.sql is missing generated permission markers").toBeTruthy();
+    expect(block, `${dialect}/dml.sql is missing generated permission markers`).toBeTruthy();
 
-    const ids = [...(block ?? "").matchAll(/\('([^']*)','[^']*','([^']*)'/g)];
+    const ids = [...(block ?? "").matchAll(/\('([^']*)','[^']*','[^']*','([^']*)'/g)];
     expect(ids).toHaveLength(catalog.permissions.length);
     for (const permission of catalog.permissions) {
       expect(
         ids.some((match) => match[1] === permission.id && match[2] === permission.path),
-        `dml.sql missing ${permission.id} ${permission.path}`,
+        `${dialect}/dml.sql missing ${permission.id} ${permission.path}`,
       ).toBe(true);
     }
 

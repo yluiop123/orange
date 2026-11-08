@@ -46,8 +46,19 @@ public sealed class AuthController : ControllerBase
         var ip = OperationLogPolicy.ClientIp(
             Request.Headers["X-Forwarded-For"].ToString(),
             HttpContext.Connection.RemoteIpAddress?.ToString());
-        var tokens = await _authService.LoginAsync(
-            request.Username, request.Password, ip, cancellationToken);
+        TokenPair tokens;
+        try
+        {
+            tokens = await _authService.LoginAsync(
+                request.Username, request.Password, ip, cancellationToken);
+        }
+        catch (UnauthorizedException)
+        {
+            // Same contract as the other stacks: a failed login also clears any
+            // stale refresh cookie the browser still holds.
+            _cookie.Clear(Response);
+            throw;
+        }
         _cookie.Set(Response, tokens.RefreshToken);
         return _responses.Ok(new LoginResponse
         {
@@ -118,5 +129,5 @@ public sealed class AuthController : ControllerBase
 
     [HttpGet("menus")]
     public async Task<ApiResponse<List<MenuInfo>>> Menus(CancellationToken cancellationToken)
-        => _responses.Ok(await _menuService.QueryTreeAsync(cancellationToken));
+        => _responses.Ok(await _menuService.QueryTreeAsync(Request.Headers["Locale"], cancellationToken));
 }

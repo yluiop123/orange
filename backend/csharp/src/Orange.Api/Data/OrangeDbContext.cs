@@ -44,6 +44,7 @@ public class OrangeDbContext : DbContext
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Id).HasColumnName("id");
             entity.Property(item => item.Name).HasColumnName("name");
+            entity.Property(item => item.NameEn).HasColumnName("name_en");
             entity.Property(item => item.Path).HasColumnName("path");
             entity.Property(item => item.Action).HasColumnName("action");
             entity.Property(item => item.Type).HasColumnName("type");

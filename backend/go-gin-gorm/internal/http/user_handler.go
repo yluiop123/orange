@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/orange/backend-go-gin-gorm/internal/domain"
 	"github.com/orange/backend-go-gin-gorm/internal/service"
 )
 
@@ -220,7 +221,7 @@ func (h *Handlers) deleteUser(c *gin.Context) {
 func (h *Handlers) deleteUserIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {
-		fail(c, fieldError("ids", "用户ID列表不能为空"))
+		fail(c, domain.ParamError("ids 不能为空"))
 		return
 	}
 	if err := h.svc.DeleteUsers(c.Request.Context(), actorOf(c), splitIDs(ids)); err != nil {

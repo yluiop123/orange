@@ -18,9 +18,8 @@ lerna-debug.log*
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+.vscode/
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -47,6 +46,7 @@ backend/go-gin-gorm/bin/
 # C#
 backend/csharp/**/bin/
 backend/csharp/**/obj/
+backend/csharp/out/
 
 # Local SQLite databases
 *.db
@@ -55,6 +55,13 @@ backend/csharp/**/obj/
 
 # Browser automation artifacts
 .playwright-mcp/
+
+# Build caches / coverage
+**/.angular/
+**/coverage/
+
+# Local agent configuration (see opencode.example.json)
+opencode.json
 
 # Local configuration (never commit real secrets)
 frontend/react/.env.local
@@ -76,13 +83,9 @@ backend/csharp/.env.local
 !**/src/test/**/build/
 
 # IntelliJ IDEA
-.idea
 *.iws
 *.iml
 *.ipr
-
-# VS Code
-.vscode/
 
 # STS
 .apt_generated

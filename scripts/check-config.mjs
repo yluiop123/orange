@@ -93,7 +93,9 @@ for (const [pattern, expected] of [
 const FRONTENDS = [
   ["frontend/react/.env", /^VITE_BASE_API=(.+)$/m],
   ["frontend/vue/.env", /^VITE_API_BASE=(.+)$/m],
+  ["frontend/angular/src/environments/environment.ts", /apiBase:\s*['"]([^'"]+)['"]/],
   ["frontend/angular/src/environments/environment.development.ts", /apiBase:\s*['"]([^'"]+)['"]/],
+  ["frontend/angular/src/environments/environment.local.ts", /apiBase:\s*['"]([^'"]+)['"]/],
 ];
 
 for (const [file, pattern] of FRONTENDS) {

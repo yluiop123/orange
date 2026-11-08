@@ -1,8 +1,10 @@
 import { chromium } from 'playwright';
+import path from 'node:path';
+import os from 'node:os';
 import fs from 'node:fs';
 
 const base = process.env.E2E_BASE ?? 'http://localhost:5173';
-const shots = process.env.E2E_EVIDENCE ?? 'D:/User/Cache/Temp/opencode/evidence';
+const shots = process.env.E2E_EVIDENCE ?? path.join(os.tmpdir(), 'orange-evidence');
 const backend = process.env.E2E_BACKEND ?? 'fastapi';
 const db = process.env.E2E_DB ?? 'postgres';
 // 每次运行使用不同的 2 位根组织编码，避免上次失败残留导致编码冲突

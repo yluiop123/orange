@@ -33,6 +33,10 @@ public class Permission {
     @Column(name = "name")
     private String name;
 
+    @Schema(description = "权限英文名")
+    @Column(name = "name_en")
+    private String nameEn;
+
     @Schema(description = "权限路径")
     @Column(name = "path")
     private String path;

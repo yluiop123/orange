@@ -47,6 +47,7 @@ COMMENT ON COLUMN public.sys_group.update_time IS '更新时间';
 CREATE TABLE public.sys_permission (
 	id varchar NOT NULL, -- 权限id
 	"name" varchar NULL, -- 权限名
+	name_en varchar NULL, -- 权限英文名
 	"path" varchar NOT NULL, -- 权限路径
 	"action" varchar NULL, -- 权限动作；menu/directory 必须为 NULL
 	"type" varchar NOT NULL, -- 权限类型
@@ -262,6 +263,9 @@ CREATE INDEX idx_sys_operation_log_time ON public.sys_operation_log(create_time)
 CREATE INDEX idx_sys_operation_log_trace ON public.sys_operation_log(trace_id);
 CREATE INDEX idx_sys_operation_log_username ON public.sys_operation_log(username);
 COMMENT ON TABLE public.sys_user_role IS '用户-角色关系表';
+COMMENT ON TABLE public.sys_revoked_token IS '已吊销 token 表';
+COMMENT ON TABLE public.sys_login_attempt IS '登录失败计数表';
+COMMENT ON TABLE public.sys_operation_log IS '操作日志表';
 
 -- Column comments
 

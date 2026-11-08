@@ -19,8 +19,9 @@ public sealed class MenuService
     /// Enabled menu and directory nodes ordered by code. Action nodes are excluded.
     /// A node whose parent is disabled or missing is dropped with its whole branch.
     /// </summary>
-    public async Task<List<MenuInfo>> QueryTreeAsync(CancellationToken cancellationToken)
+    public async Task<List<MenuInfo>> QueryTreeAsync(string? locale, CancellationToken cancellationToken)
     {
+        var english = (locale ?? "").StartsWith("en", StringComparison.OrdinalIgnoreCase);
         var permissions = await _db.Permissions.AsNoTracking()
             .Where(item => item.Status == EffectivePermissions.StatusEnabled && MenuTypes.Contains(item.Type))
             .OrderBy(item => item.Id)
@@ -34,7 +35,7 @@ public sealed class MenuService
                 Id = permission.Id,
                 Path = permission.Path,
                 Type = permission.Type,
-                Name = permission.Name
+                Name = english ? permission.NameEn ?? permission.Name : permission.Name
             };
         }
 

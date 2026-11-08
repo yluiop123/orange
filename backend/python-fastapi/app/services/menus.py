@@ -1,4 +1,9 @@
-"""The menu tree: enabled ``menu`` / ``directory`` nodes only, ordered by code."""
+"""The menu tree: enabled ``menu`` / ``directory`` nodes only, ordered by code.
+
+Names come from `sys_permission`; the `Locale` request header picks
+`name_en` when it is available, so the frontend never has to ship a menu
+catalogue of its own.
+"""
 
 from __future__ import annotations
 
@@ -11,7 +16,13 @@ MENU_TYPES = ("menu", "directory")
 STATUS_ENABLE = "1"
 
 
-def menu_tree(db: Session) -> list[dict]:
+def localized_name(permission: Permission, locale: str | None) -> str | None:
+    if (locale or "").lower().startswith("en"):
+        return permission.name_en or permission.name
+    return permission.name
+
+
+def menu_tree(db: Session, locale: str | None = None) -> list[dict]:
     rows = list(
         db.scalars(
             select(Permission)
@@ -25,7 +36,7 @@ def menu_tree(db: Session) -> list[dict]:
             "id": permission.id,
             "path": permission.path,
             "type": permission.type,
-            "name": permission.name,
+            "name": localized_name(permission, locale),
             "children": [],
         }
         for permission in rows

@@ -27,8 +27,8 @@ function toMenuNode(node: TreeChild<MenuRow>): MenuNode {
   };
 }
 
-function buildMenuTree(): MenuNode[] {
-  const rows: MenuRow[] = getPermissionList("zh")
+function buildMenuTree(locale: string): MenuNode[] {
+  const rows: MenuRow[] = getPermissionList(locale)
     .filter(
       (permission) =>
         permission.status === "1"
@@ -51,8 +51,9 @@ function buildMenuTree(): MenuNode[] {
 }
 
 const handlers = [
-  http.get("/api/v1/auth/menus", () => {
-    return HttpResponse.json({ code: 200, data: buildMenuTree() });
+  http.get("/api/v1/auth/menus", ({ request }) => {
+    const locale = request.headers.get("locale") || "zh";
+    return HttpResponse.json({ code: 200, data: buildMenuTree(locale) });
   }),
 ];
 

@@ -1,13 +1,5 @@
-import { isSamePath, normalizePath } from "@/lib/path";
+import { isSamePath } from "@/lib/path";
 import type { MenuNode } from "@/types/menu";
-
-/**
- * 菜单标题的 i18n key：/system/user -> menu.system.user。
- * 后端仍返回 name，作为没有翻译时的兜底。
- */
-export function menuTitleKey(path: string): string {
-  return `menu.${normalizePath(path).replace(/^\//, "").split("/").join(".")}`;
-}
 
 export function findMenuNode(
   nodes: MenuNode[],

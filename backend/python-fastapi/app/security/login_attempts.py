@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -34,6 +35,8 @@ class AttemptRepository(Protocol):
 
     def commit(self) -> None: ...
 
+    def rollback(self) -> None: ...
+
     def delete(self, key: str) -> None: ...
 
 
@@ -49,6 +52,9 @@ class SqlAlchemyAttemptRepository:
 
     def commit(self) -> None:
         self._db.commit()
+
+    def rollback(self) -> None:
+        self._db.rollback()
 
     def delete(self, key: str) -> None:
         row = self._db.get(LoginAttempt, key)
@@ -98,9 +104,19 @@ class LoginAttemptService:
 
     # --- mutations ----------------------------------------------------
     def on_failure(self, ip: str | None, username: str | None) -> None:
-        self._record(self.ip_key(ip), self._ip_max_attempts)
-        self._record(self.user_key(username), self._user_max_attempts)
-        self._repository.commit()
+        # Two concurrent first failures can both insert the same key. The
+        # second insert loses the race, so retry once after a rollback instead
+        # of turning a failed login into a 409.
+        for attempt in range(2):
+            try:
+                self._record(self.ip_key(ip), self._ip_max_attempts)
+                self._record(self.user_key(username), self._user_max_attempts)
+                self._repository.commit()
+                return
+            except IntegrityError:
+                if attempt == 1:
+                    raise
+                self._repository.rollback()
 
     def on_success(self, ip: str | None, username: str | None) -> None:
         # Only the account key is cleared: a successful login must not reset

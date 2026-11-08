@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Header, HttpCode, HttpStatus, Param, Pat
 import { RequireAuthority } from '../auth/decorators';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth-user';
-import { splitIds } from '../common/query.util';
+import { requiredIds } from '../common/query.util';
 import { ApiResult } from '../common/response';
 import { StatusDto } from '../common/status.dto';
 import { AddUserDto, EditUserDto, QueryUserDto } from './users.dto';
@@ -73,7 +73,7 @@ export class UsersController {
   @Delete()
   @RequireAuthority('action#/system/user:delete')
   async removeMany(@Query('ids') ids: string, @CurrentUser() actor: AuthUser) {
-    await this.users.remove(splitIds(ids), actor);
+    await this.users.remove(requiredIds(ids), actor);
     return ApiResult.message('删除成功');
   }
 }

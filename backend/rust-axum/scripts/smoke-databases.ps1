@@ -43,7 +43,7 @@ $engines = [ordered]@{
     }
     sqlite   = @{
         driver = 'sqlite'
-        url    = 'sqlite:D:/User/Cache/Temp/opencode/orange-rust.db'
+        url    = 'sqlite:' + (Join-Path $env:TEMP 'orange-rust.db')
         port   = 18086
     }
 }

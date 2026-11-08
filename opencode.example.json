@@ -3,7 +3,7 @@
   "mcp": {
     "shadcn": {
       "type": "local",
-      "command": ["cmd", "/c", "npx", "-y", "shadcn@latest", "mcp"],
+      "command": ["npx", "-y", "shadcn@latest", "mcp"],
       "cwd": "frontend/react",
       "enabled": true,
       "timeout": 30000
@@ -37,9 +37,9 @@
         "--transport",
         "stdio",
         "--dsn",
-        "postgres://postgres:postgres@localhost:5432/orange"
+        "postgres://postgres:postgres@127.0.0.1:5432/orange"
       ],
-      "enabled": true,
+      "enabled": false,
       "timeout": 60000
     },
     "chrome-devtools": {
@@ -59,12 +59,12 @@
       "type": "remote",
       "url": "https://mcp.sentry.dev/mcp",
       "oauth": {},
-      "enabled": true
+      "enabled": false
     },
     "docker": {
       "type": "local",
       "command": ["docker", "mcp", "gateway", "run"],
-      "enabled": true,
+      "enabled": false,
       "timeout": 60000
     }
   }

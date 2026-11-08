@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post
 import { RequireAuthority } from '../auth/decorators';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth-user';
-import { splitIds } from '../common/query.util';
+import { requiredIds } from '../common/query.util';
 import { ApiResult } from '../common/response';
 import { AddRoleDto, EditRoleDto, QueryRoleDto } from './roles.dto';
 import { RolesService } from './roles.service';
@@ -44,15 +44,15 @@ export class RolesController {
 
   @Delete(':roleId')
   @RequireAuthority('action#/system/role:delete')
-  async removeOne(@Param('roleId') roleId: string) {
-    await this.roles.remove([roleId]);
+  async removeOne(@Param('roleId') roleId: string, @CurrentUser() actor: AuthUser) {
+    await this.roles.remove([roleId], actor);
     return ApiResult.message('操作成功');
   }
 
   @Delete()
   @RequireAuthority('action#/system/role:delete')
-  async removeMany(@Query('ids') ids: string) {
-    await this.roles.remove(splitIds(ids));
+  async removeMany(@Query('ids') ids: string, @CurrentUser() actor: AuthUser) {
+    await this.roles.remove(requiredIds(ids), actor);
     return ApiResult.message('操作成功');
   }
 }

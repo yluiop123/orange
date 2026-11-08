@@ -6,6 +6,8 @@
  * does not treat as an escape character at all. Every query therefore appends
  * `ESCAPE '!'`, and the two helpers below escape `!`, `%` and `_`.
  */
+import { BusinessException } from './business-exception';
+
 export const LIKE_ESCAPE = "ESCAPE '!'";
 
 function escapeLike(value: string): string {
@@ -30,4 +32,13 @@ export function splitIds(ids: string | undefined): string[] {
     .split(',')
     .map((id) => id.trim())
     .filter((id) => id.length > 0);
+}
+
+/** The `?ids=` batch-delete parameter: missing or blank is a 40001. */
+export function requiredIds(ids: string | undefined): string[] {
+  const list = splitIds(ids);
+  if (list.length === 0) {
+    throw BusinessException.param('ids 不能为空');
+  }
+  return list;
 }

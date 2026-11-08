@@ -32,6 +32,7 @@ pub struct Group {
 pub struct Permission {
     pub id: String,
     pub name: Option<String>,
+    pub name_en: Option<String>,
     pub path: String,
     pub action: Option<String>,
     pub kind: String,

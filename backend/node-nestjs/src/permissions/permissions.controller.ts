@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
 import { RequireAuthority } from '../auth/decorators';
-import { splitIds } from '../common/query.util';
+import { requiredIds } from '../common/query.util';
 import { ApiResult } from '../common/response';
 import { AddChildPermissionDto, EditPermissionDto, QueryPermissionDto } from './permissions.dto';
 import { PermissionsService } from './permissions.service';
@@ -45,7 +45,7 @@ export class PermissionsController {
   @Delete()
   @RequireAuthority('action#/system/permission:delete')
   async removeMany(@Query('ids') ids: string) {
-    await this.permissions.remove(splitIds(ids));
+    await this.permissions.remove(requiredIds(ids));
     return ApiResult.message('操作成功');
   }
 }

@@ -17,6 +17,7 @@ from app.security.cookies import COOKIE_NAME, clear_refresh_cookie, set_refresh_
 from app.security.dependencies import (
     AuthContext,
     get_auth_context,
+    get_optional_auth_context,
     load_user_with_permissions,
 )
 from app.security.login_attempts import LoginAttemptService, SqlAlchemyAttemptRepository
@@ -124,7 +125,7 @@ def refresh_token(request: Request, db: Session = Depends(get_db)):
 @router.post("/logout")
 def logout(
     request: Request,
-    auth: AuthContext = Depends(get_auth_context),
+    auth: AuthContext | None = Depends(get_optional_auth_context),
     db: Session = Depends(get_db),
 ):
     raw_refresh = request.cookies.get(COOKIE_NAME)
@@ -135,14 +136,15 @@ def logout(
         except ApiError:
             pass
 
-    revoke_token(db, auth.claims.jti, ACCESS, auth.claims.expires_at)
+    if auth is not None:
+        revoke_token(db, auth.claims.jti, ACCESS, auth.claims.expires_at)
 
-    user = db.get(User, auth.user.id)
-    if user is not None:
-        # Bumping the version invalidates every other access/refresh token too.
-        user.token_version = (user.token_version or 0) + 1
-        user.update_time = utcnow()
-        db.commit()
+        user = db.get(User, auth.user.id)
+        if user is not None:
+            # Bumping the version invalidates every other access/refresh token too.
+            user.token_version = (user.token_version or 0) + 1
+            user.update_time = utcnow()
+            db.commit()
 
     response = success("ok", message="ok")
     clear_refresh_cookie(response)
@@ -159,10 +161,11 @@ def user_info(
 
 @router.get("/menus")
 def menus(
+    request: Request,
     auth: AuthContext = Depends(get_auth_context),
     db: Session = Depends(get_db),
 ):
-    return success(menu_tree(db))
+    return success(menu_tree(db, request.headers.get("locale")))
 
 
 @router.post("/change-password")

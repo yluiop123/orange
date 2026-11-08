@@ -2,6 +2,7 @@ package com.orange.security.jwt;
 
 import com.orange.domain.common.ErrorCode;
 import com.orange.security.SecurityResponseWriter;
+import com.orange.security.auth.TokenBlacklistService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -40,6 +41,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
     private final SecurityResponseWriter responseWriter;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -49,6 +51,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 JwtClaims claims = jwtUtil.parseAccessToken(token);
+                if (tokenBlacklistService.isRevoked(claims.tokenId())) {
+                    responseWriter.write(response, ErrorCode.UNAUTHORIZED);
+                    return;
+                }
                 UserDetails userDetails = userDetailsService.loadUserByUsername(claims.effectiveUsername());
                 if (jwtUtil.isAccessTokenValid(claims, userDetails)) {
                     if (mustChangePassword(userDetails, request)) {

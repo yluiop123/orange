@@ -12,10 +12,23 @@ use crate::domain::entities::Permission;
 use crate::error::AppError;
 use crate::repository::permissions;
 
+fn localized_name(permission: &Permission, english: bool) -> Option<String> {
+    if english {
+        permission
+            .name_en
+            .clone()
+            .filter(|name| !name.is_empty())
+            .or_else(|| permission.name.clone())
+    } else {
+        permission.name.clone()
+    }
+}
+
 fn build_node(
     id: &str,
     by_id: &HashMap<String, &Permission>,
     children: &HashMap<String, Vec<String>>,
+    english: bool,
 ) -> MenuInfo {
     let permission = by_id.get(id).expect("node exists");
     let child_ids = children.get(id).cloned().unwrap_or_default();
@@ -23,15 +36,18 @@ fn build_node(
         id: permission.id.clone(),
         path: permission.path.clone(),
         kind: permission.kind.clone(),
-        name: permission.name.clone(),
+        name: localized_name(permission, english),
         children: child_ids
             .iter()
-            .map(|child_id| build_node(child_id, by_id, children))
+            .map(|child_id| build_node(child_id, by_id, children, english))
             .collect(),
     }
 }
 
-pub async fn tree(pool: &Db) -> Result<Vec<MenuInfo>, AppError> {
+pub async fn tree(pool: &Db, locale: Option<&str>) -> Result<Vec<MenuInfo>, AppError> {
+    let english = locale
+        .map(|value| value.to_ascii_lowercase().starts_with("en"))
+        .unwrap_or(false);
     let all = permissions::all(pool).await?;
 
     let by_id: HashMap<String, &Permission> = all
@@ -79,6 +95,6 @@ pub async fn tree(pool: &Db) -> Result<Vec<MenuInfo>, AppError> {
 
     Ok(roots
         .iter()
-        .map(|root| build_node(root, &by_id, &children))
+        .map(|root| build_node(root, &by_id, &children, english))
         .collect())
 }

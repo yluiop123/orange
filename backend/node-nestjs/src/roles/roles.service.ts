@@ -97,6 +97,9 @@ export class RolesService {
     if (!role) {
       throw BusinessException.notFound('角色不存在');
     }
+    if (role.id === 'super' && !this.grantGuard.isSuperAdmin(actor)) {
+      throw BusinessException.forbidden('只有超级管理员可以修改 super 角色');
+    }
 
     if (dto.name !== undefined) {
       role.name = dto.name;
@@ -111,7 +114,7 @@ export class RolesService {
     await this.roles.save(role);
   }
 
-  async remove(ids: string[]): Promise<void> {
+  async remove(ids: string[], actor: AuthUser): Promise<void> {
     const requested = [...new Set(ids)];
     if (requested.length === 0) {
       throw BusinessException.notFound('角色不存在');
@@ -122,6 +125,9 @@ export class RolesService {
       const found = await repository.findBy({ id: In(requested) });
       if (found.length === 0) {
         throw BusinessException.notFound('角色不存在');
+      }
+      if (found.some((role) => role.id === 'super') && !this.grantGuard.isSuperAdmin(actor)) {
+        throw BusinessException.forbidden('只有超级管理员可以删除 super 角色');
       }
 
       for (const role of found) {

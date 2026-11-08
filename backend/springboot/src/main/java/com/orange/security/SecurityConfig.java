@@ -83,7 +83,9 @@ public class SecurityConfig {
         // 只允许明确列出的来源，不要使用 "*"
         configuration.setAllowedOrigins(corsProperties.allowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Locale"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization", "Content-Type", "Locale", "X-Trace-Id", "X-Request-Id"));
+        configuration.setExposedHeaders(List.of("X-Trace-Id"));
         // refresh token 使用 HttpOnly Cookie，跨域部署时必须允许凭证。
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

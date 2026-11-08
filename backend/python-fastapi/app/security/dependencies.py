@@ -109,5 +109,34 @@ def require(auth: AuthContext, authority: str) -> None:
         raise forbidden("无权限")
 
 
+def authority(required: str):
+    """Dependency that enforces one authority before body/query validation.
+
+    Declaring the check as a dependency (instead of calling `require` inside the
+    handler) keeps the documented pipeline: authentication, then authorization,
+    then DTO validation. An unauthorized caller must not be able to probe
+    parameter rules.
+    """
+
+    def dependency(auth: AuthContext = Depends(get_auth_context)) -> AuthContext:
+        require(auth, required)
+        return auth
+
+    return dependency
+
+
+def get_optional_auth_context(
+    request: Request, db: Session = Depends(get_db)
+) -> AuthContext | None:
+    """Authentication for logout: a missing or expired token is not an error."""
+    header = request.headers.get("authorization")
+    if not header or not header.lower().startswith("bearer "):
+        return None
+    try:
+        return get_auth_context(request, db)
+    except ApiError:
+        return None
+
+
 def authorities_of(permissions: list[Permission]) -> set[str]:
     return {permission.id for permission in permissions}

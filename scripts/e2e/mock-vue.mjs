@@ -1,8 +1,10 @@
 import { chromium } from 'playwright';
+import path from 'node:path';
+import os from 'node:os';
 import fs from 'node:fs';
 
 const base = process.env.E2E_BASE ?? 'http://localhost:5174';
-const shots = process.env.E2E_EVIDENCE ?? 'D:/User/Cache/Temp/opencode/evidence';
+const shots = process.env.E2E_EVIDENCE ?? path.join(os.tmpdir(), 'orange-evidence');
 fs.mkdirSync(shots, { recursive: true });
 
 const results = [];

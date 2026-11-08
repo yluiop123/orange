@@ -146,7 +146,7 @@ func (h *Handlers) deletePermission(c *gin.Context) {
 func (h *Handlers) deletePermissionIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {
-		fail(c, fieldError("ids", "权限ID列表不能为空"))
+		fail(c, domain.ParamError("ids 不能为空"))
 		return
 	}
 	if err := h.svc.DeletePermissions(c.Request.Context(), splitIDs(ids)); err != nil {

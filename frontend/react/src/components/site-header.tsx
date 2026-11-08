@@ -11,22 +11,16 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { findMenuChain, menuTitleKey } from "@/lib/menu";
+import { findMenuChain } from "@/lib/menu";
 import { useMenuStore } from '@/store/index';
 import React from 'react';
-import { useIntl } from 'react-intl';
 import { useLocation } from 'react-router';
 export function SiteHeader() {
   const location = useLocation();
-  const intl = useIntl()
   const menus = useMenuStore((state) => state.menus);
   const pathname: string = location.pathname;
-  const titles: string[] = findMenuChain(menus, pathname).map((node) =>
-    intl.formatMessage({
-      id: menuTitleKey(node.path),
-      defaultMessage: node.name,
-    }),
-  );
+  // 面包屑标题同样来自 /auth/menus，而不是前端翻译表
+  const titles: string[] = findMenuChain(menus, pathname).map((node) => node.name);
   return (
     <header className="sticky top-0 z-50 bg-background flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">

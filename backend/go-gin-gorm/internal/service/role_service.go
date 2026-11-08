@@ -151,6 +151,9 @@ func (s *Service) UpdateRole(ctx context.Context, actor *auth.Principal, id stri
 	if role == nil {
 		return domain.NotFound("角色不存在")
 	}
+	if role.ID == "super" && !actor.IsSuper() {
+		return domain.Forbidden("只有超级管理员可以修改 super 角色")
+	}
 	if update.Name != nil {
 		role.Name = *update.Name
 	}
@@ -178,7 +181,7 @@ func (s *Service) UpdateRole(ctx context.Context, actor *auth.Principal, id stri
 	return nil
 }
 
-func (s *Service) DeleteRoles(ctx context.Context, ids []string) error {
+func (s *Service) DeleteRoles(ctx context.Context, actor *auth.Principal, ids []string) error {
 	requested := dedupeStrings(ids)
 	roles, err := s.store.RolesByIDs(ctx, requested)
 	if err != nil {
@@ -188,6 +191,9 @@ func (s *Service) DeleteRoles(ctx context.Context, ids []string) error {
 		return domain.NotFound("角色不存在")
 	}
 	for _, role := range roles {
+		if role.ID == "super" && !actor.IsSuper() {
+			return domain.Forbidden("只有超级管理员可以删除 super 角色")
+		}
 		referenced, err := s.store.ExistsUserWithRoleIDs(ctx, []string{role.ID})
 		if err != nil {
 			return err

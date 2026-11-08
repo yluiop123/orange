@@ -130,6 +130,9 @@ pub async fn edit(
     let role = role_repo::find(pool, id)
         .await?
         .ok_or_else(|| AppError::business("角色不存在"))?;
+    if role.id == "super" && !caller.is_super() {
+        return Err(AppError::forbidden("只有超级管理员可以修改 super 角色"));
+    }
 
     let name = match req.name.as_deref() {
         Some(value) => {
@@ -159,7 +162,7 @@ pub async fn edit(
     Ok(())
 }
 
-pub async fn delete(pool: &Db, ids: &[String]) -> Result<(), AppError> {
+pub async fn delete(pool: &Db, caller: &AuthUser, ids: &[String]) -> Result<(), AppError> {
     let mut existing = Vec::new();
     for id in ids {
         if let Some(role) = role_repo::find(pool, id).await? {
@@ -168,6 +171,9 @@ pub async fn delete(pool: &Db, ids: &[String]) -> Result<(), AppError> {
     }
     if existing.is_empty() {
         return Err(AppError::business("角色不存在"));
+    }
+    if existing.iter().any(|role| role.id == "super") && !caller.is_super() {
+        return Err(AppError::forbidden("只有超级管理员可以删除 super 角色"));
     }
 
     for role in &existing {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/orange/backend-go-gin-gorm/internal/domain"
 	"github.com/orange/backend-go-gin-gorm/internal/service"
 )
 
@@ -121,7 +122,7 @@ func (h *Handlers) updateRole(c *gin.Context) {
 }
 
 func (h *Handlers) deleteRole(c *gin.Context) {
-	if err := h.svc.DeleteRoles(c.Request.Context(), []string{c.Param("roleId")}); err != nil {
+	if err := h.svc.DeleteRoles(c.Request.Context(), actorOf(c), []string{c.Param("roleId")}); err != nil {
 		fail(c, err)
 		return
 	}
@@ -131,10 +132,10 @@ func (h *Handlers) deleteRole(c *gin.Context) {
 func (h *Handlers) deleteRoleIDs(c *gin.Context) {
 	ids := c.Query("ids")
 	if strings.TrimSpace(ids) == "" {
-		fail(c, fieldError("ids", "角色ID列表不能为空"))
+		fail(c, domain.ParamError("ids 不能为空"))
 		return
 	}
-	if err := h.svc.DeleteRoles(c.Request.Context(), splitIDs(ids)); err != nil {
+	if err := h.svc.DeleteRoles(c.Request.Context(), actorOf(c), splitIDs(ids)); err != nil {
 		fail(c, err)
 		return
 	}

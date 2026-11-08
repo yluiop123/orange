@@ -1,9 +1,7 @@
 ﻿<script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { getMenuIcon } from '@/config/menu-icons'
-import { menuTitle } from '@/lib/menu-title'
 import { isPathWithin, isSamePath } from '@/lib/path'
 import type { MenuNode } from '@/lib/access'
 
@@ -11,10 +9,10 @@ defineOptions({ name: 'MenuTreeItem' })
 
 const props = defineProps<{ node: MenuNode }>()
 const route = useRoute()
-const { locale } = useI18n()
 
 const icon = computed(() => getMenuIcon(props.node.path, props.node.type))
-const title = computed(() => menuTitle(props.node.path, props.node.name, locale.value))
+// 标题来自 /auth/menus（数据库名称，后端按 Locale 本地化）
+const title = computed(() => props.node.name)
 const leafActive = computed(
   () => props.node.children.length === 0 && isSamePath(route.path, props.node.path),
 )

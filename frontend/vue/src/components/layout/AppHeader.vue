@@ -8,9 +8,8 @@ import ThemeToggle from './ThemeToggle.vue'
 import { useMenuStore } from '@/stores/menu'
 import { useUiStore } from '@/stores/ui'
 import { findMenuChain } from '@/lib/menu'
-import { menuTitle } from '@/lib/menu-title'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const route = useRoute()
 const menuStore = useMenuStore()
 const ui = useUiStore()
@@ -123,7 +122,7 @@ const breadcrumbs = computed(() => {
   const chain = findMenuChain(menuStore.menus, route.path)
   return chain.length > 0
     ? chain.map((node, index) => ({
-        title: menuTitle(node.path, node.name, locale.value),
+        title: node.name,
         to: index === chain.length - 1 ? undefined : node.path,
         disabled: index === chain.length - 1,
       }))
