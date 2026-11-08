@@ -98,14 +98,9 @@ VITE_MOCK_ENABLE=false VITE_PROXY_TARGET=http://127.0.0.1:8000 pnpm dev
 启动顺序是数据库 → 后端 → 前端。前端也可以单独启动：开发模式默认启用浏览器内
 Mock，不需要后端即可浏览演示页面。
 
-JWT 密钥不入库。在仓库根目录用 OpenSSL 把开发密钥对生成到 `backend/keys/`，并把
-`JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY` 指向它即可使用 RS256；未配置时后端回退到
-`JWT_SECRET` 的 HS256。
-
-```bash
-openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out backend/keys/jwt-private.pem
-openssl rsa -pubout -in backend/keys/jwt-private.pem -out backend/keys/jwt-public.pem
-```
+JWT 密钥不入库。把开发密钥对生成到 `backend/keys/`，并将 `JWT_PRIVATE_KEY` /
+`JWT_PUBLIC_KEY` 指向它即可使用 RS256；未配置时后端回退到 `JWT_SECRET` 的 HS256。
+OpenSSL 命令与变量优先级见[后端配置](backend/README.zh-CN.md#jwt-密钥)。
 
 ## 常用配置
 

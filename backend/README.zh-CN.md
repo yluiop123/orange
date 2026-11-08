@@ -109,6 +109,8 @@ Rust 在认证之后安装记录器，只记录到达 handler 的请求。“Rep
   `SPRING_PROFILES_ACTIVE=local`），Go、NestJS、ASP.NET Core 用 `.env.local`，
   Rust、FastAPI 用 `.env`。
 
+### JWT 密钥
+
 在仓库根目录用 OpenSSL 把开发密钥对生成到 `backend/keys/`：
 
 ```bash

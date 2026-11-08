@@ -124,6 +124,8 @@ file at startup. Only the precedence rules are shared; each stack's README and
   `SPRING_PROFILES_ACTIVE=local` for Spring Boot, `.env.local` for Go, NestJS and
   ASP.NET Core, `.env` for Rust and FastAPI.
 
+### JWT keys
+
 Generate a development RSA pair with OpenSSL from the repository root into
 `backend/keys/`:
 
